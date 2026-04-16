@@ -1,9 +1,19 @@
 {
-  "current": "V2.67.3",
+  "current": "V2.67.4",
   "whatsNew": [
     "Security - Passcode-protected events no longer fetch data until passcode is verified"
   ],
   "changelog": [
+    {
+      "version": "V2.67.4",
+      "date": "2026-04-16",
+      "summary": "Vendor contact indicator fix (VE-02)",
+      "changes": [
+        "Bugfix - VendorsTab: vendors with 'Deposit Paid' or 'Paid in Full' status but no contact log now show neutral 'No contact log' in muted gray instead of alarming red 'Never contacted' with bell icon"
+      ],
+      "roadmap": [],
+      "knownIssues": []
+    },
     {
       "version": "V2.67.3",
       "date": "2026-04-16",

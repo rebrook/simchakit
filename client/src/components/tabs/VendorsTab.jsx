@@ -297,16 +297,19 @@ export function VendorsTab({ state, updateData, appendAuditLog, isArchived, show
                 {/* Last contacted */}
                 {FOLLOW_UP_STATUSES.has(v.status) && (() => {
                   const { date, daysAgo } = getLastContacted(v);
-                  const stale = daysAgo === null || daysAgo >= 60;
+                  const isPaidStatus = v.status === "Deposit Paid" || v.status === "Paid in Full";
+                  const stale = daysAgo === null ? !isPaidStatus : daysAgo >= 60; // Not stale if paid but no log
                   const warm  = daysAgo !== null && daysAgo < 30;
-                  const color = warm ? "var(--green)" : stale ? "var(--red)" : "var(--gold)";
+                  const noLog = daysAgo === null;
+                  const color = noLog && isPaidStatus ? "var(--text-muted)" : warm ? "var(--green)" : stale ? "var(--red)" : "var(--gold)";
                   const label = date
                     ? `Last contact: ${fmt(date)} (${daysAgo}d ago)`
-                    : "Never contacted";
+                    : isPaidStatus ? "No contact log" : "Never contacted";
+                  const icon = noLog && isPaidStatus ? "📋" : stale ? "🔔" : warm ? "✓" : "⏱";
                   return (
                     <div style={{ fontSize:11, color, fontWeight:600, marginTop:6,
                       display:"flex", alignItems:"center", gap:5 }}>
-                      <span>{stale ? "🔔" : warm ? "✓" : "⏱"}</span>
+                      <span>{icon}</span>
                       {label}
                     </div>
                   );

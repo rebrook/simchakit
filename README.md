@@ -2,7 +2,7 @@
 
 A real-time event planning web app for celebrations — B'nei Mitzvot, weddings, and other simchas.
 
-![Version](https://img.shields.io/badge/version-2.67.1-blue)
+![Version](https://img.shields.io/badge/version-2.67.4-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
 ## Screenshots
