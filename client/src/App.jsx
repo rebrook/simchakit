@@ -726,9 +726,15 @@ export default function App() {
       </main>
 
       <footer className="app-footer">
-        <span className="footer-event-id">✡ SimchaKit · Event ID: {EVENT_ID}</span>
+        <span style={{ fontSize:11, color:"var(--text-muted)" }}>
+          Designed & Built by <a href="mailto:ryan@brook-creative.com" className="footer-link">Ryan Brook</a>
+        </span>
         <span>·</span>
-        <span style={{ fontSize:11, color:"var(--text-muted)" }}>Brook Creative LLC</span>
+        <span style={{ fontSize:11, color:"var(--text-muted)" }}>Powered by Claude</span>
+        <span>·</span>
+        <span className="footer-event-id">Event ID: {EVENT_ID}</span>
+        <span>·</span>
+        <a href="https://github.com/ryanbrook/simchakit" target="_blank" rel="noopener" className="footer-link">GitHub</a>
         {adminPassword && (<>
           <span>·</span>
           <a href="/logs" target="_blank" rel="noopener" className="footer-link">Server Logs</a>

@@ -1,9 +1,19 @@
 {
-  "current": "V2.67.5",
+  "current": "V2.67.6",
   "whatsNew": [
-    "Security - Passcode-protected events no longer fetch data until passcode is verified"
+    "Footer now shows 'Designed & Built by Ryan Brook' with email link, 'Powered by Claude', and GitHub link"
   ],
   "changelog": [
+    {
+      "version": "V2.67.6",
+      "date": "2026-04-16",
+      "summary": "Footer branding update",
+      "changes": [
+        "UI - Footer now shows 'Designed & Built by Ryan Brook' with email link, 'Powered by Claude', and GitHub link to match DraftKit branding"
+      ],
+      "roadmap": [],
+      "knownIssues": []
+    },
     {
       "version": "V2.67.5",
       "date": "2026-04-16",
