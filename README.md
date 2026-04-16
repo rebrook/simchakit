@@ -1,0 +1,129 @@
+# SimchaKit
+
+A real-time event planning web app for celebrations — B'nei Mitzvot, weddings, and other simchas.
+
+![Version](https://img.shields.io/badge/version-2.67.1-blue)
+![License](https://img.shields.io/badge/license-MIT-green)
+
+## Features
+
+- **Guest Management** — households, people, formal names, dietary requirements, RSVP tracking
+- **Sub-Event Support** — track attendance across multiple events (service, kiddush, reception)
+- **Budget Tracking** — expenses, payments, vendor costs, gratuity calculator
+- **Vendor Management** — contacts, contracts, payment schedules
+- **Task Lists** — categorized to-dos with due dates and completion tracking
+- **Seating Charts** — table management with drag-and-drop assignment
+- **Gift Tracking** — record gifts and track thank-you notes
+- **Favor Management** — track sweatshirts, kippot, or other party favors by size
+- **Day-Of Mode** — streamlined mobile view for event day with hot sheet and vendor contacts
+- **Real-Time Sync** — WebSocket-based updates across all connected devices
+- **Theming** — customizable color palettes and event branding
+- **Print Brief** — generate a comprehensive event summary document
+- **CSV Import/Export** — import guest lists, export for invitation vendors
+
+## Tech Stack
+
+- **Frontend**: Vite + React 18
+- **Backend**: Node.js + Express + WebSocket
+- **Data**: JSON file storage (per-event)
+- **Styling**: Custom CSS with CSS variables for theming
+
+## Quick Start
+
+### Prerequisites
+
+- Node.js v18, v20, or v22
+- npm v8+
+
+### Installation
+
+```bash
+# Clone the repository
+git clone https://github.com/your-username/simchakit.git
+cd simchakit
+
+# Install server dependencies
+npm install
+
+# Install client dependencies
+cd client
+npm install
+
+# Build the client
+npm run build
+cd ..
+
+# Start the server
+node server.js
+```
+
+The app will be available at `http://localhost:3000/simcha/`
+
+### Creating Your First Event
+
+```bash
+# Create an event folder
+mkdir -p public/my-event-2026
+
+# Copy the app shell
+cp client/dist/index.html public/my-event-2026/index.html
+```
+
+Navigate to `http://localhost:3000/simcha/my-event-2026/` — the server automatically creates the data file on first load.
+
+## Documentation
+
+- **[DEPLOY.md](DEPLOY.md)** — Technical deployment reference
+- **[HOW_TO_DEPLOY.md](HOW_TO_DEPLOY.md)** — Plain-English step-by-step guide
+
+## Project Structure
+
+```
+simchakit/
+├── client/                 # Vite + React frontend
+│   └── src/
+│       ├── components/     # Tab and modal components
+│       ├── constants/      # Shared constants
+│       ├── hooks/          # Custom React hooks
+│       └── utils/          # Utility functions
+├── src/                    # Express server modules
+│   ├── router.js           # API routes
+│   ├── state.js            # State management
+│   └── ws.js               # WebSocket handler
+├── public/                 # Served static files
+├── server.js               # Express entry point
+├── deploy.sh               # Build and deploy script
+└── changelog.json          # Version history
+```
+
+## Deployment
+
+SimchaKit is designed to run on any server with Node.js — a VPS, home server, NAS, or local machine.
+
+```bash
+# Deploy updates (after copying changed source files)
+bash deploy.sh
+```
+
+See [HOW_TO_DEPLOY.md](HOW_TO_DEPLOY.md) for detailed instructions.
+
+## Development
+
+```bash
+# Start the Express server (terminal 1)
+node server.js
+
+# Start Vite dev server with hot reload (terminal 2)
+cd client
+npm run dev
+```
+
+The dev server runs at `http://localhost:5173/simcha/` with API calls proxied to the Express server.
+
+## License
+
+MIT License — see [LICENSE](LICENSE) for details.
+
+## Author
+
+Brook Creative LLC

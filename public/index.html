@@ -1,0 +1,1230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SimchaKit</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --font-display: "Cormorant Garamond", Georgia, serif;
+      --font-body:    "DM Sans", system-ui, sans-serif;
+      --bg-base:      #faf8f5;
+      --bg-surface:   #ffffff;
+      --bg-subtle:    #f4f1ec;
+      --border:       #e2ddd5;
+      --border-strong:#c9c2b6;
+      --text-primary: #1c1614;
+      --text-secondary:#5c5248;
+      --text-muted:   #9c9188;
+      --gold:         #b5821a;
+      --gold-light:   #f5ecd5;
+      --green:        #2d6a4f;
+      --green-light:  #d8f3dc;
+      --red:          #9b2335;
+      --red-light:    #fde8e8;
+      --shadow-sm:    0 1px 3px rgba(28,22,20,0.08), 0 1px 2px rgba(28,22,20,0.04);
+      --shadow-md:    0 4px 12px rgba(28,22,20,0.10), 0 2px 4px rgba(28,22,20,0.06);
+      --shadow-lg:    0 12px 32px rgba(28,22,20,0.14), 0 4px 8px rgba(28,22,20,0.08);
+      --radius-sm:    6px;
+      --radius-md:    10px;
+      --radius-lg:    16px;
+      --radius-xl:    24px;
+      --transition:   0.18s ease;
+    }
+
+    html, body {
+      min-height: 100%;
+      background: var(--bg-base);
+      color: var(--text-primary);
+      font-family: var(--font-body);
+      font-size: 14px;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── Header ── */
+    .header {
+      background: var(--bg-surface);
+      border-bottom: 1px solid var(--border);
+      padding: 0 24px;
+      box-shadow: var(--shadow-sm);
+    }
+    .header-inner {
+      max-width: 1000px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      height: 60px;
+    }
+    .header-star { font-size: 22px; line-height: 1; }
+    .header-title {
+      font-family: var(--font-display);
+      font-size: 22px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+    .header-sub {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-left: 4px;
+      margin-top: 2px;
+    }
+
+    /* ── Page ── */
+    .page {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 40px 24px 64px;
+    }
+
+    .page-title {
+      font-family: var(--font-display);
+      font-size: 28px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 6px;
+    }
+    .page-sub {
+      font-size: 14px;
+      color: var(--text-muted);
+      margin-bottom: 32px;
+    }
+
+    /* ── Event grid ── */
+    .event-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 20px;
+    }
+
+    /* ── Event card ── */
+    .event-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-sm);
+      overflow: hidden;
+      text-decoration: none;
+      color: inherit;
+      display: flex;
+      flex-direction: column;
+      transition: transform var(--transition), box-shadow var(--transition);
+      cursor: pointer;
+    }
+    .event-card:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+      text-decoration: none;
+    }
+
+    .event-card-header {
+      padding: 20px 20px 16px;
+      position: relative;
+    }
+    .event-card-icon {
+      font-size: 28px;
+      margin-bottom: 10px;
+      line-height: 1;
+      display: block;
+    }
+    .event-card-name {
+      font-family: var(--font-display);
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--text-primary);
+      line-height: 1.2;
+      margin-bottom: 4px;
+    }
+    .event-card-theme {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-bottom: 2px;
+    }
+    .event-card-unnamed {
+      font-family: var(--font-display);
+      font-size: 18px;
+      font-weight: 400;
+      color: var(--text-muted);
+      font-style: italic;
+    }
+
+    .event-card-body {
+      padding: 16px 20px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      justify-content: center;
+    }
+    .event-card-detail {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+    .event-card-detail-icon { font-size: 13px; flex-shrink: 0; }
+
+    .event-card-footer {
+      padding: 12px 20px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .event-card-open {
+      font-size: 13px;
+      font-weight: 600;
+      color: inherit;
+    }
+    .event-card-arrow {
+      font-size: 16px;
+      color: var(--text-muted);
+      transition: transform var(--transition);
+    }
+    .event-card:hover .event-card-arrow {
+      transform: translateX(4px);
+    }
+
+    /* ── Tags ── */
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 8px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+    .tag-archived {
+      background: var(--gold-light);
+      color: var(--gold);
+    }
+    .tag-type {
+      background: var(--bg-subtle);
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+    }
+
+    /* ── Accent stripe ── */
+    .accent-stripe {
+      height: 4px;
+      width: 100%;
+    }
+
+    /* ── Loading / empty / error states ── */
+    .state-box {
+      text-align: center;
+      padding: 64px 24px;
+      color: var(--text-muted);
+    }
+    .state-box-icon { font-size: 40px; margin-bottom: 16px; }
+    .state-box-title {
+      font-family: var(--font-display);
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 8px;
+    }
+    .state-box-desc { font-size: 14px; line-height: 1.6; max-width: 400px; margin: 0 auto; }
+
+    /* ── Footer ── */
+    .footer {
+      text-align: center;
+      padding: 20px;
+      font-size: 11px;
+      color: var(--text-muted);
+      border-top: 1px solid var(--border);
+      margin-top: 40px;
+    }
+
+    /* ── Spinner ── */
+    .spinner {
+      display: inline-block;
+      width: 32px; height: 32px;
+      border: 3px solid var(--border);
+      border-top-color: var(--text-muted);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin-bottom: 16px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    @media (max-width: 600px) {
+      .page { padding: 24px 14px 48px; }
+      .event-grid { grid-template-columns: 1fr; gap: 14px; }
+      .page-title { font-size: 22px; }
+    }
+
+    /* ── Page header row ── */
+    .page-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 6px;
+      flex-wrap: wrap;
+    }
+    .btn-new-event {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 16px;
+      background: var(--text-primary);
+      color: var(--bg-surface);
+      border: none;
+      border-radius: var(--radius-md);
+      font-family: var(--font-body);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      min-height: 36px;
+      transition: opacity var(--transition);
+      flex-shrink: 0;
+    }
+    .btn-new-event:hover { opacity: 0.85; }
+
+    /* ── New event form ── */
+    .new-event-form {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      margin-bottom: 24px;
+      box-shadow: var(--shadow-sm);
+    }
+    .new-event-form-title {
+      font-family: var(--font-display);
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 12px;
+    }
+    .new-event-row {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      flex-wrap: wrap;
+    }
+    .new-event-input-wrap { flex: 1; min-width: 180px; }
+    .new-event-input {
+      width: 100%;
+      padding: 9px 12px;
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-sm);
+      font-family: var(--font-body);
+      font-size: 14px;
+      color: var(--text-primary);
+      background: var(--bg-surface);
+      outline: none;
+      transition: border-color var(--transition);
+      -webkit-appearance: none;
+    }
+    .new-event-input:focus { border-color: var(--text-secondary); }
+    .new-event-preview {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 5px;
+      font-family: var(--font-mono, monospace);
+      min-height: 15px;
+    }
+    .new-event-preview.valid   { color: var(--green); }
+    .new-event-preview.invalid { color: var(--red); }
+    .new-event-actions {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      padding-top: 2px;
+    }
+    .btn-create {
+      padding: 9px 18px;
+      background: var(--green);
+      color: white;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-family: var(--font-body);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      min-height: 36px;
+      transition: opacity var(--transition);
+      white-space: nowrap;
+    }
+    .btn-create:hover:not(:disabled) { opacity: 0.85; }
+    .btn-create:disabled { opacity: 0.45; cursor: not-allowed; }
+    .btn-cancel-create {
+      background: none;
+      border: none;
+      font-family: var(--font-body);
+      font-size: 13px;
+      color: var(--text-muted);
+      cursor: pointer;
+      padding: 4px 0;
+      transition: color var(--transition);
+    }
+    .btn-cancel-create:hover { color: var(--text-primary); }
+    .new-event-error {
+      font-size: 12px;
+      color: var(--red);
+      margin-top: 8px;
+      min-height: 16px;
+    }
+
+    /* ── Delete button on event cards ── */
+    .event-card-delete {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: rgba(0,0,0,0.08);
+      border: none;
+      cursor: pointer;
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: opacity var(--transition), background var(--transition);
+      color: var(--text-secondary);
+      line-height: 1;
+    }
+    .event-card:hover .event-card-delete { opacity: 1; }
+    .event-card-delete:hover { background: rgba(155,35,53,0.15); color: var(--red); }
+    @media (max-width: 600px) {
+      .event-card-delete { opacity: 1; }
+    }
+
+    /* ── Delete confirmation overlay on card ── */
+    .delete-confirm-overlay {
+      position: fixed;
+      background: var(--bg-surface);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      z-index: 1000;
+      box-shadow: var(--shadow-lg);
+      border: 1px solid var(--border);
+      width: 280px;
+    }
+    .delete-confirm-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 999;
+      background: transparent;
+    }
+    .delete-confirm-title {
+      font-family: var(--font-display);
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--red);
+    }
+    .delete-confirm-desc {
+      font-size: 12px;
+      color: var(--text-secondary);
+      line-height: 1.5;
+    }
+    .delete-confirm-input {
+      width: 100%;
+      padding: 8px 10px;
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-sm);
+      font-family: var(--font-mono, monospace);
+      font-size: 13px;
+      color: var(--text-primary);
+      background: var(--bg-surface);
+      outline: none;
+      -webkit-appearance: none;
+    }
+    .delete-confirm-input:focus { border-color: var(--red); }
+    .delete-confirm-actions {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    .btn-confirm-delete {
+      padding: 7px 14px;
+      background: var(--red);
+      color: white;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-family: var(--font-body);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      min-height: 32px;
+      transition: opacity var(--transition);
+    }
+    .btn-confirm-delete:hover:not(:disabled) { opacity: 0.85; }
+    .btn-confirm-delete:disabled { opacity: 0.45; cursor: not-allowed; }
+    .btn-cancel-delete {
+      background: none;
+      border: none;
+      font-family: var(--font-body);
+      font-size: 12px;
+      color: var(--text-muted);
+      cursor: pointer;
+      padding: 4px 0;
+    }
+    .btn-cancel-delete:hover { color: var(--text-primary); }
+    .delete-confirm-error {
+      font-size: 11px;
+      color: var(--red);
+      min-height: 14px;
+    }
+    .auth-screen {
+      min-height: calc(100vh - 61px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px 16px;
+    }
+    .auth-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-lg);
+      padding: 40px 36px;
+      width: 100%;
+      max-width: 380px;
+      text-align: center;
+    }
+    .auth-icon {
+      font-size: 36px;
+      margin-bottom: 16px;
+      line-height: 1;
+    }
+    .auth-title {
+      font-family: var(--font-display);
+      font-size: 24px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 6px;
+    }
+    .auth-sub {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-bottom: 24px;
+      line-height: 1.5;
+    }
+    .auth-input {
+      width: 100%;
+      padding: 12px 14px;
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-md);
+      font-family: var(--font-body);
+      font-size: 15px;
+      color: var(--text-primary);
+      background: var(--bg-surface);
+      outline: none;
+      transition: border-color var(--transition);
+      margin-bottom: 12px;
+      -webkit-appearance: none;
+    }
+    .auth-input:focus { border-color: var(--text-secondary); }
+    .auth-btn {
+      width: 100%;
+      padding: 12px;
+      background: var(--text-primary);
+      color: var(--bg-surface);
+      border: none;
+      border-radius: var(--radius-md);
+      font-family: var(--font-body);
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity var(--transition);
+      min-height: 44px;
+    }
+    .auth-btn:hover { opacity: 0.85; }
+    .auth-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+    .auth-error {
+      font-size: 13px;
+      color: var(--red);
+      margin-top: 10px;
+      min-height: 18px;
+    }
+
+    /* ── Settings panel ── */
+    .settings-trigger {
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-family: var(--font-body);
+      font-size: 12px;
+      color: var(--text-muted);
+      padding: 4px 0;
+      transition: color var(--transition);
+    }
+    .settings-trigger:hover { color: var(--text-secondary); }
+    .settings-panel {
+      max-width: 420px;
+      margin: 24px auto 0;
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-md);
+      padding: 24px;
+      text-align: left;
+    }
+    .settings-title {
+      font-family: var(--font-display);
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 16px;
+    }
+    .settings-label {
+      display: block;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-muted);
+      margin-bottom: 5px;
+    }
+    .settings-input {
+      width: 100%;
+      padding: 9px 12px;
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-sm);
+      font-family: var(--font-body);
+      font-size: 13px;
+      color: var(--text-primary);
+      background: var(--bg-surface);
+      outline: none;
+      margin-bottom: 10px;
+      -webkit-appearance: none;
+    }
+    .settings-input:focus { border-color: var(--text-secondary); }
+    .settings-btn {
+      padding: 9px 18px;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-family: var(--font-body);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      min-height: 36px;
+      transition: opacity var(--transition);
+    }
+    .settings-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+    .settings-btn-primary { background: var(--text-primary); color: var(--bg-surface); }
+    .settings-btn-primary:hover:not(:disabled) { opacity: 0.85; }
+    .settings-btn-ghost {
+      background: none;
+      color: var(--red);
+      padding-left: 0;
+    }
+    .settings-btn-ghost:hover:not(:disabled) { opacity: 0.7; }
+    .settings-msg {
+      font-size: 12px;
+      margin-top: 8px;
+      min-height: 16px;
+    }
+    .settings-msg.ok  { color: var(--green); }
+    .settings-msg.err { color: var(--red); }
+    .settings-divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 18px 0;
+    }
+  </style>
+</head>
+<body>
+
+  <header class="header">
+    <div class="header-inner">
+      <span class="header-star">✡</span>
+      <div>
+        <div class="header-title">SimchaKit</div>
+        <div class="header-sub">Event Planning</div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Auth screen — shown when picker is password-protected and not yet verified -->
+  <div id="auth-screen" style="display:none">
+    <div class="auth-screen">
+      <div class="auth-card">
+        <div class="auth-icon">🔐</div>
+        <div class="auth-title">SimchaKit</div>
+        <div class="auth-sub">Enter your picker password to access your events.</div>
+        <input id="auth-input" class="auth-input" type="password"
+          placeholder="Password" autocomplete="current-password"
+          aria-label="Picker password" />
+        <button id="auth-btn" class="auth-btn">Unlock</button>
+        <div id="auth-error" class="auth-error"></div>
+      </div>
+    </div>
+  </div>
+
+  <main id="main-content" class="page" style="display:none">
+    <div class="page-header">
+      <div>
+        <div class="page-title">Your Events</div>
+        <div class="page-sub">Select an event to open its planning dashboard.</div>
+      </div>
+      <button class="btn-new-event" onclick="showNewEventForm()">＋ New Event</button>
+    </div>
+    <div id="new-event-form" style="display:none">
+      <div class="new-event-form">
+        <div class="new-event-form-title">Create New Event</div>
+        <div class="new-event-row">
+          <div class="new-event-input-wrap">
+            <input class="new-event-input" id="new-event-id" type="text"
+              placeholder="e.g. smith-wedding-2026"
+              autocomplete="off" autocapitalize="none" spellcheck="false"
+              oninput="onNewEventInput(this)" />
+            <div class="new-event-preview" id="new-event-preview"></div>
+          </div>
+          <div class="new-event-actions">
+            <button class="btn-create" id="btn-create" disabled>Create</button>
+            <button class="btn-cancel-create" onclick="hideNewEventForm()">Cancel</button>
+          </div>
+        </div>
+        <div class="new-event-error" id="new-event-error"></div>
+      </div>
+    </div>
+    <div id="content">
+      <div class="state-box">
+        <div class="spinner"></div>
+        <div class="state-box-desc">Loading events…</div>
+      </div>
+    </div>
+  </main>
+
+  <footer id="main-footer" class="footer" style="display:none">
+    SimchaKit &nbsp;·&nbsp; Brook Creative LLC
+    &nbsp;·&nbsp;
+    <button class="settings-trigger" id="settings-trigger" onclick="toggleSettings()">⚙ Picker Settings</button>
+    <div id="settings-panel" style="display:none">
+      <div class="settings-panel">
+        <div class="settings-title">Picker Settings</div>
+        <label class="settings-label" for="s-current">Current Password</label>
+        <input class="settings-input" id="s-current" type="password"
+          placeholder="Leave blank if none set" autocomplete="current-password" />
+        <label class="settings-label" for="s-new">New Password</label>
+        <input class="settings-input" id="s-new" type="password"
+          placeholder="Min 8 characters" autocomplete="new-password" />
+        <label class="settings-label" for="s-confirm">Confirm New Password</label>
+        <input class="settings-input" id="s-confirm" type="password"
+          placeholder="Repeat new password" autocomplete="new-password" />
+        <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-top:4px">
+          <button class="settings-btn settings-btn-primary" id="s-save-btn" onclick="savePickerPassword()">
+            Save Password
+          </button>
+          <button class="settings-btn settings-btn-ghost" onclick="removePickerPassword()">
+            Remove Protection
+          </button>
+        </div>
+        <div id="s-msg" class="settings-msg"></div>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    var PALETTES = {
+      "rose":      { accent: "#c4637a", light: "#fdf0f3" },
+      "navy-gold": { accent: "#b8962e", light: "#fdf8ec" },
+      "forest":    { accent: "#3d7a5e", light: "#eef6f1" },
+      "purple":    { accent: "#6b4fa0", light: "#f3eefa" },
+      "slate":     { accent: "#3d5a80", light: "#eef2f8" },
+      "copper":    { accent: "#b06030", light: "#fdf4ee" },
+      "teal":      { accent: "#2a8a8a", light: "#eaf6f6" },
+      "charcoal":  { accent: "#4a4a4a", light: "#f4f4f4" },
+      "blush":     { accent: "#c47a8a", light: "#fdf0f3" },
+    };
+
+    var EVENT_TYPE_LABELS = {
+      "bat-mitzvah":  "Bat Mitzvah",
+      "bar-mitzvah":  "Bar Mitzvah",
+      "bnei-mitzvah": "B'nei Mitzvah",
+      "wedding":      "Wedding",
+      "baby-naming":  "Baby Naming",
+      "graduation":   "Graduation",
+      "anniversary":  "Anniversary",
+      "birthday":     "Birthday",
+      "other":        "Celebration",
+    };
+
+    var EVENT_TYPE_ICONS = {
+      "bat-mitzvah":  "✡",
+      "bar-mitzvah":  "✡",
+      "bnei-mitzvah": "✡",
+      "wedding":      "💍",
+      "baby-naming":  "👶",
+      "graduation":   "🎓",
+      "anniversary":  "🥂",
+      "birthday":     "🎂",
+      "other":        "🎉",
+    };
+
+    var SESSION_KEY = "simchakit_picker_auth";
+
+    function formatDate(d) {
+      if (!d) return "";
+      var parts = d.split("-");
+      if (parts.length !== 3) return d;
+      var months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+      var m = parseInt(parts[1], 10) - 1;
+      return months[m] + " " + parseInt(parts[2], 10) + ", " + parts[0];
+    }
+
+    function esc(str) {
+      return String(str || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+    }
+
+    function showMain() {
+      document.getElementById("auth-screen").style.display = "none";
+      document.getElementById("main-content").style.display = "block";
+      document.getElementById("main-footer").style.display = "block";
+      loadEvents();
+    }
+
+    function showAuth() {
+      document.getElementById("auth-screen").style.display = "block";
+      document.getElementById("main-content").style.display = "none";
+      document.getElementById("main-footer").style.display = "none";
+      setTimeout(function() {
+        var input = document.getElementById("auth-input");
+        if (input) input.focus();
+      }, 50);
+    }
+
+    // ── Auth flow ────────────────────────────────────────────────────────────
+    function init() {
+      fetch("/simcha/api/picker/status")
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+          if (!data.protected) {
+            // No password set — show main directly
+            showMain();
+            return;
+          }
+          // Check session
+          if (sessionStorage.getItem(SESSION_KEY) === "1") {
+            showMain();
+            return;
+          }
+          showAuth();
+        })
+        .catch(function() {
+          // On error, show main (fail open — don't lock users out due to a network blip)
+          showMain();
+        });
+    }
+
+    document.getElementById("auth-btn").addEventListener("click", function() {
+      submitAuth();
+    });
+
+    document.getElementById("auth-input").addEventListener("keydown", function(e) {
+      if (e.key === "Enter") submitAuth();
+      // Clear error on any keypress
+      document.getElementById("auth-error").textContent = "";
+    });
+
+    function submitAuth() {
+      var btn   = document.getElementById("auth-btn");
+      var input = document.getElementById("auth-input");
+      var errEl = document.getElementById("auth-error");
+      var pw    = input.value;
+      if (!pw) { errEl.textContent = "Please enter your password."; return; }
+      btn.disabled = true;
+      btn.textContent = "Checking…";
+      errEl.textContent = "";
+      fetch("/simcha/api/picker/verify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password: pw }),
+      })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+          if (data.ok) {
+            sessionStorage.setItem(SESSION_KEY, "1");
+            showMain();
+          } else {
+            errEl.textContent = data.error || "Incorrect password.";
+            input.value = "";
+            input.focus();
+          }
+        })
+        .catch(function() {
+          errEl.textContent = "Could not reach server. Please try again.";
+        })
+        .finally(function() {
+          btn.disabled = false;
+          btn.textContent = "Unlock";
+        });
+    }
+
+    // ── Settings panel ───────────────────────────────────────────────────────
+    function toggleSettings() {
+      var panel = document.getElementById("settings-panel");
+      var isHidden = panel.style.display === "none";
+      panel.style.display = isHidden ? "block" : "none";
+      if (isHidden) {
+        document.getElementById("s-current").value = "";
+        document.getElementById("s-new").value = "";
+        document.getElementById("s-confirm").value = "";
+        document.getElementById("s-msg").textContent = "";
+        document.getElementById("s-msg").className = "settings-msg";
+      }
+    }
+
+    function setSettingsMsg(msg, isOk) {
+      var el = document.getElementById("s-msg");
+      el.textContent = msg;
+      el.className = "settings-msg " + (isOk ? "ok" : "err");
+    }
+
+    function savePickerPassword() {
+      var current = document.getElementById("s-current").value;
+      var newPw   = document.getElementById("s-new").value;
+      var confirm = document.getElementById("s-confirm").value;
+      if (!newPw) { setSettingsMsg("Please enter a new password.", false); return; }
+      if (newPw.length < 8) { setSettingsMsg("Password must be at least 8 characters.", false); return; }
+      if (newPw !== confirm) { setSettingsMsg("Passwords do not match.", false); return; }
+      var btn = document.getElementById("s-save-btn");
+      btn.disabled = true;
+      fetch("/simcha/api/picker/password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ currentPassword: current, newPassword: newPw }),
+      })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+          if (data.ok) {
+            setSettingsMsg("✓ Password saved.", true);
+            document.getElementById("s-current").value = "";
+            document.getElementById("s-new").value = "";
+            document.getElementById("s-confirm").value = "";
+            // Update session so user stays authenticated
+            sessionStorage.setItem(SESSION_KEY, "1");
+          } else {
+            setSettingsMsg(data.error || "Could not save password.", false);
+          }
+        })
+        .catch(function() { setSettingsMsg("Could not reach server.", false); })
+        .finally(function() { btn.disabled = false; });
+    }
+
+    function removePickerPassword() {
+      var current = document.getElementById("s-current").value;
+      if (!confirm("Remove password protection? The picker will be accessible without a password.")) return;
+      var btn = document.getElementById("s-save-btn");
+      btn.disabled = true;
+      fetch("/simcha/api/picker/password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ currentPassword: current, newPassword: "" }),
+      })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+          if (data.ok) {
+            setSettingsMsg("✓ Password protection removed.", true);
+            document.getElementById("s-current").value = "";
+          } else {
+            setSettingsMsg(data.error || "Could not remove password.", false);
+          }
+        })
+        .catch(function() { setSettingsMsg("Could not reach server.", false); })
+        .finally(function() { btn.disabled = false; });
+    }
+
+    // ── New Event form ───────────────────────────────────────────────────────
+    var EVENT_ID_RE = /^[a-z0-9][a-z0-9-]{0,48}[a-z0-9]$|^[a-z0-9]$/;
+
+    function showNewEventForm() {
+      document.getElementById("new-event-form").style.display = "block";
+      document.getElementById("new-event-id").value = "";
+      document.getElementById("new-event-preview").textContent = "";
+      document.getElementById("new-event-preview").className = "new-event-preview";
+      document.getElementById("new-event-error").textContent = "";
+      var createBtn = document.getElementById("btn-create");
+      createBtn.disabled = true;
+      createBtn.removeEventListener("click", createEvent);
+      createBtn.addEventListener("click", createEvent);
+      setTimeout(function() { document.getElementById("new-event-id").focus(); }, 50);
+    }
+
+    function hideNewEventForm() {
+      document.getElementById("new-event-form").style.display = "none";
+      var createBtn = document.getElementById("btn-create");
+      if (createBtn) createBtn.removeEventListener("click", createEvent);
+    }
+
+    function onNewEventInput(input) {
+      // Auto-lowercase, strip invalid chars
+      var val = input.value.toLowerCase().replace(/[^a-z0-9-]/g, "");
+      if (input.value !== val) input.value = val;
+      var preview = document.getElementById("new-event-preview");
+      var createBtn = document.getElementById("btn-create");
+      document.getElementById("new-event-error").textContent = "";
+      if (!val) {
+        preview.textContent = "";
+        preview.className = "new-event-preview";
+        createBtn.disabled = true;
+        return;
+      }
+      var valid = EVENT_ID_RE.test(val) && val.length >= 2;
+      if (valid) {
+        preview.textContent = "→ /simcha/" + val + "/";
+        preview.className = "new-event-preview valid";
+        createBtn.disabled = false;
+      } else {
+        var hint = val.length < 2
+          ? "At least 2 characters required"
+          : val.startsWith("-") || val.endsWith("-")
+            ? "Cannot start or end with a hyphen"
+            : "Lowercase letters, numbers, and hyphens only";
+        preview.textContent = hint;
+        preview.className = "new-event-preview invalid";
+        createBtn.disabled = true;
+      }
+    }
+
+    document.addEventListener("keydown", function(e) {
+      if (e.key === "Escape") hideNewEventForm();
+    });
+
+    function createEvent() {
+      var eventId  = document.getElementById("new-event-id").value.trim();
+      var errEl    = document.getElementById("new-event-error");
+      var createBtn = document.getElementById("btn-create");
+      if (!eventId || !EVENT_ID_RE.test(eventId)) return;
+      createBtn.disabled = true;
+      createBtn.textContent = "Creating…";
+      errEl.textContent = "";
+      fetch("/simcha/api/events", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ eventId: eventId }),
+      })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+          if (data.ok) {
+            hideNewEventForm();
+            window.location.href = data.url;
+          } else {
+            errEl.textContent = data.error || "Could not create event.";
+            createBtn.disabled = false;
+            createBtn.textContent = "Create";
+          }
+        })
+        .catch(function() {
+          errEl.textContent = "Could not reach server.";
+          createBtn.disabled = false;
+          createBtn.textContent = "Create";
+        });
+    }
+
+    // ── Delete Event ─────────────────────────────────────────────────────────
+    function showDeleteConfirm(eventId, cardEl) {
+      // Don't allow opening a second confirm overlay
+      if (document.querySelector(".delete-confirm-overlay")) return;
+
+      // Position overlay near the card using getBoundingClientRect
+      var rect = cardEl.getBoundingClientRect();
+      var overlay = document.createElement("div");
+      overlay.className = "delete-confirm-overlay";
+
+      // Position: below the card if space, above if near bottom of viewport
+      var top = rect.bottom + 8;
+      if (top + 260 > window.innerHeight) top = rect.top - 268;
+      // Clamp horizontally within viewport
+      var left = Math.min(rect.left, window.innerWidth - 296);
+      left = Math.max(8, left);
+      overlay.style.top  = top + "px";
+      overlay.style.left = left + "px";
+
+      var displayId = eventId;
+      overlay.innerHTML = [
+        '<div class="delete-confirm-title">\u26a0 Delete this event?</div>',
+        '<div class="delete-confirm-desc">This permanently deletes all data for <strong>' + esc(displayId) + '</strong>. This cannot be undone.</div>',
+        '<div class="delete-confirm-desc" style="margin-top:-4px">Type the event ID to confirm:</div>',
+        '<input class="delete-confirm-input" placeholder="' + esc(displayId) + '" autocomplete="off" />',
+        '<div class="delete-confirm-actions">',
+        '  <button class="btn-confirm-delete" disabled>Delete</button>',
+        '  <button class="btn-cancel-delete">Cancel</button>',
+        '</div>',
+        '<div class="delete-confirm-error"></div>',
+      ].join("");
+
+      // Backdrop — closes overlay when clicking outside
+      var backdrop = document.createElement("div");
+      backdrop.className = "delete-confirm-backdrop";
+
+      function closeOverlay() {
+        if (document.body.contains(overlay))   document.body.removeChild(overlay);
+        if (document.body.contains(backdrop)) document.body.removeChild(backdrop);
+      }
+
+      backdrop.addEventListener("click", closeOverlay);
+      document.body.appendChild(backdrop);
+      document.body.appendChild(overlay);
+
+      var input     = overlay.querySelector(".delete-confirm-input");
+      var delBtn    = overlay.querySelector(".btn-confirm-delete");
+      var cancelBtn = overlay.querySelector(".btn-cancel-delete");
+      var errEl     = overlay.querySelector(".delete-confirm-error");
+
+      setTimeout(function() { input.focus(); }, 50);
+
+      input.addEventListener("input", function() {
+        delBtn.disabled = input.value.trim() !== eventId;
+        errEl.textContent = "";
+      });
+
+      input.addEventListener("keydown", function(e) {
+        if (e.key === "Escape") closeOverlay();
+        if (e.key === "Enter" && !delBtn.disabled) delBtn.click();
+      });
+
+      cancelBtn.addEventListener("click", closeOverlay);
+
+      delBtn.addEventListener("click", function() {
+        if (input.value.trim() !== eventId) return;
+        delBtn.disabled = true;
+        delBtn.textContent = "Deleting\u2026";
+        errEl.textContent = "";
+        fetch("/simcha/api/events/" + encodeURIComponent(eventId), { method: "DELETE" })
+          .then(function(r) { return r.json(); })
+          .then(function(data) {
+            if (data.ok) {
+              closeOverlay();
+              var grid = cardEl.parentElement;
+              cardEl.style.transition = "opacity 0.3s ease";
+              cardEl.style.opacity = "0";
+              setTimeout(function() {
+                if (grid && cardEl.parentElement) grid.removeChild(cardEl);
+                var remaining = grid ? grid.querySelectorAll(".event-card") : [];
+                if (remaining.length === 0) renderEvents([]);
+              }, 300);
+            } else {
+              errEl.textContent = data.error || "Could not delete event.";
+              delBtn.disabled = false;
+              delBtn.textContent = "Delete";
+            }
+          })
+          .catch(function() {
+            errEl.textContent = "Could not reach server.";
+            delBtn.disabled = false;
+            delBtn.textContent = "Delete";
+          });
+      });
+    }
+
+    // ── Events ───────────────────────────────────────────────────────────────
+    function renderEvents(events) {
+      var content = document.getElementById("content");
+
+      if (!events || events.length === 0) {
+        content.innerHTML = [
+          '<div class="state-box">',
+          '  <div class="state-box-icon">✡</div>',
+          '  <div class="state-box-title">No events yet</div>',
+          '  <div class="state-box-desc">Create your first event by adding a new folder under <code>simchakit/public/</code> and following the setup guide.</div>',
+          '</div>'
+        ].join("");
+        return;
+      }
+
+      var cards = events.map(function(ev) {
+        var palette  = PALETTES[ev.palette] || PALETTES["rose"];
+        var typeLabel = EVENT_TYPE_LABELS[ev.type] || "Celebration";
+        var typeIcon  = ev.themeIcon || EVENT_TYPE_ICONS[ev.type] || "🎉";
+        var dateStr   = formatDate(ev.eventDate);
+        var folderName = ev.boardId.replace(/^simcha-/, "");
+        var url       = "/simcha/" + esc(folderName) + "/";
+        var name      = ev.name
+          ? '<div class="event-card-name">' + esc(ev.name) + '</div>'
+          : '<div class="event-card-unnamed">Unnamed Event</div>';
+        var theme = ev.themeName
+          ? '<div class="event-card-theme">' + esc(ev.themeName) + '</div>'
+          : "";
+        var dateRow = dateStr
+          ? '<div class="event-card-detail"><span class="event-card-detail-icon">📅</span>' + esc(dateStr) + '</div>'
+          : "";
+        var guestRow = ev.householdCount > 0
+          ? '<div class="event-card-detail"><span class="event-card-detail-icon">👥</span>' + ev.householdCount + ' household' + (ev.householdCount !== 1 ? 's' : '') + (ev.peopleCount > 0 ? ' · ' + ev.peopleCount + ' ' + (ev.peopleCount !== 1 ? 'people' : 'person') : '') + '</div>'
+          : "";
+        var archivedTag = ev.archived
+          ? '<span class="tag tag-archived">🔒 Archived</span>'
+          : "";
+        var passcodeTag = ev.passcodeProtected && !ev.archived
+          ? '<span class="tag tag-archived" style="background:var(--bg-muted);color:var(--text-muted)">🔑 Protected</span>'
+          : "";
+
+        return [
+          '<a class="event-card" href="' + url + '" style="position:relative">',
+          '  <div class="accent-stripe" style="background:' + palette.accent + '"></div>',
+          '  <div class="event-card-header" style="background:' + palette.light + '">',
+          '    <span class="event-card-icon">' + esc(typeIcon) + '</span>',
+          '    ' + name,
+          '    ' + theme,
+          '    <span class="tag tag-type">' + esc(typeLabel) + '</span>',
+          '    ' + archivedTag,
+          '    ' + passcodeTag,
+          '    <button class="event-card-delete" title="Delete event" onclick="event.preventDefault();event.stopPropagation();showDeleteConfirm(\'' + esc(folderName) + '\',this.closest(\'.event-card\'))">✕</button>',
+          '  </div>',
+          '  <div class="event-card-body">',
+          '    ' + dateRow,
+          '    ' + guestRow,
+          '  </div>',
+          '  <div class="event-card-footer" style="background:' + palette.light + '">',
+          '    <span class="event-card-open" style="color:' + palette.accent + '">Open Dashboard</span>',
+          '    <span class="event-card-arrow" style="color:' + palette.accent + '">→</span>',
+          '  </div>',
+          '</a>'
+        ].join("\n");
+      });
+
+      content.innerHTML = '<div class="event-grid">' + cards.join("\n") + '</div>';
+    }
+
+    function renderError(msg) {
+      document.getElementById("content").innerHTML = [
+        '<div class="state-box">',
+        '  <div class="state-box-icon">⚠</div>',
+        '  <div class="state-box-title">Could not load events</div>',
+        '  <div class="state-box-desc">' + esc(msg) + '</div>',
+        '</div>'
+      ].join("");
+    }
+
+    function loadEvents() {
+      fetch("/simcha/api/events")
+        .then(function(r) {
+          if (!r.ok) throw new Error("Server returned " + r.status);
+          return r.json();
+        })
+        .then(function(data) { renderEvents(data.events); })
+        .catch(function(err) { renderError(err.message || "Unknown error"); });
+    }
+
+    // ── Boot ─────────────────────────────────────────────────────────────────
+    // Re-fetch events when page is restored from bfcache (back/forward navigation)
+    window.addEventListener("pageshow", function(e) {
+      if (e.persisted) loadEvents();
+    });
+    init();
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,23 @@
+# Dependencies
+node_modules/
+
+# Build output
+client/dist/
+
+# Per-event data files — contain real guest/financial data, never commit
+data/
+
+# Per-event app instances and built assets — never commit
+# (public/index.html is the events picker and SHOULD be committed)
+# Add new event folders here as needed, or use a naming convention
+public/assets/
+public/sydney-mitzvah-2026/
+public/demo/
+
+# Picker access config — contains hashed password, never commit
+picker-config.json
+
+# Runtime / OS
+.DS_Store
+*.log
+npm-debug.log*

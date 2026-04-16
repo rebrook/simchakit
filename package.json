@@ -1,0 +1,25 @@
+{
+  "name": "simchakit",
+  "version": "2.67.1",
+  "description": "Real-time event planning app for B'nei Mitzvot, weddings, and celebrations",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "keywords": [
+    "event-planning",
+    "wedding",
+    "bar-mitzvah",
+    "bat-mitzvah",
+    "simcha",
+    "celebration"
+  ],
+  "author": "Brook Creative LLC",
+  "license": "MIT",
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "express": "^4.18.2",
+    "ws": "^8.14.2"
+  }
+}
