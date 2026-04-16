@@ -1643,7 +1643,7 @@ export function GuestsTab({ state, updateData, adminConfig, appendAuditLog, isAr
       {rsvpBanner && (
         <div className={`rsvp-banner ${rsvpBanner.cls}`}>
           <span className="rsvp-banner-icon">{rsvpBanner.icon}</span>
-          <span dangerouslySetInnerHTML={{__html: rsvpBanner.text.replace(/(\d+ household)/g, '<strong>$1</strong>').replace(/(\d+ day)/g, '<strong>$1</strong>')}} />
+          <span dangerouslySetInnerHTML={{__html: rsvpBanner.text.replace(/(\d+ households?)/g, '<strong>$1</strong>').replace(/(\d+ days?)/g, '<strong>$1</strong>')}} />
         </div>
       )}
 

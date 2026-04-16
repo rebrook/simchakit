@@ -1,9 +1,19 @@
 {
-  "current": "V2.67.2",
+  "current": "V2.67.3",
   "whatsNew": [
     "Security - Passcode-protected events no longer fetch data until passcode is verified"
   ],
   "changelog": [
+    {
+      "version": "V2.67.3",
+      "date": "2026-04-16",
+      "summary": "RSVP banner text fix (GU-07)",
+      "changes": [
+        "Bugfix - GuestsTab RSVP deadline banner: plural words like '5 days' and '3 households' now bold correctly; previously the regex missed the trailing 's' causing broken rendering like '<strong>5 day</strong>s'"
+      ],
+      "roadmap": [],
+      "knownIssues": []
+    },
     {
       "version": "V2.67.2",
       "date": "2026-04-16",
