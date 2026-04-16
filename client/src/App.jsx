@@ -2,12 +2,16 @@
 // SimchaKit — App.jsx  (V2 Vite build — Phase 7 complete)
 // App shell only. All components, hooks, constants, and utils are extracted.
 // ─────────────────────────────────────────────────────────────────────────────
-const EVENT_ID = (() => {
+
+// Extract event path from URL for API calls (without simcha- prefix)
+const EVENT_PATH = (() => {
   const parts = window.location.pathname.split("/").filter(Boolean);
   // URL: /simcha/your-event-id/ → parts: ["simcha", "your-event-id"]
-  // Prepend "simcha-" to match the server-side boardId convention
-  return parts[1] ? "simcha-" + parts[1] : "simcha-default";
+  return parts[1] || "default";
 })();
+
+// Full boardId for WebSocket subscription (with simcha- prefix)
+const EVENT_ID = "simcha-" + EVENT_PATH;
 
 // ─────────────────────────────────────────────────────────────────────────────
 // REACT + HOOKS
@@ -74,6 +78,7 @@ export default function App() {
   const [passcodeUnlocked, setPasscodeUnlocked] = useState(false);
   const [passcodeInput,    setPasscodeInput]    = useState("");
   const [passcodeError,    setPasscodeError]    = useState("");
+  const [publicConfig,     setPublicConfig]     = useState(null); // GL-06: non-sensitive config fetched before WebSocket
   const [darkMode, setDarkMode]           = useDarkMode();
   const [appVersion,      setAppVersion]      = useState("");
   const [toastMsg,        setToastMsg]        = useState("");
@@ -99,6 +104,14 @@ export default function App() {
       .then(r => r.json())
       .then(d => { if (d.current) setAppVersion(d.current); })
       .catch(() => {});
+  }, []);
+
+  // GL-06: Fetch public (non-sensitive) config on mount — determines if passcode is required
+  useEffect(() => {
+    fetch(`/simcha/${EVENT_PATH}/api/public-config`)
+      .then(r => r.json())
+      .then(cfg => setPublicConfig(cfg))
+      .catch(() => setPublicConfig({ error: true }));
   }, []);
 
   // ⌘K / Ctrl+K opens search on desktop
@@ -138,7 +151,9 @@ export default function App() {
     };
   }, []);
 
-  const { state, syncStatus, queueSize, updateNotes, updateData, lastSavedAt } = useSimchaSync(EVENT_ID);
+  // GL-06: Only connect WebSocket after passcode is verified (or if no passcode required)
+  const shouldConnect = publicConfig && (!publicConfig.requiresPasscode || passcodeUnlocked);
+  const { state, syncStatus, queueSize, updateNotes, updateData, lastSavedAt } = useSimchaSync(EVENT_ID, shouldConnect);
 
   // Tick every 10s so the "Saved Xm ago" label stays fresh
   const [, setTick] = useState(0);
@@ -287,79 +302,99 @@ export default function App() {
     return () => ro.disconnect();
   }, [tabs.length]);
 
+  // GL-06: Passcode verification function — calls server endpoint
+  const verifyPasscode = () => {
+    fetch(`/simcha/${EVENT_PATH}/api/verify-passcode`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ passcode: passcodeInput }),
+    })
+      .then(r => r.json())
+      .then(result => {
+        if (result.ok) {
+          setPasscodeUnlocked(true);
+        } else {
+          setPasscodeError("Incorrect passcode. Please try again.");
+          setPasscodeInput("");
+        }
+      })
+      .catch(() => {
+        setPasscodeError("Could not verify passcode. Please try again.");
+      });
+  };
+
+  // GL-06: Loading screen while fetching public config
+  if (!publicConfig) {
+    return (
+      <div className="app-shell">
+        <ThemeProvider palette="rose" customColor="" />
+        <div style={{
+          display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+          minHeight: "100vh", padding: 24, textAlign: "center",
+        }}>
+          <div style={{ fontSize: 40, marginBottom: 16 }}>✡</div>
+          <div style={{ fontFamily: "var(--font-display)", fontSize: 20, color: "var(--text-primary)", marginBottom: 8 }}>
+            Loading...
+          </div>
+          <div style={{ fontSize: 13, color: "var(--text-muted)" }}>
+            Connecting to SimchaKit
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // GL-06: Passcode lock screen — shown BEFORE WebSocket connects (no data exposed)
+  if (publicConfig.requiresPasscode && !passcodeUnlocked) {
+    return (
+      <div className="app-shell">
+        <ThemeProvider palette={publicConfig.palette || "rose"} customColor="" />
+        <div style={{
+          display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+          minHeight: "100vh", padding: 24, textAlign: "center",
+        }}>
+          <div style={{ fontSize: 40, marginBottom: 12 }}>
+            {publicConfig.icon || EVENT_TYPE_ICONS[publicConfig.type] || "✡"}
+          </div>
+          <div style={{ fontFamily: "var(--font-display)", fontSize: 22, fontWeight: 700, color: "var(--text-primary)", marginBottom: 4 }}>
+            {publicConfig.name || "Event Dashboard"}
+          </div>
+          <div style={{ fontSize: 13, color: "var(--text-muted)", marginBottom: 24 }}>
+            This event is protected. Enter the access passcode to continue.
+          </div>
+          <input
+            type="password"
+            className="form-input"
+            placeholder="Enter passcode"
+            value={passcodeInput}
+            onChange={e => { setPasscodeInput(e.target.value); setPasscodeError(""); }}
+            onKeyDown={e => { if (e.key === "Enter") verifyPasscode(); }}
+            style={{ textAlign: "center", letterSpacing: "0.15em", marginBottom: 8, maxWidth: 280 }}
+            autoFocus
+          />
+          {passcodeError && (
+            <div style={{ fontSize: 12, color: "var(--red)", fontWeight: 600, marginBottom: 8 }}>
+              {passcodeError}
+            </div>
+          )}
+          <button
+            className="btn btn-primary"
+            style={{ width: "100%", maxWidth: 280, marginTop: 4, justifyContent: "center" }}
+            onClick={verifyPasscode}
+          >Unlock</button>
+          <a href="/simcha/" style={{
+            display: "block", marginTop: 16, fontSize: 12, fontWeight: 600,
+            color: "var(--text-muted)", textDecoration: "none",
+          }}>← Back to events</a>
+        </div>
+      </div>
+    );
+  }
+
 
   return (
     <div className="app-shell">
       <ThemeProvider palette={adminConfig?.theme?.palette || "rose"} customColor={adminConfig?.theme?.customColor || ""} />
-
-      {/* Access Passcode lock screen */}
-      {state && adminConfig?.accessPasscode && !passcodeUnlocked && (
-        <div style={{
-          position: "fixed", inset: 0, zIndex: 9000,
-          background: "rgba(0,0,0,0.4)",
-          backdropFilter: "blur(6px)",
-          WebkitBackdropFilter: "blur(6px)",
-          display: "flex", alignItems: "center", justifyContent: "center",
-          padding: 24,
-        }}>
-          <div style={{
-            background: "var(--bg-surface)", border: "1px solid var(--border)",
-            borderRadius: "var(--radius-lg)", padding: "36px 32px",
-            width: "100%", maxWidth: 380, textAlign: "center",
-            boxShadow: "var(--shadow-lg)",
-          }}>
-            <div style={{ fontSize: 40, marginBottom: 12 }}>
-              {adminConfig?.theme?.icon || EVENT_TYPE_ICONS[adminConfig?.type] || "✡"}
-            </div>
-            <div style={{ fontFamily: "var(--font-display)", fontSize: 22, fontWeight: 700, color: "var(--text-primary)", marginBottom: 4 }}>
-              {adminConfig?.name || "Event Dashboard"}
-            </div>
-            <div style={{ fontSize: 13, color: "var(--text-muted)", marginBottom: 24 }}>
-              This event is protected. Enter the access passcode to continue.
-            </div>
-            <input
-              type="password"
-              className="form-input"
-              placeholder="Enter passcode"
-              value={passcodeInput}
-              onChange={e => { setPasscodeInput(e.target.value); setPasscodeError(""); }}
-              onKeyDown={e => {
-                if (e.key === "Enter") {
-                  if (passcodeInput === adminConfig.accessPasscode) {
-                    setPasscodeUnlocked(true);
-                  } else {
-                    setPasscodeError("Incorrect passcode. Please try again.");
-                    setPasscodeInput("");
-                  }
-                }
-              }}
-              style={{ textAlign: "center", letterSpacing: "0.15em", marginBottom: 8 }}
-              autoFocus
-            />
-            {passcodeError && (
-              <div style={{ fontSize: 12, color: "var(--red)", fontWeight: 600, marginBottom: 8 }}>
-                {passcodeError}
-              </div>
-            )}
-            <button
-              className="btn btn-primary"
-              style={{ width: "100%", marginTop: 4, justifyContent: "center" }}
-              onClick={() => {
-                if (passcodeInput === adminConfig.accessPasscode) {
-                  setPasscodeUnlocked(true);
-                } else {
-                  setPasscodeError("Incorrect passcode. Please try again.");
-                  setPasscodeInput("");
-                }
-              }}
-            >Unlock</button>
-            <a href="/simcha/" style={{
-              display: "block", marginTop: 16, fontSize: 12, fontWeight: 600,
-              color: "var(--text-muted)", textDecoration: "none",
-            }}>← Back to events</a>
-          </div>
-        </div>
-      )}
 
       {displayState?.archived && (
         <div className="archived-banner">

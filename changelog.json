@@ -1,9 +1,37 @@
 {
-  "current": "V2.67.1",
+  "current": "V2.67.2",
   "whatsNew": [
-    "Fix - Clergy phone fields now auto-format on blur"
+    "Security - Passcode-protected events no longer fetch data until passcode is verified"
   ],
   "changelog": [
+    {
+      "version": "V2.67.2",
+      "date": "2026-04-16",
+      "summary": "Passcode security hardening (GL-06)",
+      "changes": [
+        "Security - Event data is no longer fetched until access passcode is verified; previously the passcode screen was a visual overlay while all data was already loaded in the DOM",
+        "New endpoint - GET /:boardId/api/public-config returns only non-sensitive display fields (name, type, icon, palette, requiresPasscode) for the lock screen",
+        "Changed - useSimchaSync hook now accepts 'enabled' parameter to gate WebSocket connection; when false, no connection is opened and state remains null",
+        "Changed - App.jsx fetches public-config on mount; WebSocket sync only initiates after passcode verification (or immediately if no passcode required)"
+      ],
+      "roadmap": [
+        {
+          "feature": "Multiple favors distributed at different sub-events",
+          "status": "future",
+          "priority": "P4",
+          "effort": "Low",
+          "detail": "Currently each favor setup is linked to a single sub-event. Future enhancement: allow multiple favor types each linked to a different sub-event (e.g. water bottles at the party, kippot at the service)."
+        },
+        {
+          "feature": "Per-sub-event seating charts",
+          "status": "future",
+          "priority": "P3",
+          "effort": "High",
+          "detail": "Separate table sets and seat assignments per sub-event (e.g. kiddush at Chizuk Amuno and evening party at Suburban Club). tableId on person becomes tableAssignments: { [sectionId]: tableId }. Migration from flat tableId is automatic. Requires SeatingTab to manage multiple chart contexts."
+        }
+      ],
+      "knownIssues": []
+    },
     {
       "version": "V2.67.1",
       "date": "2026-04-15",
