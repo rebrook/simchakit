@@ -1,9 +1,19 @@
 {
-  "current": "V2.67.4",
+  "current": "V2.67.5",
   "whatsNew": [
     "Security - Passcode-protected events no longer fetch data until passcode is verified"
   ],
   "changelog": [
+    {
+      "version": "V2.67.5",
+      "date": "2026-04-16",
+      "summary": "Budget negative amount validation (BU-05)",
+      "changes": [
+        "Bugfix - BudgetTab: amount and budgeted fields now clamp negative values to 0 on input; min='0' HTML attribute alone did not prevent pasting or programmatic negative values"
+      ],
+      "roadmap": [],
+      "knownIssues": []
+    },
     {
       "version": "V2.67.4",
       "date": "2026-04-16",

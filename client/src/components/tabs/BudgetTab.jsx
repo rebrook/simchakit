@@ -134,7 +134,7 @@ export function GratuityCalculator({ expenses, vendors, onAddExpense, isArchived
                 <input
                   type="number" min="0" max="100" step="0.5"
                   value={customPct}
-                  onChange={e => setCustomPct(e.target.value)}
+                  onChange={e => setCustomPct(e.target.value < 0 ? "0" : e.target.value)}
                   placeholder="e.g. 18"
                   style={{ width: 70, padding: "4px 8px", border: "1px solid var(--border)",
                     borderRadius: "var(--radius-sm)", fontSize: 13,
@@ -198,7 +198,7 @@ export function GratuityCalculator({ expenses, vendors, onAddExpense, isArchived
                       <input
                         type="number" min="0" step="0.01"
                         value={customBase[g.key] !== undefined ? customBase[g.key] : g.total.toFixed(2)}
-                        onChange={e => setCustomBase(b => ({ ...b, [g.key]: e.target.value }))}
+                        onChange={e => setCustomBase(b => ({ ...b, [g.key]: e.target.value < 0 ? "0" : e.target.value }))}
                         style={{ width: 100, paddingLeft: 20, paddingRight: 6, paddingTop: 4, paddingBottom: 4,
                           border: "1px solid var(--border)", borderRadius: "var(--radius-sm)",
                           fontSize: 13, fontFamily: "var(--font-body)", color: "var(--text-primary)",
@@ -362,14 +362,14 @@ export function ExpenseModal({ expense, vendors, adminConfig, onSave, onClose, i
               <label className="form-label">Amount ($)</label>
               <input className="form-input" type="number" min="0" step="0.01"
                 value={form.amount}
-                onChange={e => setF("amount", e.target.value)}
+                onChange={e => setF("amount", e.target.value < 0 ? "0" : e.target.value)}
                 placeholder="0.00" />
             </div>
             <div className="form-group">
               <label className="form-label">Budgeted ($) <span style={{fontWeight:400,color:"var(--text-muted)",fontSize:11}}>optional</span></label>
               <input className="form-input" type="number" min="0" step="0.01"
                 value={form.budgeted||""}
-                onChange={e => setF("budgeted", e.target.value)}
+                onChange={e => setF("budgeted", e.target.value < 0 ? "0" : e.target.value)}
                 placeholder="Original estimate" />
             </div>
           </div>
