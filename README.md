@@ -5,6 +5,20 @@ A real-time event planning web app for celebrations — B'nei Mitzvot, weddings,
 ![Version](https://img.shields.io/badge/version-2.67.1-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
+## Screenshots
+
+### Overview Dashboard
+![Overview Dashboard](docs/screenshots/overview.png)
+
+### Guest Management
+![Guest Management](docs/screenshots/guests.png)
+
+### Seating Chart
+![Seating Chart](docs/screenshots/seating.png)
+
+### Admin Configuration
+![Admin Configuration](docs/screenshots/admin.png)
+
 ## Features
 
 - **Guest Management** — households, people, formal names, dietary requirements, RSVP tracking
@@ -39,7 +53,7 @@ A real-time event planning web app for celebrations — B'nei Mitzvot, weddings,
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-username/simchakit.git
+git clone https://github.com/rebrook/simchakit.git
 cd simchakit
 
 # Install server dependencies
