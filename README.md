@@ -75,15 +75,16 @@ The app will be available at `http://localhost:3000/simcha/`
 
 ### Creating Your First Event
 
-```bash
-# Create an event folder
-mkdir -p public/my-event-2026
+1. Navigate to `http://localhost:3000/simcha/` — this opens the Event Picker
+2. Click the **+ New Event** button
+3. Enter an Event ID (e.g., `smith-wedding-2026`) — lowercase letters, numbers, and hyphens only
+4. Click **Create**
 
-# Copy the app shell
-cp client/dist/index.html public/my-event-2026/index.html
-```
-
-Navigate to `http://localhost:3000/simcha/my-event-2026/` — the server automatically creates the data file on first load.
+You'll be taken to your new event dashboard. From there, open the **Admin** panel to configure:
+- Event name and type (Bat Mitzvah, Wedding, etc.)
+- Theme and color palette
+- Timeline with sub-events (service, reception, etc.)
+- Clergy and venue contacts
 
 ## Documentation
 
@@ -104,7 +105,7 @@ simchakit/
 │   ├── router.js           # API routes
 │   ├── state.js            # State management
 │   └── ws.js               # WebSocket handler
-├── public/                 # Served static files
+├── public/                 # Event Picker and per-event folders
 ├── server.js               # Express entry point
 ├── deploy.sh               # Build and deploy script
 └── changelog.json          # Version history
