@@ -32,7 +32,17 @@ cp -r "$DIST_DIR/assets/" "$PUBLIC_DIR/assets/"
 echo "  ✓ $(ls "$PUBLIC_DIR/assets/" | wc -l | tr -d ' ') file(s) in public/assets/"
 ls "$PUBLIC_DIR/assets/" | sed 's/^/    /'
 
-# ── 3. Deploy index.html to all event folders ─────
+# ── 3. Deploy favicon ─────────────────────────────
+echo ""
+echo "▶ Deploying favicon..."
+if [ -f "$DIST_DIR/favicon.svg" ]; then
+    cp "$DIST_DIR/favicon.svg" "$PUBLIC_DIR/favicon.svg"
+    echo "  ✓ favicon.svg"
+else
+    echo "  ⚠ No favicon.svg in dist/ — skipping"
+fi
+
+# ── 4. Deploy index.html to all event folders ─────
 echo ""
 echo "▶ Deploying to event folders..."
 DEPLOYED=0

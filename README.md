@@ -2,7 +2,7 @@
 
 A real-time event planning web app for celebrations — B'nei Mitzvot, weddings, and other simchas.
 
-![Version](https://img.shields.io/badge/version-2.67.6-blue)
+![Version](https://img.shields.io/badge/version-2.67.7-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
 ## Screenshots
@@ -96,6 +96,9 @@ You'll be taken to your new event dashboard. From there, open the **Admin** pane
 ```
 simchakit/
 ├── client/                 # Vite + React frontend
+│   ├── public/             # Static assets (favicon, etc.)
+│   │   └── favicon.svg     # Star of David favicon
+│   ├── index.html          # Vite HTML template
 │   └── src/
 │       ├── components/     # Tab and modal components
 │       ├── constants/      # Shared constants
@@ -105,7 +108,12 @@ simchakit/
 │   ├── router.js           # API routes
 │   ├── state.js            # State management
 │   └── ws.js               # WebSocket handler
-├── public/                 # Event Picker and per-event folders
+├── public/                 # Served files: Event Picker + per-event folders
+│   ├── index.html          # Event Picker (standalone)
+│   ├── favicon.svg         # Favicon (copied by deploy.sh)
+│   ├── assets/             # Built JS/CSS bundles (shared)
+│   └── {event-id}/         # Per-event folders
+│       └── index.html      # Event dashboard entry point
 ├── server.js               # Express entry point
 ├── deploy.sh               # Build and deploy script
 └── changelog.json          # Version history
