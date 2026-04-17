@@ -1,9 +1,21 @@
 {
-  "current": "V2.67.7",
+  "current": "V2.67.8",
   "whatsNew": [
-    "New - SimchaKit favicon (Star of David) now appears in browser tabs for both Event Picker and event dashboards"
+    "Bugfix - GitHub links now point to correct repository (rebrook/simchakit)"
   ],
   "changelog": [
+    {
+      "version": "V2.67.8",
+      "date": "2026-04-16",
+      "summary": "GitHub link correction and Event Picker footer branding",
+      "changes": [
+        "Bugfix - App.jsx footer: GitHub link corrected from ryanbrook to rebrook",
+        "Bugfix - Marketing site (simcha-kit.com): all GitHub links corrected to rebrook/simchakit",
+        "UI - Event Picker footer now matches app branding: 'Designed & Built by Ryan Brook · Powered by Claude · GitHub · ⚙ Picker Settings'"
+      ],
+      "roadmap": [],
+      "knownIssues": []
+    },
     {
       "version": "V2.67.7",
       "date": "2026-04-16",

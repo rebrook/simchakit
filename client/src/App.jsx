@@ -734,7 +734,7 @@ export default function App() {
         <span>·</span>
         <span className="footer-event-id">Event ID: {EVENT_ID}</span>
         <span>·</span>
-        <a href="https://github.com/ryanbrook/simchakit" target="_blank" rel="noopener" className="footer-link">GitHub</a>
+        <a href="https://github.com/rebrook/simchakit" target="_blank" rel="noopener" className="footer-link">GitHub</a>
         {adminPassword && (<>
           <span>·</span>
           <a href="/logs" target="_blank" rel="noopener" className="footer-link">Server Logs</a>
