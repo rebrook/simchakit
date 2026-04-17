@@ -1,9 +1,23 @@
 {
-  "current": "V2.67.10",
+  "current": "V2.67.11",
   "whatsNew": [
-    "UX - 'Remove' terminology in Favors tab standardized to 'Delete' to match all other tabs"
+    "UX - Phone numbers now display in (555) 555-1234 format consistently across Guests, Vendors, and Accommodations tabs"
   ],
   "changelog": [
+    {
+      "version": "V2.67.11",
+      "date": "2026-04-17",
+      "summary": "Phone number display formatting (GL-02, GU-01, GU-02, ST-01)",
+      "changes": [
+        "Bugfix - GuestsTab.jsx (GU-01): phone input placeholder updated from '555-555-1234' to '(555) 555-1234' in both Add mode and Edit mode to match the format formatPhone() produces on save",
+        "Bugfix - VendorsTab.jsx (GU-02): vendor card phone display now passes v.phone through formatPhone() before rendering; tel: href retains raw value for tap-to-call compatibility",
+        "Bugfix - AccommodationsTab.jsx (ST-01): hotel block phone display now passes block.phone through formatPhone() before rendering; tel: href retains raw value for tap-to-call compatibility",
+        "Changed - VendorsTab.jsx: formatPhone added to @/utils/guests.js import",
+        "Changed - AccommodationsTab.jsx: formatPhone added to @/utils/guests.js import"
+      ],
+      "roadmap": [],
+      "knownIssues": []
+    },
     {
       "version": "V2.67.10",
       "date": "2026-04-17",

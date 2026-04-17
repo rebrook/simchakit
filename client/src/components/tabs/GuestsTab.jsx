@@ -235,7 +235,7 @@ export function HouseholdModal({ household, members, adminConfig, onSave, onClos
                 <label className="form-label">Phone</label>
                 <input className="form-input" value={hh.phone} onChange={e=>setHHF("phone",e.target.value)}
                   onBlur={e=>setHHF("phone", formatPhone(e.target.value))}
-                  placeholder="555-555-1234" />
+                  placeholder="(555) 555-1234" />
               </div>
               <div className="form-group">
                 <label className="form-label">Email</label>
@@ -502,7 +502,7 @@ export function HouseholdModal({ household, members, adminConfig, onSave, onClos
                 <label className="form-label">Phone</label>
                 <input className="form-input" value={hh.phone} onChange={e=>setHHF("phone",e.target.value)}
                   onBlur={e=>setHHF("phone", formatPhone(e.target.value))}
-                  placeholder="555-555-1234" />
+                  placeholder="(555) 555-1234" />
               </div>
               <div className="form-group">
                 <label className="form-label">Email</label>

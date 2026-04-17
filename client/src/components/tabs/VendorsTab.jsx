@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useSearchHighlight } from "@/hooks/useSearchHighlight.js";
-import { formatAddress } from "@/utils/guests.js";
+import { formatAddress, formatPhone } from "@/utils/guests.js";
 import { VENDOR_STATUSES, VENDOR_STATUS_STYLES } from "@/constants/vendor-constants.js";
 import { FOLLOW_UP_STATUSES } from "@/constants/ui.js";
 import { computeVendorFinancials, getLastContacted, fmt$ } from "@/utils/vendors.js";
@@ -217,7 +217,7 @@ export function VendorsTab({ state, updateData, appendAuditLog, isArchived, show
                     {v.phone && (
                       <div className="vendor-contact-row">
                         <span style={{fontSize:12}}>📞</span>
-                        <a href={`tel:${v.phone}`}>{v.phone}</a>
+                        <a href={`tel:${v.phone}`}>{formatPhone(v.phone)}</a>
                       </div>
                     )}
                     {v.email && (

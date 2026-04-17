@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useSearchHighlight } from "@/hooks/useSearchHighlight.js";
-import { formatAddress, migrateCityStateZip } from "@/utils/guests.js";
+import { formatAddress, migrateCityStateZip, formatPhone } from "@/utils/guests.js";
 import { ArchivedNotice } from "@/components/shared/ArchivedNotice.jsx";
 
 export function AccommodationsTab({ state, updateData, adminConfig, setActiveTab, isArchived, showToast, searchHighlight, clearSearchHighlight }) {
@@ -134,7 +134,7 @@ export function AccommodationsTab({ state, updateData, adminConfig, setActiveTab
                     )}
                     {block.phone && (
                       <div style={{ fontSize:13, color:"var(--text-secondary)", marginBottom:3 }}>
-                        <strong>Phone:</strong> <a href={`tel:${block.phone}`}>{block.phone}</a>
+                        <strong>Phone:</strong> <a href={`tel:${block.phone}`}>{formatPhone(block.phone)}</a>
                       </div>
                     )}
                     {block.website && (
