@@ -505,7 +505,7 @@ export function FavorsTab({ state, updateData, setActiveTab, isArchived, showToa
                           <td style={{ padding:"6px 10px", textAlign:"center" }}>
                             <div style={{ display:"flex", gap:4, justifyContent:"center" }}>
                               <button className="icon-btn" title="Edit" disabled={isArchived} onClick={() => setEditFavor(f)}>✎</button>
-                              <button className="icon-btn icon-btn-danger" title="Remove" disabled={isArchived} onClick={() => setDeleteConfirm(f)}>✕</button>
+                              <button className="icon-btn icon-btn-danger" title="Delete" disabled={isArchived} onClick={() => setDeleteConfirm(f)}>✕</button>
                             </div>
                           </td>
                         </tr>
@@ -599,17 +599,17 @@ export function FavorsTab({ state, updateData, setActiveTab, isArchived, showToa
         <div className="modal-backdrop" onMouseDown={e => { if (e.target === e.currentTarget) { setDeleteConfirm(null); } }}>
           <div className="modal" style={{ maxWidth:400 }} onClick={e => e.stopPropagation()}>
             <div className="modal-header">
-              <div className="modal-title">Remove Favor Recipient</div>
+              <div className="modal-title">Delete Favor Recipient</div>
               <button className="icon-btn" onClick={() => setDeleteConfirm(null)}>✕</button>
             </div>
             <div className="modal-body">
               <p style={{ fontSize:14, color:"var(--text-primary)", lineHeight:1.6 }}>
-                Remove <strong>{deleteConfirm.personName||"this person"}</strong> from the favors list?
+                Delete <strong>{deleteConfirm.personName||"this person"}</strong> from the favors list?
                 {deleteConfirm.personId && " They will return to the Available panel."}
               </p>
               <div className="modal-footer">
                 <button className="btn btn-ghost" onClick={() => setDeleteConfirm(null)}>Cancel</button>
-                <button className="btn btn-danger" onClick={() => handleDelete(deleteConfirm.id)}>Remove</button>
+                <button className="btn btn-danger" onClick={() => handleDelete(deleteConfirm.id)}>Delete</button>
               </div>
             </div>
           </div>

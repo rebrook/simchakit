@@ -1,9 +1,19 @@
 {
-  "current": "V2.67.9",
+  "current": "V2.67.10",
   "whatsNew": [
-    "UX - Vendor filter now shows all statuses; Accommodations check-out date validation added"
+    "UX - 'Remove' terminology in Favors tab standardized to 'Delete' to match all other tabs"
   ],
   "changelog": [
+    {
+      "version": "V2.67.10",
+      "date": "2026-04-17",
+      "summary": "Terminology fix - FA-02: 'Remove' standardized to 'Delete' in FavorsTab",
+      "changes": [
+        "Bugfix - FavorsTab.jsx (FA-02): 'Remove' terminology standardized to 'Delete' throughout the delete confirmation flow. Icon button title, modal title, modal body text, and confirm button label all now read 'Delete' consistently, matching the pattern used in all other tabs (Guests, Budget, Vendors, Gifts, Ceremony)"
+      ],
+      "roadmap": [],
+      "knownIssues": []
+    },
     {
       "version": "V2.67.9",
       "date": "2026-04-16",
