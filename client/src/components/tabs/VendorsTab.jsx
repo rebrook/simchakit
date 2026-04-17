@@ -151,7 +151,7 @@ export function VendorsTab({ state, updateData, appendAuditLog, isArchived, show
           <select className="form-select" value={filterStatus}
             onChange={e => setFilterStatus(e.target.value)}>
             <option value="all">All statuses</option>
-            {VENDOR_STATUSES.filter(s => usedStatuses.includes(s)).map(s => (
+            {VENDOR_STATUSES.map(s => (
               <option key={s} value={s}>{s}</option>
             ))}
           </select>

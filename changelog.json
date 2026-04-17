@@ -1,9 +1,20 @@
 {
-  "current": "V2.67.8",
+  "current": "V2.67.9",
   "whatsNew": [
-    "Bugfix - GitHub links now point to correct repository (rebrook/simchakit)"
+    "UX - Vendor filter now shows all statuses; Accommodations check-out date validation added"
   ],
   "changelog": [
+    {
+      "version": "V2.67.9",
+      "date": "2026-04-16",
+      "summary": "UX audit fixes: VE-05 vendor filter, ST-05 date validation",
+      "changes": [
+        "Bugfix - VendorsTab (VE-05): status filter dropdown now shows all statuses, not just statuses currently in use; previously 'Researching' would disappear once no vendors had that status",
+        "Bugfix - AccommodationsTab (ST-05): check-out date input now has min constraint set to check-in date; warning message shown if check-out is before check-in"
+      ],
+      "roadmap": [],
+      "knownIssues": []
+    },
     {
       "version": "V2.67.8",
       "date": "2026-04-16",

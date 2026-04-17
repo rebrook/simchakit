@@ -376,9 +376,15 @@ export function AccomEditModal({ household, onSave, onClose, isArchived }) {
             <div className="form-group">
               <label className="form-label">Check-out Date</label>
               <input className="form-input" type="date" value={form.accomCheckOut}
-                onChange={e => set("accomCheckOut", e.target.value)} />
+                onChange={e => set("accomCheckOut", e.target.value)}
+                min={form.accomCheckIn || undefined} />
             </div>
           </div>
+          {form.accomCheckIn && form.accomCheckOut && form.accomCheckOut < form.accomCheckIn && (
+            <div style={{ fontSize:12, color:"var(--red)", marginTop:4, marginBottom:8 }}>
+              ⚠ Check-out date is before check-in date
+            </div>
+          )}
 
           <div className="form-group">
             <label className="form-label">Notes</label>
