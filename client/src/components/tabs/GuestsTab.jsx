@@ -163,6 +163,9 @@ export function HouseholdModal({ household, members, adminConfig, onSave, onClos
               <label className="form-label">RSVP Date</label>
               <input className="form-input" type="date" value={hh.rsvpDate} onChange={e=>setHHF("rsvpDate",e.target.value)} />
               {hh.rsvpDate && <div style={{fontSize:11,color:"var(--text-muted)",marginTop:3}}>{new Date(hh.rsvpDate + "T00:00:00").toLocaleDateString("en-US",{weekday:"short",year:"numeric",month:"short",day:"numeric"})}</div>}
+              {hh.rsvpDate && new Date(hh.rsvpDate+"T00:00:00") > new Date(Date.now() + 30*24*60*60*1000) && (
+                <div style={{fontSize:11,color:"var(--gold,#b45309)",marginTop:3}}>&#9888; Date is more than 30 days in the future</div>
+              )}
             </div>
             {sections.length > 0 && (
               <div className="form-group">
@@ -403,6 +406,9 @@ export function HouseholdModal({ household, members, adminConfig, onSave, onClos
               <label className="form-label">RSVP Date</label>
               <input className="form-input" type="date" value={hh.rsvpDate} onChange={e=>setHHF("rsvpDate",e.target.value)} />
               {hh.rsvpDate && <div style={{fontSize:11,color:"var(--text-muted)",marginTop:3}}>{new Date(hh.rsvpDate + "T00:00:00").toLocaleDateString("en-US",{weekday:"short",year:"numeric",month:"short",day:"numeric"})}</div>}
+              {hh.rsvpDate && new Date(hh.rsvpDate+"T00:00:00") > new Date(Date.now() + 30*24*60*60*1000) && (
+                <div style={{fontSize:11,color:"var(--gold,#b45309)",marginTop:3}}>&#9888; Date is more than 30 days in the future</div>
+              )}
             </div>
             {sections.length > 0 && (
               <div className="form-group">
@@ -1659,7 +1665,7 @@ export function GuestsTab({ state, updateData, adminConfig, appendAuditLog, isAr
             cls: totalSTDSent===households.length && households.length>0 ? "stat-green" : "" },
           { label:"Invites Sent",    value:`${totalInviteSent}/${households.length}`, sub:"invitations mailed",
             cls: totalInviteSent===households.length && households.length>0 ? "stat-green" : "" },
-          { label:"Kippot",          value:totalKippot,    sub:"males invited",                           cls:"stat-accent" },
+          { label:"Kippot Needed",   value:totalKippot,    sub:"males on guest list",                    cls:"stat-accent" },
           { label:"Kosher Meals",    value:totalKosher,    sub:"required",                               cls:""            },
           { label:"Addresses",       value:`${totalAddresses}/${households.length}`, sub:"complete",
             cls: totalAddresses===households.length ? "stat-green" : "stat-red" },

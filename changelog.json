@@ -1,9 +1,21 @@
 {
-  "current": "V2.68.4",
+  "current": "V2.68.5",
   "whatsNew": [
-    "UX - Stay & Travel: check-in/out dates now show year, toggle tooltips clarified, modal close button labeled"
+    "UX - Guests: Kippot stat card label clarified; RSVP Date warns when set more than 30 days in future"
   ],
   "changelog": [
+    {
+      "version": "V2.68.5",
+      "date": "2026-04-17",
+      "summary": "GuestsTab UX fixes: GU-05, GU-06, GU-10",
+      "changes": [
+        "Verified - GuestsTab.jsx (GU-05): Attending Count Override section is already conditionally rendered only when household status is 'RSVP Yes'. No code change needed \u2014 marking complete.",
+        "Bugfix - GuestsTab.jsx (GU-06): Kippot stat card label changed from 'Kippot' to 'Kippot Needed' and sub-label from 'males invited' to 'males on guest list' for clarity.",
+        "Bugfix - GuestsTab.jsx (GU-10): RSVP Date input now shows a soft amber warning below the field when the selected date is more than 30 days in the future, matching the postal code warning pattern. Saving is never blocked \u2014 the warning is advisory only. Applied to both Add mode (step 1) and Edit mode (Details tab)."
+      ],
+      "roadmap": [],
+      "knownIssues": []
+    },
     {
       "version": "V2.68.4",
       "date": "2026-04-17",
