@@ -204,8 +204,6 @@ export default function App() {
   const ALL_TABS = [
     { id:"overview", icon:"✦",  label:"Overview" },
     { id:"guests",        icon:"👥", label:"Guests",  badge:guestBadge },
-    { id:"accommodations", icon:"🧳", label:"Stay & Travel",
-      badge: displayState ? ((displayState.households||[]).filter(h=>h.outOfTown && !h.accomNotified).length||null) : null },
     { id:"budget",   icon:"💰", label:"Budget",
       badge: displayState ? ((displayState.expenses||[]).filter(e=>!e.paid).length||null) : null },
     { id:"vendors",  icon:"🏪", label:"Vendors" },
@@ -215,6 +213,8 @@ export default function App() {
     { id:"ceremony", icon:"📜",  label:"Ceremony" },
     { id:"seating",  icon:"🪑", label:"Seating" },
     { id:"gifts",    icon:"🎁", label:"Gifts" },
+    { id:"accommodations", icon:"🧳", label:"Stay & Travel",
+      badge: displayState ? ((displayState.households||[]).filter(h=>h.outOfTown && !h.accomNotified).length||null) : null },
     { id:"favors",   icon:"⭐", label:"Favors" },
     { id:"calendar", icon:"📅", label:"Calendar" },
   ];
@@ -228,7 +228,7 @@ export default function App() {
   const PLACEHOLDERS = {};
 
   // ── Mobile bottom nav split ───────────────────────────────────────────────
-  const BOTTOM_BAR_IDS = ["overview", "guests", "budget", "tasks"];
+  const BOTTOM_BAR_IDS = ["overview", "guests", "budget", "vendors", "tasks"];
   const bottomBarTabs  = tabs.filter(t => BOTTOM_BAR_IDS.includes(t.id));
   const moreDrawerTabs = tabs.filter(t => !BOTTOM_BAR_IDS.includes(t.id));
   const moreIsActive   = moreDrawerTabs.some(t => t.id === activeTab);

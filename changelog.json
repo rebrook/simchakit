@@ -1,9 +1,20 @@
 {
-  "current": "V2.69.2",
+  "current": "V2.69.3",
   "whatsNew": [
-    "UX - Tasks: Suggested Tasks panel now defaults to collapsed \u2014 click to expand"
+    "UX - Navigation: tab order resequenced by planning priority; mobile bottom bar expanded to 5 tabs (Overview, Guests, Budget, Vendors, Tasks)"
   ],
   "changelog": [
+    {
+      "version": "V2.69.3",
+      "date": "2026-04-18",
+      "summary": "App.jsx nav restructure: GL-07, GL-08",
+      "changes": [
+        "Improvement - App.jsx (GL-07): Desktop tab order resequenced to match planning tool conventions and frequency of use: Overview, Guests, Budget, Vendors, Tasks, Prep, Ceremony, Seating, Gifts, Stay & Travel, Favors, Calendar. Previously Stay & Travel was 3rd, before Budget and Tasks.",
+        "Improvement - App.jsx (GL-08): Mobile bottom bar updated to 5 tabs \u2014 Overview, Guests, Budget, Vendors, Tasks \u2014 replacing the previous 4-tab layout (Overview, Guests, Budget, Tasks). Vendors promoted from the More drawer. The bottom bar now mirrors the first 5 desktop tabs exactly, eliminating the mobile/desktop ordering inconsistency."
+      ],
+      "roadmap": [],
+      "knownIssues": []
+    },
     {
       "version": "V2.69.2",
       "date": "2026-04-18",
