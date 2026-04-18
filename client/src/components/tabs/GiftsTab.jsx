@@ -125,14 +125,14 @@ export function GiftsTab({ state, updateData, appendAuditLog, isArchived, showTo
         <div className="stat-card">
           <div className="stat-label">Total Monetary Value</div>
           <div className="stat-value" style={{ color:"var(--green)" }}>
-            ${totalMonetary.toLocaleString()}
+            ${totalMonetary.toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2})}
           </div>
           <div className="stat-sub">all gifts with amounts</div>
         </div>
         <div className="stat-card">
           <div className="stat-label">Cash / Check Total</div>
           <div className="stat-value" style={{ color:"var(--green)" }}>
-            ${cashTotal.toLocaleString()}
+            ${cashTotal.toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2})}
           </div>
         </div>
         <div className="stat-card">
@@ -214,11 +214,12 @@ export function GiftsTab({ state, updateData, appendAuditLog, isArchived, showTo
                           {g.giftType}
                         </span>
                       </td>
-                      <td style={{ padding:"6px 10px", fontSize:13, color:"var(--text-secondary)", maxWidth:200, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
+                      <td style={{ padding:"6px 10px", fontSize:13, color:"var(--text-secondary)", maxWidth:200, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}
+                        title={g.description||undefined}>
                         {g.description || "—"}
                       </td>
                       <td style={{ padding:"6px 10px", textAlign:"right", fontWeight:700, color:"var(--green)", fontFamily:"var(--font-mono)", fontSize:13 }}>
-                        {g.amount != null ? `$${parseFloat(g.amount).toLocaleString()}` : "—"}
+                        {g.amount != null ? `$${parseFloat(g.amount).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2})}` : "—"}
                       </td>
                       <td style={{ padding:"6px 10px", fontSize:12, color:"var(--text-muted)", whiteSpace:"nowrap" }}>
                         {g.dateReceived ? new Date(g.dateReceived+"T00:00:00").toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"}) : "—"}
@@ -294,7 +295,7 @@ export function GiftsTab({ state, updateData, appendAuditLog, isArchived, showTo
                     {/* Amount */}
                     {g.amount != null && (
                       <div style={{ fontWeight:700, color:"var(--green)", fontFamily:"var(--font-mono)", fontSize:15, flexShrink:0 }}>
-                        ${parseFloat(g.amount).toLocaleString()}
+                        ${parseFloat(g.amount).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2})}
                       </div>
                     )}
 

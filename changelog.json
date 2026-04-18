@@ -1,9 +1,20 @@
 {
-  "current": "V2.68.5",
+  "current": "V2.68.6",
   "whatsNew": [
-    "UX - Guests: Kippot stat card label clarified; RSVP Date warns when set more than 30 days in future"
+    "UX - Gifts: amounts now show consistent 2 decimal places; truncated descriptions show full text on hover"
   ],
   "changelog": [
+    {
+      "version": "V2.68.6",
+      "date": "2026-04-17",
+      "summary": "GiftsTab display fixes: GI-02, GI-04",
+      "changes": [
+        "Bugfix - GiftsTab.jsx (GI-02): gift amounts now always display with 2 decimal places (e.g. '$200.00' instead of '$200'). Applied to Total Monetary Value stat card, Cash/Check Total stat card, desktop table row amount column, and mobile card amount display. Audit log entry intentionally left without decimals.",
+        "Bugfix - GiftsTab.jsx (GI-04): gift description cell in the desktop table now has a title attribute showing the full description on hover, so truncated descriptions are accessible without opening the edit modal."
+      ],
+      "roadmap": [],
+      "knownIssues": []
+    },
     {
       "version": "V2.68.5",
       "date": "2026-04-17",
