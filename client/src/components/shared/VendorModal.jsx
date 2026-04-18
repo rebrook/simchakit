@@ -9,7 +9,7 @@ export function VendorModal({ vendor, onSave, onClose, isArchived }) {
     id: newVendorId(),
     name: "", type: VENDOR_TYPES[0], contactName: "",
     phone: "", email: "", website: "",
-    address1: "", address2: "", city: "", stateProvince: "", postalCode: "", country: "",
+    address1: "", address2: "", city: "", stateProvince: "", postalCode: "", country: "United States",
     contractAmt: "", status: "Researching",
     contractDate: "", contractUrl: "", notes: "",
     milestones: [],
@@ -139,7 +139,7 @@ export function VendorModal({ vendor, onSave, onClose, isArchived }) {
           </div>
           <div className="form-group">
             <label className="form-label">City</label>
-            <input className="form-input" value={form.city||""} onChange={e => setF("city", e.target.value)} placeholder="Springfield" />
+            <input className="form-input" value={form.city||""} onChange={e => setF("city", e.target.value)} placeholder="City" />
           </div>
           <div className="form-grid-2">
             <div className="form-group">

@@ -223,8 +223,12 @@ export function GiftsTab({ state, updateData, appendAuditLog, isArchived, showTo
                       <td style={{ padding:"6px 10px", fontSize:12, color:"var(--text-muted)", whiteSpace:"nowrap" }}>
                         {g.dateReceived ? new Date(g.dateReceived+"T00:00:00").toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"}) : "—"}
                       </td>
-                      <td style={{ padding:"6px 10px", fontSize:12, color:"var(--text-muted)", textAlign:"center" }}>
-                        {g.attended===true ? "Y" : g.attended===false ? "N" : "—"}
+                      <td style={{ padding:"6px 10px", fontSize:12, textAlign:"center" }}>
+                        <div style={{ width:22, height:22, borderRadius:6, border:`2px solid ${g.attended===true?"var(--green)":g.attended===false?"var(--red)":"var(--border)"}`, background:g.attended===true?"var(--green)":g.attended===false?"var(--red)":"transparent", display:"inline-flex", alignItems:"center", justifyContent:"center", opacity: g.attended==null ? 0.4 : 1 }}
+                          title={g.attended===true?"Attended":g.attended===false?"Did not attend":"Unknown"}>
+                          {g.attended===true && <svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4L3.5 6.5L9 1" stroke="white" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg>}
+                          {g.attended===false && <svg width="8" height="8" viewBox="0 0 8 8" fill="none"><path d="M1 1L7 7M7 1L1 7" stroke="white" strokeWidth="1.6" strokeLinecap="round"/></svg>}
+                        </div>
                       </td>
                       <td style={{ padding:"6px 10px", textAlign:"center" }}>
                         <div
@@ -513,7 +517,7 @@ export function GiftModal({ gift, households, onSave, onClose, isArchived }) {
             </div>
             <div className="form-group">
               <label className="form-label">City</label>
-              <input className="form-input" value={form.city||""} onChange={e=>setF("city",e.target.value)} placeholder="Springfield" />
+              <input className="form-input" value={form.city||""} onChange={e=>setF("city",e.target.value)} placeholder="City" />
             </div>
             <div className="form-grid-2">
               <div className="form-group">

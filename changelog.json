@@ -1,9 +1,22 @@
 {
-  "current": "V2.68.1",
+  "current": "V2.68.2",
   "whatsNew": [
-    "UX - GuestsTab: attending count clamping, modal close tooltips, RSVP date hint, Select All label"
+    "UX - Gifts Attended column now shows consistent checkbox indicator; vendor/gift city placeholders corrected; vendor country defaults to United States"
   ],
   "changelog": [
+    {
+      "version": "V2.68.2",
+      "date": "2026-04-17",
+      "summary": "Data display fixes: VE-03, VE-04, GI-01, GI-03",
+      "changes": [
+        "Bugfix - VendorModal.jsx (VE-03): City input placeholder changed from 'Springfield' to 'City'",
+        "Bugfix - VendorModal.jsx (VE-04): country field now defaults to 'United States' on new vendor, matching the pattern used in GuestsTab and GiftsTab address forms",
+        "Bugfix - GiftsTab.jsx (GI-01): City input placeholder changed from 'Springfield' to 'City' in the gift donor address form",
+        "Bugfix - GiftsTab.jsx (GI-03): Attended column now shows a styled checkbox indicator (green checkmark / red X / muted empty box) consistent with the Written and Mailed columns. Previously showed text 'Y'/'N'/'\u2014' which was visually inconsistent with the checkbox pattern used by Written and Mailed."
+      ],
+      "roadmap": [],
+      "knownIssues": []
+    },
     {
       "version": "V2.68.1",
       "date": "2026-04-17",
