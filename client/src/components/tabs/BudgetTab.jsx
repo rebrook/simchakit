@@ -765,6 +765,9 @@ export function BudgetTab({ state, updateData, appendAuditLog, isArchived, showT
   const [copyMsg,      setCopyMsg]      = useState("");
   const [deleteConfirm, setDeleteConfirm] = useState(null);
   const [expandedNotes, setExpandedNotes] = useState({});
+  const [pendingPaidId,   setPendingPaidId]   = useState(null);
+  const [pendingPaidIdx,  setPendingPaidIdx]  = useState(null);
+  const [pendingPaidDate, setPendingPaidDate] = useState("");
   const [vendorQuickView, setVendorQuickView] = useState(null);
   const [editVendorFromQuickView, setEditVendorFromQuickView] = useState(null);
   const [expandedSections, setExpandedSections] = useState({});
@@ -873,12 +876,46 @@ export function BudgetTab({ state, updateData, appendAuditLog, isArchived, showT
     setDeleteConfirm(null);
   };
 
-  const togglePaid = (id) => {
+  const togglePaid = (id, idx) => {
     if (isArchived) return;
     const exp = expenses.find(e => e.id === id);
-    saveExpenses(expenses.map(e => e.id === id ? {...e, paid: !e.paid} : e));
-    if (exp) appendAuditLog("Updated", `${exp.paid ? "Unmarked" : "Marked"} paid — ${exp.description || "Expense"}`);
-    if (exp) showToast(exp.paid ? "Marked unpaid" : "Marked paid");
+    if (!exp) return;
+    // Marking unpaid — always immediate, no prompt
+    if (exp.paid) {
+      saveExpenses(expenses.map(e => e.id === id ? {...e, paid: false} : e));
+      appendAuditLog("Updated", `Unmarked paid — ${exp.description || "Expense"}`);
+      showToast("Marked unpaid");
+      return;
+    }
+    // Marking paid — if date already set, proceed immediately
+    if (exp.date) {
+      saveExpenses(expenses.map(e => e.id === id ? {...e, paid: true} : e));
+      appendAuditLog("Updated", `Marked paid — ${exp.description || "Expense"}`);
+      showToast("Marked paid");
+      return;
+    }
+    // Marking paid with no date — show inline date prompt
+    // Any previously open prompt is replaced (only one can show at a time)
+    setPendingPaidId(id);
+    setPendingPaidIdx(idx);
+    setPendingPaidDate(new Date().toISOString().slice(0, 10));
+  };
+
+  const confirmPaid = () => {
+    if (!pendingPaidId) return;
+    const exp = expenses.find(e => e.id === pendingPaidId);
+    saveExpenses(expenses.map(e => e.id === pendingPaidId ? {...e, paid: true, date: pendingPaidDate || e.date} : e));
+    if (exp) appendAuditLog("Updated", `Marked paid — ${exp.description || "Expense"}${pendingPaidDate ? " on " + pendingPaidDate : ""}`);
+    showToast("Marked paid");
+    setPendingPaidId(null);
+    setPendingPaidIdx(null);
+    setPendingPaidDate("");
+  };
+
+  const cancelPaid = () => {
+    setPendingPaidId(null);
+    setPendingPaidIdx(null);
+    setPendingPaidDate("");
   };
 
   const handleCopyExport = () => {
@@ -1111,7 +1148,7 @@ export function BudgetTab({ state, updateData, appendAuditLog, isArchived, showT
         {/* Expense rows — list view */}
         {viewMode === "list" && filtered.length > 0 && (
           <div>
-            {filtered.map(e => {
+            {filtered.map((e, eIdx) => {
               const dueStatus  = getDueStatus(e);
               const hasNotes   = !!(e.notes && e.notes.trim());
               const notesOpen  = !!expandedNotes[e.id];
@@ -1123,7 +1160,7 @@ export function BudgetTab({ state, updateData, appendAuditLog, isArchived, showT
                   <div className="expense-row-check">
                     <div
                       className={`paid-check ${e.paid ? "checked" : ""}`}
-                      onClick={() => togglePaid(e.id)}
+                      onClick={() => togglePaid(e.id, eIdx)}
                       title={e.paid ? "Mark as unpaid" : "Mark as paid"}
                     >
                       {e.paid && (
@@ -1193,6 +1230,16 @@ export function BudgetTab({ state, updateData, appendAuditLog, isArchived, showT
                       style={{width:28,height:28,fontSize:13,color:"var(--red)"}}
                       disabled={isArchived} onClick={() => setDeleteConfirm(e.id)}>✕</button>
                   </div>
+                  {pendingPaidId === e.id && pendingPaidIdx === eIdx && (
+                    <div style={{gridColumn:"1/-1",display:"flex",alignItems:"center",gap:8,flexWrap:"wrap",marginTop:6,padding:"10px 12px",background:"var(--green-light)",border:"1px solid var(--green)",borderRadius:"var(--radius-sm)"}}>
+                      <span style={{fontSize:12,fontWeight:600,color:"var(--green)",flexShrink:0}}>📅 Payment date:</span>
+                      <input className="form-input" type="date" value={pendingPaidDate}
+                        onChange={e2 => setPendingPaidDate(e2.target.value)}
+                        style={{width:150,fontSize:12,padding:"4px 8px"}} />
+                      <button className="btn btn-primary btn-sm" style={{fontSize:12}} onClick={confirmPaid}>Confirm paid</button>
+                      <button className="btn btn-secondary btn-sm" style={{fontSize:12}} onClick={cancelPaid}>Cancel</button>
+                    </div>
+                  )}
                 </div>
               );
             })}
@@ -1263,7 +1310,7 @@ export function BudgetTab({ state, updateData, appendAuditLog, isArchived, showT
                   </div>
 
                   {/* Individual expenses within group */}
-                  {isOpen && group.items.map(e => {
+                  {isOpen && group.items.map((e, eIdx) => {
                     const dueStatus = getDueStatus(e);
                     const hasNotes  = !!(e.notes && e.notes.trim());
                     const notesOpen = !!expandedNotes[e.id];
@@ -1273,7 +1320,7 @@ export function BudgetTab({ state, updateData, appendAuditLog, isArchived, showT
                         <div className="expense-row-check">
                           <div
                             className={`paid-check ${e.paid ? "checked" : ""}`}
-                            onClick={() => togglePaid(e.id)}
+                            onClick={() => togglePaid(e.id, eIdx)}
                             title={e.paid ? "Mark as unpaid" : "Mark as paid"}
                           >
                             {e.paid && (
@@ -1312,6 +1359,16 @@ export function BudgetTab({ state, updateData, appendAuditLog, isArchived, showT
                             style={{width:28,height:28,fontSize:13,color:"var(--red)"}}
                             disabled={isArchived} onClick={() => setDeleteConfirm(e.id)}>✕</button>
                         </div>
+                        {pendingPaidId === e.id && pendingPaidIdx === eIdx && (
+                          <div style={{gridColumn:"1/-1",display:"flex",alignItems:"center",gap:8,flexWrap:"wrap",marginTop:6,padding:"10px 12px",background:"var(--green-light)",border:"1px solid var(--green)",borderRadius:"var(--radius-sm)"}}>
+                            <span style={{fontSize:12,fontWeight:600,color:"var(--green)",flexShrink:0}}>📅 Payment date:</span>
+                            <input className="form-input" type="date" value={pendingPaidDate}
+                              onChange={e2 => setPendingPaidDate(e2.target.value)}
+                              style={{width:150,fontSize:12,padding:"4px 8px"}} />
+                            <button className="btn btn-primary btn-sm" style={{fontSize:12}} onClick={confirmPaid}>Confirm paid</button>
+                            <button className="btn btn-secondary btn-sm" style={{fontSize:12}} onClick={cancelPaid}>Cancel</button>
+                          </div>
+                        )}
                       </div>
                     );
                   })}
@@ -1382,14 +1439,14 @@ export function BudgetTab({ state, updateData, appendAuditLog, isArchived, showT
                   {/* Expense rows inside section */}
                   {isOpen && (
                     <div>
-                      {group.items.map(e => {
+                      {group.items.map((e, eIdx) => {
                         const dueStatus = getDueStatus(e);
                         return (
                           <div key={e.id} id={`row-${e.id}`} className="expense-row"
                             style={{opacity: e.paid ? 0.7 : 1}}>
                             <div className="expense-row-check">
                               <div className={`paid-check ${e.paid ? "checked" : ""}`}
-                                onClick={() => togglePaid(e.id)}
+                                onClick={() => togglePaid(e.id, eIdx)}
                                 title={e.paid ? "Mark as unpaid" : "Mark as paid"}>
                                 {e.paid && (
                                   <svg width="11" height="9" viewBox="0 0 11 9" fill="none">
@@ -1414,6 +1471,16 @@ export function BudgetTab({ state, updateData, appendAuditLog, isArchived, showT
                               <button className="icon-btn" title="Delete" disabled={isArchived}
                                 onClick={() => setDeleteConfirm(e.id)}>✕</button>
                             </div>
+                            {pendingPaidId === e.id && pendingPaidIdx === eIdx && (
+                              <div style={{gridColumn:"1/-1",display:"flex",alignItems:"center",gap:8,flexWrap:"wrap",marginTop:6,padding:"10px 12px",background:"var(--green-light)",border:"1px solid var(--green)",borderRadius:"var(--radius-sm)"}}>
+                                <span style={{fontSize:12,fontWeight:600,color:"var(--green)",flexShrink:0}}>📅 Payment date:</span>
+                                <input className="form-input" type="date" value={pendingPaidDate}
+                                  onChange={e2 => setPendingPaidDate(e2.target.value)}
+                                  style={{width:150,fontSize:12,padding:"4px 8px"}} />
+                                <button className="btn btn-primary btn-sm" style={{fontSize:12}} onClick={confirmPaid}>Confirm paid</button>
+                                <button className="btn btn-secondary btn-sm" style={{fontSize:12}} onClick={cancelPaid}>Cancel</button>
+                              </div>
+                            )}
                           </div>
                         );
                       })}

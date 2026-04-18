@@ -1,9 +1,19 @@
 {
-  "current": "V2.69.3",
+  "current": "V2.69.4",
   "whatsNew": [
-    "UX - Navigation: tab order resequenced by planning priority; mobile bottom bar expanded to 5 tabs (Overview, Guests, Budget, Vendors, Tasks)"
+    "UX - Budget: marking an expense paid now prompts for payment date when none is recorded"
   ],
   "changelog": [
+    {
+      "version": "V2.69.4",
+      "date": "2026-04-18",
+      "summary": "BudgetTab: mark as paid prompts for payment date (BU-07)",
+      "changes": [
+        "Improvement - BudgetTab.jsx (BU-07): clicking the paid checkbox on an expense with no payment date set now shows an inline date prompt (green bar) with a date picker pre-filled to today, a Confirm Paid button, and a Cancel button. If a payment date is already recorded the checkbox toggles immediately as before. Marking unpaid always toggles immediately with no prompt. The payment date is saved to the expense record when confirmed. Inline prompt appears in all three view modes: list, vendor, and category."
+      ],
+      "roadmap": [],
+      "knownIssues": []
+    },
     {
       "version": "V2.69.3",
       "date": "2026-04-18",
