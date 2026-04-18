@@ -1,9 +1,20 @@
 {
-  "current": "V2.68.7",
+  "current": "V2.68.8",
   "whatsNew": [
-    "UX - Overview: timeline dates show year; countdown labels consistent; admin note visually distinct from Quick Notes"
+    "UX - Ceremony: unassigned roles now highlighted in amber; Seating: truncated unseated names show full name on hover"
   ],
   "changelog": [
+    {
+      "version": "V2.68.8",
+      "date": "2026-04-18",
+      "summary": "CeremonyRolesTab + SeatingTab UX fixes: CE-02, SE-03",
+      "changes": [
+        "Bugfix - CeremonyRolesTab.jsx (CE-02): role rows where assignee is blank now render with a gold left border and gold-light background tint, making unassigned roles visually distinct at a glance. Assigned rows remain transparent.",
+        "Bugfix - SeatingTab.jsx (SE-03): unseated panel person name div now has a title attribute equal to the full display name, so truncated names are readable on hover without opening any modal."
+      ],
+      "roadmap": [],
+      "knownIssues": []
+    },
     {
       "version": "V2.68.7",
       "date": "2026-04-17",

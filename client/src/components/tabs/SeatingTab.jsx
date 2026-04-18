@@ -530,7 +530,8 @@ export function SeatingTab({ state, updateData, setActiveTab, isArchived, showTo
                     }}
                   >
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: 13, fontWeight: isSelected ? 700 : 500, color: isSelected ? "var(--accent-dark)" : "var(--text-primary)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                      <div style={{ fontSize: 13, fontWeight: isSelected ? 700 : 500, color: isSelected ? "var(--accent-dark)" : "var(--text-primary)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}
+                        title={getPersonDisplayName(p)}>
                         {getPersonDisplayName(p)}
                       </div>
                       <div style={{ fontSize: 11, color: "var(--text-muted)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>

@@ -268,6 +268,8 @@ export function CeremonyRolesTab({ state, updateData, isArchived, showToast, adm
                     <div key={role.id} style={{
                       padding: "12px 16px",
                       borderBottom: idx < sectionRoles.length - 1 ? "1px solid var(--border)" : "none",
+                      borderLeft: role.assignee?.trim() ? "3px solid transparent" : "3px solid var(--gold)",
+                      background: role.assignee?.trim() ? "transparent" : "var(--gold-light)",
                     }}>
                       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 8 }}>
                         <div style={{ flex: 1, minWidth: 0 }}>
@@ -324,7 +326,11 @@ export function CeremonyRolesTab({ state, updateData, isArchived, showToast, adm
                   </thead>
                   <tbody>
                     {sectionRoles.map((role, idx) => (
-                      <tr key={role.id} style={{ borderBottom: "1px solid var(--border)" }}>
+                      <tr key={role.id} style={{
+                        borderBottom: "1px solid var(--border)",
+                        borderLeft: role.assignee?.trim() ? "3px solid transparent" : "3px solid var(--gold)",
+                        background: role.assignee?.trim() ? "transparent" : "var(--gold-light)",
+                      }}>
                         <td style={{ padding: "10px 14px", fontWeight: 600, color: "var(--text-primary)" }}>
                           {role.role}
                         </td>
