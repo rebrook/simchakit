@@ -253,8 +253,8 @@ export function AccommodationsTab({ state, updateData, adminConfig, setActiveTab
                   ) : (
                     filtered.map(hh => {
                       const location = formatAddress(migrateCityStateZip(hh));
-                      const checkIn  = hh.accomCheckIn  ? new Date(hh.accomCheckIn  + "T00:00:00").toLocaleDateString("en-US",{month:"short",day:"numeric"}) : "";
-                      const checkOut = hh.accomCheckOut ? new Date(hh.accomCheckOut + "T00:00:00").toLocaleDateString("en-US",{month:"short",day:"numeric"}) : "";
+                      const checkIn  = hh.accomCheckIn  ? new Date(hh.accomCheckIn  + "T00:00:00").toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"}) : "";
+                      const checkOut = hh.accomCheckOut ? new Date(hh.accomCheckOut + "T00:00:00").toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"}) : "";
                       return (
                         <tr key={hh.id} id={`row-${hh.id}`} style={{ borderBottom:"1px solid var(--border)" }}>
                           <td style={{ padding:"10px 16px", fontWeight:600, color:"var(--text-primary)" }}>
@@ -275,7 +275,7 @@ export function AccommodationsTab({ state, updateData, adminConfig, setActiveTab
                                 display:"inline-flex", alignItems:"center", justifyContent:"center",
                                 transition:"all var(--transition)",
                               }}
-                              title={hh.accomNotified ? "Mark as not notified" : "Mark as notified"}
+                              title={hh.accomNotified ? "Remove notified status" : "Mark as notified"}
                             >
                               {hh.accomNotified ? "✓" : ""}
                             </button>
@@ -291,7 +291,7 @@ export function AccommodationsTab({ state, updateData, adminConfig, setActiveTab
                                 display:"inline-flex", alignItems:"center", justifyContent:"center",
                                 transition:"all var(--transition)",
                               }}
-                              title={hh.accomBooked ? "Mark as not booked" : "Mark as booked"}
+                              title={hh.accomBooked ? "Remove booked status" : "Mark as booked"}
                             >
                               {hh.accomBooked ? "✓" : ""}
                             </button>
@@ -349,7 +349,7 @@ export function AccomEditModal({ household, onSave, onClose, isArchived }) {
       <div className="modal" onClick={e => e.stopPropagation()}>
         <div className="modal-header">
           <div className="modal-title">🧳 {household.formalName}</div>
-          <button className="icon-btn" onClick={onClose}>✕</button>
+          <button className="icon-btn" title="Close" onClick={onClose}>✕</button>
         </div>
         <div className="modal-body">
           <div style={{ display:"flex", gap:16, marginBottom:16 }}>

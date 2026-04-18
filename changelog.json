@@ -1,9 +1,21 @@
 {
-  "current": "V2.68.3",
+  "current": "V2.68.4",
   "whatsNew": [
-    "UX - Budget expense form: $ prefix on amount field, delta symbol spacing fixed, category no longer pre-selects Attire & Accessories"
+    "UX - Stay & Travel: check-in/out dates now show year, toggle tooltips clarified, modal close button labeled"
   ],
   "changelog": [
+    {
+      "version": "V2.68.4",
+      "date": "2026-04-17",
+      "summary": "AccommodationsTab UX fixes: ST-02, ST-03, ST-04",
+      "changes": [
+        "Bugfix - AccommodationsTab.jsx (ST-02): check-in and check-out dates now include the year in display (e.g. 'Oct 17, 2026' instead of 'Oct 17')",
+        "Bugfix - AccommodationsTab.jsx (ST-03): accommodation edit modal close button now has title='Close'. Note: the edit pencil button already had title='Edit accommodation details' and required no change.",
+        "Bugfix - AccommodationsTab.jsx (ST-04): Notified and Booked toggle tooltip labels no longer use confusing double-negative phrasing. When active: 'Remove notified status' / 'Remove booked status'. When inactive: 'Mark as notified' / 'Mark as booked'."
+      ],
+      "roadmap": [],
+      "knownIssues": []
+    },
     {
       "version": "V2.68.3",
       "date": "2026-04-17",
