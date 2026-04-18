@@ -1,9 +1,21 @@
 {
-  "current": "V2.69.0",
+  "current": "V2.69.1",
   "whatsNew": [
-    "UX - Prep: Torah portion card title separator now consistent with app-wide style"
+    "UX - Tasks: due date badge shows full date on hover; dismissing a suggestion now shows a toast with restore hint"
   ],
   "changelog": [
+    {
+      "version": "V2.69.1",
+      "date": "2026-04-18",
+      "summary": "TasksTab UX fixes: TA-02, TA-04. TA-01 deferred.",
+      "changes": [
+        "Bugfix - TasksTab.jsx (TA-02): task due date badge now has a title attribute showing the full date with year and weekday on hover (e.g. 'Fri, Oct 17, 2026'). The badge label itself is unchanged \u2014 it still shows the relative label from getTaskDueStatus().",
+        "Bugfix - TasksTab.jsx (TA-04): dismissing a suggested task now shows a toast: 'Suggestion dismissed \u2014 use \"Restore\" to undo', pointing users to the existing Restore All button in SuggestionsPanel.",
+        "Deferred - TA-01: SuggestionsPanel always-expanded default lives in SuggestionsPanel.jsx (shared component). Requires that file to be uploaded separately."
+      ],
+      "roadmap": [],
+      "knownIssues": []
+    },
     {
       "version": "V2.69.0",
       "date": "2026-04-18",

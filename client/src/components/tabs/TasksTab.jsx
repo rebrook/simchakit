@@ -490,6 +490,7 @@ export function TasksTab({ state, updateData, appendAuditLog, isArchived, showTo
   const handleDismissSuggestion = (s) => {
     if (isArchived) return;
     saveTasks([...tasks, { id: s.id, dismissed: true }]);
+    showToast(`Suggestion dismissed — use "Restore" to undo`);
   };
 
   // Restore all dismissed suggestions
@@ -598,7 +599,8 @@ export function TasksTab({ state, updateData, appendAuditLog, isArchived, showTo
               </span>
             )}
             {ds && (
-              <span className={`task-due ${ds.cls}`}>
+              <span className={`task-due ${ds.cls}`}
+                title={t.due ? new Date(t.due+"T00:00:00").toLocaleDateString("en-US",{weekday:"short",month:"short",day:"numeric",year:"numeric"}) : undefined}>
                 {ds.cls==="overdue" ? "⚠ " : ""}{ds.label}
               </span>
             )}
