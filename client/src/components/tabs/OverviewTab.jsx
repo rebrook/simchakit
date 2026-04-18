@@ -96,9 +96,9 @@ export function OverviewTab({ state, updateNotes, setActiveTab, onOpenAdmin, onO
           <div className="countdown-units">
             {[
               { num: countdown.days,    label: "Days" },
-              { num: countdown.hours,   label: "Hours" },
-              { num: countdown.minutes, label: "Min" },
-              { num: countdown.seconds, label: "Sec" },
+              { num: countdown.hours,   label: "Hrs"  },
+              { num: countdown.minutes, label: "Min"  },
+              { num: countdown.seconds, label: "Sec"  },
             ].map(u => (
               <div className="countdown-unit" key={u.label}>
                 <div className="countdown-num">{String(u.num).padStart(2, "0")}</div>
@@ -230,7 +230,7 @@ export function OverviewTab({ state, updateNotes, setActiveTab, onOpenAdmin, onO
             ) : (
               timelineEntries.map((item, i) => {
                 const dateStr = item.startDate
-                  ? new Date(item.startDate + "T00:00:00").toLocaleDateString("en-US", { month:"short", day:"numeric" })
+                  ? new Date(item.startDate + "T00:00:00").toLocaleDateString("en-US", { month:"short", day:"numeric", year:"numeric" })
                   : "";
                 const counts = getSubEventCounts(item.id);
                 return (
@@ -277,8 +277,13 @@ export function OverviewTab({ state, updateNotes, setActiveTab, onOpenAdmin, onO
           {config.notes && (
             <>
               <div className="divider" />
-              <div style={{ fontSize: 12, color: "var(--text-muted)", fontStyle: "italic", lineHeight: 1.6 }}>
-                📌 Admin note: {config.notes}
+              <div style={{
+                background: "var(--gold-light)", border: "1px solid var(--gold)",
+                borderRadius: "var(--radius-sm)", padding: "8px 12px",
+                fontSize: 12, color: "var(--text-secondary)", lineHeight: 1.6,
+              }}>
+                <span style={{ fontWeight: 700, color: "var(--gold)", marginRight: 6 }}>📌 Admin Note</span>
+                {config.notes}
               </div>
             </>
           )}

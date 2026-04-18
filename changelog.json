@@ -1,9 +1,21 @@
 {
-  "current": "V2.68.6",
+  "current": "V2.68.7",
   "whatsNew": [
-    "UX - Gifts: amounts now show consistent 2 decimal places; truncated descriptions show full text on hover"
+    "UX - Overview: timeline dates show year; countdown labels consistent; admin note visually distinct from Quick Notes"
   ],
   "changelog": [
+    {
+      "version": "V2.68.7",
+      "date": "2026-04-17",
+      "summary": "OverviewTab UX fixes: OV-03, OV-04, OV-05/GL-09",
+      "changes": [
+        "Bugfix - OverviewTab.jsx (OV-03): timeline entry date badges now include the year (e.g. 'Oct 17, 2026' instead of 'Oct 17')",
+        "Bugfix - OverviewTab.jsx (OV-04): countdown unit labels now use consistent abbreviations: Days / Hrs / Min / Sec. Previously 'Hours' was spelled out while the other three were abbreviated.",
+        "Bugfix - OverviewTab.jsx (OV-05/GL-09): Admin Note (from Admin Mode \u2192 Event Details Notes field) now renders below Quick Notes with a distinct gold-bordered card style, clearly separated from the user's own notes. Previously it was an italic muted line visually indistinguishable from hint text."
+      ],
+      "roadmap": [],
+      "knownIssues": []
+    },
     {
       "version": "V2.68.6",
       "date": "2026-04-17",
