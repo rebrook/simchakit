@@ -1,9 +1,25 @@
 {
-  "current": "V2.67.14",
+  "current": "V2.68.0",
   "whatsNew": [
-    "Accessibility - Favors tab info buttons and modal close buttons now have screen reader labels"
+    "New \u2014 Export backup as a downloadable .json file directly from Admin Mode",
+    "New \u2014 Restore from Backup: upload a .json backup to restore all event data from Admin Mode \u2192 Data"
   ],
   "changelog": [
+    {
+      "version": "V2.68.0",
+      "date": "2026-04-17",
+      "summary": "New \u2014 Backup file download and Restore from Backup",
+      "changes": [
+        "New \u2014 router.js: GET /:boardId/api/admin/backup endpoint \u2014 requires admin password as query param, returns full board state as a downloadable .json file with Content-Disposition attachment header. Strips adminPassword and archiveUnlockCode from download. Blocked on archived events.",
+        "New \u2014 router.js: POST /:boardId/api/admin/restore endpoint \u2014 requires admin password + backup JSON payload, validates payload contains recognizable collections, writes all known collections to state, broadcasts to all clients. Preserves adminPassword and archiveUnlockCode. Blocked on archived events.",
+        "New \u2014 AdminPanel.jsx: '\u2b07 Download File' button added to Export Full Backup modal alongside existing Copy to Clipboard. Clicking triggers the backup download endpoint directly from the browser.",
+        "New \u2014 AdminPanel.jsx: 'Restore from Backup' section added in Admin \u2192 Data between Export and Archive. Two-step confirmation: select .json file, type RESTORE BACKUP. Clear instructions describe what is restored vs preserved. Blocked on archived events with explanation. Success state with option to restore again.",
+        "New \u2014 ui.js: 'Export & backup' guide entry updated to mention both Copy to Clipboard and Download File options.",
+        "New \u2014 ui.js: 'Restoring from backup' guide entry added to Getting Started section with step-by-step instructions."
+      ],
+      "roadmap": [],
+      "knownIssues": []
+    },
     {
       "version": "V2.67.14",
       "date": "2026-04-17",

@@ -225,4 +225,80 @@ router.post("/:boardId/api/admin/unarchive", (req, res) => {
   res.json({ ok: true });
 });
 
+// ── Admin: download backup as JSON file ───────────────────────────────────────
+router.get("/:boardId/api/admin/backup", (req, res) => {
+  var boardId  = req.params.boardId;
+  var bs       = getBoardState(boardId, log);
+  var provided = req.query.password || "";
+  if (provided !== bs.adminPassword) {
+    log("WARN", "[SimchaKit] Backup download rejected — bad password for board: " + boardId);
+    return res.status(401).json({ ok: false, error: "Incorrect password" });
+  }
+  if (bs.archived) {
+    log("WARN", "[SimchaKit] Backup download rejected — board is archived: " + boardId);
+    return res.status(403).json({ ok: false, error: "Cannot download backup of an archived event" });
+  }
+  // Build payload — never include adminPassword or archiveUnlockCode
+  var payload = {
+    exportedAt:  new Date().toISOString(),
+    eventId:     boardId,
+    adminConfig: bs.adminConfig  || {},
+    households:  bs.households   || [],
+    people:      bs.people       || [],
+    expenses:    bs.expenses     || [],
+    vendors:     bs.vendors      || [],
+    tasks:       bs.tasks        || [],
+    prep:        bs.prep         || [],
+    tables:      bs.tables       || [],
+    gifts:       bs.gifts        || [],
+    favors:      bs.favors       || {},
+    seating:     bs.seating      || {},
+    dayOf:       bs.dayOf        || {},
+    auditLog:    bs.auditLog     || [],
+    ceremonyRoles: bs.ceremonyRoles || [],
+    quickNotes:  bs.quickNotes   || "",
+  };
+  var date     = new Date().toISOString().slice(0, 10);
+  var filename = "simchakit-" + boardId + "-" + date + ".json";
+  res.setHeader("Content-Type", "application/json");
+  res.setHeader("Content-Disposition", "attachment; filename=\"" + filename + "\"");
+  log("INFO", "[SimchaKit] Backup downloaded for board: " + boardId);
+  res.send(JSON.stringify(payload, null, 2));
+});
+
+// ── Admin: restore from backup ────────────────────────────────────────────────
+router.post("/:boardId/api/admin/restore", (req, res) => {
+  var boardId  = req.params.boardId;
+  var bs       = getBoardState(boardId, log);
+  var provided = (req.body && req.body.password) ? req.body.password : "";
+  var backup   = (req.body && req.body.backup)   ? req.body.backup   : null;
+  if (provided !== bs.adminPassword) {
+    log("WARN", "[SimchaKit] Restore rejected — bad password for board: " + boardId);
+    return res.status(401).json({ ok: false, error: "Incorrect password" });
+  }
+  if (bs.archived) {
+    log("WARN", "[SimchaKit] Restore rejected — board is archived: " + boardId);
+    return res.status(403).json({ ok: false, error: "Cannot restore an archived event" });
+  }
+  if (!backup || typeof backup !== "object") {
+    return res.status(400).json({ ok: false, error: "Invalid backup payload" });
+  }
+  // Validate: must have at least one recognizable collection
+  var KNOWN = ["households","people","expenses","vendors","tasks","prep","tables","gifts","favors","dayOf","auditLog","ceremonyRoles","seating"];
+  var hasData = KNOWN.some(function(k) { return Array.isArray(backup[k]) || (backup[k] && typeof backup[k] === "object"); });
+  if (!hasData) {
+    return res.status(400).json({ ok: false, error: "Backup file does not appear to contain valid SimchaKit data" });
+  }
+  // Restore all known collections — preserve adminPassword and archiveUnlockCode
+  KNOWN.forEach(function(k) {
+    if (backup[k] !== undefined) bs[k] = backup[k];
+  });
+  if (backup.adminConfig !== undefined) bs.adminConfig = backup.adminConfig;
+  if (backup.quickNotes  !== undefined) bs.quickNotes  = backup.quickNotes;
+  saveState(boardId, bs, log);
+  _broadcast(boardId);
+  log("INFO", "[SimchaKit] Backup restored for board: " + boardId);
+  res.json({ ok: true });
+});
+
 module.exports = router;

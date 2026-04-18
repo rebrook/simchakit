@@ -2,7 +2,7 @@
 
 A real-time event planning web app for celebrations — B'nei Mitzvot, weddings, and other simchas.
 
-![Version](https://img.shields.io/badge/version-2.67.14-blue)
+![Version](https://img.shields.io/badge/version-2.68.0-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
 ## Screenshots
@@ -34,6 +34,7 @@ A real-time event planning web app for celebrations — B'nei Mitzvot, weddings,
 - **Theming** — customizable color palettes and event branding
 - **Print Brief** — generate a comprehensive event summary document
 - **CSV Import/Export** — import guest lists, export for invitation vendors
+- **Backup & Restore** — export a full JSON backup (copy to clipboard or download as a file) and restore from any previous backup via Admin Mode → Data
 
 ## Tech Stack
 

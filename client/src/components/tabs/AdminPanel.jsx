@@ -311,6 +311,13 @@ export function AdminPanel({ eventId, password, config, state, appVersion, onClo
   const [backupModal, setBackupModal] = useState(false);
   const [backupCopied, setBackupCopied] = useState(false);
 
+  // Restore state
+  const [restoreFile,    setRestoreFile]    = useState(null);
+  const [restoreConfirm, setRestoreConfirm] = useState("");
+  const [restoreMsg,     setRestoreMsg]     = useState("");
+  const [restoring,      setRestoring]      = useState(false);
+  const [restoreDone,    setRestoreDone]    = useState(false);
+
   // Archive state
   const [archiveUnlockCode,    setArchiveUnlockCode]    = useState("");
   const [archiveUnlockConfirm, setArchiveUnlockConfirm] = useState("");
@@ -356,6 +363,42 @@ export function AdminPanel({ eventId, password, config, state, appVersion, onClo
       setBackupCopied(true);
       setTimeout(() => setBackupCopied(false), 2500);
     }).catch(() => {});
+  };
+
+  const downloadBackup = () => {
+    const url = `/simcha/${eventId}/api/admin/backup?password=${encodeURIComponent(password)}`;
+    const a = document.createElement("a");
+    a.href = url;
+    a.click();
+  };
+
+  const handleRestore = async () => {
+    if (!restoreFile || restoreConfirm.trim() !== "RESTORE BACKUP") return;
+    setRestoring(true);
+    setRestoreMsg("");
+    try {
+      const text = await restoreFile.text();
+      let backup;
+      try { backup = JSON.parse(text); }
+      catch { setRestoreMsg("Could not parse file — make sure it is a valid SimchaKit backup (.json)."); setRestoring(false); return; }
+      const res = await fetch(`/simcha/${eventId}/api/admin/restore`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password, backup }),
+      });
+      const data = await res.json();
+      if (data.ok) {
+        setRestoreDone(true);
+        setRestoreMsg("");
+        setRestoreFile(null);
+        setRestoreConfirm("");
+      } else {
+        setRestoreMsg(data.error || "Restore failed. Please try again.");
+      }
+    } catch {
+      setRestoreMsg("Restore failed — network error. Please try again.");
+    }
+    setRestoring(false);
   };
 
   const handleArchive = async () => {
@@ -1265,6 +1308,62 @@ export function AdminPanel({ eventId, password, config, state, appVersion, onClo
 
               <div style={{ borderTop:"1px solid var(--border)", margin:"20px 0" }} />
 
+              {/* ── Restore from Backup ── */}
+              <div className="admin-section">
+                <div className="admin-section-title">Restore from Backup</div>
+                {isArchived ? (
+                  <div className="alert alert-warning" style={{ marginBottom:12 }}>
+                    This event is archived and cannot be restored to. Unarchive the event first.
+                  </div>
+                ) : restoreDone ? (
+                  <div className="alert alert-success" style={{ marginBottom:12 }}>
+                    ✓ Backup restored successfully. All event data has been updated.
+                    <button className="btn btn-ghost btn-sm" style={{ marginLeft:12 }}
+                      onClick={() => setRestoreDone(false)}>Restore another</button>
+                  </div>
+                ) : (
+                  <>
+                    <p style={{ fontSize:13, color:"var(--text-secondary)", lineHeight:1.6, marginBottom:12 }}>
+                      Upload a previously exported SimchaKit backup file (.json) to replace all current event data.
+                    </p>
+                    <div style={{ background:"var(--bg-subtle)", border:"1px solid var(--border)", borderRadius:"var(--radius-md)", padding:"12px 14px", marginBottom:14, fontSize:13, lineHeight:1.7 }}>
+                      <strong>What this restores:</strong> guests, people, budget, vendors, tasks, prep, seating, gifts, favors, ceremony roles, and notes.<br/>
+                      <strong>What is preserved:</strong> your admin password, event configuration (name, theme, timeline), and archived status.<br/>
+                      <strong style={{ color:"var(--red)" }}>This cannot be undone.</strong> Export a fresh backup first if you want to save your current data.
+                    </div>
+                    <div style={{ fontSize:12, fontWeight:700, color:"var(--text-muted)", textTransform:"uppercase", letterSpacing:"0.04em", marginBottom:6 }}>
+                      Step 1 — Select your backup file
+                    </div>
+                    <input
+                      type="file"
+                      accept=".json"
+                      style={{ fontSize:13, marginBottom:14, display:"block" }}
+                      onChange={e => { setRestoreFile(e.target.files[0] || null); setRestoreMsg(""); setRestoreDone(false); }}
+                    />
+                    <div style={{ fontSize:12, fontWeight:700, color:"var(--text-muted)", textTransform:"uppercase", letterSpacing:"0.04em", marginBottom:6 }}>
+                      Step 2 — Type <strong style={{ fontFamily:"var(--font-mono)", color:"var(--text-primary)" }}>RESTORE BACKUP</strong> to confirm
+                    </div>
+                    <input
+                      className="form-input"
+                      style={{ marginBottom:14, fontFamily:"var(--font-mono)" }}
+                      placeholder="RESTORE BACKUP"
+                      value={restoreConfirm}
+                      onChange={e => setRestoreConfirm(e.target.value)}
+                    />
+                    {restoreMsg && <div className="alert alert-error" style={{ marginBottom:12 }}>{restoreMsg}</div>}
+                    <button
+                      className="btn btn-danger"
+                      disabled={!restoreFile || restoreConfirm.trim() !== "RESTORE BACKUP" || restoring}
+                      onClick={handleRestore}
+                    >
+                      {restoring ? "Restoring…" : "↑ Restore from Backup"}
+                    </button>
+                  </>
+                )}
+              </div>
+
+              <div style={{ borderTop:"1px solid var(--border)", margin:"20px 0" }} />
+
               {/* ── Archive Event ── */}
               <div className="admin-section">
                 <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:8 }}>
@@ -1400,6 +1499,9 @@ export function AdminPanel({ eventId, password, config, state, appVersion, onClo
               />
               <div className="modal-footer" style={{ marginTop:12 }}>
                 <button className="btn btn-ghost" onClick={() => { setBackupModal(false); setBackupCopied(false); }}>Close</button>
+                <button className="btn btn-secondary" onClick={downloadBackup}>
+                  ⬇ Download File
+                </button>
                 <button className="btn btn-primary" onClick={copyBackup}>
                   {backupCopied ? "✓ Copied!" : "Copy to Clipboard"}
                 </button>
