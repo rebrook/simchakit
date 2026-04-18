@@ -430,6 +430,7 @@ export function FavorsTab({ state, updateData, setActiveTab, isArchived, showToa
                         <th style={{ padding:"6px 10px", textAlign:"left", fontWeight:700, color:"var(--text-muted)", fontSize:11, textTransform:"uppercase", letterSpacing:"0.04em", whiteSpace:"nowrap", position:"relative" }}>
                           Name on Favor
                           <button onClick={e => { e.stopPropagation(); setOpenTip(t => t==="printName" ? null : "printName"); }}
+                            aria-label="Name on Favor info"
                             style={{ background:"none", border:"none", cursor:"pointer", color:"var(--text-muted)", fontSize:11, marginLeft:4, padding:0, lineHeight:1, verticalAlign:"middle" }}>ⓘ</button>
                           {openTip === "printName" && (
                             <div style={{ position:"absolute", top:"100%", left:0, zIndex:300, width:220, background:"var(--bg-surface)", border:"1px solid var(--border-strong)", borderRadius:"var(--radius-md)", boxShadow:"var(--shadow-md)", padding:"10px 12px", fontSize:12, color:"var(--text-secondary)", fontWeight:400, textTransform:"none", letterSpacing:0, lineHeight:1.5, whiteSpace:"normal" }}>
@@ -442,6 +443,7 @@ export function FavorsTab({ state, updateData, setActiveTab, isArchived, showToa
                         <th style={{ padding:"6px 10px", textAlign:"center", fontWeight:700, color:"var(--text-muted)", fontSize:11, textTransform:"uppercase", letterSpacing:"0.04em", whiteSpace:"nowrap", position:"relative" }}>
                           Pre-Printed?
                           <button onClick={e => { e.stopPropagation(); setOpenTip(t => t==="preprint" ? null : "preprint"); }}
+                            aria-label="Pre-Printed info"
                             style={{ background:"none", border:"none", cursor:"pointer", color:"var(--text-muted)", fontSize:11, marginLeft:4, padding:0, lineHeight:1, verticalAlign:"middle" }}>ⓘ</button>
                           {openTip === "preprint" && (
                             <div style={{ position:"absolute", top:"100%", left:0, zIndex:300, width:220, background:"var(--bg-surface)", border:"1px solid var(--border-strong)", borderRadius:"var(--radius-md)", boxShadow:"var(--shadow-md)", padding:"10px 12px", fontSize:12, color:"var(--text-secondary)", fontWeight:400, textTransform:"none", letterSpacing:0, lineHeight:1.5, whiteSpace:"normal" }}>
@@ -600,7 +602,7 @@ export function FavorsTab({ state, updateData, setActiveTab, isArchived, showToa
           <div className="modal" style={{ maxWidth:400 }} onClick={e => e.stopPropagation()}>
             <div className="modal-header">
               <div className="modal-title">Delete Favor Recipient</div>
-              <button className="icon-btn" onClick={() => setDeleteConfirm(null)}>✕</button>
+              <button className="icon-btn" title="Close" onClick={() => setDeleteConfirm(null)}>✕</button>
             </div>
             <div className="modal-body">
               <p style={{ fontSize:14, color:"var(--text-primary)", lineHeight:1.6 }}>
@@ -637,7 +639,7 @@ export function FavorsTab({ state, updateData, setActiveTab, isArchived, showToa
                   onClick={() => { const f=document.getElementById("favor-print-frame"); if(f?.contentWindow) f.contentWindow.print(); }}>
                   🖨 Print
                 </button>
-                <button className="icon-btn" onClick={() => setPrintHTML(null)}>✕</button>
+                <button className="icon-btn" title="Close" onClick={() => setPrintHTML(null)}>✕</button>
               </div>
             </div>
             <iframe id="favor-print-frame" srcDoc={printHTML}
@@ -689,7 +691,7 @@ export function FavorModal({ favor, favorConfig, people, sizes, timeline, onSave
       <div className="modal modal-lg" style={{ maxWidth:460 }} onClick={e => e.stopPropagation()}>
         <div className="modal-header">
           <div className="modal-title">{isEdit ? "Edit Favor Entry" : "Add Favor Entry"}</div>
-          <button className="icon-btn" onClick={onClose}>✕</button>
+          <button className="icon-btn" title="Close" onClick={onClose}>✕</button>
         </div>
         <div className="modal-body">
           <div className="form-row">
@@ -808,7 +810,7 @@ export function FavorExportModal({ favors, favorConfig, adminConfig, onPrint, on
       <div className="modal modal-lg" style={{ maxWidth:500 }} onClick={e => e.stopPropagation()}>
         <div className="modal-header">
           <div className="modal-title">Export Favor List</div>
-          <button className="icon-btn" onClick={onClose}>✕</button>
+          <button className="icon-btn" title="Close" onClick={onClose}>✕</button>
         </div>
         <div className="modal-body">
           <div style={{ display:"flex", gap:10, marginBottom:20 }}>

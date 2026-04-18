@@ -1,9 +1,21 @@
 {
-  "current": "V2.67.13",
+  "current": "V2.67.14",
   "whatsNew": [
-    "Accessibility - Ceremony Roles modal close buttons now have tooltip labels"
+    "Accessibility - Favors tab info buttons and modal close buttons now have screen reader labels"
   ],
   "changelog": [
+    {
+      "version": "V2.67.14",
+      "date": "2026-04-17",
+      "summary": "Accessibility fix: FA-01 info buttons and modal close buttons now have labels",
+      "changes": [
+        "Bugfix - FavorsTab.jsx (FA-01): 'Name on Favor' column \u24d8 info button now has aria-label='Name on Favor info' for screen reader support",
+        "Bugfix - FavorsTab.jsx: 'Pre-Printed?' column \u24d8 info button now has aria-label='Pre-Printed info' (same pattern, same fix)",
+        "Bugfix - FavorsTab.jsx: all four modal close (\u2715) buttons now have title='Close' \u2014 covers delete confirm, print preview, FavorModal, and FavorExportModal"
+      ],
+      "roadmap": [],
+      "knownIssues": []
+    },
     {
       "version": "V2.67.13",
       "date": "2026-04-17",
