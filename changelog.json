@@ -1,9 +1,21 @@
 {
-  "current": "V2.68.8",
+  "current": "V2.68.9",
   "whatsNew": [
-    "UX - Ceremony: unassigned roles now highlighted in amber; Seating: truncated unseated names show full name on hover"
+    "UX - Budget: Budgeted field now explains its analytics impact; Favors: duplicate Name on Favor warning added"
   ],
   "changelog": [
+    {
+      "version": "V2.68.9",
+      "date": "2026-04-18",
+      "summary": "BudgetTab + FavorsTab UX fixes: BU-06, FA-03. PR-02 deferred.",
+      "changes": [
+        "Bugfix - BudgetTab.jsx (BU-06): Budgeted field now has a hint below the input: 'Used in budget vs. actual charts. Leave blank to exclude this item from estimate tracking.' Clarifies why the field matters without blocking submission.",
+        "Bugfix - FavorsTab.jsx (FA-03): Name on Favor input now shows an amber warning when the typed name already exists on another favor entry (case-insensitive match, excludes current entry in edit mode). FavorModal now receives favors array as a prop to enable the check.",
+        "Deferred - PrepTab.jsx (PR-02): Torah reading separator inconsistency lives in TorahPortionCard.jsx (shared component), not PrepTab.jsx. Requires separate upload to fix."
+      ],
+      "roadmap": [],
+      "knownIssues": []
+    },
     {
       "version": "V2.68.8",
       "date": "2026-04-18",

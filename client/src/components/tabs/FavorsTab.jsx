@@ -588,12 +588,12 @@ export function FavorsTab({ state, updateData, setActiveTab, isArchived, showToa
 
       {/* ── Add modal ── */}
       {showModal && (
-        <FavorModal favorConfig={favorConfig} people={people} sizes={sizes} onSave={handleAdd} onClose={() => setShowModal(false)} isArchived={isArchived} />
+        <FavorModal favorConfig={favorConfig} people={people} sizes={sizes} favors={favors} onSave={handleAdd} onClose={() => setShowModal(false)} isArchived={isArchived} />
       )}
 
       {/* ── Edit modal ── */}
       {editFavor && (
-        <FavorModal favor={editFavor} favorConfig={favorConfig} people={people} sizes={sizes} onSave={handleEdit} onClose={() => setEditFavor(null)} isArchived={isArchived} />
+        <FavorModal favor={editFavor} favorConfig={favorConfig} people={people} sizes={sizes} favors={favors} onSave={handleEdit} onClose={() => setEditFavor(null)} isArchived={isArchived} />
       )}
 
       {/* ── Delete confirm ── */}
@@ -652,7 +652,7 @@ export function FavorsTab({ state, updateData, setActiveTab, isArchived, showToa
   );
 }
 
-export function FavorModal({ favor, favorConfig, people, sizes, timeline, onSave, onClose, isArchived }) {
+export function FavorModal({ favor, favorConfig, people, sizes, favors = [], timeline, onSave, onClose, isArchived }) {
   const isEdit = !!favor;
   const [form, setForm] = useState(favor || {
     id: newFavorId(), personId: null, personName: "",
@@ -733,6 +733,9 @@ export function FavorModal({ favor, favorConfig, people, sizes, timeline, onSave
               <input className="form-input" value={form.printName||""}
                 onChange={e => setF("printName", e.target.value)}
                 placeholder="e.g., Dad, Aunt Ains, C-Bizkit" />
+              {form.printName?.trim() && favors.some(f => f.id !== form.id && (f.printName||"").trim().toLowerCase() === form.printName.trim().toLowerCase()) && (
+                <div style={{fontSize:11,color:"var(--gold,#b45309)",marginTop:4}}>⚠ This name is already used on another favor entry.</div>
+              )}
               <div style={{ fontSize:11, color:"var(--text-muted)", marginTop:4 }}>The name or text to print on the favor — e.g. a nickname, family role, or custom label. Leave blank to skip personalization for this person.</div>
             </div>
             <div className="form-row">

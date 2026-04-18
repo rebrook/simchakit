@@ -380,6 +380,7 @@ export function ExpenseModal({ expense, vendors, adminConfig, onSave, onClose, i
                   onChange={e => setF("budgeted", e.target.value < 0 ? "0" : e.target.value)}
                   placeholder="Original estimate" />
               </div>
+              <div style={{fontSize:11,color:"var(--text-muted)",marginTop:4}}>Used in budget vs. actual charts. Leave blank to exclude this item from estimate tracking.</div>
             </div>
           </div>
 
