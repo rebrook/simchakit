@@ -109,7 +109,7 @@ export function HouseholdModal({ household, members, adminConfig, onSave, onClos
               </div>
             )}
           </div>
-          <button className="icon-btn" onClick={onClose}>✕</button>
+          <button className="icon-btn" title="Close" onClick={onClose}>✕</button>
         </div>
         {isEdit && (
           <div className="hh-modal-tabs">
@@ -162,6 +162,7 @@ export function HouseholdModal({ household, members, adminConfig, onSave, onClos
             <div className="form-group">
               <label className="form-label">RSVP Date</label>
               <input className="form-input" type="date" value={hh.rsvpDate} onChange={e=>setHHF("rsvpDate",e.target.value)} />
+              {hh.rsvpDate && <div style={{fontSize:11,color:"var(--text-muted)",marginTop:3}}>{new Date(hh.rsvpDate + "T00:00:00").toLocaleDateString("en-US",{weekday:"short",year:"numeric",month:"short",day:"numeric"})}</div>}
             </div>
             {sections.length > 0 && (
               <div className="form-group">
@@ -401,6 +402,7 @@ export function HouseholdModal({ household, members, adminConfig, onSave, onClos
             <div className="form-group">
               <label className="form-label">RSVP Date</label>
               <input className="form-input" type="date" value={hh.rsvpDate} onChange={e=>setHHF("rsvpDate",e.target.value)} />
+              {hh.rsvpDate && <div style={{fontSize:11,color:"var(--text-muted)",marginTop:3}}>{new Date(hh.rsvpDate + "T00:00:00").toLocaleDateString("en-US",{weekday:"short",year:"numeric",month:"short",day:"numeric"})}</div>}
             </div>
             {sections.length > 0 && (
               <div className="form-group">
@@ -436,14 +438,14 @@ export function HouseholdModal({ household, members, adminConfig, onSave, onClos
                     <label className="form-label">Attending Adults</label>
                     <input className="form-input" type="number" min="0"
                       value={hh.attendingAdults ?? ""}
-                      onChange={e=>setHHF("attendingAdults", e.target.value==="" ? null : parseInt(e.target.value)||0)}
+                      onChange={e=>setHHF("attendingAdults", e.target.value==="" ? null : Math.max(0, parseInt(e.target.value)||0))}
                       placeholder="Default: computed from members" />
                   </div>
                   <div className="form-group" style={{marginBottom:0}}>
                     <label className="form-label">Attending Kids</label>
                     <input className="form-input" type="number" min="0"
                       value={hh.attendingKids ?? ""}
-                      onChange={e=>setHHF("attendingKids", e.target.value==="" ? null : parseInt(e.target.value)||0)}
+                      onChange={e=>setHHF("attendingKids", e.target.value==="" ? null : Math.max(0, parseInt(e.target.value)||0))}
                       placeholder="Default: computed from members" />
                   </div>
                 </div>
@@ -813,7 +815,7 @@ export function ImportModal({ adminConfig, onImport, onClose }) {
       <div className="modal modal-lg" onClick={e => e.stopPropagation()}>
         <div className="modal-header">
           <div className="modal-title">Import Guests</div>
-          <button className="icon-btn" onClick={onClose}>✕</button>
+          <button className="icon-btn" title="Close" onClick={onClose}>✕</button>
         </div>
         <div className="modal-body">
 
@@ -1041,7 +1043,7 @@ export function TimelineEntryModal({ entry, onSave, onClose }) {
       <div className="modal" style={{ maxWidth:480 }} onClick={e => e.stopPropagation()}>
         <div className="modal-header">
           <div className="modal-title">{isEdit ? "Edit Timeline Event" : "Add Timeline Event"}</div>
-          <button className="icon-btn" onClick={onClose}>✕</button>
+          <button className="icon-btn" title="Close" onClick={onClose}>✕</button>
         </div>
         <div className="modal-body">
           <div className="form-grid-2">
@@ -1698,7 +1700,7 @@ export function GuestsTab({ state, updateData, adminConfig, appendAuditLog, isAr
                 }}
                 style={{width:15,height:15,accentColor:"var(--accent-primary)",cursor:"pointer"}}
               />
-              <span style={{fontSize:12,color:"var(--text-muted)",whiteSpace:"nowrap"}}>All</span>
+              <span style={{fontSize:12,color:"var(--text-muted)",whiteSpace:"nowrap"}}>Select All</span>
             </label>
           )}
           <input className="form-input" style={{flex:1,padding:"8px 12px"}}
@@ -2086,7 +2088,7 @@ export function GuestsTab({ state, updateData, adminConfig, appendAuditLog, isAr
           <div className="modal" style={{maxWidth:400}} onClick={e=>e.stopPropagation()}>
             <div className="modal-header">
               <div className="modal-title">Delete Household</div>
-              <button className="icon-btn" onClick={()=>setDeleteConfirm(null)}>✕</button>
+              <button className="icon-btn" title="Close" onClick={()=>setDeleteConfirm(null)}>✕</button>
             </div>
             <div className="modal-body">
               <p style={{fontSize:14,color:"var(--text-primary)",marginBottom:8}}>

@@ -1,10 +1,22 @@
 {
-  "current": "V2.68.0",
+  "current": "V2.68.1",
   "whatsNew": [
-    "New \u2014 Export backup as a downloadable .json file directly from Admin Mode",
-    "New \u2014 Restore from Backup: upload a .json backup to restore all event data from Admin Mode \u2192 Data"
+    "UX - GuestsTab: attending count clamping, modal close tooltips, RSVP date hint, Select All label"
   ],
   "changelog": [
+    {
+      "version": "V2.68.1",
+      "date": "2026-04-17",
+      "summary": "GuestsTab UX fixes: GU-04, GU-09, GU-12, GU-13",
+      "changes": [
+        "Bugfix - GuestsTab.jsx (GU-09): Attending Adults and Attending Kids override inputs now clamp to 0 via Math.max(0, ...) on change, preventing negative values even when pasted. min='0' HTML attribute alone did not prevent paste-in of negative numbers.",
+        "Bugfix - GuestsTab.jsx (GU-12): all modal close (\u2715) buttons now have title='Close' for tooltip and screen reader support. Covers HouseholdModal, ImportModal, TimelineEntryModal, Delete Household confirm modal, and GuestExportModal (the last was already titled).",
+        "Bugfix - GuestsTab.jsx (GU-04): RSVP Date input now shows a formatted date hint below the field when a date is set (e.g. 'Sat, Oct 17, 2026'). The raw ISO value (YYYY-MM-DD) shown by the browser's date picker is no longer the only representation visible to the user.",
+        "Bugfix - GuestsTab.jsx (GU-13): bulk select checkbox label changed from 'All' to 'Select All' for clarity."
+      ],
+      "roadmap": [],
+      "knownIssues": []
+    },
     {
       "version": "V2.68.0",
       "date": "2026-04-17",
