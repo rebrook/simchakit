@@ -1,9 +1,21 @@
 {
-  "current": "V2.68.2",
+  "current": "V2.68.3",
   "whatsNew": [
-    "UX - Gifts Attended column now shows consistent checkbox indicator; vendor/gift city placeholders corrected; vendor country defaults to United States"
+    "UX - Budget expense form: $ prefix on amount field, delta symbol spacing fixed, category no longer pre-selects Attire & Accessories"
   ],
   "changelog": [
+    {
+      "version": "V2.68.3",
+      "date": "2026-04-17",
+      "summary": "BudgetTab UX fixes: BU-01, BU-02, BU-03",
+      "changes": [
+        "Bugfix - BudgetTab.jsx (BU-01): Amount field now shows a $ prefix symbol inside the input, using the same inset span pattern already used in the Gratuity Calculator. paddingLeft:22 added to prevent text overlapping the symbol.",
+        "Bugfix - BudgetTab.jsx (BU-02): delta values on expense rows now have a space between the arrow symbol and the dollar amount ('\u25bc $1,875' instead of '\u25bc$1,875'). The stat card and tooltip variants already had correct spacing.",
+        "Bugfix - BudgetTab.jsx (BU-03): Add Expense category no longer defaults to 'Attire & Accessories' (EXPENSE_CATEGORIES[0]). Now defaults to empty string with a '\u2014 Select category \u2014' placeholder option, requiring the user to make an intentional selection."
+      ],
+      "roadmap": [],
+      "knownIssues": []
+    },
     {
       "version": "V2.68.2",
       "date": "2026-04-17",

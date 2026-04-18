@@ -263,7 +263,7 @@ export function ExpenseModal({ expense, vendors, adminConfig, onSave, onClose, i
   const isEdit = !!expense;
   const [form, setForm] = useState(expense || {
     id: newExpenseId(),
-    description: "", category: EXPENSE_CATEGORIES[0],
+    description: "", category: "",
     customCategory: "", vendor: "", vendorId: "", amount: "",
     budgeted: "", date: "", dueDate: "", paid: false, notes: "",
     eventSection: "",
@@ -320,6 +320,7 @@ export function ExpenseModal({ expense, vendors, adminConfig, onSave, onClose, i
               <label className="form-label">Category</label>
               <select className="form-select" value={form.category}
                 onChange={e => setF("category", e.target.value)}>
+                <option value="">— Select category —</option>
                 {EXPENSE_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
               </select>
             </div>
@@ -360,17 +361,25 @@ export function ExpenseModal({ expense, vendors, adminConfig, onSave, onClose, i
           <div className="form-grid-2">
             <div className="form-group">
               <label className="form-label">Amount ($)</label>
-              <input className="form-input" type="number" min="0" step="0.01"
-                value={form.amount}
-                onChange={e => setF("amount", e.target.value < 0 ? "0" : e.target.value)}
-                placeholder="0.00" />
+              <div style={{position:"relative"}}>
+                <span style={{position:"absolute",left:10,top:"50%",transform:"translateY(-50%)",fontSize:13,color:"var(--text-muted)",pointerEvents:"none"}}>$</span>
+                <input className="form-input" type="number" min="0" step="0.01"
+                  style={{paddingLeft:22}}
+                  value={form.amount}
+                  onChange={e => setF("amount", e.target.value < 0 ? "0" : e.target.value)}
+                  placeholder="0.00" />
+              </div>
             </div>
             <div className="form-group">
               <label className="form-label">Budgeted ($) <span style={{fontWeight:400,color:"var(--text-muted)",fontSize:11}}>optional</span></label>
-              <input className="form-input" type="number" min="0" step="0.01"
-                value={form.budgeted||""}
-                onChange={e => setF("budgeted", e.target.value < 0 ? "0" : e.target.value)}
-                placeholder="Original estimate" />
+              <div style={{position:"relative"}}>
+                <span style={{position:"absolute",left:10,top:"50%",transform:"translateY(-50%)",fontSize:13,color:"var(--text-muted)",pointerEvents:"none"}}>$</span>
+                <input className="form-input" type="number" min="0" step="0.01"
+                  style={{paddingLeft:22}}
+                  value={form.budgeted||""}
+                  onChange={e => setF("budgeted", e.target.value < 0 ? "0" : e.target.value)}
+                  placeholder="Original estimate" />
+              </div>
             </div>
           </div>
 
@@ -1170,7 +1179,7 @@ export function BudgetTab({ state, updateData, appendAuditLog, isArchived, showT
                       const color = diff > 0 ? "var(--red)" : "var(--green)";
                       return (
                         <div style={{fontSize:10,fontWeight:600,color,marginTop:2}}>
-                          {diff > 0 ? "▲" : "▼"}${Math.abs(diff).toLocaleString("en-US",{minimumFractionDigits:0,maximumFractionDigits:0})}
+                          {diff > 0 ? "▲" : "▼"} ${Math.abs(diff).toLocaleString("en-US",{minimumFractionDigits:0,maximumFractionDigits:0})}
                         </div>
                       );
                     })()}
