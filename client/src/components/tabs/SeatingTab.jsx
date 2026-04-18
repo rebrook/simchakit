@@ -824,6 +824,7 @@ export function TableModal({ table, tableCount, onSave, onClose, isArchived }) {
               placeholder="Location, special needs, etc." />
           </div>
           <div className="modal-footer">
+            <span style={{fontSize:11,color:"var(--text-muted)",marginRight:"auto"}}>* required</span>
             <button className="btn btn-ghost" onClick={onClose}>Cancel</button>
             <button className="btn btn-primary" onClick={handleSave}
               disabled={!form.name.trim() || !form.capacity || isArchived}>

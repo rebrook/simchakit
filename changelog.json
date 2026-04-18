@@ -1,9 +1,29 @@
 {
-  "current": "V2.69.4",
+  "current": "V2.69.6",
   "whatsNew": [
-    "UX - Budget: marking an expense paid now prompts for payment date when none is recorded"
+    "UX - All modals: '* required' legend added to every Add/Edit modal footer app-wide"
   ],
   "changelog": [
+    {
+      "version": "V2.69.6",
+      "date": "2026-04-18",
+      "summary": "Required fields legend added to all Add/Edit modals: GL-05",
+      "changes": [
+        "Bugfix - GL-05: '* required' legend added to the footer of all Add/Edit modals that have required fields. Files updated: BudgetTab.jsx (Add/Edit Expense), FavorsTab.jsx (Add/Edit Favor), GiftsTab.jsx (Add/Edit Gift), CeremonyRolesTab.jsx (Add/Edit Role), SeatingTab.jsx (Add/Edit Table), TasksTab.jsx (Add Task), VendorModal.jsx (Add/Edit Vendor), PrepTab.jsx (Add/Edit Milestone). CalendarTab and AccommodationsTab have no required fields and were left unchanged. GuestsTab was updated separately in V2.69.5."
+      ],
+      "roadmap": [],
+      "knownIssues": []
+    },
+    {
+      "version": "V2.69.5",
+      "date": "2026-04-18",
+      "summary": "GuestsTab: required fields legend in household modal (GU-11)",
+      "changes": [
+        "Bugfix - GuestsTab.jsx (GU-11): Add/Edit Household modal footer now shows '* required' legend left-aligned, explaining the existing * markers on Formal Invitation Name (step 1) and First Name (step 2 / member row)."
+      ],
+      "roadmap": [],
+      "knownIssues": []
+    },
     {
       "version": "V2.69.4",
       "date": "2026-04-18",

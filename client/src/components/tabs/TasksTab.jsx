@@ -75,6 +75,7 @@ export function TaskModal({ task, prefilled, onSave, onClose, isArchived }) {
           )}
 
           <div className="modal-footer">
+            <span style={{fontSize:11,color:"var(--text-muted)",marginRight:"auto"}}>* required</span>
             <button className="btn btn-ghost" onClick={onClose}>Cancel</button>
             <button className="btn btn-primary"
               onClick={() => { if (form.task.trim()) onSave({...form}); }}

@@ -500,6 +500,7 @@ export function RoleModal({ role, existingSections, onSave, onClose, isArchived 
               placeholder="Relationship, instructions, requirements…" />
           </div>
           <div className="modal-footer">
+            <span style={{fontSize:11,color:"var(--text-muted)",marginRight:"auto"}}>* required</span>
             <button className="btn btn-ghost" onClick={onClose}>Cancel</button>
             <button className="btn btn-primary"
               disabled={!form.role.trim() || isArchived}

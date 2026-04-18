@@ -432,6 +432,7 @@ export function PrepModal({ item, onSave, onClose, isArchived }) {
           </div>
 
           <div className="modal-footer">
+            <span style={{fontSize:11,color:"var(--text-muted)",marginRight:"auto"}}>* required</span>
             <button className="btn btn-ghost" onClick={onClose}>Cancel</button>
             <button className="btn btn-primary" onClick={handleSave} disabled={!form.title.trim() || isArchived}>
               {isEdit ? "Save Changes" : "Add Item"}
