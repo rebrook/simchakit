@@ -1,12 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 
 export function SuggestionsPanel({ suggestions, onAdd, onDismiss, dismissedCount, onRestore, onNavigate }) {
-  const [open, setOpen] = useState(suggestions.length > 0);
-
-  // Keep panel open/closed in sync if suggestion count changes
-  useEffect(() => {
-    if (suggestions.length > 0) setOpen(true);
-  }, [suggestions.length]);
+  const [open, setOpen] = useState(false);
 
   if (suggestions.length === 0 && dismissedCount === 0) return null;
 

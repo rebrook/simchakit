@@ -1,9 +1,19 @@
 {
-  "current": "V2.69.1",
+  "current": "V2.69.2",
   "whatsNew": [
-    "UX - Tasks: due date badge shows full date on hover; dismissing a suggestion now shows a toast with restore hint"
+    "UX - Tasks: Suggested Tasks panel now defaults to collapsed \u2014 click to expand"
   ],
   "changelog": [
+    {
+      "version": "V2.69.2",
+      "date": "2026-04-18",
+      "summary": "SuggestionsPanel default collapsed: TA-01",
+      "changes": [
+        "Bugfix - SuggestionsPanel.jsx (TA-01): Suggested Tasks panel now defaults to collapsed instead of expanded. Previously the panel opened automatically whenever suggestions were present, dominating the top of the Tasks tab. The panel still shows the suggestion count in the header and expands/collapses on click. Also removed the useEffect that forced the panel back open whenever suggestion count changed, and cleaned up the now-unused useEffect import."
+      ],
+      "roadmap": [],
+      "knownIssues": []
+    },
     {
       "version": "V2.69.1",
       "date": "2026-04-18",
