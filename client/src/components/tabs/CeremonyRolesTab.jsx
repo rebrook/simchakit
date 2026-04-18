@@ -395,7 +395,7 @@ export function CeremonyRolesTab({ state, updateData, isArchived, showToast, adm
               <div className="modal-title">
                 {deleteConfirm === "__reset__" ? "Reset to Template?" : "Remove Role?"}
               </div>
-              <button className="icon-btn" onClick={() => setDeleteConfirm(null)}>✕</button>
+              <button className="icon-btn" title="Close" onClick={() => setDeleteConfirm(null)}>✕</button>
             </div>
             <div className="modal-body">
               <p style={{ fontSize: 13, color: "var(--text-secondary)", lineHeight: 1.6 }}>
@@ -448,7 +448,7 @@ export function RoleModal({ role, existingSections, onSave, onClose, isArchived 
       <div className="modal modal-lg" style={{ maxWidth: 500 }} onClick={e => e.stopPropagation()}>
         <div className="modal-header">
           <div className="modal-title">{isEdit ? "Edit Role" : "Add Role"}</div>
-          <button className="icon-btn" onClick={onClose}>✕</button>
+          <button className="icon-btn" title="Close" onClick={onClose}>✕</button>
         </div>
         <div className="modal-body" style={{ overflowY: "auto", maxHeight: "calc(85vh - 120px)" }}>
           <div className="form-group">

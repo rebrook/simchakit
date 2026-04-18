@@ -1,9 +1,19 @@
 {
-  "current": "V2.67.12",
+  "current": "V2.67.13",
   "whatsNew": [
-    "Accessibility - Seating tab 'Manage Assignments' buttons now have unique tooltips per table"
+    "Accessibility - Ceremony Roles modal close buttons now have tooltip labels"
   ],
   "changelog": [
+    {
+      "version": "V2.67.13",
+      "date": "2026-04-17",
+      "summary": "Accessibility fix: CE-01 ceremony modal close buttons now have title attributes",
+      "changes": [
+        "Bugfix - CeremonyRolesTab.jsx (CE-01): both modal close (\u2715) buttons now have title='Close' for screen reader and tooltip support. Row-level action buttons (Move up, Move down, Edit, Delete) were already correctly titled and required no changes."
+      ],
+      "roadmap": [],
+      "knownIssues": []
+    },
     {
       "version": "V2.67.12",
       "date": "2026-04-17",
