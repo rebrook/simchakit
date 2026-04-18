@@ -1,9 +1,19 @@
 {
-  "current": "V2.68.9",
+  "current": "V2.69.0",
   "whatsNew": [
-    "UX - Budget: Budgeted field now explains its analytics impact; Favors: duplicate Name on Favor warning added"
+    "UX - Prep: Torah portion card title separator now consistent with app-wide style"
   ],
   "changelog": [
+    {
+      "version": "V2.69.0",
+      "date": "2026-04-18",
+      "summary": "TorahPortionCard separator fix: PR-02",
+      "changes": [
+        "Bugfix - TorahPortionCard.jsx (PR-02): Parasha title and Hebrew name separator changed from two spaces ('  ') to ' \u00b7 ' to match the consistent separator style used throughout the app."
+      ],
+      "roadmap": [],
+      "knownIssues": []
+    },
     {
       "version": "V2.68.9",
       "date": "2026-04-18",

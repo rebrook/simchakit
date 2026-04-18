@@ -77,7 +77,7 @@ export function TorahPortionCard({ adminConfig }) {
         <div style={{ flex: 1 }}>
           <div style={{ fontFamily: "var(--font-display)", fontSize: 16, fontWeight: 600, color: "var(--text-primary)" }}>
             {status === "loaded" && parasha
-              ? parasha.title + (parasha.hebrew ? "  " + parasha.hebrew : "")
+              ? parasha.title + (parasha.hebrew ? " · " + parasha.hebrew : "")
               : "Torah Portion"}
           </div>
           {status === "loaded" && parasha?.hdate && (
