@@ -1,9 +1,20 @@
 {
-  "current": "V2.67.11",
+  "current": "V2.67.12",
   "whatsNew": [
-    "UX - Phone numbers now display in (555) 555-1234 format consistently across Guests, Vendors, and Accommodations tabs"
+    "Accessibility - Seating tab 'Manage Assignments' buttons now have unique tooltips per table"
   ],
   "changelog": [
+    {
+      "version": "V2.67.12",
+      "date": "2026-04-17",
+      "summary": "Accessibility fix: SE-02 Manage Assignments button now has unique title per table",
+      "changes": [
+        "Bugfix - SeatingTab.jsx (SE-02): 'Manage Assignments' button now has a title attribute reading 'Manage assignments for [Table Name]', making each button uniquely identifiable for screen readers and hover tooltips. Previously all Manage Assignments buttons were identical, making it impossible for assistive technology to distinguish between tables.",
+        "Note - SE-01 (table reorder button tooltips) was already implemented; 'Move up' and 'Move down' title attributes confirmed present on audit of uploaded file."
+      ],
+      "roadmap": [],
+      "knownIssues": []
+    },
     {
       "version": "V2.67.11",
       "date": "2026-04-17",

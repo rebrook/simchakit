@@ -423,6 +423,7 @@ export function SeatingTab({ state, updateData, setActiveTab, isArchived, showTo
                     <button
                       className="btn btn-ghost"
                       style={{ width: "100%", marginBottom: filled > 0 ? 10 : 0, fontSize: 12 }}
+                      title={`Manage assignments for ${table.name}`}
                       onClick={e => { e.stopPropagation(); setAssignModalTable(table); }}
                     >
                       Manage Assignments
