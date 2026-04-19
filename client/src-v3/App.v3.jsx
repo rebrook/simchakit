@@ -9,6 +9,7 @@ import { supabase }            from "@/lib/supabase.js";
 import { AuthPage }            from "@/components/auth/AuthPage.jsx";
 import { AuthCallback }        from "@/components/auth/AuthCallback.jsx";
 import { EventPicker }         from "@/components/events/EventPicker.jsx";
+import { AppShell }            from "@/components/shell/AppShell.jsx";
 import { useDarkMode }         from "@/hooks/useDarkMode.js";
 import { ThemeProvider }       from "@/components/shared/ThemeProvider.jsx";
 
@@ -97,53 +98,14 @@ function AppContent({ session, isCallback }) {
     return <AuthPage />;
   }
 
-  // Signed in — event selected → app shell placeholder (Phase 5)
+  // Signed in — event selected → full app shell
   if (selectedEventId) {
     return (
-      <div style={{
-        display:        "flex",
-        flexDirection:  "column",
-        alignItems:     "center",
-        justifyContent: "center",
-        height:         "100vh",
-        background:     "var(--bg-base)",
-        fontFamily:     "var(--font-body)",
-        gap:            16,
-        padding:        24,
-        textAlign:      "center",
-      }}>
-        <div style={{ fontSize: 40 }}>✡</div>
-        <div style={{
-          fontFamily: "var(--font-display)",
-          fontSize:   22,
-          fontWeight: 700,
-          color:      "var(--text-primary)",
-        }}>
-          Event Dashboard
-        </div>
-        <div style={{ fontSize: 13, color: "var(--text-muted)" }}>
-          Event ID: <code style={{ background: "var(--bg-subtle)", padding: "2px 6px", borderRadius: 4 }}>{selectedEventId}</code>
-        </div>
-        <div style={{ fontSize: 13, color: "var(--text-muted)" }}>
-          Tabs and data layer coming in Phase 5…
-        </div>
-        <button
-          style={{
-            marginTop:    8,
-            padding:      "8px 18px",
-            background:   "none",
-            border:       "1px solid var(--border)",
-            borderRadius: "var(--radius-md)",
-            fontFamily:   "var(--font-body)",
-            fontSize:     13,
-            color:        "var(--text-secondary)",
-            cursor:       "pointer",
-          }}
-          onClick={() => setSelectedEventId(null)}
-        >
-          ← Back to Events
-        </button>
-      </div>
+      <AppShell
+        session={session}
+        eventId={selectedEventId}
+        onBack={() => setSelectedEventId(null)}
+      />
     );
   }
 
