@@ -6,7 +6,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { supabase }           from "@/lib/supabase.js";
-import { useEventData }       from "@/hooks/useEventData.js";
+import { useEventData, peoplePromoteColumns } from "@/hooks/useEventData.js";
 import { useSearchHighlight } from "@/hooks/useSearchHighlight.js";
 import { newTableId }         from "@/utils/ids.js";
 import { exportSeatingByTable, exportSeatingByPerson, generateSeatingPrintHTML } from "@/utils/exports.js";
@@ -14,7 +14,7 @@ import { ArchivedNotice }     from "@/components/shared/ArchivedNotice.jsx";
 
 export function SeatingTab({ eventId, event, adminConfig, showToast, isArchived, setActiveTab, searchHighlight, clearSearchHighlight }) {
   const { items: tables,     loading: tLoading, save: saveTable, remove: removeTable } = useEventData(eventId, "tables");
-  const { items: people,     loading: pLoading, save: savePerson }                     = useEventData(eventId, "people");
+  const { items: people,     loading: pLoading, save: savePerson }                     = useEventData(eventId, "people", { promoteColumns: peoplePromoteColumns });
   const { items: households, loading: hLoading }                                        = useEventData(eventId, "households");
 
   // Seating config — single document pattern

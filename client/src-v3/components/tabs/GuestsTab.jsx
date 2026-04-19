@@ -11,7 +11,7 @@ import {
   ResponsiveContainer, Cell, PieChart, Pie, LabelList,
 } from "recharts";
 import { supabase }           from "@/lib/supabase.js";
-import { useEventData }       from "@/hooks/useEventData.js";
+import { useEventData, peoplePromoteColumns } from "@/hooks/useEventData.js";
 import { useSearchHighlight } from "@/hooks/useSearchHighlight.js";
 import { RSVP_STATUSES, TITLES, DEFAULT_GROUPS, DEFAULT_MEALS } from "@/constants/guest-constants.js";
 import { SHIRT_SIZES }        from "@/constants/theme.js";
@@ -32,7 +32,7 @@ import { CateringSummary }   from "@/components/shared/CateringSummary.jsx";
 // ── GuestsTab ─────────────────────────────────────────────────────────────────
 export function GuestsTab({ eventId, event, adminConfig, showToast, isArchived, searchHighlight, clearSearchHighlight }) {
   const { items: households, loading: hLoading, save: saveHouseholdRow, remove: removeHouseholdRow } = useEventData(eventId, "households");
-  const { items: people,     loading: pLoading, save: savePersonRow,    remove: removePersonRow }     = useEventData(eventId, "people");
+  const { items: people,     loading: pLoading, save: savePersonRow,    remove: removePersonRow }     = useEventData(eventId, "people", { promoteColumns: peoplePromoteColumns });
   const { items: tables,     loading: tLoading }                                                       = useEventData(eventId, "tables");
 
   const groups   = adminConfig?.groups   || DEFAULT_GROUPS;

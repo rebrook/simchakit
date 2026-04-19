@@ -153,3 +153,10 @@ export function householdPromoteColumns(item) {
     out_of_town:  item.outOfTown  || false,
   };
 }
+
+// ── Convenience: people promoted columns ──────────────────────────────────────
+export function peoplePromoteColumns(item) {
+  return {
+    household_id: item.householdId || null,
+  };
+}
