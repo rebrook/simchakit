@@ -367,7 +367,7 @@ export function GiftsTab({ state, updateData, appendAuditLog, isArchived, showTo
           <div className="modal" style={{ maxWidth:400 }} onClick={e=>e.stopPropagation()}>
             <div className="modal-header">
               <div className="modal-title">Delete Gift</div>
-              <button className="icon-btn" onClick={()=>setDeleteConfirm(null)}>✕</button>
+              <button className="icon-btn" title="Close" onClick={()=>setDeleteConfirm(null)}>✕</button>
             </div>
             <div className="modal-body">
               <p style={{ fontSize:14, color:"var(--text-primary)", lineHeight:1.6 }}>
@@ -404,7 +404,7 @@ export function GiftsTab({ state, updateData, appendAuditLog, isArchived, showTo
                   onClick={()=>{ const f=document.getElementById("gift-print-frame"); if(f?.contentWindow) f.contentWindow.print(); }}>
                   🖨 Print
                 </button>
-                <button className="icon-btn" onClick={()=>setPrintHTML(null)}>✕</button>
+                <button className="icon-btn" title="Close" onClick={()=>setPrintHTML(null)}>✕</button>
               </div>
             </div>
             <iframe id="gift-print-frame" srcDoc={printHTML}
@@ -475,7 +475,7 @@ export function GiftModal({ gift, households, onSave, onClose, isArchived }) {
       <div className="modal modal-lg" style={{ maxWidth:520 }} onClick={e=>e.stopPropagation()}>
         <div className="modal-header">
           <div className="modal-title">{isEdit ? "Edit Gift" : "Add Gift"}</div>
-          <button className="icon-btn" onClick={onClose}>✕</button>
+          <button className="icon-btn" title="Close" onClick={onClose}>✕</button>
         </div>
         <div className="modal-body">
 
@@ -657,7 +657,7 @@ export function GiftExportModal({ gifts, households, adminConfig, onPrint, onClo
       <div className="modal modal-lg" style={{ maxWidth:520 }} onClick={e=>e.stopPropagation()}>
         <div className="modal-header">
           <div className="modal-title">Export Gift List</div>
-          <button className="icon-btn" onClick={onClose}>✕</button>
+          <button className="icon-btn" title="Close" onClick={onClose}>✕</button>
         </div>
         <div className="modal-body">
 

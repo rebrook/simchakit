@@ -1,9 +1,19 @@
 {
-  "current": "V2.69.6",
+  "current": "V2.69.7",
   "whatsNew": [
-    "UX - All modals: '* required' legend added to every Add/Edit modal footer app-wide"
+    "UX - GL-04: all icon-only buttons now have hover tooltips app-wide"
   ],
   "changelog": [
+    {
+      "version": "V2.69.7",
+      "date": "2026-04-18",
+      "summary": "Icon button tooltip audit completion: GL-04",
+      "changes": [
+        "Bugfix - GL-04: Added missing title attributes to 13 icon-only buttons across 5 files. BudgetTab.jsx: expense modal close, delete confirm close, export modal close. GiftsTab.jsx: delete confirm close, print preview close, add/edit gift modal close, export modal close. GuestsTab.jsx: remove contact button. VendorModal.jsx: vendor modal close, remove milestone button, remove contact button. PrepTab.jsx: delete confirm close, milestone modal close. All previously titled buttons (pencil edit, trash delete, etc.) were already correct from earlier audit passes."
+      ],
+      "roadmap": [],
+      "knownIssues": []
+    },
     {
       "version": "V2.69.6",
       "date": "2026-04-18",

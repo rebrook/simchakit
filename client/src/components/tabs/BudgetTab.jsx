@@ -305,7 +305,7 @@ export function ExpenseModal({ expense, vendors, adminConfig, onSave, onClose, i
       <div className="modal" onClick={e => e.stopPropagation()}>
         <div className="modal-header">
           <div className="modal-title">{isEdit ? "Edit Expense" : "Add Expense"}</div>
-          <button className="icon-btn" onClick={onClose}>✕</button>
+          <button className="icon-btn" title="Close" onClick={onClose}>✕</button>
         </div>
         <div className="modal-body">
           <div className="form-group">
@@ -1510,7 +1510,7 @@ export function BudgetTab({ state, updateData, appendAuditLog, isArchived, showT
           <div className="modal" style={{maxWidth:380}} onClick={e => e.stopPropagation()}>
             <div className="modal-header">
               <div className="modal-title">Delete Expense</div>
-              <button className="icon-btn" onClick={() => setDeleteConfirm(null)}>✕</button>
+              <button className="icon-btn" title="Close" onClick={() => setDeleteConfirm(null)}>✕</button>
             </div>
             <div className="modal-body">
               <p style={{fontSize:14,color:"var(--text-primary)",marginBottom:4}}>
@@ -1531,7 +1531,7 @@ export function BudgetTab({ state, updateData, appendAuditLog, isArchived, showT
           <div className="modal modal-lg" onClick={e => e.stopPropagation()}>
             <div className="modal-header">
               <div className="modal-title">Export Expenses</div>
-              <button className="icon-btn" onClick={() => setShowExport(false)}>✕</button>
+              <button className="icon-btn" title="Close" onClick={() => setShowExport(false)}>✕</button>
             </div>
             <div className="modal-body">
               <p style={{fontSize:13,color:"var(--text-muted)",marginBottom:12}}>

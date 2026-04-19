@@ -43,7 +43,7 @@ export function VendorModal({ vendor, onSave, onClose, isArchived }) {
       <div className="modal modal-lg" onClick={e => e.stopPropagation()}>
         <div className="modal-header">
           <div className="modal-title">{isEdit ? "Edit Vendor" : "Add Vendor"}</div>
-          <button className="icon-btn" onClick={onClose}>✕</button>
+          <button className="icon-btn" title="Close" onClick={onClose}>✕</button>
         </div>
         <div className="modal-body">
           <div className="form-group">
@@ -223,7 +223,7 @@ export function VendorModal({ vendor, onSave, onClose, isArchived }) {
                           style={{ fontSize:13, flex:1 }} />
                       </div>
                     </div>
-                    <button type="button" className="icon-btn"
+                    <button type="button" className="icon-btn" title="Remove milestone"
                       style={{ color:"var(--red)", flexShrink:0, marginTop:2 }}
                       disabled={isArchived}
                       onClick={() => deleteMilestone(m.id)}>✕</button>
@@ -272,7 +272,7 @@ export function VendorModal({ vendor, onSave, onClose, isArchived }) {
                         placeholder="What was discussed or decided?"
                         style={{ fontSize:13 }} />
                     </div>
-                    <button type="button" className="icon-btn"
+                    <button type="button" className="icon-btn" title="Remove contact"
                       style={{ color:"var(--red)", flexShrink:0, marginTop:2 }}
                       disabled={isArchived}
                       onClick={() => deleteContact(c.id)}>✕</button>

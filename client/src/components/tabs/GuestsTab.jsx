@@ -688,7 +688,7 @@ export function HouseholdModal({ household, members, adminConfig, onSave, onClos
                           placeholder="What was discussed or decided?"
                           style={{fontSize:13}} />
                       </div>
-                      <button type="button" className="icon-btn"
+                      <button type="button" className="icon-btn" title="Remove contact"
                         style={{color:"var(--red)",flexShrink:0,marginTop:2}}
                         disabled={isArchived}
                         onClick={()=>deleteHHContact(c.id)}>✕</button>
@@ -700,6 +700,7 @@ export function HouseholdModal({ household, members, adminConfig, onSave, onClos
           )}
 
           <div className="modal-footer">
+            <span style={{fontSize:11,color:"var(--text-muted)",marginRight:"auto"}}>* required</span>
             <button className="btn btn-ghost" onClick={onClose}>Cancel</button>
             {!isEdit && step===2 && <button className="btn btn-secondary" onClick={()=>setStep(1)}>Back</button>}
             {!isEdit && step===1 && (
