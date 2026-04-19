@@ -11,6 +11,9 @@ import { useDarkMode }     from "@/hooks/useDarkMode.js";
 import { ThemeProvider }   from "@/components/shared/ThemeProvider.jsx";
 import { PlaceholderTab }  from "@/components/shared/PlaceholderTab.jsx";
 import { AdminLogin, AdminPanel } from "@/components/AdminPanel.jsx";
+import { SearchOverlay }         from "@/components/SearchOverlay.jsx";
+import { GuideModal, ActivityLogModal, WhatsNewModal } from "@/components/Modals.jsx";
+import { DayOfOverlay }          from "@/components/DayOfOverlay.jsx";
 
 // ── Tab components (stubs in Phase 5, filled in Phase 6) ─────────────────────
 import { OverviewTab }        from "@/components/tabs/OverviewTab.jsx";
@@ -63,6 +66,13 @@ export function AppShell({ session, eventId, onBack }) {
   const [showAdminPanel,  setShowAdminPanel]  = useState(false);
   const [adminPassword,   setAdminPassword]   = useState(null);
   const [adminSection,    setAdminSection]    = useState("event");
+
+  // ── Overlay state ─────────────────────────────────────────────────────────
+  const [showSearch,      setShowSearch]      = useState(false);
+  const [showGuide,       setShowGuide]       = useState(false);
+  const [showActivityLog, setShowActivityLog] = useState(false);
+  const [showWhatsNew,    setShowWhatsNew]    = useState(false);
+  const [showDayOf,       setShowDayOf]       = useState(false);
 
   const navInnerRef = useRef(null);
   const toastTimer  = useRef(null);
@@ -127,7 +137,7 @@ export function AppShell({ session, eventId, onBack }) {
     const handler = (e) => {
       if ((e.metaKey || e.ctrlKey) && e.key === "k") {
         e.preventDefault();
-        // Phase 6: open search overlay
+        setShowSearch(true);
       }
     };
     window.addEventListener("keydown", handler);
@@ -279,6 +289,7 @@ export function AppShell({ session, eventId, onBack }) {
     setActiveTab:  navigateTo,
     onOpenAdmin:   () => openAdmin("event"),
     onOpenAdminTo: openAdmin,
+    onOpenGuide:   () => setShowGuide(true),
   };
 
   // ── Render ─────────────────────────────────────────────────────────────────
@@ -337,9 +348,14 @@ export function AppShell({ session, eventId, onBack }) {
 
           {/* Header actions */}
           <div className="header-actions">
-            {/* Search — Phase 6 */}
-            <button className="icon-btn" title="Search (⌘K)" onClick={() => showToast("Search coming soon")}>
+            {/* Search */}
+            <button className="icon-btn" title="Search (⌘K)" onClick={() => setShowSearch(true)}>
               🔍
+            </button>
+
+            {/* Day-of Mode */}
+            <button className="icon-btn" title="Day-of Mode" onClick={() => setShowDayOf(true)}>
+              📋
             </button>
 
             {/* Admin Mode */}
@@ -380,6 +396,21 @@ export function AppShell({ session, eventId, onBack }) {
                       ))}
                     </div>
                   </div>
+
+                  <button className="header-overflow-item"
+                    onClick={() => { setShowOverflow(false); setShowGuide(true); }}>
+                    📖 <span>Guide</span>
+                  </button>
+
+                  <button className="header-overflow-item"
+                    onClick={() => { setShowOverflow(false); setShowWhatsNew(true); }}>
+                    ✨ <span>What's New</span>
+                  </button>
+
+                  <button className="header-overflow-item"
+                    onClick={() => { setShowOverflow(false); setShowActivityLog(true); }}>
+                    📋 <span>Activity Log</span>
+                  </button>
 
                   <button className="header-overflow-item"
                     onClick={() => { setShowOverflow(false); onBack(); }}>
@@ -555,6 +586,45 @@ export function AppShell({ session, eventId, onBack }) {
           </button>
         ))}
       </div>
+
+      {/* ── Search Overlay ── */}
+      {showSearch && (
+        <SearchOverlay
+          eventId={eventId}
+          adminConfig={adminConfig}
+          onNavigate={(tab, id, collection, householdId) => {
+            navigateTo(tab);
+            // TODO Phase 6: scroll to item via searchHighlight
+          }}
+          onClose={() => setShowSearch(false)}
+        />
+      )}
+
+      {/* ── Guide Modal ── */}
+      {showGuide && <GuideModal onClose={() => setShowGuide(false)} />}
+
+      {/* ── What's New Modal ── */}
+      {showWhatsNew && <WhatsNewModal onClose={() => setShowWhatsNew(false)} />}
+
+      {/* ── Activity Log Modal ── */}
+      {showActivityLog && (
+        <ActivityLogModal
+          eventId={eventId}
+          isArchived={!!(event?.archived)}
+          onClose={() => setShowActivityLog(false)}
+        />
+      )}
+
+      {/* ── Day-of Overlay ── */}
+      {showDayOf && (
+        <DayOfOverlay
+          eventId={eventId}
+          event={event}
+          adminConfig={adminConfig}
+          onClose={() => setShowDayOf(false)}
+          onPrintBrief={() => showToast("Print brief coming soon")}
+        />
+      )}
 
       {/* ── Admin Login ── */}
       {showAdminLogin && (

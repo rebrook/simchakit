@@ -154,9 +154,14 @@ export function SeatingTab({ eventId, event, adminConfig, showToast, isArchived,
     return hh ? (hh.formalName || hh.name2 || "") : "";
   };
 
-  // Scoped people
+  // Scoped people: confirmed for active section.
+  // Fallback: if nobody has attendingSections set yet, show all people so
+  // seating can be used before RSVPs are confirmed per sub-event.
+  const anyoneHasSections = people.some(p => (p.attendingSections||[]).length > 0);
   const scopedPeople = hasSeating && sectionId
-    ? people.filter(p => (p.attendingSections||[]).includes(sectionId))
+    ? (anyoneHasSections
+        ? people.filter(p => (p.attendingSections||[]).includes(sectionId))
+        : people)  // fallback: no sections configured yet, show everyone
     : [];
 
   const unseated    = scopedPeople.filter(p => !p.tableId);
