@@ -39,6 +39,7 @@ export function CreateEventForm({ userId, onCreated, onCancel }) {
       type,
       theme: { palette: "rose", name: "", icon: "" },
       timeline: date ? [{
+        id:          "tl_" + Date.now() + "_" + Math.random().toString(36).slice(2, 7),
         isMainEvent: true,
         title:       name.trim(),
         startDate:   date,

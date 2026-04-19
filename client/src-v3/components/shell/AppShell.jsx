@@ -91,7 +91,13 @@ export function AppShell({ session, eventId, onBack }) {
       }
 
       setEvent(data);
-      setAdminConfig(data.admin_config || {});
+      // Seed name/type into adminConfig from top-level columns if not already in jsonb
+      const cfg = data.admin_config || {};
+      setAdminConfig({
+        ...cfg,
+        name: cfg.name || data.name || "",
+        type: cfg.type || data.type || "other",
+      });
       setLoadStatus("ready");
     }
     load();
