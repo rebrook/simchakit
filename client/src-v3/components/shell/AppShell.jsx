@@ -85,6 +85,13 @@ export function AppShell({ session, eventId, onBack }) {
     toastTimer.current = setTimeout(() => setToastVisible(false), 2500);
   }, []);
 
+  // ── Listen for audit log write failures from useEventData ─────────────────
+  useEffect(() => {
+    const handler = () => showToast("⚠ Activity log entry could not be saved");
+    window.addEventListener("simchakit:audit-error", handler);
+    return () => window.removeEventListener("simchakit:audit-error", handler);
+  }, [showToast]);
+
   // ── Load event from Supabase ──────────────────────────────────────────────
   useEffect(() => {
     async function load() {

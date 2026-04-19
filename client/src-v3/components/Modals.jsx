@@ -77,11 +77,16 @@ export function ActivityLogModal({ eventId, isArchived, onClose }) {
     async function load() {
       const { data } = await supabase
         .from("audit_log")
-        .select("id, action, detail, created_at")
+        .select("id, data, created_at")
         .eq("event_id", eventId)
         .order("created_at", { ascending: false })
         .limit(500);
-      setEntries(data || []);
+      setEntries((data || []).map(row => ({
+        id:         row.id,
+        action:     row.data?.action || "Updated",
+        detail:     row.data?.detail || "",
+        created_at: row.created_at,
+      })));
       setLoading(false);
     }
     load();

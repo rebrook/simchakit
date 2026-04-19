@@ -195,9 +195,10 @@ const GUIDE_SECTIONS = [
     colorLight: "var(--blue-light)",
     items: [
       { heading: "What the Activity Log tracks", body: "The Activity Log records meaningful changes across the app — households added, updated, or deleted; RSVP status changes; expenses added or marked paid; vendors added or deleted; tasks completed; and gifts added. Minor edits (notes, field tweaks) are not logged to keep the history clean and readable." },
-      { heading: "Opening the Activity Log", body: "Click the ⋯ More button in the header and select 📊 Activity Log. The log opens as an overlay and shows all entries newest first." },
+      { heading: "Opening the Activity Log", body: "Click the ⋯ More button in the header and select 📋 Activity Log. The log opens as an overlay and shows all entries newest first." },
       { heading: "Filtering entries", body: "Use the filter buttons at the top of the overlay to show only Added, Updated, Deleted, or Completed entries. Select All to see the full history." },
       { heading: "Clearing the log", body: "The Clear Log button (visible to the right of the filters) wipes all entries. A confirmation prompt appears before clearing. This action cannot be undone. The button is hidden when the event is archived." },
+      { heading: "Write failure alerts", body: "If an activity log entry fails to save — for example due to a network interruption — a warning toast appears at the bottom of the screen: \"⚠ Activity log entry could not be saved\". Your planning data is never affected; only the log entry is lost." },
       { heading: "Archiving and resetting", body: "When an event is archived, the Activity Log is preserved as part of the historical record and becomes read-only. When event data is reset via Admin Mode, the Activity Log is cleared along with all other collections." },
     ],
   },

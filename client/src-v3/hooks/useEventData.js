@@ -17,6 +17,39 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { supabase } from "@/lib/supabase.js";
 
+// ── Audit log detail labels per collection ────────────────────────────────────
+const AUDIT_LABELS = {
+  households:    item => item.formalName || item.name || "a household",
+  people:        item => [item.firstName, item.lastName].filter(Boolean).join(" ") || item.name || "a person",
+  vendors:       item => item.name || "a vendor",
+  expenses:      item => item.description || "an expense",
+  tasks:         item => item.task || "a task",
+  prep:          item => item.title || "a prep item",
+  gifts:         item => item.fromName || "a gift",
+  favors:        item => item.guestName || "a favor",
+  tables:        item => item.name || "a table",
+  ceremonyRoles: item => item.role || "a ceremony role",
+};
+
+// ── Fire-and-forget audit log writer ─────────────────────────────────────────
+async function writeAuditLog(eventId, collection, action, item) {
+  try {
+    const labelFn = AUDIT_LABELS[collection] || (() => `a ${collection} item`);
+    const label   = labelFn(item || {});
+    const collectionLabel = collection.charAt(0).toUpperCase() + collection.slice(1);
+    const detail  = `${action} ${label} in ${collectionLabel}`;
+    const { error } = await supabase.from("audit_log").insert({
+      event_id:   eventId,
+      data:       { action, detail },
+    });
+    if (error) throw new Error(error.message);
+  } catch (e) {
+    console.error("[SimchaKit] Audit log write failed:", e.message);
+    // Dispatch a custom event so AppShell can surface a user-facing toast
+    window.dispatchEvent(new CustomEvent("simchakit:audit-error", { detail: e.message }));
+  }
+}
+
 // ── Default promoter — no promoted columns ────────────────────────────────────
 function noPromote(_item) { return {}; }
 
@@ -117,6 +150,9 @@ export function useEventData(eventId, collection, options = {}) {
         : prev.map(i => i._rowId === _rowId ? savedItem : i)
     );
 
+    // Fire-and-forget audit log — never blocks the save
+    writeAuditLog(eventId, collectionRef.current, isNew ? "Added" : "Updated", dataPayload);
+
     return { item: savedItem };
   }, [eventId]);
 
@@ -136,8 +172,13 @@ export function useEventData(eventId, collection, options = {}) {
     }
 
     setItems(prev => prev.filter(i => i._rowId !== rowId));
+
+    // Fire-and-forget audit log — never blocks the delete
+    const deletedItem = items.find(i => i._rowId === rowId) || {};
+    writeAuditLog(eventIdRef.current, collectionRef.current, "Deleted", deletedItem);
+
     return { ok: true };
-  }, []);
+  }, [items]);
 
   // ── Reload ─────────────────────────────────────────────────────────────────
   const reload = useCallback(() => load(), [load]);
