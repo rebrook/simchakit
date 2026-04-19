@@ -1,9 +1,19 @@
 {
-  "current": "V2.69.7",
+  "current": "V2.69.8",
   "whatsNew": [
-    "UX - GL-04: all icon-only buttons now have hover tooltips app-wide"
+    "Accessibility - Overview: stat cards are now proper button elements (keyboard navigable, screen reader friendly)"
   ],
   "changelog": [
+    {
+      "version": "V2.69.8",
+      "date": "2026-04-18",
+      "summary": "OverviewTab stat cards converted to semantic button elements: OV-02",
+      "changes": [
+        "Improvement - OverviewTab.jsx (OV-02): All 6 stat cards on the Overview tab are now rendered as <button type=\"button\"> elements instead of <div onClick>. This makes them semantically correct interactive elements \u2014 keyboard-navigable, screen-reader friendly, and correctly identified as buttons by assistive technology. The navCard() helper was updated to include button style resets (background:none, border:none, padding:0, text-align:left, width:100%, font:inherit) so the visual appearance is unchanged."
+      ],
+      "roadmap": [],
+      "knownIssues": []
+    },
     {
       "version": "V2.69.7",
       "date": "2026-04-18",

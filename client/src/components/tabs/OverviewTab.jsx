@@ -57,7 +57,7 @@ export function OverviewTab({ state, updateNotes, setActiveTab, onOpenAdmin, onO
 
   const navCard = (tab) => ({
     onClick: () => setActiveTab(tab),
-    style: { cursor: "pointer" },
+    style: { cursor: "pointer", display: "block", textAlign: "left", font: "inherit" },
     title: `Go to ${tab} tab`,
   });
 
@@ -121,19 +121,19 @@ export function OverviewTab({ state, updateNotes, setActiveTab, onOpenAdmin, onO
 
       {/* Stats — each card navigates to its tab on click */}
       <div className="stat-grid" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))" }}>
-        <div className="stat-card" {...navCard("guests")}>
+        <button type="button" className="stat-card" {...navCard("guests")}>
           <div className="stat-label">Guests Invited</div>
           <div className="stat-value stat-accent">{(state?.people || []).length}</div>
           <div className="stat-sub">{(state?.households || []).length} households</div>
-        </div>
-        <div className="stat-card" {...navCard("guests")}>
+        </button>
+        <button type="button" className="stat-card" {...navCard("guests")}>
           <div className="stat-label">RSVPs Confirmed</div>
           <div className="stat-value stat-green">
             {(state?.people||[]).filter(p=>(p.attendingSections||[]).length > 0).length}
           </div>
           <div className="stat-sub">of {(state?.people || []).length} invited</div>
-        </div>
-        <div className="stat-card" {...navCard("budget")}>
+        </button>
+        <button type="button" className="stat-card" {...navCard("budget")}>
           <div className="stat-label">Budget Paid</div>
           <div className="stat-value stat-green">
             ${(state?.expenses || []).filter(e => e.paid).reduce((s, e) => s + (parseFloat(e.amount) || 0), 0).toLocaleString()}
@@ -141,28 +141,28 @@ export function OverviewTab({ state, updateNotes, setActiveTab, onOpenAdmin, onO
           <div className="stat-sub">
             of ${(state?.expenses || []).reduce((s, e) => s + (parseFloat(e.amount) || 0), 0).toLocaleString()} total
           </div>
-        </div>
-        <div className="stat-card" {...navCard("tasks")}>
+        </button>
+        <button type="button" className="stat-card" {...navCard("tasks")}>
           <div className="stat-label">Tasks Done</div>
           <div className="stat-value stat-gold">
             {(state?.tasks || []).filter(t => t.done).length}
           </div>
           <div className="stat-sub">of {(state?.tasks || []).length} tasks</div>
-        </div>
-        <div className="stat-card" {...navCard("vendors")}>
+        </button>
+        <button type="button" className="stat-card" {...navCard("vendors")}>
           <div className="stat-label">Vendors Booked</div>
           <div className="stat-value">
             {(state?.vendors || []).filter(v => ["Booked","Deposit Paid","Paid in Full"].includes(v.status)).length}
           </div>
           <div className="stat-sub">of {(state?.vendors || []).length} vendors</div>
-        </div>
-        <div className="stat-card" {...navCard("guests")}>
+        </button>
+        <button type="button" className="stat-card" {...navCard("guests")}>
           <div className="stat-label">Out of Town</div>
           <div className="stat-value stat-gold">
             {(state?.households||[]).filter(h => h.outOfTown).length}
           </div>
           <div className="stat-sub">households travelling</div>
-        </div>
+        </button>
       </div>
 
       {/* Seating gap warning */}
