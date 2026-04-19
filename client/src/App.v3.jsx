@@ -11,8 +11,9 @@ import { useDarkMode }         from "@/hooks/useDarkMode.js";
 import { ThemeProvider }       from "@/components/shared/ThemeProvider.jsx";
 
 export default function AppV3() {
-  const [session,  setSession]  = useState(undefined); // undefined = loading
-  const [darkMode, setDarkMode] = useDarkMode();
+  const [session, setSession] = useState(undefined); // undefined = loading
+  // useDarkMode sets data-theme on <html> automatically — no props needed
+  useDarkMode();
 
   // Detect magic link callback URL
   const isCallback = window.location.hash.includes("access_token") ||
@@ -20,110 +21,72 @@ export default function AppV3() {
                      window.location.search.includes("code=");
 
   useEffect(() => {
-    // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
     });
 
-    // Listen for auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        setSession(session);
-      }
+      (_event, session) => { setSession(session); }
     );
 
     return () => subscription.unsubscribe();
   }, []);
 
-  // Loading state — wait for session check before rendering anything
+  // ThemeProvider injects accent CSS vars; useDarkMode handles data-theme on <html>
+  return (
+    <>
+      <ThemeProvider palette="rose" />
+      <AppContent session={session} isCallback={isCallback} />
+    </>
+  );
+}
+
+function AppContent({ session, isCallback }) {
   if (session === undefined) {
     return (
-      <ThemeProvider darkMode={darkMode}>
-        <div style={{
-          display:         "flex",
-          alignItems:      "center",
-          justifyContent:  "center",
-          height:          "100vh",
-          background:      "var(--bg-app)",
-          color:           "var(--text-muted)",
-          fontFamily:      "var(--font-body)",
-          fontSize:        14,
-          gap:             12,
-        }}>
-          <div style={{
-            width:           18,
-            height:          18,
-            border:          "2px solid var(--border)",
-            borderTopColor:  "var(--accent-primary)",
-            borderRadius:    "50%",
-            animation:       "spin 0.8s linear infinite",
-            flexShrink:      0,
-          }} />
-          Loading SimchaKit…
-        </div>
-      </ThemeProvider>
-    );
-  }
-
-  // Magic link callback handler
-  if (isCallback) {
-    return (
-      <ThemeProvider darkMode={darkMode}>
-        <AuthCallback onComplete={() => {
-          // Auth state change listener will update session automatically
-          window.location.replace("/");
-        }} />
-      </ThemeProvider>
-    );
-  }
-
-  // Not signed in — show auth page
-  if (!session) {
-    return (
-      <ThemeProvider darkMode={darkMode}>
-        <AuthPage />
-      </ThemeProvider>
-    );
-  }
-
-  // Signed in — placeholder until event picker is built in Phase 4
-  return (
-    <ThemeProvider darkMode={darkMode}>
       <div style={{
-        display:        "flex",
-        flexDirection:  "column",
-        alignItems:     "center",
-        justifyContent: "center",
-        height:         "100vh",
-        background:     "var(--bg-app)",
-        fontFamily:     "var(--font-body)",
-        gap:            16,
-        padding:        24,
-        textAlign:      "center",
+        display:"flex", alignItems:"center", justifyContent:"center",
+        height:"100vh", background:"var(--bg-base)", color:"var(--text-muted)",
+        fontFamily:"var(--font-body)", fontSize:14, gap:12,
       }}>
-        <div style={{ fontSize: 40 }}>✡</div>
         <div style={{
-          fontFamily:  "var(--font-display)",
-          fontSize:    24,
-          fontWeight:  700,
-          color:       "var(--text-primary)",
-        }}>
-          Welcome to SimchaKit
-        </div>
-        <div style={{ fontSize: 14, color: "var(--text-muted)", maxWidth: 360 }}>
-          Signed in as <strong>{session.user.email}</strong>
-        </div>
-        <div style={{ fontSize: 13, color: "var(--text-muted)" }}>
-          Event picker coming in Phase 4…
-        </div>
-        <button
-          className="btn btn-secondary"
-          style={{ marginTop: 8 }}
-          onClick={() => supabase.auth.signOut()}
-        >
-          Sign out
-        </button>
+          width:18, height:18,
+          border:"2px solid var(--border)", borderTopColor:"var(--accent-primary)",
+          borderRadius:"50%", animation:"spin 0.8s linear infinite", flexShrink:0,
+        }} />
+        Loading SimchaKit…
       </div>
-    </ThemeProvider>
+    );
+  }
+
+  if (isCallback) {
+    return <AuthCallback onComplete={() => window.location.replace("/")} />;
+  }
+
+  if (!session) {
+    return <AuthPage />;
+  }
+
+  return (
+    <div style={{
+      display:"flex", flexDirection:"column", alignItems:"center",
+      justifyContent:"center", height:"100vh", background:"var(--bg-base)",
+      fontFamily:"var(--font-body)", gap:16, padding:24, textAlign:"center",
+    }}>
+      <div style={{ fontSize:40 }}>✡</div>
+      <div style={{ fontFamily:"var(--font-display)", fontSize:24, fontWeight:700, color:"var(--text-primary)" }}>
+        Welcome to SimchaKit
+      </div>
+      <div style={{ fontSize:14, color:"var(--text-muted)", maxWidth:360 }}>
+        Signed in as <strong>{session.user.email}</strong>
+      </div>
+      <div style={{ fontSize:13, color:"var(--text-muted)" }}>
+        Event picker coming in Phase 4…
+      </div>
+      <button className="btn btn-secondary" style={{ marginTop:8 }}
+        onClick={() => supabase.auth.signOut()}>
+        Sign out
+      </button>
+    </div>
   );
 }

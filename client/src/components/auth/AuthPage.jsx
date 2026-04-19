@@ -39,7 +39,7 @@ export function AuthPage() {
       display:         "flex",
       alignItems:      "center",
       justifyContent:  "center",
-      background:      "var(--bg-app)",
+      background:      "var(--bg-base)",
       padding:         "24px 16px",
       fontFamily:      "var(--font-body)",
     }}>

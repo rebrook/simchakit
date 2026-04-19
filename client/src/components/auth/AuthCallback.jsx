@@ -42,7 +42,7 @@ export function AuthCallback({ onComplete }) {
       display:         "flex",
       alignItems:      "center",
       justifyContent:  "center",
-      background:      "var(--bg-app)",
+      background:      "var(--bg-base)",
       fontFamily:      "var(--font-body)",
       padding:         24,
     }}>
