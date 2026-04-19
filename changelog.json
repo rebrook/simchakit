@@ -1,9 +1,19 @@
 {
-  "current": "V2.69.8",
+  "current": "V2.69.9",
   "whatsNew": [
-    "Accessibility - Overview: stat cards are now proper button elements (keyboard navigable, screen reader friendly)"
+    "Audit complete \u2014 all 47 UX audit items resolved. Date formats verified consistent app-wide (GL-03)."
   ],
   "changelog": [
+    {
+      "version": "V2.69.9",
+      "date": "2026-04-18",
+      "summary": "GL-03 audit complete \u2014 date formats verified consistent app-wide",
+      "changes": [
+        "Audit - GL-03: Full audit of all toLocaleDateString calls across 12 files confirmed date formats are already consistent. Standard format is 'Oct 17, 2026' (month:short, day:numeric, year:numeric) used in all user-visible date displays. Two intentional exceptions: weekday prefix (e.g. 'Fri, Oct 17, 2026') used only in secondary detail contexts (RSVP date hint, task due tooltip), and month+year only (e.g. 'Oct 2026') used only on Budget chart axis labels. Previous audit fixes (OV-03, ST-02, GU-10, TA-02) resolved the inconsistencies that existed. No code changes required."
+      ],
+      "roadmap": [],
+      "knownIssues": []
+    },
     {
       "version": "V2.69.8",
       "date": "2026-04-18",
