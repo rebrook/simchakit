@@ -300,7 +300,7 @@ export default function App() {
     const ro = new ResizeObserver(compute);
     ro.observe(el);
     return () => ro.disconnect();
-  }, [tabs.length]);
+  }, [tabs.length, !!publicConfig]);
 
   // GL-06: Passcode verification function — calls server endpoint
   const verifyPasscode = () => {

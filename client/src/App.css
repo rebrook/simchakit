@@ -133,7 +133,7 @@
       box-shadow: var(--shadow-sm);
     }
     .header-inner {
-      max-width: 1280px;
+      max-width: 1500px;
       margin: 0 auto;
       display: flex;
       align-items: center;
@@ -250,7 +250,7 @@
       overflow: hidden;
     }
     .nav-inner {
-      max-width: 1280px;
+      max-width: 1500px;
       margin: 0 auto;
       display: flex;
       gap: 2px;
@@ -314,7 +314,7 @@
     /* ── Page content ────────────────────────────────────────────────────── */
     .page-content {
       flex: 1;
-      max-width: 1280px;
+      max-width: 1500px;
       margin: 0 auto;
       width: 100%;
       padding: 28px 24px 48px;

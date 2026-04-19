@@ -1,9 +1,20 @@
 {
-  "current": "V2.69.9",
+  "current": "V2.70.0",
   "whatsNew": [
-    "Audit complete \u2014 all 47 UX audit items resolved. Date formats verified consistent app-wide (GL-03)."
+    "Bugfix - Desktop nav overflow: More button now correctly appears when tabs overflow, and clears correctly when window is widened"
   ],
   "changelog": [
+    {
+      "version": "V2.70.0",
+      "date": "2026-04-19",
+      "summary": "Fix desktop nav overflow \u2014 More button not appearing on resize",
+      "changes": [
+        "Bugfix - App.jsx: Added !!publicConfig to ResizeObserver useEffect dependency array. The app renders a loading screen while publicConfig fetches from the server. During this time navInnerRef.current is null, so the effect returned early and the ResizeObserver was never established. Since tabs.length never changes (always 12), the effect never re-ran after publicConfig loaded and the nav mounted. Adding !!publicConfig as a dep causes the effect to re-run once after the nav is in the DOM.",
+        "Bugfix - App.css: Increased max-width on .nav-inner, .header-inner, and .page-content from 1280px to 1500px. With 12 tabs the total tab width (1327px) exceeded the previous 1280px max-width, causing 2 tabs to always remain in the More menu even at full window width. 1500px gives sufficient headroom for all tabs to be visible at full width."
+      ],
+      "roadmap": [],
+      "knownIssues": []
+    },
     {
       "version": "V2.69.9",
       "date": "2026-04-18",
@@ -11,7 +22,9 @@
       "changes": [
         "Audit - GL-03: Full audit of all toLocaleDateString calls across 12 files confirmed date formats are already consistent. Standard format is 'Oct 17, 2026' (month:short, day:numeric, year:numeric) used in all user-visible date displays. Two intentional exceptions: weekday prefix (e.g. 'Fri, Oct 17, 2026') used only in secondary detail contexts (RSVP date hint, task due tooltip), and month+year only (e.g. 'Oct 2026') used only on Budget chart axis labels. Previous audit fixes (OV-03, ST-02, GU-10, TA-02) resolved the inconsistencies that existed. No code changes required."
       ],
-      "roadmap": [],
+      "roadmap": [
+        "V3.1.0 \u2014 Supabase Realtime subscriptions: replace Option B (fetch on navigate) with live row-level change events (INSERT/UPDATE/DELETE) for real-time cross-device sync"
+      ],
       "knownIssues": []
     },
     {
