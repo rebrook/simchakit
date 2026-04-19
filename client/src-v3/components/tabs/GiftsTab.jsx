@@ -11,6 +11,7 @@ export function GiftsTab({ event, adminConfig, showToast }) {
       icon="🎁"
       title="Gifts"
       description="Log gifts received, track amounts, and manage thank-you note status."
+      version="Phase 6"
     />
   );
 }

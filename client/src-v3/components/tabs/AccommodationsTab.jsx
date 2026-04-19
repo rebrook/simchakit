@@ -11,6 +11,7 @@ export function AccommodationsTab({ event, adminConfig, showToast }) {
       icon="🧳"
       title="Stay & Travel"
       description="Track out-of-town guests, hotel blocks, transportation, and notifications."
+      version="Phase 6"
     />
   );
 }

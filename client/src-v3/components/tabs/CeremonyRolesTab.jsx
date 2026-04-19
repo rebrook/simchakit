@@ -11,6 +11,7 @@ export function CeremonyRolesTab({ event, adminConfig, showToast }) {
       icon="📜"
       title="Ceremony"
       description="Assign Torah readers, aliyot, blessings, and other service roles."
+      version="Phase 6"
     />
   );
 }

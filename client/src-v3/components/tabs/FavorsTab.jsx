@@ -11,6 +11,7 @@ export function FavorsTab({ event, adminConfig, showToast }) {
       icon="⭐"
       title="Favors"
       description="Track sweatshirt sizes, print names, preprint status, and distribution."
+      version="Phase 6"
     />
   );
 }

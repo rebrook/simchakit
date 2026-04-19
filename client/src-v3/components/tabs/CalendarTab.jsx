@@ -11,6 +11,7 @@ export function CalendarTab({ event, adminConfig, showToast }) {
       icon="📅"
       title="Calendar"
       description="Unified calendar view combining timeline events, tasks, payments, and prep milestones."
+      version="Phase 6"
     />
   );
 }

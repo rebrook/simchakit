@@ -11,6 +11,7 @@ export function BudgetTab({ event, adminConfig, showToast }) {
       icon="💰"
       title="Budget"
       description="Track expenses, payments, outstanding balances, and budget by category."
+      version="Phase 6"
     />
   );
 }

@@ -11,6 +11,7 @@ export function PrepTab({ event, adminConfig, showToast }) {
       icon="📖"
       title="Preparation"
       description="Track Torah study, d'var Torah, service prayers, and mitzvah project progress."
+      version="Phase 6"
     />
   );
 }

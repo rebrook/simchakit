@@ -11,6 +11,7 @@ export function TasksTab({ event, adminConfig, showToast }) {
       icon="✅"
       title="Tasks"
       description="To-do list, milestones, task suggestions, and upcoming deadlines."
+      version="Phase 6"
     />
   );
 }

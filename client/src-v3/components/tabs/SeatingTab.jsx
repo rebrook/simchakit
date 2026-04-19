@@ -11,6 +11,7 @@ export function SeatingTab({ event, adminConfig, showToast }) {
       icon="🪑"
       title="Seating"
       description="Build tables, assign guests, and manage the seating chart."
+      version="Phase 6"
     />
   );
 }

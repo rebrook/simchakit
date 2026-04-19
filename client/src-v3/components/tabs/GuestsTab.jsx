@@ -11,6 +11,7 @@ export function GuestsTab({ event, adminConfig, showToast }) {
       icon="👥"
       title="Guests"
       description="Manage households, track RSVPs, addresses, dietary needs, and attendance counts."
+      version="Phase 6"
     />
   );
 }

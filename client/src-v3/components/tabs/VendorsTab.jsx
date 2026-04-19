@@ -11,6 +11,7 @@ export function VendorsTab({ event, adminConfig, showToast }) {
       icon="🏪"
       title="Vendors"
       description="Manage vendor contacts, contracts, costs, and payment status."
+      version="Phase 6"
     />
   );
 }
