@@ -18,6 +18,18 @@ echo "  SimchaKit Deploy"
 echo "================================================"
 echo "  Root: $SIMCHAKIT_DIR"
 
+# ── 0. Sync changelog to V3 public ───────────────
+echo ""
+echo "▶ Syncing changelog..."
+CHANGELOG_SRC="$SIMCHAKIT_DIR/changelog.json"
+CHANGELOG_DST="$CLIENT_DIR/public/changelog.json"
+if [ -f "$CHANGELOG_SRC" ]; then
+    cp "$CHANGELOG_SRC" "$CHANGELOG_DST"
+    echo "  ✓ changelog.json → client/public/changelog.json"
+else
+    echo "  ⚠ changelog.json not found at $CHANGELOG_SRC — skipping"
+fi
+
 # ── 1. Build ──────────────────────────────────────
 echo ""
 echo "▶ Building..."
