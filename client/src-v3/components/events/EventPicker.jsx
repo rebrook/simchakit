@@ -8,6 +8,7 @@ import { useState, useEffect, useCallback } from "react";
 import { supabase }              from "@/lib/supabase.js";
 import { CreateEventForm }       from "./CreateEventForm.jsx";
 import { DeleteEventConfirm }    from "./DeleteEventConfirm.jsx";
+import { PaywallGate }           from "./PaywallGate.jsx";
 
 // ── Palette + type maps (mirrors V2 index.html exactly) ──────────────────────
 const PALETTES = {
@@ -66,6 +67,25 @@ export function EventPicker({ session, onSelectEvent }) {
 
   const userId = session.user.id;
 
+  // ── Payment return URL handling ───────────────────────────────────────────
+  const [paymentNotice, setPaymentNotice] = useState(() => {
+    const params = new URLSearchParams(window.location.search);
+    const status = params.get("payment");
+    if (status === "success")   return "success";
+    if (status === "cancelled") return "cancelled";
+    return null;
+  });
+
+  // Clean ?payment= param from URL without triggering a reload
+  useEffect(() => {
+    if (paymentNotice) {
+      const url = new URL(window.location.href);
+      url.searchParams.delete("payment");
+      url.searchParams.delete("session_id");
+      window.history.replaceState({}, "", url.toString());
+    }
+  }, [paymentNotice]);
+
   // ── Load events ────────────────────────────────────────────────────────────
   const loadEvents = useCallback(async () => {
     setLoadStatus("loading");
@@ -121,7 +141,13 @@ export function EventPicker({ session, onSelectEvent }) {
     setEventCount(prev => Math.max(0, prev - 1));
   }
 
-  // ── Paywall check: does the user already have a free event? ───────────────
+  // ── Free coupon granted — reload events and show create form ─────────────
+  function handleFreeEventGranted() {
+    setShowCreateForm(false);
+    loadEvents();
+  }
+
+  // ── Paywall check: does the user already have an active event? ────────────
   const hasUsedFreeEvent = eventCount >= 1;
 
   // ── Render ─────────────────────────────────────────────────────────────────
@@ -220,10 +246,28 @@ export function EventPicker({ session, onSelectEvent }) {
           </div>
         </div>
 
+        {/* ── Payment return notices ── */}
+        {paymentNotice === "cancelled" && (
+          <div style={styles.noticeCancelled}>
+            Payment was cancelled — no charge was made.
+            <button style={styles.noticeDismiss} onClick={() => setPaymentNotice(null)}>✕</button>
+          </div>
+        )}
+        {paymentNotice === "success" && (
+          <div style={styles.noticeSuccess}>
+            ✓ Payment confirmed — you can now create your event below.
+            <button style={styles.noticeDismiss} onClick={() => setPaymentNotice(null)}>✕</button>
+          </div>
+        )}
+
         {/* ── Create event form / paywall ── */}
         {showCreateForm && (
           hasUsedFreeEvent ? (
-            <PaywallPanel onCancel={() => setShowCreateForm(false)} />
+            <PaywallGate
+              session={session}
+              onFreeEventGranted={handleFreeEventGranted}
+              onCancel={() => setShowCreateForm(false)}
+            />
           ) : (
             <CreateEventForm
               userId={userId}
@@ -373,55 +417,6 @@ function EventCard({ event, meta, onSelect, onDeleteClick }) {
   );
 }
 
-// ── PaywallPanel ──────────────────────────────────────────────────────────────
-function PaywallPanel({ onCancel }) {
-  return (
-    <div style={{
-      background:   "var(--bg-surface)",
-      border:       "1px solid var(--border)",
-      borderRadius: "var(--radius-lg)",
-      padding:      "28px 24px",
-      marginBottom: "24px",
-      boxShadow:    "var(--shadow-sm)",
-      display:      "flex",
-      flexDirection:"column",
-      gap:          12,
-      maxWidth:     480,
-    }}>
-      <div style={{ fontFamily: "var(--font-display)", fontSize: 18, fontWeight: 600, color: "var(--text-primary)" }}>
-        Additional Event Required
-      </div>
-      <div style={{ fontSize: 13, color: "var(--text-secondary)", lineHeight: 1.6 }}>
-        Your free event is already in use. Creating additional events requires a one-time purchase per event.
-      </div>
-      <div style={{
-        background:   "var(--bg-subtle)",
-        border:       "1px solid var(--border)",
-        borderRadius: "var(--radius-md)",
-        padding:      "14px 16px",
-        fontSize:     13,
-        color:        "var(--text-muted)",
-        fontStyle:    "italic",
-      }}>
-        Stripe checkout coming soon — Phase 7
-      </div>
-      <div>
-        <button style={{
-          background:  "none",
-          border:      "none",
-          fontFamily:  "var(--font-body)",
-          fontSize:    13,
-          color:       "var(--text-muted)",
-          cursor:      "pointer",
-          padding:     0,
-        }} onClick={onCancel}>
-          ← Cancel
-        </button>
-      </div>
-    </div>
-  );
-}
-
 // ── Styles ────────────────────────────────────────────────────────────────────
 const styles = {
   page: {
@@ -530,6 +525,42 @@ const styles = {
     color:      "var(--text-muted)",
     borderTop:  "1px solid var(--border)",
     marginTop:  40,
+  },
+  noticeSuccess: {
+    display:      "flex",
+    alignItems:   "center",
+    justifyContent: "space-between",
+    gap:          12,
+    background:   "var(--green-light, #eaf6ee)",
+    border:       "1px solid var(--green)",
+    borderRadius: "var(--radius-md)",
+    padding:      "10px 14px",
+    fontSize:     13,
+    fontWeight:   600,
+    color:        "var(--green)",
+    marginBottom: 16,
+  },
+  noticeCancelled: {
+    display:      "flex",
+    alignItems:   "center",
+    justifyContent: "space-between",
+    gap:          12,
+    background:   "var(--bg-subtle)",
+    border:       "1px solid var(--border)",
+    borderRadius: "var(--radius-md)",
+    padding:      "10px 14px",
+    fontSize:     13,
+    color:        "var(--text-secondary)",
+    marginBottom: 16,
+  },
+  noticeDismiss: {
+    background:  "none",
+    border:      "none",
+    cursor:      "pointer",
+    fontSize:    13,
+    color:       "inherit",
+    padding:     0,
+    flexShrink:  0,
   },
   cardName: {
     fontFamily:   "var(--font-display)",

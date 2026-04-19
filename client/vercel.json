@@ -1,0 +1,7 @@
+{
+  "buildCommand": "vite build --config vite.config.v3.js",
+  "outputDirectory": "dist",
+  "rewrites": [
+    { "source": "/api/(.*)", "destination": "/api/$1" }
+  ]
+}
