@@ -236,11 +236,14 @@ export function AppShell({ session, eventId, onBack }) {
     );
   }
 
-  // ── Shared props passed to every tab (Phase 6 will expand these) ──────────
+  // ── Shared props passed to every tab ─────────────────────────────────────
   const tabProps = {
+    eventId,
     event,
     adminConfig,
     showToast,
+    isArchived: !!(event?.archived),
+    setActiveTab: navigateTo,
   };
 
   // ── Render ─────────────────────────────────────────────────────────────────
