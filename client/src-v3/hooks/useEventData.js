@@ -155,8 +155,7 @@ export function householdPromoteColumns(item) {
 }
 
 // ── Convenience: people promoted columns ──────────────────────────────────────
-export function peoplePromoteColumns(item) {
-  return {
-    household_id: item.householdId || null,
-  };
+// household_id column removed — householdId lives in data jsonb
+export function peoplePromoteColumns(_item) {
+  return {};
 }
