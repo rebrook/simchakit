@@ -1,9 +1,24 @@
 {
-  "current": "V2.70.0",
+  "current": "V2.71.0",
   "whatsNew": [
-    "Bugfix - Desktop nav overflow: More button now correctly appears when tabs overflow, and clears correctly when window is widened"
+    "Activity log now records every add, update, and delete across all planning data",
+    "User-facing warning toast when an audit log write fails",
+    "Activity Log modal now correctly reads from Supabase in V3"
   ],
   "changelog": [
+    {
+      "version": "V2.71.0",
+      "date": "2026-04-19",
+      "changes": [
+        "Audit log now writes entries to activity log on every add, update, and delete across all collections (households, people, vendors, expenses, tasks, prep, gifts, favors, tables, ceremony roles)",
+        "User-facing toast alert shown when an audit log write fails \u2014 planning data is never affected, only the log entry",
+        "V2: saveState now returns true/false; ws.js detects audit write failures and broadcasts auditError flag to all connected clients",
+        "V3: writeAuditLog helper added to useEventData \u2014 fire-and-forget, dispatches simchakit:audit-error custom event on failure",
+        "V3: AppShell listens for simchakit:audit-error and shows toast notification",
+        "V3: ActivityLogModal fixed to read from data jsonb columns (data.action, data.detail) matching Supabase audit_log schema",
+        "Guide: Activity Log section updated with write-failure alert documentation"
+      ]
+    },
     {
       "version": "V2.70.0",
       "date": "2026-04-19",

@@ -182,6 +182,11 @@ export default function App() {
     if (state?.favors?.config) setFavorConfig(state.favors.config);
   }, [state?.favors?.config]);
 
+  // Show a user-facing warning if an audit log write fails on the server
+  useEffect(() => {
+    if (state?.auditError) showToast("⚠ Activity log entry could not be saved");
+  }, [state?.auditError]);
+
   const displayState = state ? { ...state, adminConfig: adminConfig||state.adminConfig, favorConfig: favorConfig||state.favors?.config } : null;
   const guestBadge   = displayState ? (displayState.people||[]).length : null;
 

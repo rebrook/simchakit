@@ -67,8 +67,10 @@ function saveState(boardId, bs, log) {
     fs.writeFileSync(stateFile(boardId), JSON.stringify(bs, null, 2));
     log("INFO", "[SimchaKit] Saved state for board: " + boardId +
       " (archived: " + bs.archived + ")");
+    return true;
   } catch (e) {
     log("ERROR", "[SimchaKit] Could not save state for board " + boardId + ": " + e.message);
+    return false;
   }
 }
 

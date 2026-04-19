@@ -4,7 +4,7 @@ const { getBoardState, saveState, ALLOWED_COLLECTIONS } = require("./state");
 
 // ── SimchaKit FULL_STATE payload ──────────────────────────────────────────────
 // Never includes adminPassword or archiveUnlockCode
-function statePayload(boardId, bs) {
+function statePayload(boardId, bs, auditError) {
   return JSON.stringify({
     type:        "FULL_STATE",
     boardId:     boardId,
@@ -24,6 +24,7 @@ function statePayload(boardId, bs) {
     ceremonyRoles: bs.ceremonyRoles || [],
     quickNotes:  bs.quickNotes  || "",
     archived:    bs.archived    || false,
+    auditError:  auditError     || false,
   });
 }
 
@@ -52,11 +53,13 @@ function handleMessage(ws, msg, context) {
     var bs = getBoardState(boardId, log);
     if (bs.archived) { log("WARN", "[SimchaKit] UPDATE_DATA rejected — board " + boardId + " is archived"); return; }
     bs[msg.collection] = msg.data;
-    saveState(boardId, bs, log);
-    var count = broadcastToAll(boardId, statePayload(boardId, bs));
+    var saved = saveState(boardId, bs, log);
+    var auditErr = !saved && msg.collection === "auditLog";
+    var count = broadcastToAll(boardId, statePayload(boardId, bs, auditErr));
     log("INFO", "[SimchaKit] UPDATE_DATA for board: " + boardId +
       " collection: " + msg.collection +
-      " — broadcasted to " + count + " client(s)");
+      " — broadcasted to " + count + " client(s)" +
+      (auditErr ? " [AUDIT WRITE FAILED]" : ""));
   }
 
   if (msg.type === "UPDATE_NOTES") {
@@ -66,7 +69,7 @@ function handleMessage(ws, msg, context) {
     if (bs.archived) { log("WARN", "[SimchaKit] UPDATE_NOTES rejected — board " + boardId + " is archived"); return; }
     bs.quickNotes = msg.notes || "";
     saveState(boardId, bs, log);
-    var count = broadcastToAll(boardId, statePayload(boardId, bs));
+    var count = broadcastToAll(boardId, statePayload(boardId, bs, false));
     log("INFO", "[SimchaKit] UPDATE_NOTES for board: " + boardId +
       " — broadcasted to " + count + " client(s)");
   }
