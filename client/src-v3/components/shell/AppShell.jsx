@@ -10,6 +10,7 @@ import { supabase }        from "@/lib/supabase.js";
 import { useDarkMode }     from "@/hooks/useDarkMode.js";
 import { ThemeProvider }   from "@/components/shared/ThemeProvider.jsx";
 import { PlaceholderTab }  from "@/components/shared/PlaceholderTab.jsx";
+import { AdminLogin, AdminPanel } from "@/components/AdminPanel.jsx";
 
 // ── Tab components (stubs in Phase 5, filled in Phase 6) ─────────────────────
 import { OverviewTab }        from "@/components/tabs/OverviewTab.jsx";
@@ -56,6 +57,12 @@ export function AppShell({ session, eventId, onBack }) {
   const [toastMsg,        setToastMsg]        = useState("");
   const [toastVisible,    setToastVisible]    = useState(false);
   const [darkMode,        setDarkMode]        = useDarkMode();
+
+  // ── Admin state ───────────────────────────────────────────────────────────
+  const [showAdminLogin,  setShowAdminLogin]  = useState(false);
+  const [showAdminPanel,  setShowAdminPanel]  = useState(false);
+  const [adminPassword,   setAdminPassword]   = useState(null);
+  const [adminSection,    setAdminSection]    = useState("event");
 
   const navInnerRef = useRef(null);
   const toastTimer  = useRef(null);
@@ -236,14 +243,36 @@ export function AppShell({ session, eventId, onBack }) {
     );
   }
 
+  // ── Open admin (from gear button or tab callbacks) ────────────────────────
+  const openAdmin = (section = "event") => {
+    setAdminSection(section);
+    if (adminPassword) { setShowAdminPanel(true); }
+    else               { setShowAdminLogin(true); }
+  };
+
+  const onAdminLoginSuccess = (pwd) => {
+    setAdminPassword(pwd);
+    setShowAdminLogin(false);
+    setShowAdminPanel(true);
+  };
+
+  const onConfigSaved = (newConfig) => {
+    setAdminConfig(newConfig);
+    // Also refresh event row so name/type stay in sync
+    setEvent(ev => ev ? { ...ev, name: newConfig.name || ev.name, type: newConfig.type || ev.type, admin_config: newConfig } : ev);
+    showToast("Configuration saved");
+  };
+
   // ── Shared props passed to every tab ─────────────────────────────────────
   const tabProps = {
     eventId,
     event,
     adminConfig,
     showToast,
-    isArchived: !!(event?.archived),
-    setActiveTab: navigateTo,
+    isArchived:    !!(event?.archived),
+    setActiveTab:  navigateTo,
+    onOpenAdmin:   () => openAdmin("event"),
+    onOpenAdminTo: openAdmin,
   };
 
   // ── Render ─────────────────────────────────────────────────────────────────
@@ -303,8 +332,13 @@ export function AppShell({ session, eventId, onBack }) {
           {/* Header actions */}
           <div className="header-actions">
             {/* Search — Phase 6 */}
-            <button className="icon-btn" title="Search (⌘K)" onClick={() => showToast("Search coming in Phase 6")}>
+            <button className="icon-btn" title="Search (⌘K)" onClick={() => showToast("Search coming soon")}>
               🔍
+            </button>
+
+            {/* Admin Mode */}
+            <button className="icon-btn" title="Admin Mode" onClick={() => openAdmin("event")}>
+              ⚙
             </button>
 
             {/* Overflow menu */}
@@ -515,6 +549,27 @@ export function AppShell({ session, eventId, onBack }) {
           </button>
         ))}
       </div>
+
+      {/* ── Admin Login ── */}
+      {showAdminLogin && (
+        <AdminLogin
+          eventId={eventId}
+          onSuccess={onAdminLoginSuccess}
+          onClose={() => setShowAdminLogin(false)}
+        />
+      )}
+
+      {/* ── Admin Panel ── */}
+      {showAdminPanel && (
+        <AdminPanel
+          eventId={eventId}
+          password={adminPassword}
+          config={adminConfig}
+          onClose={() => setShowAdminPanel(false)}
+          onConfigSaved={onConfigSaved}
+          initialSection={adminSection}
+        />
+      )}
 
       {/* ── Toast ── */}
       <div style={{
