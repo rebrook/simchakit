@@ -1,9 +1,23 @@
 {
-  "current": "V3.1.4",
+  "current": "V3.1.5",
   "whatsNew": [
-    "\ud83d\udd0d Search results now scroll to and highlight the matched row \u2014 click any search result to jump directly to it"
+    "\ud83c\udfad Try SimchaKit before you buy \u2014 visit simchakit.vercel.app/demo to explore a fully-loaded demo event (Bart Simpson's Bar Mitzvah) with no account required"
   ],
   "changelog": [
+    {
+      "version": "V3.1.5",
+      "date": "2026-04-20",
+      "type": "feature",
+      "summary": "Demo mode \u2014 unauthenticated preview at /demo",
+      "changes": [
+        "New \u2014 /demo route loads Bart Simpson's Bar Mitzvah demo event without authentication or Stripe paywall",
+        "App.v3.jsx: IS_DEMO flag detects /demo path and renders AppShell directly with eventId=simcha-demo, bypassing all auth",
+        "AppShell: isDemoMode prop shows persistent accent banner \u2014 '\ud83d\udccb You're viewing the SimchaKit demo \u00b7 Data resets nightly \u00b7 Create your account \u2192'",
+        "api/reset-demo.js: Vercel serverless function resets demo event to full Simpsons baseline \u2014 25 households, 48 people, 6 vendors, 20 expenses, 35 tasks, 4 tables, 17 gifts, 20 favors, 15 ceremony roles, day-of checklist",
+        "vercel.json: nightly cron at 6am UTC calls /api/reset-demo; /demo route rewrite added",
+        "demo.simcha-kit.com domain alias to be configured in Vercel dashboard pointing to /demo"
+      ]
+    },
     {
       "version": "V3.1.4",
       "date": "2026-04-20",
@@ -11,10 +25,9 @@
       "summary": "Search scroll-to-item on navigate",
       "changes": [
         "Search results now scroll to and highlight the matched row when navigating from the search overlay",
-        "searchHighlight state added to AppShell and passed to all tabs via tabProps \u2014 shape: { tab, itemId, collection, householdId }",
-        "clearSearchHighlight and setSearchHighlight passed to tabs so useSearchHighlight hook can clear state after animation completes",
-        "onNavigate in SearchOverlay now closes search, navigates to tab, then sets searchHighlight after 150ms delay to allow tab render before DOM targeting",
-        "GuestsTab: people results scroll to and expand the household card containing the matched person via householdId"
+        "searchHighlight state added to AppShell and passed to all tabs via tabProps",
+        "onNavigate closes search overlay, navigates to tab, then sets searchHighlight after 150ms delay",
+        "GuestsTab: people results scroll to and expand the household card via householdId"
       ]
     },
     {

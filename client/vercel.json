@@ -1,6 +1,13 @@
 {
+  "crons": [
+    {
+      "path": "/api/reset-demo",
+      "schedule": "0 6 * * *"
+    }
+  ],
   "rewrites": [
     { "source": "/api/(.*)", "destination": "/api/$1" },
-    { "source": "/(.*)", "destination": "/index.html" }
+    { "source": "/demo",    "destination": "/index.html" },
+    { "source": "/(.*)",    "destination": "/index.html" }
   ]
 }

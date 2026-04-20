@@ -13,9 +13,27 @@ import { AppShell }            from "@/components/shell/AppShell.jsx";
 import { useDarkMode }         from "@/hooks/useDarkMode.js";
 import { ThemeProvider }       from "@/components/shared/ThemeProvider.jsx";
 
+const DEMO_EVENT_ID = "simcha-demo";
+const IS_DEMO      = window.location.pathname === "/demo";
+
 export default function AppV3() {
   const [session, setSession] = useState(undefined); // undefined = loading
   useDarkMode();
+
+  // Demo mode — bypass auth entirely
+  if (IS_DEMO) {
+    return (
+      <>
+        <ThemeProvider palette="rose" />
+        <AppShell
+          session={null}
+          eventId={DEMO_EVENT_ID}
+          isDemoMode={true}
+          onBack={() => window.location.replace("/")}
+        />
+      </>
+    );
+  }
 
   const isCallback = window.location.hash.includes("access_token") ||
                      window.location.hash.includes("error_description") ||

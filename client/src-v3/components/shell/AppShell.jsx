@@ -46,7 +46,7 @@ const EVENT_TYPE_ICONS = {
 const BOTTOM_BAR_IDS = ["overview", "guests", "budget", "vendors", "tasks"];
 
 // ─────────────────────────────────────────────────────────────────────────────
-export function AppShell({ session, eventId, onBack }) {
+export function AppShell({ session, eventId, onBack, isDemoMode = false }) {
   const [activeTab,       setActiveTab]       = useState("overview");
   const [event,           setEvent]           = useState(null);   // raw events row
   const [adminConfig,     setAdminConfig]     = useState(null);   // events.admin_config
@@ -307,6 +307,27 @@ export function AppShell({ session, eventId, onBack }) {
   return (
     <div className="app-shell">
       <ThemeProvider palette={palette} customColor={customColor} />
+
+      {/* ── Demo banner ── */}
+      {isDemoMode && (
+        <div className="archived-banner" style={{
+          background: "var(--accent-primary)",
+          color: "white",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: 12,
+          flexWrap: "wrap",
+        }}>
+          <span>📋 You're viewing the SimchaKit demo · Data resets nightly</span>
+          <a href="/" style={{
+            color: "white",
+            fontWeight: 700,
+            textDecoration: "underline",
+            whiteSpace: "nowrap",
+          }}>Create your account →</a>
+        </div>
+      )}
 
       {/* ── Archived banner ── */}
       {event?.archived && (
