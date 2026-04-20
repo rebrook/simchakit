@@ -20,8 +20,10 @@ export default function AppV3() {
   const [session, setSession] = useState(undefined); // undefined = loading
   useDarkMode();
 
-  // Demo mode — bypass auth entirely
+  // Demo mode — bypass auth entirely, ensure anon Supabase client
   if (IS_DEMO) {
+    // Sign out any existing session so Supabase uses the anon key for all requests
+    supabase.auth.signOut();
     return (
       <>
         <ThemeProvider palette="rose" />
