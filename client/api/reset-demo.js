@@ -3657,7 +3657,7 @@ export default async function handler(req, res) {
 
     for (const { table, rows } of inserts) {
       if (!rows || rows.length === 0) continue;
-      const { error } = await supabase.from(table).insert(rows);
+      const { error } = await supabase.from(table).upsert(rows, { onConflict: "id" });
       if (error) throw new Error(`Failed to insert ${table}: ${error.message}`);
     }
 
