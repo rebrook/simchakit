@@ -1,12 +1,33 @@
 {
-  "current": "V3.0.11",
+  "current": "V3.0.12",
   "whatsNew": [
-    "Stripe payment gate — additional events require a one-time purchase",
-    "Introductory pricing $29 through Aug 31 2026, then $49",
-    "Coupon code redemption — free, percent, or fixed discount",
-    "Unused purchases tracked — deleting an event and creating a new one never requires re-payment"
+    "Admin dashboard live at simchakit-admin.vercel.app",
+    "User, event, purchase, and coupon management for Brook Creative LLC",
+    "Manual purchase grant and refund flagging",
+    "Coupon code creator with free, percent, and fixed discount types"
   ],
   "changelog": [
+    {
+      "version": "V3.0.12",
+      "date": "2026-04-20",
+      "summary": "V3 Phase 10 — Brook Creative LLC admin dashboard",
+      "changes": [
+        "New: src-admin/ — separate Vite build entry for admin dashboard. Isolated from V2 (src/) and V3 (src-v3/) source. Never ships to SimchaKit users.",
+        "New: App.admin.jsx — auth-aware admin root. Verifies signed-in user is in admin_users table before showing dashboard. Shows access denied screen for non-admin users.",
+        "New: AdminShell.jsx — sidebar nav with 5 pages: Dashboard, Users, Events, Purchases, Coupons. Sign out button with current user email.",
+        "New: DashboardPage.jsx — stat cards (users, events, purchases, revenue) and monthly revenue bar chart (Recharts).",
+        "New: UsersPage.jsx — searchable user list with drill-down showing each user's events and purchases.",
+        "New: EventsPage.jsx — all events across all users with owner email, type, status, and date filters.",
+        "New: PurchasesPage.jsx — full transaction log with Stripe session links, manual purchase grant, and refund flag.",
+        "New: CouponsPage.jsx — create coupon codes (free/percent/fixed), set max uses and expiry, activate/deactivate.",
+        "New: api/admin-query.js — Vercel serverless function. Verifies JWT and admin_users membership before running any service-role query. Service role key never exposed to browser.",
+        "New: vite.config.admin.js — admin Vite config. @ alias points to src-admin/, output to dist-admin/.",
+        "New: vercel.admin.json — admin Vercel project build config.",
+        "New: index.admin.html — admin HTML entry point.",
+        "Database: admin_users table created. RLS: users can only read their own row.",
+        "V2 impact: None. All admin files in src-admin/ and are invisible to V2 and V3 builds."
+      ]
+    },
     {
       "version": "V3.0.11",
       "date": "2026-04-20",

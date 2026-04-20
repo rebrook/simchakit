@@ -1,0 +1,8 @@
+{
+  "buildCommand": "vite build --config vite.config.admin.js",
+  "outputDirectory": "dist-admin",
+  "rewrites": [
+    { "source": "/api/(.*)", "destination": "/api/$1" },
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
+}
