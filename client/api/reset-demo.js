@@ -2,6 +2,7 @@
 // SimchaKit V3 — api/reset-demo.js
 // Resets the demo event to baseline Simpsons data.
 // V3 schema: all collection rows use { id, event_id, data: jsonb }
+// All IDs are UUIDs. Cross-references pre-resolved.
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { createClient } from "@supabase/supabase-js";
@@ -147,7 +148,7 @@ const SEED = {
   },
   "households": [
     {
-      "id": "h001",
+      "id": "a15a0952-c981-4054-a762-ae41c5596eec",
       "name": "Simpson Family",
       "formalName": "Mr. and Mrs. Homer Simpson",
       "group": "Family",
@@ -179,7 +180,7 @@ const SEED = {
       ]
     },
     {
-      "id": "h002",
+      "id": "c6207f57-2cbf-48ed-a493-e163b70b14f3",
       "name": "Flanders Family",
       "formalName": "Mr. Ned Flanders",
       "group": "Family",
@@ -211,7 +212,7 @@ const SEED = {
       ]
     },
     {
-      "id": "h003",
+      "id": "55191d6d-e433-4397-925c-830da0b76048",
       "name": "Bouvier Grandma",
       "formalName": "Mrs. Jacqueline Bouvier",
       "group": "Family",
@@ -243,7 +244,7 @@ const SEED = {
       ]
     },
     {
-      "id": "h004",
+      "id": "5f470e79-15c4-41b1-8ec0-d19c999c98a9",
       "name": "Bouvier Sisters",
       "formalName": "Ms. Patty Bouvier and Ms. Selma Bouvier",
       "group": "Family",
@@ -278,7 +279,7 @@ const SEED = {
       ]
     },
     {
-      "id": "h005",
+      "id": "e0e4a461-4acf-407b-97e8-812aca95a0d6",
       "name": "Terwilliger Family",
       "formalName": "Mr. and Mrs. Robert Terwilliger Sr.",
       "group": "Family",
@@ -313,7 +314,7 @@ const SEED = {
       ]
     },
     {
-      "id": "h006",
+      "id": "9c576e14-542b-43e5-a8af-f9741cb3cde9",
       "name": "Van Houten Family",
       "formalName": "Mr. and Mrs. Kirk Van Houten",
       "group": "Friends",
@@ -344,7 +345,7 @@ const SEED = {
       ]
     },
     {
-      "id": "h007",
+      "id": "b8097262-cec5-4bce-b36d-ee4a98822baa",
       "name": "Wiggum Family",
       "formalName": "Chief and Mrs. Clancy Wiggum",
       "group": "Friends",
@@ -375,7 +376,7 @@ const SEED = {
       ]
     },
     {
-      "id": "h008",
+      "id": "86ea68ee-0c24-4521-bc8e-31c113a963ee",
       "name": "Hibbert Family",
       "formalName": "Dr. and Mrs. Julius Hibbert",
       "group": "Friends",
@@ -405,7 +406,7 @@ const SEED = {
       ]
     },
     {
-      "id": "h009",
+      "id": "171cf93c-2db8-4df6-a7cc-4469a6dbbe04",
       "name": "Carlson & Powell",
       "formalName": "Mr. Carl Carlson and Ms. Lenny Powell",
       "group": "Friends",
@@ -436,7 +437,7 @@ const SEED = {
       ]
     },
     {
-      "id": "h010",
+      "id": "784350ac-8396-4ece-af5d-8080bd0cf2a2",
       "name": "Lovejoy Family",
       "formalName": "Reverend and Mrs. Timothy Lovejoy",
       "group": "Friends",
@@ -466,7 +467,7 @@ const SEED = {
       ]
     },
     {
-      "id": "h011",
+      "id": "c0e27882-d683-4d92-8457-d8b5ea50060c",
       "name": "Quimby Family",
       "formalName": "Mayor and Mrs. Joseph Quimby",
       "group": "Friends",
@@ -496,7 +497,7 @@ const SEED = {
       ]
     },
     {
-      "id": "h012",
+      "id": "ad2f585b-7f76-44eb-885a-7284a77383ba",
       "name": "Prince Family",
       "formalName": "Mr. and Mrs. Martin Prince Sr.",
       "group": "Friends",
@@ -526,7 +527,7 @@ const SEED = {
       ]
     },
     {
-      "id": "h013",
+      "id": "1ef93ff4-70ad-4903-9c8f-a8b102c1506f",
       "name": "Skinner Family",
       "formalName": "Principal and Mrs. Seymour Skinner",
       "group": "Friends",
@@ -556,7 +557,7 @@ const SEED = {
       ]
     },
     {
-      "id": "h014",
+      "id": "92cf5264-e455-4af9-86b5-9d18393160eb",
       "name": "Burns & Smithers",
       "formalName": "Mr. C. Montgomery Burns and Mr. Waylon Smithers",
       "group": "Friends",
@@ -587,7 +588,7 @@ const SEED = {
       ]
     },
     {
-      "id": "h015",
+      "id": "08c9c543-09f7-4131-aa4e-5031e285bcf3",
       "name": "Muntz Family",
       "formalName": "Ms. Gloria Muntz",
       "group": "Friends",
@@ -617,7 +618,7 @@ const SEED = {
       ]
     },
     {
-      "id": "h016",
+      "id": "625927a3-4d54-4152-9635-fbfd57c92f2e",
       "name": "Sherri Mackleberry",
       "formalName": "Miss Sherri Mackleberry",
       "group": "Class",
@@ -645,7 +646,7 @@ const SEED = {
       ]
     },
     {
-      "id": "h017",
+      "id": "99b61536-e4ae-4e12-9308-a5d4864c85aa",
       "name": "Terri Mackleberry",
       "formalName": "Miss Terri Mackleberry",
       "group": "Class",
@@ -673,7 +674,7 @@ const SEED = {
       ]
     },
     {
-      "id": "h018",
+      "id": "a3823275-fd98-4e83-a595-9fe74b45e125",
       "name": "Wendell Borton",
       "formalName": "Mr. Wendell Borton",
       "group": "Class",
@@ -701,7 +702,7 @@ const SEED = {
       ]
     },
     {
-      "id": "h019",
+      "id": "07cedf82-2c3e-49fa-b57c-b76d57e9c954",
       "name": "Database",
       "formalName": "Mr. Database",
       "group": "Class",
@@ -729,7 +730,7 @@ const SEED = {
       ]
     },
     {
-      "id": "h020",
+      "id": "059ddbd5-a2fe-43a6-9df9-3e4d625152a8",
       "name": "Jimbo Jones",
       "formalName": "Mr. Jimbo Jones",
       "group": "Class",
@@ -757,7 +758,7 @@ const SEED = {
       ]
     },
     {
-      "id": "h021",
+      "id": "2d86809d-0634-426a-aeed-56bb2d664e37",
       "name": "Kearney Zzyzwicz",
       "formalName": "Mr. Kearney Zzyzwicz",
       "group": "Class",
@@ -785,7 +786,7 @@ const SEED = {
       ]
     },
     {
-      "id": "h022",
+      "id": "2dcdf08e-d104-4cbf-a29c-77c5e969d5eb",
       "name": "Janey Powell",
       "formalName": "Miss Janey Powell",
       "group": "Class",
@@ -813,7 +814,7 @@ const SEED = {
       ]
     },
     {
-      "id": "h023",
+      "id": "8862a0c1-fc0b-47b6-ab90-07ed64daac13",
       "name": "Richard",
       "formalName": "Mr. Richard",
       "group": "Class",
@@ -841,7 +842,7 @@ const SEED = {
       ]
     },
     {
-      "id": "h024",
+      "id": "e749ce0c-c4c7-4144-b723-6faaa3396bbc",
       "name": "Rabbi Krustofsky",
       "formalName": "Rabbi Hyman Krustofsky",
       "group": "Other",
@@ -871,7 +872,7 @@ const SEED = {
       ]
     },
     {
-      "id": "h025",
+      "id": "57fd5c2f-6a8b-415c-844e-59368d45080f",
       "name": "Hutz, Lionel",
       "formalName": "Mr. Lionel Hutz",
       "group": "Other",
@@ -903,15 +904,15 @@ const SEED = {
   ],
   "people": [
     {
-      "id": "p001",
-      "householdId": "h001",
+      "id": "4e1fa62d-419e-4df8-ab63-876ca008873c",
+      "householdId": "a15a0952-c981-4054-a762-ae41c5596eec",
       "firstName": "Homer",
       "lastName": "Simpson",
       "name": "Homer Simpson",
       "title": "Mr.",
       "isChild": false,
       "isAttending": true,
-      "tableId": "tbl001",
+      "tableId": "8fb32bd9-b389-4696-9520-8087c0d1a2d1",
       "shirtSize": "XXL | Adult XXL",
       "pantSize": "AL | Adult Large",
       "mealChoice": "Chicken",
@@ -927,15 +928,15 @@ const SEED = {
       ]
     },
     {
-      "id": "p002",
-      "householdId": "h001",
+      "id": "9cd7e20d-7760-4c4f-bb53-62b6cbc7d8bc",
+      "householdId": "a15a0952-c981-4054-a762-ae41c5596eec",
       "firstName": "Marge",
       "lastName": "Simpson",
       "name": "Marge Simpson",
       "title": "Mrs.",
       "isChild": false,
       "isAttending": true,
-      "tableId": "tbl001",
+      "tableId": "8fb32bd9-b389-4696-9520-8087c0d1a2d1",
       "shirtSize": "AS | Adult Small",
       "pantSize": "AS | Adult Small",
       "mealChoice": "Chicken",
@@ -951,15 +952,15 @@ const SEED = {
       ]
     },
     {
-      "id": "p003",
-      "householdId": "h001",
+      "id": "af20759f-cb09-48c1-a7a9-a8b1ca0ea7a6",
+      "householdId": "a15a0952-c981-4054-a762-ae41c5596eec",
       "firstName": "Bart",
       "lastName": "Simpson",
       "name": "Bart Simpson",
       "title": "",
       "isChild": true,
       "isAttending": true,
-      "tableId": "tbl004",
+      "tableId": "fabd35dc-de1e-4125-a3a6-2221bbd167c7",
       "shirtSize": "YM | Youth Medium",
       "pantSize": "YM | Youth Medium",
       "mealChoice": "Kids Meal",
@@ -975,15 +976,15 @@ const SEED = {
       ]
     },
     {
-      "id": "p004",
-      "householdId": "h001",
+      "id": "8b129a2a-b5ac-48a8-aac7-41631423cbeb",
+      "householdId": "a15a0952-c981-4054-a762-ae41c5596eec",
       "firstName": "Lisa",
       "lastName": "Simpson",
       "name": "Lisa Simpson",
       "title": "Miss",
       "isChild": true,
       "isAttending": true,
-      "tableId": "tbl004",
+      "tableId": "fabd35dc-de1e-4125-a3a6-2221bbd167c7",
       "shirtSize": "YS | Youth Small",
       "pantSize": "YS | Youth Small",
       "mealChoice": "Vegetarian",
@@ -999,15 +1000,15 @@ const SEED = {
       ]
     },
     {
-      "id": "p005",
-      "householdId": "h002",
+      "id": "546e5567-95aa-4b69-84f7-c72275fa8723",
+      "householdId": "c6207f57-2cbf-48ed-a493-e163b70b14f3",
       "firstName": "Ned",
       "lastName": "Flanders",
       "name": "Ned Flanders",
       "title": "Mr.",
       "isChild": false,
       "isAttending": true,
-      "tableId": "tbl001",
+      "tableId": "8fb32bd9-b389-4696-9520-8087c0d1a2d1",
       "shirtSize": "AM | Adult Medium",
       "pantSize": "AM | Adult Medium",
       "mealChoice": "Kosher",
@@ -1023,15 +1024,15 @@ const SEED = {
       ]
     },
     {
-      "id": "p006",
-      "householdId": "h002",
+      "id": "19a5b581-c839-4ea7-94f0-3ac3d5088710",
+      "householdId": "c6207f57-2cbf-48ed-a493-e163b70b14f3",
       "firstName": "Rod",
       "lastName": "Flanders",
       "name": "Rod Flanders",
       "title": "",
       "isChild": true,
       "isAttending": true,
-      "tableId": "tbl004",
+      "tableId": "fabd35dc-de1e-4125-a3a6-2221bbd167c7",
       "shirtSize": "YS | Youth Small",
       "pantSize": "YS | Youth Small",
       "mealChoice": "Kosher",
@@ -1047,15 +1048,15 @@ const SEED = {
       ]
     },
     {
-      "id": "p007",
-      "householdId": "h002",
+      "id": "15033ae6-e8af-4bac-b6b2-1c61f4cc170f",
+      "householdId": "c6207f57-2cbf-48ed-a493-e163b70b14f3",
       "firstName": "Todd",
       "lastName": "Flanders",
       "name": "Todd Flanders",
       "title": "",
       "isChild": true,
       "isAttending": true,
-      "tableId": "tbl004",
+      "tableId": "fabd35dc-de1e-4125-a3a6-2221bbd167c7",
       "shirtSize": "YS | Youth Small",
       "pantSize": "YS | Youth Small",
       "mealChoice": "Kosher",
@@ -1071,15 +1072,15 @@ const SEED = {
       ]
     },
     {
-      "id": "p008",
-      "householdId": "h003",
+      "id": "bd640ed0-7cb5-4f59-b9b5-a531485791b9",
+      "householdId": "55191d6d-e433-4397-925c-830da0b76048",
       "firstName": "Jacqueline",
       "lastName": "Bouvier",
       "name": "Jacqueline Bouvier",
       "title": "Mrs.",
       "isChild": false,
       "isAttending": true,
-      "tableId": "tbl001",
+      "tableId": "8fb32bd9-b389-4696-9520-8087c0d1a2d1",
       "shirtSize": "AS | Adult Small",
       "pantSize": "AS | Adult Small",
       "mealChoice": "Fish",
@@ -1095,15 +1096,15 @@ const SEED = {
       ]
     },
     {
-      "id": "p009",
-      "householdId": "h004",
+      "id": "25bc4e84-79bb-4e8c-963f-ff33e5636460",
+      "householdId": "5f470e79-15c4-41b1-8ec0-d19c999c98a9",
       "firstName": "Patty",
       "lastName": "Bouvier",
       "name": "Patty Bouvier",
       "title": "Ms.",
       "isChild": false,
       "isAttending": true,
-      "tableId": "tbl001",
+      "tableId": "8fb32bd9-b389-4696-9520-8087c0d1a2d1",
       "shirtSize": "AS | Adult Small",
       "pantSize": "AS | Adult Small",
       "mealChoice": "Fish",
@@ -1119,15 +1120,15 @@ const SEED = {
       ]
     },
     {
-      "id": "p010",
-      "householdId": "h004",
+      "id": "bc125271-7634-47a1-ab3f-0fd8f9041399",
+      "householdId": "5f470e79-15c4-41b1-8ec0-d19c999c98a9",
       "firstName": "Selma",
       "lastName": "Bouvier",
       "name": "Selma Bouvier",
       "title": "Ms.",
       "isChild": false,
       "isAttending": true,
-      "tableId": "tbl001",
+      "tableId": "8fb32bd9-b389-4696-9520-8087c0d1a2d1",
       "shirtSize": "AS | Adult Small",
       "pantSize": "AS | Adult Small",
       "mealChoice": "Fish",
@@ -1143,15 +1144,15 @@ const SEED = {
       ]
     },
     {
-      "id": "p011",
-      "householdId": "h005",
+      "id": "8aeec127-e67c-4d92-9e1f-c1e2555b6821",
+      "householdId": "e0e4a461-4acf-407b-97e8-812aca95a0d6",
       "firstName": "Robert",
       "lastName": "Terwilliger Sr.",
       "name": "Robert Terwilliger Sr.",
       "title": "Mr.",
       "isChild": false,
       "isAttending": true,
-      "tableId": "tbl003",
+      "tableId": "be573c91-76ac-43ae-a74a-ef6651741834",
       "shirtSize": "AL | Adult Large",
       "pantSize": "AL | Adult Large",
       "mealChoice": "Chicken",
@@ -1167,15 +1168,15 @@ const SEED = {
       ]
     },
     {
-      "id": "p012",
-      "householdId": "h005",
+      "id": "8f83281f-6eff-471d-9685-6ebb76ccf9c8",
+      "householdId": "e0e4a461-4acf-407b-97e8-812aca95a0d6",
       "firstName": "Judith",
       "lastName": "Terwilliger",
       "name": "Judith Terwilliger",
       "title": "Mrs.",
       "isChild": false,
       "isAttending": true,
-      "tableId": "tbl003",
+      "tableId": "be573c91-76ac-43ae-a74a-ef6651741834",
       "shirtSize": "AS | Adult Small",
       "pantSize": "AS | Adult Small",
       "mealChoice": "Fish",
@@ -1191,15 +1192,15 @@ const SEED = {
       ]
     },
     {
-      "id": "p013",
-      "householdId": "h006",
+      "id": "93669d8a-70e2-4759-a449-ba6e50e52390",
+      "householdId": "9c576e14-542b-43e5-a8af-f9741cb3cde9",
       "firstName": "Kirk",
       "lastName": "Van Houten",
       "name": "Kirk Van Houten",
       "title": "Mr.",
       "isChild": false,
       "isAttending": true,
-      "tableId": "tbl002",
+      "tableId": "48849474-f972-4be2-81ff-a4225388d4f0",
       "shirtSize": "AM | Adult Medium",
       "pantSize": "AM | Adult Medium",
       "mealChoice": "Chicken",
@@ -1214,15 +1215,15 @@ const SEED = {
       ]
     },
     {
-      "id": "p014",
-      "householdId": "h006",
+      "id": "7e5fe7fa-65c4-4943-b41d-75418074c6c6",
+      "householdId": "9c576e14-542b-43e5-a8af-f9741cb3cde9",
       "firstName": "Luann",
       "lastName": "Van Houten",
       "name": "Luann Van Houten",
       "title": "Mrs.",
       "isChild": false,
       "isAttending": true,
-      "tableId": "tbl002",
+      "tableId": "48849474-f972-4be2-81ff-a4225388d4f0",
       "shirtSize": "AS | Adult Small",
       "pantSize": "AS | Adult Small",
       "mealChoice": "Chicken",
@@ -1237,15 +1238,15 @@ const SEED = {
       ]
     },
     {
-      "id": "p015",
-      "householdId": "h006",
+      "id": "bc427189-fa8a-4c8f-9266-c106b232b8c0",
+      "householdId": "9c576e14-542b-43e5-a8af-f9741cb3cde9",
       "firstName": "Milhouse",
       "lastName": "Van Houten",
       "name": "Milhouse Van Houten",
       "title": "",
       "isChild": true,
       "isAttending": true,
-      "tableId": "tbl004",
+      "tableId": "fabd35dc-de1e-4125-a3a6-2221bbd167c7",
       "shirtSize": "YS | Youth Small",
       "pantSize": "YS | Youth Small",
       "mealChoice": "Kids Meal",
@@ -1260,15 +1261,15 @@ const SEED = {
       ]
     },
     {
-      "id": "p016",
-      "householdId": "h007",
+      "id": "9c7158fe-647d-4239-8f98-e75b6f8ce7a3",
+      "householdId": "b8097262-cec5-4bce-b36d-ee4a98822baa",
       "firstName": "Clancy",
       "lastName": "Wiggum",
       "name": "Clancy Wiggum",
       "title": "Mr.",
       "isChild": false,
       "isAttending": true,
-      "tableId": "tbl002",
+      "tableId": "48849474-f972-4be2-81ff-a4225388d4f0",
       "shirtSize": "XL | Adult XL",
       "pantSize": "XL | Adult XL",
       "mealChoice": "Chicken",
@@ -1283,15 +1284,15 @@ const SEED = {
       ]
     },
     {
-      "id": "p017",
-      "householdId": "h007",
+      "id": "82d56a4b-7b13-42c8-aae8-2e6ed8bb26bc",
+      "householdId": "b8097262-cec5-4bce-b36d-ee4a98822baa",
       "firstName": "Sarah",
       "lastName": "Wiggum",
       "name": "Sarah Wiggum",
       "title": "Mrs.",
       "isChild": false,
       "isAttending": true,
-      "tableId": "tbl002",
+      "tableId": "48849474-f972-4be2-81ff-a4225388d4f0",
       "shirtSize": "AS | Adult Small",
       "pantSize": "AS | Adult Small",
       "mealChoice": "Chicken",
@@ -1306,15 +1307,15 @@ const SEED = {
       ]
     },
     {
-      "id": "p018",
-      "householdId": "h007",
+      "id": "aa29583f-6979-43d8-b9e1-d6678b1f0dd7",
+      "householdId": "b8097262-cec5-4bce-b36d-ee4a98822baa",
       "firstName": "Ralph",
       "lastName": "Wiggum",
       "name": "Ralph Wiggum",
       "title": "",
       "isChild": true,
       "isAttending": true,
-      "tableId": "tbl004",
+      "tableId": "fabd35dc-de1e-4125-a3a6-2221bbd167c7",
       "shirtSize": "YL | Youth Large",
       "pantSize": "YL | Youth Large",
       "mealChoice": "Kids Meal",
@@ -1329,15 +1330,15 @@ const SEED = {
       ]
     },
     {
-      "id": "p019",
-      "householdId": "h008",
+      "id": "1eb39ebb-127f-44d5-a4a0-160f49bbf2ee",
+      "householdId": "86ea68ee-0c24-4521-bc8e-31c113a963ee",
       "firstName": "Julius",
       "lastName": "Hibbert",
       "name": "Julius Hibbert",
       "title": "Dr.",
       "isChild": false,
       "isAttending": true,
-      "tableId": "tbl002",
+      "tableId": "48849474-f972-4be2-81ff-a4225388d4f0",
       "shirtSize": "AL | Adult Large",
       "pantSize": "AL | Adult Large",
       "mealChoice": "Chicken",
@@ -1351,15 +1352,15 @@ const SEED = {
       ]
     },
     {
-      "id": "p020",
-      "householdId": "h008",
+      "id": "60d2f700-4350-4ac9-9bf3-7d3360895950",
+      "householdId": "86ea68ee-0c24-4521-bc8e-31c113a963ee",
       "firstName": "Bernice",
       "lastName": "Hibbert",
       "name": "Bernice Hibbert",
       "title": "Mrs.",
       "isChild": false,
       "isAttending": true,
-      "tableId": "tbl002",
+      "tableId": "48849474-f972-4be2-81ff-a4225388d4f0",
       "shirtSize": "AS | Adult Small",
       "pantSize": "AS | Adult Small",
       "mealChoice": "Fish",
@@ -1373,15 +1374,15 @@ const SEED = {
       ]
     },
     {
-      "id": "p021",
-      "householdId": "h008",
+      "id": "57598fcd-2c07-49d0-ba3f-d79f5b5cee04",
+      "householdId": "86ea68ee-0c24-4521-bc8e-31c113a963ee",
       "firstName": "Janey",
       "lastName": "Hibbert",
       "name": "Janey Hibbert",
       "title": "Miss",
       "isChild": true,
       "isAttending": true,
-      "tableId": "tbl004",
+      "tableId": "fabd35dc-de1e-4125-a3a6-2221bbd167c7",
       "shirtSize": "YS | Youth Small",
       "pantSize": "YS | Youth Small",
       "mealChoice": "Kids Meal",
@@ -1395,15 +1396,15 @@ const SEED = {
       ]
     },
     {
-      "id": "p022",
-      "householdId": "h008",
+      "id": "604c2dbc-0ba3-408c-8477-b3354d257e24",
+      "householdId": "86ea68ee-0c24-4521-bc8e-31c113a963ee",
       "firstName": "Jules",
       "lastName": "Hibbert",
       "name": "Jules Hibbert",
       "title": "Mr.",
       "isChild": true,
       "isAttending": true,
-      "tableId": "tbl004",
+      "tableId": "fabd35dc-de1e-4125-a3a6-2221bbd167c7",
       "shirtSize": "YM | Youth Medium",
       "pantSize": "YM | Youth Medium",
       "mealChoice": "Kosher",
@@ -1417,15 +1418,15 @@ const SEED = {
       ]
     },
     {
-      "id": "p023",
-      "householdId": "h009",
+      "id": "bf646f8a-8e7f-410d-9475-57b27034cad7",
+      "householdId": "171cf93c-2db8-4df6-a7cc-4469a6dbbe04",
       "firstName": "Carl",
       "lastName": "Carlson",
       "name": "Carl Carlson",
       "title": "Mr.",
       "isChild": false,
       "isAttending": true,
-      "tableId": "tbl003",
+      "tableId": "be573c91-76ac-43ae-a74a-ef6651741834",
       "shirtSize": "AL | Adult Large",
       "pantSize": "AL | Adult Large",
       "mealChoice": "Chicken",
@@ -1439,15 +1440,15 @@ const SEED = {
       ]
     },
     {
-      "id": "p024",
-      "householdId": "h009",
+      "id": "767e53e9-aba3-4ec2-954c-755f07700db4",
+      "householdId": "171cf93c-2db8-4df6-a7cc-4469a6dbbe04",
       "firstName": "Lenny",
       "lastName": "Powell",
       "name": "Lenny Powell",
       "title": "Ms.",
       "isChild": false,
       "isAttending": true,
-      "tableId": "tbl003",
+      "tableId": "be573c91-76ac-43ae-a74a-ef6651741834",
       "shirtSize": "AM | Adult Medium",
       "pantSize": "AM | Adult Medium",
       "mealChoice": "Vegetarian",
@@ -1461,15 +1462,15 @@ const SEED = {
       ]
     },
     {
-      "id": "p025",
-      "householdId": "h010",
+      "id": "add043c8-8057-41ad-ae6d-ee99f83e356d",
+      "householdId": "784350ac-8396-4ece-af5d-8080bd0cf2a2",
       "firstName": "Timothy",
       "lastName": "Lovejoy",
       "name": "Timothy Lovejoy",
       "title": "Mr.",
       "isChild": false,
       "isAttending": true,
-      "tableId": "tbl003",
+      "tableId": "be573c91-76ac-43ae-a74a-ef6651741834",
       "shirtSize": "AM | Adult Medium",
       "pantSize": "AM | Adult Medium",
       "mealChoice": "Chicken",
@@ -1483,15 +1484,15 @@ const SEED = {
       ]
     },
     {
-      "id": "p026",
-      "householdId": "h010",
+      "id": "fcd96395-3b76-4803-9344-74ffaf2e75c9",
+      "householdId": "784350ac-8396-4ece-af5d-8080bd0cf2a2",
       "firstName": "Helen",
       "lastName": "Lovejoy",
       "name": "Helen Lovejoy",
       "title": "Mrs.",
       "isChild": false,
       "isAttending": true,
-      "tableId": "tbl003",
+      "tableId": "be573c91-76ac-43ae-a74a-ef6651741834",
       "shirtSize": "AS | Adult Small",
       "pantSize": "AS | Adult Small",
       "mealChoice": "Fish",
@@ -1505,15 +1506,15 @@ const SEED = {
       ]
     },
     {
-      "id": "p027",
-      "householdId": "h010",
+      "id": "517fefaf-0976-4ac4-a329-4e300810d686",
+      "householdId": "784350ac-8396-4ece-af5d-8080bd0cf2a2",
       "firstName": "Jessica",
       "lastName": "Lovejoy",
       "name": "Jessica Lovejoy",
       "title": "Miss",
       "isChild": true,
       "isAttending": true,
-      "tableId": "tbl004",
+      "tableId": "fabd35dc-de1e-4125-a3a6-2221bbd167c7",
       "shirtSize": "YS | Youth Small",
       "pantSize": "YS | Youth Small",
       "mealChoice": "Kids Meal",
@@ -1527,8 +1528,8 @@ const SEED = {
       ]
     },
     {
-      "id": "p028",
-      "householdId": "h011",
+      "id": "600b98ef-0974-4fee-b40b-4c6c87d742f2",
+      "householdId": "c0e27882-d683-4d92-8457-d8b5ea50060c",
       "firstName": "Joseph",
       "lastName": "Quimby",
       "name": "Joseph Quimby",
@@ -1545,8 +1546,8 @@ const SEED = {
       "attendingSections": []
     },
     {
-      "id": "p029",
-      "householdId": "h011",
+      "id": "fab637a4-b267-466e-a61c-54bfe505ceb5",
+      "householdId": "c0e27882-d683-4d92-8457-d8b5ea50060c",
       "firstName": "Martha",
       "lastName": "Quimby",
       "name": "Martha Quimby",
@@ -1563,15 +1564,15 @@ const SEED = {
       "attendingSections": []
     },
     {
-      "id": "p030",
-      "householdId": "h012",
+      "id": "dc602b27-550a-4e1b-a401-c8e5243be6a0",
+      "householdId": "ad2f585b-7f76-44eb-885a-7284a77383ba",
       "firstName": "Martin",
       "lastName": "Prince Sr.",
       "name": "Martin Prince Sr.",
       "title": "Mr.",
       "isChild": false,
       "isAttending": true,
-      "tableId": "tbl003",
+      "tableId": "be573c91-76ac-43ae-a74a-ef6651741834",
       "shirtSize": "AM | Adult Medium",
       "pantSize": "AM | Adult Medium",
       "mealChoice": "Chicken",
@@ -1585,15 +1586,15 @@ const SEED = {
       ]
     },
     {
-      "id": "p031",
-      "householdId": "h012",
+      "id": "6d4848c2-714d-467c-b6ee-9c7b7a4dc21e",
+      "householdId": "ad2f585b-7f76-44eb-885a-7284a77383ba",
       "firstName": "Martha",
       "lastName": "Prince",
       "name": "Martha Prince",
       "title": "Mrs.",
       "isChild": false,
       "isAttending": true,
-      "tableId": "tbl003",
+      "tableId": "be573c91-76ac-43ae-a74a-ef6651741834",
       "shirtSize": "AS | Adult Small",
       "pantSize": "AS | Adult Small",
       "mealChoice": "Fish",
@@ -1607,15 +1608,15 @@ const SEED = {
       ]
     },
     {
-      "id": "p032",
-      "householdId": "h012",
+      "id": "5f78f6cb-345e-4f82-8c3e-b5fd52647fb8",
+      "householdId": "ad2f585b-7f76-44eb-885a-7284a77383ba",
       "firstName": "Martin",
       "lastName": "Prince Jr.",
       "name": "Martin Prince Jr.",
       "title": "Mr.",
       "isChild": true,
       "isAttending": true,
-      "tableId": "tbl004",
+      "tableId": "fabd35dc-de1e-4125-a3a6-2221bbd167c7",
       "shirtSize": "YS | Youth Small",
       "pantSize": "YS | Youth Small",
       "mealChoice": "Kids Meal",
@@ -1629,15 +1630,15 @@ const SEED = {
       ]
     },
     {
-      "id": "p033",
-      "householdId": "h013",
+      "id": "fb935e73-1ce5-438d-baca-164c2b00b9bb",
+      "householdId": "1ef93ff4-70ad-4903-9c8f-a8b102c1506f",
       "firstName": "Seymour",
       "lastName": "Skinner",
       "name": "Seymour Skinner",
       "title": "Mr.",
       "isChild": false,
       "isAttending": true,
-      "tableId": "tbl003",
+      "tableId": "be573c91-76ac-43ae-a74a-ef6651741834",
       "shirtSize": "AM | Adult Medium",
       "pantSize": "AM | Adult Medium",
       "mealChoice": "Chicken",
@@ -1651,15 +1652,15 @@ const SEED = {
       ]
     },
     {
-      "id": "p034",
-      "householdId": "h013",
+      "id": "6a813f78-b69e-4e9e-b4f5-0e675e91953b",
+      "householdId": "1ef93ff4-70ad-4903-9c8f-a8b102c1506f",
       "firstName": "Agnes",
       "lastName": "Skinner",
       "name": "Agnes Skinner",
       "title": "Mrs.",
       "isChild": false,
       "isAttending": true,
-      "tableId": "tbl003",
+      "tableId": "be573c91-76ac-43ae-a74a-ef6651741834",
       "shirtSize": "AS | Adult Small",
       "pantSize": "AS | Adult Small",
       "mealChoice": "Fish",
@@ -1673,8 +1674,8 @@ const SEED = {
       ]
     },
     {
-      "id": "p035",
-      "householdId": "h014",
+      "id": "96cf8418-4c78-44c1-9b0c-f050d83f486e",
+      "householdId": "92cf5264-e455-4af9-86b5-9d18393160eb",
       "firstName": "C. Montgomery",
       "lastName": "Burns",
       "name": "C. Montgomery Burns",
@@ -1691,8 +1692,8 @@ const SEED = {
       "attendingSections": []
     },
     {
-      "id": "p036",
-      "householdId": "h014",
+      "id": "1cc62e1f-6741-47a5-b702-cfed61d8cf11",
+      "householdId": "92cf5264-e455-4af9-86b5-9d18393160eb",
       "firstName": "Waylon",
       "lastName": "Smithers",
       "name": "Waylon Smithers",
@@ -1709,15 +1710,15 @@ const SEED = {
       "attendingSections": []
     },
     {
-      "id": "p037",
-      "householdId": "h015",
+      "id": "a291f363-e65b-4fff-92d9-4a3a1241bdab",
+      "householdId": "08c9c543-09f7-4131-aa4e-5031e285bcf3",
       "firstName": "Gloria",
       "lastName": "Muntz",
       "name": "Gloria Muntz",
       "title": "Ms.",
       "isChild": false,
       "isAttending": true,
-      "tableId": "tbl003",
+      "tableId": "be573c91-76ac-43ae-a74a-ef6651741834",
       "shirtSize": "AS | Adult Small",
       "pantSize": "AS | Adult Small",
       "mealChoice": "Chicken",
@@ -1731,15 +1732,15 @@ const SEED = {
       ]
     },
     {
-      "id": "p038",
-      "householdId": "h015",
+      "id": "9ce6c241-8c9b-4ac3-a7ef-ab8e9f9cb270",
+      "householdId": "08c9c543-09f7-4131-aa4e-5031e285bcf3",
       "firstName": "Nelson",
       "lastName": "Muntz",
       "name": "Nelson Muntz",
       "title": "",
       "isChild": true,
       "isAttending": true,
-      "tableId": "tbl004",
+      "tableId": "fabd35dc-de1e-4125-a3a6-2221bbd167c7",
       "shirtSize": "YM | Youth Medium",
       "pantSize": "YM | Youth Medium",
       "mealChoice": "Kids Meal",
@@ -1753,15 +1754,15 @@ const SEED = {
       ]
     },
     {
-      "id": "p039",
-      "householdId": "h016",
+      "id": "72a474a4-b895-4238-a95b-226af1d4bd3f",
+      "householdId": "625927a3-4d54-4152-9635-fbfd57c92f2e",
       "firstName": "Sherri",
       "lastName": "Mackleberry",
       "name": "Sherri Mackleberry",
       "title": "Miss",
       "isChild": true,
       "isAttending": true,
-      "tableId": "tbl004",
+      "tableId": "fabd35dc-de1e-4125-a3a6-2221bbd167c7",
       "shirtSize": "YS | Youth Small",
       "pantSize": "YS | Youth Small",
       "mealChoice": "Kids Meal",
@@ -1773,15 +1774,15 @@ const SEED = {
       ]
     },
     {
-      "id": "p040",
-      "householdId": "h017",
+      "id": "9b5003eb-228c-4eff-aecb-51ddadcfbf2f",
+      "householdId": "99b61536-e4ae-4e12-9308-a5d4864c85aa",
       "firstName": "Terri",
       "lastName": "Mackleberry",
       "name": "Terri Mackleberry",
       "title": "Miss",
       "isChild": true,
       "isAttending": true,
-      "tableId": "tbl004",
+      "tableId": "fabd35dc-de1e-4125-a3a6-2221bbd167c7",
       "shirtSize": "YS | Youth Small",
       "pantSize": "YS | Youth Small",
       "mealChoice": "Kids Meal",
@@ -1793,15 +1794,15 @@ const SEED = {
       ]
     },
     {
-      "id": "p041",
-      "householdId": "h018",
+      "id": "0fbc6a02-f8df-4792-b329-c41059cf7c0f",
+      "householdId": "a3823275-fd98-4e83-a595-9fe74b45e125",
       "firstName": "Wendell",
       "lastName": "Borton",
       "name": "Wendell Borton",
       "title": "Mr.",
       "isChild": true,
       "isAttending": true,
-      "tableId": "tbl004",
+      "tableId": "fabd35dc-de1e-4125-a3a6-2221bbd167c7",
       "shirtSize": "YM | Youth Medium",
       "pantSize": "YM | Youth Medium",
       "mealChoice": "Kids Meal",
@@ -1813,15 +1814,15 @@ const SEED = {
       ]
     },
     {
-      "id": "p042",
-      "householdId": "h019",
+      "id": "682e99f5-01f7-402d-aff7-246506b98ce1",
+      "householdId": "07cedf82-2c3e-49fa-b57c-b76d57e9c954",
       "firstName": "Database",
       "lastName": "",
       "name": "Database",
       "title": "Mr.",
       "isChild": true,
       "isAttending": true,
-      "tableId": "tbl004",
+      "tableId": "fabd35dc-de1e-4125-a3a6-2221bbd167c7",
       "shirtSize": "YS | Youth Small",
       "pantSize": "YS | Youth Small",
       "mealChoice": "Kids Meal",
@@ -1833,8 +1834,8 @@ const SEED = {
       ]
     },
     {
-      "id": "p043",
-      "householdId": "h020",
+      "id": "1fda8199-b3de-441a-9ce6-5ff21284b2ce",
+      "householdId": "059ddbd5-a2fe-43a6-9df9-3e4d625152a8",
       "firstName": "Jimbo",
       "lastName": "Jones",
       "name": "Jimbo Jones",
@@ -1851,8 +1852,8 @@ const SEED = {
       "attendingSections": []
     },
     {
-      "id": "p044",
-      "householdId": "h021",
+      "id": "ccdc5609-a4b3-4a23-af5a-30f49a5b01c1",
+      "householdId": "2d86809d-0634-426a-aeed-56bb2d664e37",
       "firstName": "Kearney",
       "lastName": "Zzyzwicz",
       "name": "Kearney Zzyzwicz",
@@ -1869,15 +1870,15 @@ const SEED = {
       "attendingSections": []
     },
     {
-      "id": "p045",
-      "householdId": "h022",
+      "id": "f2a09785-5516-4d3c-a6c0-c7c7aad03102",
+      "householdId": "2dcdf08e-d104-4cbf-a29c-77c5e969d5eb",
       "firstName": "Janey",
       "lastName": "Powell",
       "name": "Janey Powell",
       "title": "Miss",
       "isChild": true,
       "isAttending": true,
-      "tableId": "tbl004",
+      "tableId": "fabd35dc-de1e-4125-a3a6-2221bbd167c7",
       "shirtSize": "YS | Youth Small",
       "pantSize": "YS | Youth Small",
       "mealChoice": "Kosher",
@@ -1889,15 +1890,15 @@ const SEED = {
       ]
     },
     {
-      "id": "p046",
-      "householdId": "h023",
+      "id": "f0499487-dc9d-41c4-898b-2fddae259c12",
+      "householdId": "8862a0c1-fc0b-47b6-ab90-07ed64daac13",
       "firstName": "Hyman",
       "lastName": "Krustofsky",
       "name": "Hyman Krustofsky",
       "title": "Rabbi",
       "isChild": false,
       "isAttending": true,
-      "tableId": "tbl003",
+      "tableId": "be573c91-76ac-43ae-a74a-ef6651741834",
       "shirtSize": "AM | Adult Medium",
       "pantSize": "AM | Adult Medium",
       "mealChoice": "Kosher",
@@ -1907,8 +1908,8 @@ const SEED = {
       "attendingSections": []
     },
     {
-      "id": "p047",
-      "householdId": "h024",
+      "id": "fb076994-b187-4948-aac6-99e3cc4633f9",
+      "householdId": "e749ce0c-c4c7-4144-b723-6faaa3396bbc",
       "firstName": "Lionel",
       "lastName": "Hutz",
       "name": "Lionel Hutz",
@@ -1929,8 +1930,8 @@ const SEED = {
       ]
     },
     {
-      "id": "p048",
-      "householdId": "h025",
+      "id": "1615e2ec-a219-4d14-b90b-bc35958c3185",
+      "householdId": "57fd5c2f-6a8b-415c-844e-59368d45080f",
       "firstName": "Nick",
       "lastName": "Riviera",
       "name": "Nick Riviera",
@@ -1949,11 +1950,11 @@ const SEED = {
   ],
   "expenses": [
     {
-      "id": "e001",
+      "id": "25f8622b-772e-4913-a5cb-52b7f9db5eeb",
       "description": "Springfield Country Club \u2014 Room Fee",
       "category": "Venue",
       "vendor": "Springfield Country Club",
-      "vendorId": "v001",
+      "vendorId": "125bf553-b181-4dee-b4a0-928339c25221",
       "amount": "3500",
       "budgeted": "3500",
       "date": "2027-01-15",
@@ -1963,11 +1964,11 @@ const SEED = {
       "eventSection": "Evening Party"
     },
     {
-      "id": "e002",
+      "id": "6ae01f3c-19c6-42a5-8046-3102fff1840e",
       "description": "Temple Beth Springfield \u2014 Tuition Deposit",
       "category": "Venue",
       "vendor": "Temple Beth Springfield",
-      "vendorId": "v002",
+      "vendorId": "71577d5b-c42f-4ba4-8592-ccf6d71c5c78",
       "amount": "500",
       "budgeted": "1000",
       "date": "2026-11-01",
@@ -1977,11 +1978,11 @@ const SEED = {
       "eventSection": "Bar Mitzvah Service"
     },
     {
-      "id": "e003",
+      "id": "471f073b-fca9-4845-b6cc-0f7d9e2bde2c",
       "description": "Temple Beth Springfield \u2014 Tuition Balance",
       "category": "Venue",
       "vendor": "Temple Beth Springfield",
-      "vendorId": "v002",
+      "vendorId": "71577d5b-c42f-4ba4-8592-ccf6d71c5c78",
       "amount": "500",
       "budgeted": "500",
       "date": "",
@@ -1991,11 +1992,11 @@ const SEED = {
       "eventSection": "Bar Mitzvah Service"
     },
     {
-      "id": "e004",
+      "id": "c0589720-a8d6-4cd9-9129-e880fa90e141",
       "description": "Temple Beth Springfield \u2014 Kiddush Sponsorship",
       "category": "Catering",
       "vendor": "Temple Beth Springfield",
-      "vendorId": "v002",
+      "vendorId": "71577d5b-c42f-4ba4-8592-ccf6d71c5c78",
       "amount": "800",
       "budgeted": "800",
       "date": "",
@@ -2005,11 +2006,11 @@ const SEED = {
       "eventSection": "Kiddush Luncheon"
     },
     {
-      "id": "e005",
+      "id": "51aa3497-ca45-4d67-a839-f418b1b113c8",
       "description": "Shelbyville Snapshots \u2014 Retainer",
       "category": "Photography/Video",
       "vendor": "Shelbyville Snapshots",
-      "vendorId": "v003",
+      "vendorId": "ef32d930-2274-49ee-b7d4-794be6d6b591",
       "amount": "1400",
       "budgeted": "4200",
       "date": "2027-01-20",
@@ -2019,11 +2020,11 @@ const SEED = {
       "eventSection": ""
     },
     {
-      "id": "e006",
+      "id": "265778ae-6da3-4020-b72a-9ab2223842a4",
       "description": "Shelbyville Snapshots \u2014 Second Payment",
       "category": "Photography/Video",
       "vendor": "Shelbyville Snapshots",
-      "vendorId": "v003",
+      "vendorId": "ef32d930-2274-49ee-b7d4-794be6d6b591",
       "amount": "1400",
       "budgeted": "",
       "date": "",
@@ -2033,11 +2034,11 @@ const SEED = {
       "eventSection": ""
     },
     {
-      "id": "e007",
+      "id": "deaa17fd-7c1e-4630-a8de-46931a209116",
       "description": "Shelbyville Snapshots \u2014 Final Payment",
       "category": "Photography/Video",
       "vendor": "Shelbyville Snapshots",
-      "vendorId": "v003",
+      "vendorId": "ef32d930-2274-49ee-b7d4-794be6d6b591",
       "amount": "1400",
       "budgeted": "",
       "date": "",
@@ -2047,11 +2048,11 @@ const SEED = {
       "eventSection": ""
     },
     {
-      "id": "e008",
+      "id": "f09a994e-df01-436c-a194-3687dd5084b8",
       "description": "DJ Krusty Spins \u2014 Retainer",
       "category": "DJ/Entertainment",
       "vendor": "DJ Krusty Spins",
-      "vendorId": "v004",
+      "vendorId": "481ed6b5-e49f-4ce7-ba22-626b0be61774",
       "amount": "1500",
       "budgeted": "8500",
       "date": "2027-01-20",
@@ -2061,11 +2062,11 @@ const SEED = {
       "eventSection": "Evening Party"
     },
     {
-      "id": "e009",
+      "id": "3a88d938-d236-4930-892b-402959dac6fa",
       "description": "DJ Krusty Spins \u2014 Balance",
       "category": "DJ/Entertainment",
       "vendor": "DJ Krusty Spins",
-      "vendorId": "v004",
+      "vendorId": "481ed6b5-e49f-4ce7-ba22-626b0be61774",
       "amount": "7000",
       "budgeted": "",
       "date": "",
@@ -2075,11 +2076,11 @@ const SEED = {
       "eventSection": "Evening Party"
     },
     {
-      "id": "e010",
+      "id": "292e0dca-b649-4362-b3fc-c7e92a586f75",
       "description": "Bouvier Event Design \u2014 Retainer",
       "category": "Florals/Decor",
       "vendor": "Bouvier Event Design",
-      "vendorId": "v005",
+      "vendorId": "21305f8c-961d-4271-95e9-54bf78f6031d",
       "amount": "1875",
       "budgeted": "3750",
       "date": "2027-02-01",
@@ -2089,11 +2090,11 @@ const SEED = {
       "eventSection": ""
     },
     {
-      "id": "e011",
+      "id": "0b9b6e41-ed35-4661-b449-aa39745cae52",
       "description": "Bouvier Event Design \u2014 Balance",
       "category": "Florals/Decor",
       "vendor": "Bouvier Event Design",
-      "vendorId": "v005",
+      "vendorId": "21305f8c-961d-4271-95e9-54bf78f6031d",
       "amount": "1875",
       "budgeted": "",
       "date": "",
@@ -2103,11 +2104,11 @@ const SEED = {
       "eventSection": ""
     },
     {
-      "id": "e012",
+      "id": "8dd1762c-c7ef-43c3-b55a-11b306d7b0ac",
       "description": "Springfield Country Club \u2014 Catering",
       "category": "Catering",
       "vendor": "Springfield Country Club",
-      "vendorId": "v001",
+      "vendorId": "125bf553-b181-4dee-b4a0-928339c25221",
       "amount": "8500",
       "budgeted": "9000",
       "date": "",
@@ -2117,7 +2118,7 @@ const SEED = {
       "eventSection": "Evening Party"
     },
     {
-      "id": "e013",
+      "id": "ca2a743b-949b-4918-9b5e-c176eeea145b",
       "description": "Party Favors \u2014 Donut-themed sweatshirts",
       "category": "Party Favors",
       "vendor": "",
@@ -2131,7 +2132,7 @@ const SEED = {
       "eventSection": "Evening Party"
     },
     {
-      "id": "e014",
+      "id": "6aea42a0-b8ab-40df-9d76-c256d3deb72a",
       "description": "Invitations and Stationery",
       "category": "Invitations/Stationery",
       "vendor": "",
@@ -2145,11 +2146,11 @@ const SEED = {
       "eventSection": ""
     },
     {
-      "id": "e015",
+      "id": "878fff17-f54b-4a65-8c2c-49afed586384",
       "description": "Kippot \u2014 Temple Sisterhood",
       "category": "Other",
       "vendor": "Temple Beth Springfield",
-      "vendorId": "v002",
+      "vendorId": "71577d5b-c42f-4ba4-8592-ccf6d71c5c78",
       "amount": "180",
       "budgeted": "200",
       "date": "",
@@ -2159,7 +2160,7 @@ const SEED = {
       "eventSection": "Bar Mitzvah Service"
     },
     {
-      "id": "e016",
+      "id": "edf40713-6259-4452-b4c9-c418fd0fe910",
       "description": "Hair and Makeup \u2014 Marge Simpson",
       "category": "Hair/Makeup",
       "vendor": "",
@@ -2173,11 +2174,11 @@ const SEED = {
       "eventSection": ""
     },
     {
-      "id": "e017",
+      "id": "27ca8202-3ece-4270-a6e2-af3d7ceae303",
       "description": "Springfield Florist \u2014 Centerpieces Quote",
       "category": "Florals/Decor",
       "vendor": "Springfield Florist",
-      "vendorId": "v006",
+      "vendorId": "bd3d86b4-ad75-4510-9b12-4b148f4f51e2",
       "amount": "1200",
       "budgeted": "1000",
       "date": "",
@@ -2187,11 +2188,11 @@ const SEED = {
       "eventSection": "Evening Party"
     },
     {
-      "id": "e016",
+      "id": "edf40713-6259-4452-b4c9-c418fd0fe910",
       "description": "Gratuity \u2014 Shelbyville Snapshots",
       "category": "Gratuities & Tips",
       "vendor": "Shelbyville Snapshots",
-      "vendorId": "v003",
+      "vendorId": "ef32d930-2274-49ee-b7d4-794be6d6b591",
       "amount": "420",
       "budgeted": "420",
       "date": "",
@@ -2201,11 +2202,11 @@ const SEED = {
       "eventSection": ""
     },
     {
-      "id": "e017",
+      "id": "27ca8202-3ece-4270-a6e2-af3d7ceae303",
       "description": "Gratuity \u2014 DJ Krusty Spins",
       "category": "Gratuities & Tips",
       "vendor": "DJ Krusty Spins",
-      "vendorId": "v004",
+      "vendorId": "481ed6b5-e49f-4ce7-ba22-626b0be61774",
       "amount": "850",
       "budgeted": "850",
       "date": "",
@@ -2215,11 +2216,11 @@ const SEED = {
       "eventSection": "Evening Party"
     },
     {
-      "id": "e018",
+      "id": "48aae6ab-7309-4580-a423-6288c3de229f",
       "description": "Gratuity \u2014 Springfield Country Club catering staff",
       "category": "Gratuities & Tips",
       "vendor": "Springfield Country Club",
-      "vendorId": "v001",
+      "vendorId": "125bf553-b181-4dee-b4a0-928339c25221",
       "amount": "1200",
       "budgeted": "1200",
       "date": "",
@@ -2231,7 +2232,7 @@ const SEED = {
   ],
   "vendors": [
     {
-      "id": "v001",
+      "id": "125bf553-b181-4dee-b4a0-928339c25221",
       "name": "Springfield Country Club",
       "type": "Venue",
       "status": "Paid in Full",
@@ -2263,7 +2264,7 @@ const SEED = {
       "contactName": "Lenny Leonard"
     },
     {
-      "id": "v002",
+      "id": "71577d5b-c42f-4ba4-8592-ccf6d71c5c78",
       "name": "Temple Beth Springfield",
       "type": "Venue",
       "status": "Deposit Paid",
@@ -2295,7 +2296,7 @@ const SEED = {
       "contactName": "Rabbi Hyman Krustofsky"
     },
     {
-      "id": "v003",
+      "id": "ef32d930-2274-49ee-b7d4-794be6d6b591",
       "name": "Shelbyville Snapshots",
       "type": "Photographer",
       "status": "Deposit Paid",
@@ -2327,7 +2328,7 @@ const SEED = {
       "contactName": "Sanjay Nahasapeemapetilon"
     },
     {
-      "id": "v004",
+      "id": "481ed6b5-e49f-4ce7-ba22-626b0be61774",
       "name": "DJ Krusty Spins",
       "type": "DJ/Band",
       "status": "Deposit Paid",
@@ -2366,7 +2367,7 @@ const SEED = {
       "contactName": "Krusty the Clown"
     },
     {
-      "id": "v005",
+      "id": "21305f8c-961d-4271-95e9-54bf78f6031d",
       "name": "Bouvier Event Design",
       "type": "Party Planner",
       "status": "Deposit Paid",
@@ -2398,7 +2399,7 @@ const SEED = {
       "contactName": "Marge Bouvier-Simpson"
     },
     {
-      "id": "v006",
+      "id": "bd3d86b4-ad75-4510-9b12-4b148f4f51e2",
       "name": "Springfield Florist",
       "type": "Florist",
       "status": "Contacted",
@@ -2417,7 +2418,7 @@ const SEED = {
   ],
   "tasks": [
     {
-      "id": "t001",
+      "id": "b563a601-532d-47ed-9330-696ae543f5d3",
       "task": "Book venue for evening party",
       "category": "Venue",
       "priority": "High",
@@ -2426,7 +2427,7 @@ const SEED = {
       "notes": ""
     },
     {
-      "id": "t002",
+      "id": "aa5e6a76-afb6-465f-b984-2b57b20d9918",
       "task": "Book Temple Beth Springfield for service and luncheon",
       "category": "Venue",
       "priority": "High",
@@ -2435,7 +2436,7 @@ const SEED = {
       "notes": ""
     },
     {
-      "id": "t003",
+      "id": "b00ed7fb-daca-492b-bbe5-488f663601b1",
       "task": "Hire photographer",
       "category": "Vendor",
       "priority": "High",
@@ -2444,7 +2445,7 @@ const SEED = {
       "notes": ""
     },
     {
-      "id": "t004",
+      "id": "975c96f3-99f6-472c-a247-2f3b86d87712",
       "task": "Hire DJ and entertainment",
       "category": "Vendor",
       "priority": "High",
@@ -2453,7 +2454,7 @@ const SEED = {
       "notes": ""
     },
     {
-      "id": "t005",
+      "id": "c72b398d-b5dc-4318-a87f-a7bc72f9c881",
       "task": "Book event designer / party planner",
       "category": "Vendor",
       "priority": "High",
@@ -2462,7 +2463,7 @@ const SEED = {
       "notes": ""
     },
     {
-      "id": "t006",
+      "id": "7db968d7-389a-4a48-858a-f14e2d18eb13",
       "task": "Send save-the-dates",
       "category": "Stationery",
       "priority": "High",
@@ -2471,7 +2472,7 @@ const SEED = {
       "notes": ""
     },
     {
-      "id": "t007",
+      "id": "8757bdd8-7592-4dc1-a424-7208ee8d19f9",
       "task": "Order and mail invitations",
       "category": "Stationery",
       "priority": "High",
@@ -2480,7 +2481,7 @@ const SEED = {
       "notes": "Mailed May 1, 2027"
     },
     {
-      "id": "t008",
+      "id": "a3d44960-8f7a-4090-a522-e9fbd292b46e",
       "task": "Family meeting with Rabbi Krustofsky \u2014 service planning and Torah readers",
       "category": "Planning",
       "priority": "High",
@@ -2489,7 +2490,7 @@ const SEED = {
       "notes": "6-month check-in completed"
     },
     {
-      "id": "t009",
+      "id": "bffc8fd5-9ffa-4e8f-89b9-59782359b7a7",
       "task": "Cantor session \u2014 4-month review",
       "category": "Planning",
       "priority": "Medium",
@@ -2498,7 +2499,7 @@ const SEED = {
       "notes": ""
     },
     {
-      "id": "t010",
+      "id": "bf5c100f-e167-402b-a420-d16db4194f75",
       "task": "Cantor session \u2014 2-month check-in, bring d'var Torah draft",
       "category": "Planning",
       "priority": "Medium",
@@ -2507,7 +2508,7 @@ const SEED = {
       "notes": ""
     },
     {
-      "id": "t011",
+      "id": "9e2f49c9-750e-441c-af8a-cbc1487c4327",
       "task": "Final rehearsal at Temple Beth Springfield",
       "category": "Planning",
       "priority": "High",
@@ -2516,7 +2517,7 @@ const SEED = {
       "notes": "4:00-6:00 PM full run-through"
     },
     {
-      "id": "t012",
+      "id": "27df1ec3-bdae-4cea-bf83-614f78759c54",
       "task": "Collect photos and videos for montage",
       "category": "Vendor",
       "priority": "Medium",
@@ -2525,7 +2526,7 @@ const SEED = {
       "notes": "Max 120 photos, 3 video clips for DJ Krusty Spins"
     },
     {
-      "id": "t013",
+      "id": "cfc537e3-94b5-4856-abdb-f41e156ba1b8",
       "task": "Pre-event planning meeting with DJ Krusty Spins",
       "category": "Vendor",
       "priority": "Medium",
@@ -2534,62 +2535,62 @@ const SEED = {
       "notes": "Timeline, music preferences, highlights"
     },
     {
-      "id": "t014",
+      "id": "6a1833a5-6435-4b7e-af72-9ea001e88ef6",
       "task": "Pay DJ Krusty Spins balance ($7,000)",
       "category": "Vendor",
       "priority": "High",
       "due": "2027-10-09",
       "done": false,
       "notes": "Due 7 days before event",
-      "sourceId": "e009",
+      "sourceId": "3a88d938-d236-4930-892b-402959dac6fa",
       "sourceCollection": "expenses"
     },
     {
-      "id": "t015",
+      "id": "b18772d9-d0c7-446c-a8d2-8e0a9b662a30",
       "task": "Pay Temple Beth Springfield tuition balance ($500)",
       "category": "Vendor",
       "priority": "Medium",
       "due": "2027-07-01",
       "done": false,
       "notes": "",
-      "sourceId": "e003",
+      "sourceId": "471f073b-fca9-4845-b6cc-0f7d9e2bde2c",
       "sourceCollection": "expenses"
     },
     {
-      "id": "t016",
+      "id": "a8e262e9-db11-4b9a-99b4-48be7769b755",
       "task": "Pay Kiddush Sponsorship ($800)",
       "category": "Vendor",
       "priority": "Medium",
       "due": "2027-07-16",
       "done": false,
       "notes": "",
-      "sourceId": "e004",
+      "sourceId": "c0589720-a8d6-4cd9-9129-e880fa90e141",
       "sourceCollection": "expenses"
     },
     {
-      "id": "t017",
+      "id": "cc1503f6-b74b-4943-9050-d6145b647c42",
       "task": "Pay Shelbyville Snapshots second payment ($1,400)",
       "category": "Vendor",
       "priority": "High",
       "due": "2027-10-02",
       "done": false,
       "notes": "",
-      "sourceId": "e006",
+      "sourceId": "265778ae-6da3-4020-b72a-9ab2223842a4",
       "sourceCollection": "expenses"
     },
     {
-      "id": "t018",
+      "id": "3d040ea2-912c-4cff-9ffc-21f308be6701",
       "task": "Pay Bouvier Event Design balance ($1,875)",
       "category": "Vendor",
       "priority": "Medium",
       "due": "2027-09-16",
       "done": false,
       "notes": "",
-      "sourceId": "e011",
+      "sourceId": "0b9b6e41-ed35-4661-b449-aa39745cae52",
       "sourceCollection": "expenses"
     },
     {
-      "id": "t019",
+      "id": "706c9bc1-7f3f-4aaa-b5c5-f4e500fca74b",
       "task": "Create seating chart",
       "category": "Planning",
       "priority": "Medium",
@@ -2598,7 +2599,7 @@ const SEED = {
       "notes": ""
     },
     {
-      "id": "t020",
+      "id": "3dcb52fe-5430-4b7e-8e44-18eb5e3baeef",
       "task": "Final guest count to Springfield Country Club",
       "category": "Catering",
       "priority": "High",
@@ -2607,7 +2608,7 @@ const SEED = {
       "notes": "72 hours prior to event"
     },
     {
-      "id": "t021",
+      "id": "cb2c2ab9-e484-4062-97d7-085e405a3695",
       "task": "Send allergy and dietary restrictions to caterer",
       "category": "Catering",
       "priority": "High",
@@ -2616,7 +2617,7 @@ const SEED = {
       "notes": "Ralph: peanut allergy. Lisa: vegetarian. Wendell: gluten free. Agnes: low sodium. Selma: shellfish."
     },
     {
-      "id": "t022",
+      "id": "7ce2902e-bd8b-49f4-a917-bc507d4e13da",
       "task": "Order kippot from Temple Sisterhood",
       "category": "Planning",
       "priority": "Medium",
@@ -2625,18 +2626,18 @@ const SEED = {
       "notes": "Approx 40 needed"
     },
     {
-      "id": "t023",
+      "id": "d7fa25b3-d1b0-4989-a581-f218e9842b0b",
       "task": "Order party favors \u2014 donut sweatshirts",
       "category": "Theme",
       "priority": "Medium",
       "due": "2027-09-01",
       "done": false,
       "notes": "Allow 8 weeks lead time",
-      "sourceId": "e013",
+      "sourceId": "ca2a743b-949b-4918-9b5e-c176eeea145b",
       "sourceCollection": "expenses"
     },
     {
-      "id": "t024",
+      "id": "5fbef48d-8413-45bf-80ee-81a1f14f7816",
       "task": "Plan Friday night dinner \u2014 venue, menu, guest list",
       "category": "Planning",
       "priority": "Medium",
@@ -2645,7 +2646,7 @@ const SEED = {
       "notes": "Out of towners, family, close friends"
     },
     {
-      "id": "t025",
+      "id": "644f4874-adea-4151-a595-841ce5387b8b",
       "task": "Bart's outfit for service",
       "category": "Attire",
       "priority": "Medium",
@@ -2654,7 +2655,7 @@ const SEED = {
       "notes": ""
     },
     {
-      "id": "t026",
+      "id": "d44c44d5-88a8-4d11-a672-4c9c1a42d762",
       "task": "Bart's outfit for evening party",
       "category": "Attire",
       "priority": "Medium",
@@ -2663,7 +2664,7 @@ const SEED = {
       "notes": ""
     },
     {
-      "id": "t027",
+      "id": "a8e69b05-e2fe-498a-8c69-06c968cecd57",
       "task": "Write parents speech",
       "category": "Planning",
       "priority": "Medium",
@@ -2672,7 +2673,7 @@ const SEED = {
       "notes": ""
     },
     {
-      "id": "t028",
+      "id": "894d2af1-fe99-49f0-b563-ef853f6d6fa1",
       "task": "Prepare photo shot list for Shelbyville Snapshots",
       "category": "Vendor",
       "priority": "Medium",
@@ -2681,7 +2682,7 @@ const SEED = {
       "notes": ""
     },
     {
-      "id": "t029",
+      "id": "a4ee7840-c792-4a6e-94e7-9020541c27d9",
       "task": "Confirm all vendor details and contacts",
       "category": "Vendor",
       "priority": "High",
@@ -2690,7 +2691,7 @@ const SEED = {
       "notes": ""
     },
     {
-      "id": "t030",
+      "id": "48d15706-fda7-48b2-81f5-37ea031aed56",
       "task": "Notify family members of service roles \u2014 Torah readers, blessings",
       "category": "Planning",
       "priority": "Medium",
@@ -2699,7 +2700,7 @@ const SEED = {
       "notes": ""
     },
     {
-      "id": "t031",
+      "id": "d4b90950-c41d-4137-b0fa-b3db5c4294bd",
       "task": "Negotiate florist quote \u2014 over budget by $200",
       "category": "Vendor",
       "priority": "Low",
@@ -2708,18 +2709,18 @@ const SEED = {
       "notes": "Springfield Florist quoted $1,200 vs $1,000 budget"
     },
     {
-      "id": "t032",
+      "id": "ca50710f-5314-49c1-91b3-5a7b790fc18d",
       "task": "Hair and makeup trial appointment \u2014 Marge",
       "category": "Attire",
       "priority": "Low",
       "due": "2027-09-01",
       "done": false,
       "notes": "",
-      "sourceId": "e016",
+      "sourceId": "edf40713-6259-4452-b4c9-c418fd0fe910",
       "sourceCollection": "expenses"
     },
     {
-      "id": "t033",
+      "id": "b39e2732-e013-4bc6-a9d8-0bd02dd44b23",
       "task": "Follow up on missing RSVPs \u2014 Burns, Smithers, Jimbo, Richard",
       "category": "Planning",
       "priority": "High",
@@ -2728,7 +2729,7 @@ const SEED = {
       "notes": "RSVP deadline Sep 15"
     },
     {
-      "id": "t034",
+      "id": "cda7610e-71ac-4af1-ae3c-64552be234fd",
       "task": "Get address for Dr. Nick Riviera and Richard",
       "category": "Planning",
       "priority": "Low",
@@ -2737,7 +2738,7 @@ const SEED = {
       "notes": "Two guests have no address on file"
     },
     {
-      "id": "t035",
+      "id": "f3baf16a-b3eb-4c44-ae69-1664f0a2a334",
       "task": "Schedule hair and makeup for Marge",
       "category": "Attire",
       "priority": "Medium",
@@ -2748,7 +2749,7 @@ const SEED = {
   ],
   "prep": [
     {
-      "id": "pr001",
+      "id": "a18928d6-8bc4-4ec9-885f-56b078eee9ee",
       "title": "Torah Portion Study",
       "status": "In Progress",
       "progress": 35,
@@ -2756,7 +2757,7 @@ const SEED = {
       "notes": "Parshat Lech-Lecha. Working with tutor twice weekly. Homer keeps falling asleep during practice sessions."
     },
     {
-      "id": "pr002",
+      "id": "2d72ee70-6609-490a-9dcf-26fa2566f6a9",
       "title": "Haftarah Portion Study",
       "status": "In Progress",
       "progress": 20,
@@ -2764,7 +2765,7 @@ const SEED = {
       "notes": "Starting to learn trope patterns. Making progress but easily distracted."
     },
     {
-      "id": "pr003",
+      "id": "a49c7dac-59c7-442a-8676-4b7f1da6ecf3",
       "title": "D'var Torah Writing",
       "status": "Not Started",
       "progress": 0,
@@ -2772,7 +2773,7 @@ const SEED = {
       "notes": "Draft due at 2-month cantor session. Bart wants to write about the importance of not wasting food."
     },
     {
-      "id": "pr004",
+      "id": "71137065-04ed-42ff-9b3e-1ff5b608a140",
       "title": "Service Prayers and Blessings",
       "status": "In Progress",
       "progress": 40,
@@ -2780,7 +2781,7 @@ const SEED = {
       "notes": "Shacharit and Musaf blessings in progress. Kiddush blessing nearly memorized."
     },
     {
-      "id": "pr005",
+      "id": "d34cd438-629a-4e4a-a831-bba3229bc157",
       "title": "Mitzvah Project \u2014 Acts of Hesed",
       "status": "In Progress",
       "progress": 15,
@@ -2788,7 +2789,7 @@ const SEED = {
       "notes": "Decided to volunteer at Springfield Food Bank. Has completed 2 of 10 planned sessions."
     },
     {
-      "id": "pr006",
+      "id": "2261e7a8-bd36-4aa7-91fb-da9b43e1eafc",
       "title": "Thank You Speech",
       "status": "Not Started",
       "progress": 0,
@@ -2798,7 +2799,7 @@ const SEED = {
   ],
   "tables": [
     {
-      "id": "tbl001",
+      "id": "8fb32bd9-b389-4696-9520-8087c0d1a2d1",
       "name": "Table 1 \u2014 Evergreen",
       "capacity": 8,
       "type": "adult",
@@ -2806,7 +2807,7 @@ const SEED = {
       "notes": "Head table \u2014 immediate family and officiant"
     },
     {
-      "id": "tbl002",
+      "id": "48849474-f972-4be2-81ff-a4225388d4f0",
       "name": "Table 2 \u2014 Springfield",
       "capacity": 10,
       "type": "adult",
@@ -2814,7 +2815,7 @@ const SEED = {
       "notes": "Family friends"
     },
     {
-      "id": "tbl003",
+      "id": "be573c91-76ac-43ae-a74a-ef6651741834",
       "name": "Table 3 \u2014 Shelbyville",
       "capacity": 12,
       "type": "adult",
@@ -2822,7 +2823,7 @@ const SEED = {
       "notes": "Friends and coworkers"
     },
     {
-      "id": "tbl004",
+      "id": "fabd35dc-de1e-4125-a3a6-2221bbd167c7",
       "name": "Kids Table \u2014 Elementary",
       "capacity": 16,
       "type": "kids",
@@ -2832,8 +2833,8 @@ const SEED = {
   ],
   "gifts": [
     {
-      "id": "g001",
-      "householdId": "h002",
+      "id": "808741ae-265d-447f-a81f-534b9b6ec072",
+      "householdId": "c6207f57-2cbf-48ed-a493-e163b70b14f3",
       "fromName": "Ned Flanders",
       "address1": "",
       "address2": "",
@@ -2851,8 +2852,8 @@ const SEED = {
       "notes": "Came with a heartfelt diddily-card."
     },
     {
-      "id": "g002",
-      "householdId": "h006",
+      "id": "e911657c-9e2b-4de1-a81d-c535377272d6",
+      "householdId": "9c576e14-542b-43e5-a8af-f9741cb3cde9",
       "fromName": "Kirk Van Houten",
       "address1": "",
       "address2": "",
@@ -2870,8 +2871,8 @@ const SEED = {
       "notes": "Written, not yet mailed."
     },
     {
-      "id": "g003",
-      "householdId": "h008",
+      "id": "15b7edd5-c818-4fad-a25a-b9545fc7a910",
+      "householdId": "86ea68ee-0c24-4521-bc8e-31c113a963ee",
       "fromName": "Julius Hibbert",
       "address1": "",
       "address2": "",
@@ -2889,8 +2890,8 @@ const SEED = {
       "notes": "Came with a hearty chuckle."
     },
     {
-      "id": "g004",
-      "householdId": "h007",
+      "id": "a4b5e4f4-67d5-4e28-854c-7dd8b688bb71",
+      "householdId": "b8097262-cec5-4bce-b36d-ee4a98822baa",
       "fromName": "Clancy Wiggum",
       "address1": "",
       "address2": "",
@@ -2908,8 +2909,8 @@ const SEED = {
       "notes": "Very thoughtful from Chief Wiggum."
     },
     {
-      "id": "g005",
-      "householdId": "h009",
+      "id": "ce31c035-ddf6-4bed-8006-b27fb9f2098f",
+      "householdId": "171cf93c-2db8-4df6-a7cc-4469a6dbbe04",
       "fromName": "Carl Carlson",
       "address1": "",
       "address2": "",
@@ -2927,8 +2928,8 @@ const SEED = {
       "notes": ""
     },
     {
-      "id": "g006",
-      "householdId": "h003",
+      "id": "c67c445a-d749-41f1-ab0e-4650bff8052f",
+      "householdId": "55191d6d-e433-4397-925c-830da0b76048",
       "fromName": "Jacqueline Bouvier",
       "address1": "",
       "address2": "",
@@ -2946,8 +2947,8 @@ const SEED = {
       "notes": "Very generous from grandma."
     },
     {
-      "id": "g007",
-      "householdId": "h004",
+      "id": "8c31834a-f5f5-4beb-ac03-37dbef1d06bb",
+      "householdId": "5f470e79-15c4-41b1-8ec0-d19c999c98a9",
       "fromName": "Patty & Selma Bouvier",
       "address1": "",
       "address2": "",
@@ -2965,8 +2966,8 @@ const SEED = {
       "notes": ""
     },
     {
-      "id": "g008",
-      "householdId": "h010",
+      "id": "82618adf-7ebf-47e3-9850-d216acd566bc",
+      "householdId": "784350ac-8396-4ece-af5d-8080bd0cf2a2",
       "fromName": "Timothy Lovejoy",
       "address1": "",
       "address2": "",
@@ -2984,8 +2985,8 @@ const SEED = {
       "notes": ""
     },
     {
-      "id": "g009",
-      "householdId": "h013",
+      "id": "33d298b8-4918-4c54-b22d-48606a7c6e0b",
+      "householdId": "1ef93ff4-70ad-4903-9c8f-a8b102c1506f",
       "fromName": "Seymour Skinner",
       "address1": "",
       "address2": "",
@@ -3003,8 +3004,8 @@ const SEED = {
       "notes": "Very on-brand for Principal Skinner."
     },
     {
-      "id": "g010",
-      "householdId": "h012",
+      "id": "5e7255df-b4cf-4365-be34-8f6c33767b47",
+      "householdId": "ad2f585b-7f76-44eb-885a-7284a77383ba",
       "fromName": "Martin Prince Sr.",
       "address1": "",
       "address2": "",
@@ -3022,8 +3023,8 @@ const SEED = {
       "notes": ""
     },
     {
-      "id": "g011",
-      "householdId": "h015",
+      "id": "f9a4957d-fd66-423e-95b4-f0b76ce0942a",
+      "householdId": "08c9c543-09f7-4131-aa4e-5031e285bcf3",
       "fromName": "Gloria Muntz",
       "address1": "",
       "address2": "",
@@ -3041,8 +3042,8 @@ const SEED = {
       "notes": "Ha-ha."
     },
     {
-      "id": "g012",
-      "householdId": "h005",
+      "id": "e39c7c19-bc69-4ccf-b5c9-5fdaa6e0de4d",
+      "householdId": "e0e4a461-4acf-407b-97e8-812aca95a0d6",
       "fromName": "Mr. and Mrs. Robert Terwilliger Sr.",
       "address1": "",
       "address2": "",
@@ -3060,8 +3061,8 @@ const SEED = {
       "notes": "Mailed from Shelbyville."
     },
     {
-      "id": "g013",
-      "householdId": "h006",
+      "id": "008ca768-23fa-4b73-986e-bbbe40a24f9b",
+      "householdId": "9c576e14-542b-43e5-a8af-f9741cb3cde9",
       "fromName": "Kirk Van Houten",
       "address1": "",
       "address2": "",
@@ -3079,8 +3080,8 @@ const SEED = {
       "notes": "Beautiful inscription in Hebrew."
     },
     {
-      "id": "g014",
-      "householdId": "h013",
+      "id": "9511724e-146e-4e13-b180-563556e63d87",
+      "householdId": "1ef93ff4-70ad-4903-9c8f-a8b102c1506f",
       "fromName": "Seymour Skinner",
       "address1": "",
       "address2": "",
@@ -3098,8 +3099,8 @@ const SEED = {
       "notes": "Second gift \u2014 mailed after the event."
     },
     {
-      "id": "g013",
-      "householdId": "h006",
+      "id": "008ca768-23fa-4b73-986e-bbbe40a24f9b",
+      "householdId": "9c576e14-542b-43e5-a8af-f9741cb3cde9",
       "fromName": "Kirk Van Houten",
       "address1": "",
       "address2": "",
@@ -3117,8 +3118,8 @@ const SEED = {
       "notes": ""
     },
     {
-      "id": "g014",
-      "householdId": "h013",
+      "id": "9511724e-146e-4e13-b180-563556e63d87",
+      "householdId": "1ef93ff4-70ad-4903-9c8f-a8b102c1506f",
       "fromName": "Seymour Skinner",
       "address1": "",
       "address2": "",
@@ -3136,8 +3137,8 @@ const SEED = {
       "notes": "Engraved: 'B.S. Bar Mitzvah 2027'. Very thoughtful."
     },
     {
-      "id": "g015",
-      "householdId": "h009",
+      "id": "dc4118ff-515d-4db0-a71d-bbfcc91f87c3",
+      "householdId": "171cf93c-2db8-4df6-a7cc-4469a6dbbe04",
       "fromName": "Carl Carlson",
       "address1": "",
       "address2": "",
@@ -3157,8 +3158,8 @@ const SEED = {
   ],
   "favors": [
     {
-      "id": "fv001",
-      "personId": "p003",
+      "id": "219ed874-46de-4a14-901e-383595c37d79",
+      "personId": "af20759f-cb09-48c1-a7a9-a8b1ca0ea7a6",
       "personName": "Bart Simpson",
       "size": "YM | Youth Medium",
       "printName": "The Bartman",
@@ -3168,8 +3169,8 @@ const SEED = {
       "category": ""
     },
     {
-      "id": "fv002",
-      "personId": "p004",
+      "id": "e79b66f5-4473-473a-a9c5-5c477014cde0",
+      "personId": "8b129a2a-b5ac-48a8-aac7-41631423cbeb",
       "personName": "Lisa Simpson",
       "size": "YS | Youth Small",
       "printName": "Lisa",
@@ -3179,8 +3180,8 @@ const SEED = {
       "category": ""
     },
     {
-      "id": "fv003",
-      "personId": "p015",
+      "id": "6337402f-4b2c-4b91-b119-d212c2ad1f4f",
+      "personId": "bc427189-fa8a-4c8f-9266-c106b232b8c0",
       "personName": "Milhouse Van Houten",
       "size": "YS | Youth Small",
       "printName": "Milhouse",
@@ -3190,8 +3191,8 @@ const SEED = {
       "category": ""
     },
     {
-      "id": "fv004",
-      "personId": "p038",
+      "id": "27a8a88b-ad81-4c0b-a08f-bc56f8ca3f87",
+      "personId": "9ce6c241-8c9b-4ac3-a7ef-ab8e9f9cb270",
       "personName": "Nelson Muntz",
       "size": "YM | Youth Medium",
       "printName": "Nelson",
@@ -3201,8 +3202,8 @@ const SEED = {
       "category": ""
     },
     {
-      "id": "fv005",
-      "personId": "p018",
+      "id": "1999e5f8-7ebd-4662-868f-90c6cb9b1c46",
+      "personId": "aa29583f-6979-43d8-b9e1-d6678b1f0dd7",
       "personName": "Ralph Wiggum",
       "size": "YL | Youth Large",
       "printName": "Ralph",
@@ -3212,8 +3213,8 @@ const SEED = {
       "category": ""
     },
     {
-      "id": "fv006",
-      "personId": "p032",
+      "id": "9e04f614-0f3d-4957-ba8a-41cb7a983b1e",
+      "personId": "5f78f6cb-345e-4f82-8c3e-b5fd52647fb8",
       "personName": "Martin Prince Jr.",
       "size": "YS | Youth Small",
       "printName": "Martin",
@@ -3223,8 +3224,8 @@ const SEED = {
       "category": ""
     },
     {
-      "id": "fv007",
-      "personId": "p006",
+      "id": "0ec4c5b6-6a1b-4a6f-a235-0068658d3eef",
+      "personId": "19a5b581-c839-4ea7-94f0-3ac3d5088710",
       "personName": "Rod Flanders",
       "size": "YS | Youth Small",
       "printName": "Rod",
@@ -3234,8 +3235,8 @@ const SEED = {
       "category": ""
     },
     {
-      "id": "fv008",
-      "personId": "p007",
+      "id": "2e25d761-51ce-4ee8-8e1e-e0398367fd8e",
+      "personId": "15033ae6-e8af-4bac-b6b2-1c61f4cc170f",
       "personName": "Todd Flanders",
       "size": "YS | Youth Small",
       "printName": "Todd",
@@ -3245,8 +3246,8 @@ const SEED = {
       "category": ""
     },
     {
-      "id": "fv009",
-      "personId": "p039",
+      "id": "ef4cafea-e825-41f6-98c7-422ddeacb8cd",
+      "personId": "72a474a4-b895-4238-a95b-226af1d4bd3f",
       "personName": "Sherri Mackleberry",
       "size": "YS | Youth Small",
       "printName": "Sherri",
@@ -3256,8 +3257,8 @@ const SEED = {
       "category": ""
     },
     {
-      "id": "fv010",
-      "personId": "p040",
+      "id": "fdeaed13-ccaf-42cb-b40e-5ad470b9f345",
+      "personId": "9b5003eb-228c-4eff-aecb-51ddadcfbf2f",
       "personName": "Terri Mackleberry",
       "size": "YS | Youth Small",
       "printName": "Terri",
@@ -3267,8 +3268,8 @@ const SEED = {
       "category": ""
     },
     {
-      "id": "fv011",
-      "personId": "p041",
+      "id": "b2291a61-51e6-4078-ae07-cbd6a1528ae7",
+      "personId": "0fbc6a02-f8df-4792-b329-c41059cf7c0f",
       "personName": "Wendell Borton",
       "size": "YM | Youth Medium",
       "printName": "Wendell",
@@ -3278,8 +3279,8 @@ const SEED = {
       "category": ""
     },
     {
-      "id": "fv012",
-      "personId": "p042",
+      "id": "70915db1-b3c5-4e67-8389-a670ec9f07c2",
+      "personId": "682e99f5-01f7-402d-aff7-246506b98ce1",
       "personName": "Database",
       "size": "YS | Youth Small",
       "printName": "Database",
@@ -3289,8 +3290,8 @@ const SEED = {
       "category": ""
     },
     {
-      "id": "fv013",
-      "personId": "p045",
+      "id": "3dd88f95-dac9-4565-8956-c96c2e254cf8",
+      "personId": "f2a09785-5516-4d3c-a6c0-c7c7aad03102",
       "personName": "Janey Powell",
       "size": "YS | Youth Small",
       "printName": "Janey",
@@ -3300,8 +3301,8 @@ const SEED = {
       "category": ""
     },
     {
-      "id": "fv014",
-      "personId": "p043",
+      "id": "581cadf6-13d6-44db-8eb3-fa0d8b6b505c",
+      "personId": "1fda8199-b3de-441a-9ce6-5ff21284b2ce",
       "personName": "Jimbo Jones",
       "size": "YM | Youth Medium",
       "printName": "Jimbo",
@@ -3311,8 +3312,8 @@ const SEED = {
       "category": ""
     },
     {
-      "id": "fv015",
-      "personId": "p027",
+      "id": "3edff42d-7ca5-45dd-bec2-7e977420a7ae",
+      "personId": "517fefaf-0976-4ac4-a329-4e300810d686",
       "personName": "Jessica Lovejoy",
       "size": "YS | Youth Small",
       "printName": "Jessica",
@@ -3322,8 +3323,8 @@ const SEED = {
       "category": ""
     },
     {
-      "id": "fv016",
-      "personId": "p021",
+      "id": "6da979bd-8d9d-4738-927b-d0ec0e8a8301",
+      "personId": "57598fcd-2c07-49d0-ba3f-d79f5b5cee04",
       "personName": "Janey Hibbert",
       "size": "YS | Youth Small",
       "printName": "Janey H",
@@ -3333,8 +3334,8 @@ const SEED = {
       "category": ""
     },
     {
-      "id": "fv017",
-      "personId": "p022",
+      "id": "050249e4-f5bf-4f46-95f2-ebb2c4f65f3b",
+      "personId": "604c2dbc-0ba3-408c-8477-b3354d257e24",
       "personName": "Jules Hibbert",
       "size": "YM | Youth Medium",
       "printName": "Jules",
@@ -3344,8 +3345,8 @@ const SEED = {
       "category": ""
     },
     {
-      "id": "fv018",
-      "personId": "p001",
+      "id": "7ecd856f-15f9-4f0f-af68-61ef99da9017",
+      "personId": "4e1fa62d-419e-4df8-ab63-876ca008873c",
       "personName": "Homer Simpson",
       "size": "XXL | Adult XXL",
       "printName": "Homer",
@@ -3355,8 +3356,8 @@ const SEED = {
       "category": ""
     },
     {
-      "id": "fv019",
-      "personId": "p002",
+      "id": "05709997-668d-4fba-9a45-df82b1a3c54f",
+      "personId": "9cd7e20d-7760-4c4f-bb53-62b6cbc7d8bc",
       "personName": "Marge Simpson",
       "size": "AS | Adult Small",
       "printName": "Marge",
@@ -3366,7 +3367,7 @@ const SEED = {
       "category": ""
     },
     {
-      "id": "fv020",
+      "id": "bbba9b8a-fe94-48d1-9334-4634a3b0f1f4",
       "personId": null,
       "personName": "Richard",
       "size": "TBD",
@@ -3384,7 +3385,7 @@ const SEED = {
       "assignee": "Jacqueline Bouvier",
       "hebrewName": "Yocheved bat Avraham v'Sarah",
       "notes": "Marge's mother \u2014 grandmother of Bar Mitzvah",
-      "id": "cr_1775936049479_0",
+      "id": "2976b8a6-bc1c-478f-aaf0-4e24c39cb0d9",
       "sortOrder": 0
     },
     {
@@ -3393,7 +3394,7 @@ const SEED = {
       "assignee": "Robert Terwilliger Sr.",
       "hebrewName": "Reuven ben Moshe v'Rivka",
       "notes": "Family friend",
-      "id": "cr_1775936049479_1",
+      "id": "a1de4c29-161d-4d3a-8abd-e33ae76a0164",
       "sortOrder": 1
     },
     {
@@ -3402,7 +3403,7 @@ const SEED = {
       "assignee": "Homer and Marge Simpson",
       "hebrewName": "Chaim ben Avraham v'Sarah",
       "notes": "Parents of Bar Mitzvah",
-      "id": "cr_1775936049479_2",
+      "id": "69a07cd4-927c-4b9f-91ed-3b97c7804218",
       "sortOrder": 2
     },
     {
@@ -3411,7 +3412,7 @@ const SEED = {
       "assignee": "Bart Simpson",
       "hebrewName": "Baruch ben Chaim v'Miriam",
       "notes": "Bar Mitzvah",
-      "id": "cr_1775936049480_3",
+      "id": "bffdab91-2814-4f2d-9db8-a36c6d819cd5",
       "sortOrder": 3
     },
     {
@@ -3420,7 +3421,7 @@ const SEED = {
       "assignee": "Chief Clancy Wiggum",
       "hebrewName": "",
       "notes": "Has done it before \u2014 strong enough",
-      "id": "cr_1775936049480_4",
+      "id": "afc39199-873e-42d4-8543-f0660292c845",
       "sortOrder": 4
     },
     {
@@ -3429,7 +3430,7 @@ const SEED = {
       "assignee": "Ned Flanders",
       "hebrewName": "",
       "notes": "Family friend, experienced",
-      "id": "cr_1775936049480_5",
+      "id": "d057cd94-2836-4064-98c2-4287e99da0f0",
       "sortOrder": 5
     },
     {
@@ -3438,7 +3439,7 @@ const SEED = {
       "assignee": "Patty Bouvier",
       "hebrewName": "",
       "notes": "Marge's sister",
-      "id": "cr_1775936049480_6",
+      "id": "4bb9071f-83a3-46d2-8e99-57c296a7fd5a",
       "sortOrder": 6
     },
     {
@@ -3447,7 +3448,7 @@ const SEED = {
       "assignee": "Selma Bouvier",
       "hebrewName": "",
       "notes": "Marge's sister",
-      "id": "cr_1775936049480_7",
+      "id": "b9aae814-1fc7-43a5-9bba-c342bad1fe71",
       "sortOrder": 7
     },
     {
@@ -3456,7 +3457,7 @@ const SEED = {
       "assignee": "Mayor Joseph Quimby",
       "hebrewName": "",
       "notes": "",
-      "id": "cr_1775936049480_8",
+      "id": "7e27aacb-c2a1-4683-912d-cdf33d3f459e",
       "sortOrder": 8
     },
     {
@@ -3465,7 +3466,7 @@ const SEED = {
       "assignee": "Rabbi Hyman Krustofsky",
       "hebrewName": "",
       "notes": "",
-      "id": "cr_1775936049480_9",
+      "id": "90f36f72-390c-41f4-a6d9-4cc8e39adc28",
       "sortOrder": 9
     },
     {
@@ -3474,7 +3475,7 @@ const SEED = {
       "assignee": "Reverend Timothy Lovejoy",
       "hebrewName": "",
       "notes": "Interfaith \u2014 appropriate for non-Jewish family",
-      "id": "cr_1775936049480_10",
+      "id": "b4579b63-2adf-4f94-8b36-f0dba5ad0249",
       "sortOrder": 10
     },
     {
@@ -3483,7 +3484,7 @@ const SEED = {
       "assignee": "Homer and Marge Simpson",
       "hebrewName": "",
       "notes": "Keep it under 150 words, Homer",
-      "id": "cr_1775936049480_11",
+      "id": "e5f664e7-5f8b-4f73-87b2-744f4d81c13a",
       "sortOrder": 11
     },
     {
@@ -3492,7 +3493,7 @@ const SEED = {
       "assignee": "Lenny Powell and Carl Carlson",
       "hebrewName": "",
       "notes": "Homer's friends from the plant",
-      "id": "cr_1775936049480_12",
+      "id": "dd708cd3-4b59-42be-aa2f-fc058010cd06",
       "sortOrder": 12
     },
     {
@@ -3501,7 +3502,7 @@ const SEED = {
       "assignee": "",
       "hebrewName": "",
       "notes": "Yes \u2014 Homer, Marge, Lisa, and Maggie attending",
-      "id": "cr_1775936049480_13",
+      "id": "da9b9778-f8b8-4671-83f0-f9e492e9522b",
       "sortOrder": 13
     },
     {
@@ -3510,7 +3511,7 @@ const SEED = {
       "assignee": "",
       "hebrewName": "",
       "notes": "Thursday \u2014 Homer confirmed",
-      "id": "cr_1775936049480_14",
+      "id": "07ef54b9-9f27-49e8-8db4-efe1ac23ee27",
       "sortOrder": 14
     }
   ],
@@ -3569,8 +3570,8 @@ const SEED = {
   }
 };
 
-// Convert a flat array of records into V3 schema rows: { id, event_id, data, ...indexed }
-function toRows(eventId, records, indexedFields = []) {
+// Convert records into V3 schema: { id, event_id, data: jsonb, ...indexedFields }
+function toRows(eventId, records, extraFields = {}) {
   return records.map(r => {
     const row = {
       id:         r.id,
@@ -3579,9 +3580,8 @@ function toRows(eventId, records, indexedFields = []) {
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     };
-    // Copy indexed fields to top-level columns
-    for (const field of indexedFields) {
-      if (r[field] !== undefined) row[field] = r[field];
+    for (const [col, field] of Object.entries(extraFields)) {
+      row[col] = r[field] !== undefined ? r[field] : null;
     }
     return row;
   });
@@ -3641,9 +3641,9 @@ export default async function handler(req, res) {
       if (error) console.warn(`[reset-demo] Could not clear ${col}: ${error.message}`);
     }
 
-    // 4. Re-insert seed data using V3 schema: { id, event_id, data: jsonb }
+    // 4. Re-insert seed data using V3 jsonb schema
     const inserts = [
-      { table: "households",     rows: toRows(DEMO_EVENT_ID, SEED.households,    ["status"]).map(r => ({ ...r, group_name: r.data.group, out_of_town: r.data.outOfTown || false })) },
+      { table: "households",     rows: toRows(DEMO_EVENT_ID, SEED.households,    { group_name: "group", status: "status", out_of_town: "outOfTown" }) },
       { table: "people",         rows: toRows(DEMO_EVENT_ID, SEED.people)         },
       { table: "expenses",       rows: toRows(DEMO_EVENT_ID, SEED.expenses)       },
       { table: "vendors",        rows: toRows(DEMO_EVENT_ID, SEED.vendors)        },
