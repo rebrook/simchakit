@@ -65,6 +65,7 @@ export function EventPicker({ session, onSelectEvent }) {
   const [deleteTarget,   setDeleteTarget]   = useState(null);  // { event, anchorRect }
   const [eventCount,     setEventCount]     = useState(0);     // for paywall gate
   const [pendingPurchaseId, setPendingPurchaseId] = useState(null); // set after Stripe return
+  const [unusedPurchaseCount, setUnusedPurchaseCount] = useState(0); // completed purchases with no event_id
 
   const userId = session.user.id;
 
@@ -112,26 +113,36 @@ export function EventPicker({ session, onSelectEvent }) {
   // ── Load events ────────────────────────────────────────────────────────────
   const loadEvents = useCallback(async () => {
     setLoadStatus("loading");
-    const { data, error } = await supabase
-      .from("events")
-      .select("id, name, type, archived, admin_config, created_at, updated_at")
-      .eq("owner_id", userId)
-      .order("created_at", { ascending: true });
 
-    if (error) {
+    const [eventsResult, purchasesResult] = await Promise.all([
+      supabase
+        .from("events")
+        .select("id, name, type, archived, admin_config, created_at, updated_at")
+        .eq("owner_id", userId)
+        .order("created_at", { ascending: true }),
+      supabase
+        .from("purchases")
+        .select("id")
+        .eq("owner_id", userId)
+        .eq("status", "completed")
+        .is("event_id", null),
+    ]);
+
+    if (eventsResult.error) {
       setLoadStatus("error");
-      setLoadError(error.message || "Could not load events.");
+      setLoadError(eventsResult.error.message || "Could not load events.");
       return;
     }
 
     // Sort: active events first, archived last
-    const sorted = [...(data || [])].sort((a, b) => {
+    const sorted = [...(eventsResult.data || [])].sort((a, b) => {
       if (a.archived !== b.archived) return a.archived ? 1 : -1;
       return new Date(a.created_at) - new Date(b.created_at);
     });
 
     setEvents(sorted);
     setEventCount(sorted.filter(e => !e.archived).length);
+    setUnusedPurchaseCount((purchasesResult.data || []).length);
     setLoadStatus("ready");
   }, [userId]);
 
@@ -155,16 +166,32 @@ export function EventPicker({ session, onSelectEvent }) {
     setEventCount(prev => prev + 1);
 
     // If this event was created after a Stripe payment, stamp the purchase row
-    if (pendingPurchaseId) {
-      supabase
-        .from("purchases")
-        .update({ event_id: newEvent.id, updated_at: new Date().toISOString() })
-        .eq("id", pendingPurchaseId)
-        .then(({ error }) => {
-          if (error) console.warn("[SimchaKit] Could not stamp event_id on purchase:", error.message);
-        });
-      setPendingPurchaseId(null);
+    // Use pendingPurchaseId if set (just returned from Stripe), otherwise
+    // query for the most recent unused completed purchase
+    async function stampPurchase() {
+      let purchaseId = pendingPurchaseId;
+      if (!purchaseId && hasUnusedPurchase) {
+        const { data } = await supabase
+          .from("purchases")
+          .select("id")
+          .eq("owner_id", userId)
+          .eq("status", "completed")
+          .is("event_id", null)
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .single();
+        purchaseId = data?.id;
+      }
+      if (purchaseId) {
+        await supabase
+          .from("purchases")
+          .update({ event_id: newEvent.id, updated_at: new Date().toISOString() })
+          .eq("id", purchaseId);
+        setPendingPurchaseId(null);
+        setUnusedPurchaseCount(prev => Math.max(0, prev - 1));
+      }
     }
+    stampPurchase();
 
     // Navigate directly into the new event
     onSelectEvent(newEvent.id);
@@ -183,10 +210,13 @@ export function EventPicker({ session, onSelectEvent }) {
     loadEvents();
   }
 
-  // ── Paywall check: does the user already have an active event? ────────────
+  // ── Paywall check ─────────────────────────────────────────────────────────
+  // User needs to pay if they have at least one active event AND no unused
+  // completed purchases (purchases where payment was made but event not yet created)
   const hasUsedFreeEvent = eventCount >= 1;
+  const hasUnusedPurchase = unusedPurchaseCount > 0;
   // After a Stripe payment return, pendingPurchaseId is set — always show CreateEventForm
-  const paymentCleared = !!pendingPurchaseId;
+  const paymentCleared = !!pendingPurchaseId || hasUnusedPurchase;
 
   // ── Render ─────────────────────────────────────────────────────────────────
   return (

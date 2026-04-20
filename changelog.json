@@ -1,12 +1,23 @@
 {
-  "current": "V3.0.10",
+  "current": "V3.0.11",
   "whatsNew": [
     "Stripe payment gate — additional events require a one-time purchase",
     "Introductory pricing $29 through Aug 31 2026, then $49",
     "Coupon code redemption — free, percent, or fixed discount",
-    "Post-payment flow fixed — CreateEventForm opens directly after Stripe return"
+    "Unused purchases tracked — deleting an event and creating a new one never requires re-payment"
   ],
   "changelog": [
+    {
+      "version": "V3.0.11",
+      "date": "2026-04-20",
+      "summary": "Bugfix — Paywall re-triggering after deleting an event when unused purchases exist",
+      "changes": [
+        "Bugfix - EventPicker.jsx: loadEvents now fetches completed purchases with no event_id in parallel with events. unusedPurchaseCount state tracks how many paid-but-unused slots the user has.",
+        "Bugfix - EventPicker.jsx: paymentCleared now derived from pendingPurchaseId OR unusedPurchaseCount > 0 — so a user who paid, deleted their event, and tries to create a new one is never asked to pay again.",
+        "Bugfix - EventPicker.jsx: handleCreated now stamps the most recent unused purchase with the new event_id even when pendingPurchaseId is not set (e.g. after a page reload between payment and event creation).",
+        "Bugfix - EventPicker.jsx: unusedPurchaseCount decremented optimistically when a purchase is stamped."
+      ]
+    },
     {
       "version": "V3.0.10",
       "date": "2026-04-20",
