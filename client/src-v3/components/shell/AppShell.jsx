@@ -303,6 +303,7 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false }) {
     onOpenAdmin:   () => openAdmin("event"),
     onOpenAdminTo: openAdmin,
     onOpenGuide:          () => setShowGuide(true),
+    onConfigSaved,
     searchHighlight,
     clearSearchHighlight: () => setSearchHighlight(null),
     setSearchHighlight,
