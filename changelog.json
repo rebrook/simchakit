@@ -1,9 +1,27 @@
 {
-  "current": "V3.2.0",
+  "current": "V3.2.2",
   "whatsNew": [
     "⭐ Favors tab rebuilt with full V2 features — inline setup, available guest panel, conditional columns, and one-click add from your guest list"
   ],
   "changelog": [
+    {
+      "version": "V3.2.2",
+      "date": "2026-04-20",
+      "type": "fix",
+      "summary": "GuestsTab pant size field — free-text input replaced with dropdown",
+      "changes": [
+        "Pant Size field on person records was a free-text input in V3 — changed to a dropdown select using the same sizes list as Shirt Size (adminConfig.shirtSizes). V2 used a dropdown for both fields. This restores full parity for the pant size entry experience."
+      ]
+    },
+    {
+      "version": "V3.2.1",
+      "date": "2026-04-20",
+      "type": "fix",
+      "summary": "FavorsTab sizes field name fix",
+      "changes": [
+        "FavorsTab was reading adminConfig?.sizes but AdminPanel saves shirt sizes as adminConfig.shirtSizes — corrected field name so custom sizes from Admin configuration flow through to the Favors tab size selector and breakdown card"
+      ]
+    },
     {
       "version": "V3.2.0",
       "date": "2026-04-20",

@@ -628,7 +628,7 @@ export function HouseholdModal({ household, members, adminConfig, onSave, onClos
         </div>
         <div className="form-group" style={{marginBottom:10}}>
           <label className="form-label">Pant Size</label>
-          <input className="form-input" value={p.pantSize||""} onChange={e=>setPF(p.id,"pantSize",e.target.value)} placeholder="e.g., 32x30" />
+          <select className="form-select" value={p.pantSize||""} onChange={e=>setPF(p.id,"pantSize",e.target.value)}>{sizes.map(s=><option key={s} value={s}>{s||"— None —"}</option>)}</select>
         </div>
       </div>
       <div className="form-grid-2">
