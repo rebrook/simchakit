@@ -1,12 +1,22 @@
 {
-  "current": "V3.0.9",
+  "current": "V3.0.10",
   "whatsNew": [
     "Stripe payment gate — additional events require a one-time purchase",
     "Introductory pricing $29 through Aug 31 2026, then $49",
     "Coupon code redemption — free, percent, or fixed discount",
-    "Free coupons bypass Stripe entirely — instant event grant"
+    "Post-payment flow fixed — CreateEventForm opens directly after Stripe return"
   ],
   "changelog": [
+    {
+      "version": "V3.0.10",
+      "date": "2026-04-20",
+      "summary": "Bugfix — PaywallGate re-appearing after successful Stripe payment",
+      "changes": [
+        "Bugfix - EventPicker.jsx: after returning from Stripe Checkout with ?payment=success, the app now queries purchases for a completed row with no event_id for this user. If found, sets pendingPurchaseId and opens CreateEventForm directly, bypassing the paywall.",
+        "Bugfix - EventPicker.jsx: when an event is created after a Stripe payment, the purchases row is updated with the new event_id, completing the purchase record.",
+        "Bugfix - EventPicker.jsx: paymentCleared flag derived from pendingPurchaseId — when set, CreateEventForm always renders regardless of event count, preventing the paywall from re-triggering after a valid payment."
+      ]
+    },
     {
       "version": "V3.0.9",
       "date": "2026-04-19",

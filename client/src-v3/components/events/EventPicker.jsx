@@ -64,6 +64,7 @@ export function EventPicker({ session, onSelectEvent }) {
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [deleteTarget,   setDeleteTarget]   = useState(null);  // { event, anchorRect }
   const [eventCount,     setEventCount]     = useState(0);     // for paywall gate
+  const [pendingPurchaseId, setPendingPurchaseId] = useState(null); // set after Stripe return
 
   const userId = session.user.id;
 
@@ -85,6 +86,28 @@ export function EventPicker({ session, onSelectEvent }) {
       window.history.replaceState({}, "", url.toString());
     }
   }, [paymentNotice]);
+
+  // On successful payment return, find the completed purchase with no event_id
+  // and open CreateEventForm directly — user has already paid
+  useEffect(() => {
+    if (paymentNotice !== "success") return;
+    async function checkPendingPurchase() {
+      const { data } = await supabase
+        .from("purchases")
+        .select("id")
+        .eq("owner_id", userId)
+        .eq("status", "completed")
+        .is("event_id", null)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .single();
+      if (data?.id) {
+        setPendingPurchaseId(data.id);
+        setShowCreateForm(true);
+      }
+    }
+    checkPendingPurchase();
+  }, [paymentNotice, userId]);
 
   // ── Load events ────────────────────────────────────────────────────────────
   const loadEvents = useCallback(async () => {
@@ -130,6 +153,19 @@ export function EventPicker({ session, onSelectEvent }) {
     setShowCreateForm(false);
     setEvents(prev => [...prev, newEvent]);
     setEventCount(prev => prev + 1);
+
+    // If this event was created after a Stripe payment, stamp the purchase row
+    if (pendingPurchaseId) {
+      supabase
+        .from("purchases")
+        .update({ event_id: newEvent.id, updated_at: new Date().toISOString() })
+        .eq("id", pendingPurchaseId)
+        .then(({ error }) => {
+          if (error) console.warn("[SimchaKit] Could not stamp event_id on purchase:", error.message);
+        });
+      setPendingPurchaseId(null);
+    }
+
     // Navigate directly into the new event
     onSelectEvent(newEvent.id);
   }
@@ -149,6 +185,8 @@ export function EventPicker({ session, onSelectEvent }) {
 
   // ── Paywall check: does the user already have an active event? ────────────
   const hasUsedFreeEvent = eventCount >= 1;
+  // After a Stripe payment return, pendingPurchaseId is set — always show CreateEventForm
+  const paymentCleared = !!pendingPurchaseId;
 
   // ── Render ─────────────────────────────────────────────────────────────────
   return (
@@ -262,7 +300,7 @@ export function EventPicker({ session, onSelectEvent }) {
 
         {/* ── Create event form / paywall ── */}
         {showCreateForm && (
-          hasUsedFreeEvent ? (
+          hasUsedFreeEvent && !paymentCleared ? (
             <PaywallGate
               session={session}
               onFreeEventGranted={handleFreeEventGranted}
