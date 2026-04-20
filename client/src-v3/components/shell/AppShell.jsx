@@ -96,12 +96,17 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false }) {
   // ── Load event from Supabase ──────────────────────────────────────────────
   useEffect(() => {
     async function load() {
-      const { data, error } = await supabase
+      let query = supabase
         .from("events")
         .select("id, name, type, archived, admin_config, quick_notes")
-        .eq("id", eventId)
-        .eq("owner_id", session.user.id)
-        .single();
+        .eq("id", eventId);
+
+      // Demo mode: no session, skip owner_id filter
+      if (session?.user?.id) {
+        query = query.eq("owner_id", session.user.id);
+      }
+
+      const { data, error } = await query.single();
 
       if (error || !data) {
         setLoadStatus("error");
@@ -119,7 +124,7 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false }) {
       setLoadStatus("ready");
     }
     load();
-  }, [eventId, session.user.id]);
+  }, [eventId, session?.user?.id]);
 
   // ── Mobile header collapse on scroll ─────────────────────────────────────
   useEffect(() => {
