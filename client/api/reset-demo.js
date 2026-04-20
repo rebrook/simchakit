@@ -1,14 +1,13 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // SimchaKit V3 — api/reset-demo.js
-// Resets the simcha-demo event to baseline Simpsons data.
-// Called by Vercel cron (nightly 6am UTC) and admin dashboard.
-// Requires SUPABASE_SERVICE_ROLE_KEY env var (already set from Phase 9).
+// Resets the demo event to baseline Simpsons data.
+// Called by Vercel cron (nightly 6am UTC) or manually via GET/POST with token.
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { createClient } from "@supabase/supabase-js";
 
-const DEMO_EVENT_ID = "simcha-demo";
-const DEMO_USER_EMAIL = "demo@simchakit.app"; // system account, not a real user
+const DEMO_EVENT_ID   = "440a8b9e-e92e-4ad6-b352-41965bd8383b";
+const DEMO_USER_EMAIL = "demo@simchakit.app";
 
 const COLLECTIONS = [
   "households", "people", "expenses", "vendors", "tasks",
@@ -3571,18 +3570,16 @@ const SEED = {
 };
 
 export default async function handler(req, res) {
-  // Allow POST from admin dashboard (with auth header) or GET from cron
-  if (req.method !== "POST" && req.method !== "GET") {
+  const authHeader = req.headers.authorization || "";
+  const token      = authHeader.replace("Bearer ", "");
+  const isCron     = req.headers["x-vercel-cron"] === "1";
+
+  if (req.method !== "GET" && req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
-  // If POST, verify admin auth header
-  if (req.method === "POST") {
-    const authHeader = req.headers.authorization || "";
-    const token = authHeader.replace("Bearer ", "");
-    if (token !== process.env.ADMIN_RESET_TOKEN) {
-      return res.status(401).json({ error: "Unauthorized" });
-    }
+  if (!isCron && token !== process.env.ADMIN_RESET_TOKEN) {
+    return res.status(401).json({ error: "Unauthorized" });
   }
 
   const supabase = createClient(
@@ -3592,101 +3589,81 @@ export default async function handler(req, res) {
   );
 
   try {
-    // 1. Ensure demo event row exists in events table
-    const { data: existingEvent } = await supabase
-      .from("events")
-      .select("id")
-      .eq("id", DEMO_EVENT_ID)
-      .single();
+    // 1. Find or create the demo system user
+    const { data: { users }, error: listErr } = await supabase.auth.admin.listUsers();
+    if (listErr) throw new Error("Could not list users: " + listErr.message);
 
-    if (!existingEvent) {
-      // Find or create the demo system user
-      const { data: { users } } = await supabase.auth.admin.listUsers();
-      let demoUser = users.find(u => u.email === DEMO_USER_EMAIL);
-
-      if (!demoUser) {
-        const { data: created } = await supabase.auth.admin.createUser({
-          email: DEMO_USER_EMAIL,
-          email_confirm: true,
-          user_metadata: { name: "SimchaKit Demo" },
-        });
-        demoUser = created.user;
-      }
-
-      // Insert the demo event row
-      await supabase.from("events").insert({
-        id:           DEMO_EVENT_ID,
-        user_id:      demoUser.id,
-        name:         SEED.adminConfig.name,
-        type:         SEED.adminConfig.type,
-        admin_config: SEED.adminConfig,
-        quick_notes:  SEED.quickNotes || "",
-        archived:     false,
-        created_at:   new Date().toISOString(),
-        updated_at:   new Date().toISOString(),
+    let demoUser = users.find(u => u.email === DEMO_USER_EMAIL);
+    if (!demoUser) {
+      const { data: created, error: createErr } = await supabase.auth.admin.createUser({
+        email:         DEMO_USER_EMAIL,
+        email_confirm: true,
+        user_metadata: { name: "SimchaKit Demo" },
       });
-    } else {
-      // Update admin_config on existing event
-      await supabase.from("events").update({
-        admin_config: SEED.adminConfig,
-        quick_notes:  SEED.quickNotes || "",
-        archived:     false,
-        updated_at:   new Date().toISOString(),
-      }).eq("id", DEMO_EVENT_ID);
+      if (createErr) throw new Error("Could not create demo user: " + createErr.message);
+      demoUser = created.user;
     }
 
-    // 2. Delete all existing collection data for demo event
+    // 2. Upsert the demo event row with the pre-set UUID
+    const { error: eventErr } = await supabase.from("events").upsert({
+      id:           DEMO_EVENT_ID,
+      owner_id:     demoUser.id,
+      name:         SEED.adminConfig.name,
+      type:         SEED.adminConfig.type,
+      admin_config: SEED.adminConfig,
+      quick_notes:  SEED.quickNotes || "",
+      archived:     false,
+      updated_at:   new Date().toISOString(),
+    }, { onConflict: "id" });
+    if (eventErr) throw new Error("Could not upsert event: " + eventErr.message);
+
+    // 3. Delete all existing collection data for demo event
     for (const col of COLLECTIONS) {
-      await supabase.from(col).delete().eq("event_id", DEMO_EVENT_ID);
+      const { error } = await supabase.from(col).delete().eq("event_id", DEMO_EVENT_ID);
+      if (error) console.warn(`[reset-demo] Could not clear ${col}: ${error.message}`);
     }
 
-    // 3. Re-insert baseline data
-    const insertWithEventId = (rows) =>
-      rows.map(r => ({ ...r, event_id: DEMO_EVENT_ID }));
-
+    // 4. Re-insert baseline seed data
     const inserts = [
-      { table: "households",    rows: SEED.households    },
-      { table: "people",        rows: SEED.people        },
-      { table: "expenses",      rows: SEED.expenses      },
-      { table: "vendors",       rows: SEED.vendors       },
-      { table: "tasks",         rows: SEED.tasks         },
-      { table: "prep",          rows: SEED.prep          },
-      { table: "tables",        rows: SEED.tables        },
-      { table: "gifts",         rows: SEED.gifts         },
-      { table: "favors",        rows: SEED.favors        },
-      { table: "ceremony_roles",rows: SEED.ceremonyRoles },
+      { table: "households",     rows: SEED.households     },
+      { table: "people",         rows: SEED.people         },
+      { table: "expenses",       rows: SEED.expenses       },
+      { table: "vendors",        rows: SEED.vendors        },
+      { table: "tasks",          rows: SEED.tasks          },
+      { table: "prep",           rows: SEED.prep           },
+      { table: "tables",         rows: SEED.tables         },
+      { table: "gifts",          rows: SEED.gifts          },
+      { table: "favors",         rows: SEED.favors         },
+      { table: "ceremony_roles", rows: SEED.ceremonyRoles  },
     ];
 
     for (const { table, rows } of inserts) {
-      if (rows && rows.length > 0) {
-        const { error } = await supabase
-          .from(table)
-          .insert(insertWithEventId(rows));
-        if (error) {
-          console.error(`[reset-demo] Failed to insert ${table}:`, error.message);
-          return res.status(500).json({ error: `Failed to insert ${table}: ${error.message}` });
-        }
-      }
+      if (!rows || rows.length === 0) continue;
+      const tagged = rows.map(r => ({ ...r, event_id: DEMO_EVENT_ID }));
+      const { error } = await supabase.from(table).insert(tagged);
+      if (error) throw new Error(`Failed to insert ${table}: ${error.message}`);
     }
 
-    // 4. Re-insert dayOf as single document
+    // 5. Upsert dayOf as single document
     if (SEED.dayOf) {
-      await supabase.from("dayof").insert({
+      const { error } = await supabase.from("dayof").upsert({
         event_id:   DEMO_EVENT_ID,
         data:       SEED.dayOf,
         updated_at: new Date().toISOString(),
-      });
+      }, { onConflict: "event_id" });
+      if (error) console.warn("[reset-demo] Could not upsert dayof:", error.message);
     }
 
-    console.log(`[reset-demo] Demo event reset successfully at ${new Date().toISOString()}`);
+    console.log(`[reset-demo] Reset complete at ${new Date().toISOString()}`);
     return res.status(200).json({
       ok:        true,
       message:   "Demo event reset successfully",
+      eventId:   DEMO_EVENT_ID,
       timestamp: new Date().toISOString(),
     });
 
   } catch (err) {
-    console.error("[reset-demo] Unexpected error:", err.message);
+    console.error("[reset-demo] Error:", err.message);
     return res.status(500).json({ error: err.message });
   }
 }

@@ -13,7 +13,7 @@ import { AppShell }            from "@/components/shell/AppShell.jsx";
 import { useDarkMode }         from "@/hooks/useDarkMode.js";
 import { ThemeProvider }       from "@/components/shared/ThemeProvider.jsx";
 
-const DEMO_EVENT_ID = "simcha-demo";
+const DEMO_EVENT_ID = "440a8b9e-e92e-4ad6-b352-41965bd8383b"; // Bart's Bar Mitzvah demo event
 const IS_DEMO      = window.location.pathname === "/demo";
 
 export default function AppV3() {
