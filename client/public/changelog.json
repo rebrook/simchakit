@@ -1,12 +1,22 @@
 {
-  "current": "V3.1.0",
+  "current": "V3.1.1",
   "whatsNew": [
-    "Admin dashboard live at simchakit-admin.vercel.app",
-    "User, event, purchase, and coupon management for Brook Creative LLC",
-    "Manual purchase grant and refund flagging",
-    "Coupon code creator with free, percent, and fixed discount types"
+    "Admin: delete any event and all its planning data",
+    "Admin: delete a user account and all associated data",
+    "Both actions require typing DELETE to confirm — irreversible"
   ],
   "changelog": [
+    {
+      "version": "V3.1.1",
+      "date": "2026-04-20",
+      "summary": "Admin — delete user and delete event actions",
+      "changes": [
+        "New: admin-query.js — delete_event case: permanently deletes an event and all its collection data via Supabase FK cascade.",
+        "New: admin-query.js — delete_user case: deletes user_profiles row (cascades to all events and data), then removes the auth.users record via Supabase admin API. Auth deletion failure is non-fatal — data is gone regardless.",
+        "New: EventsPage.jsx — Delete button on each event row. Requires typing DELETE in a confirmation prompt before proceeding.",
+        "New: UsersPage.jsx — Delete User button in the user detail drawer. Requires typing DELETE in a confirmation prompt. Removes user from the list on success."
+      ]
+    },
     {
       "version": "V3.1.0",
       "date": "2026-04-20",

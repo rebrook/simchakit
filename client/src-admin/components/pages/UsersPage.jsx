@@ -22,6 +22,21 @@ export function UsersPage({ token }) {
       .catch(e  => { setError(e.message); setLoading(false); });
   }, [token]);
 
+  async function handleDeleteUser(user) {
+    const confirmed = window.prompt(
+      `This will permanently delete ${user.email} and ALL their events and data.\n\nType DELETE to confirm.`
+    );
+    if (confirmed !== "DELETE") return;
+    try {
+      await adminQuery(token, "delete_user", { userId: user.id });
+      setUsers(prev => prev.filter(u => u.id !== user.id));
+      setSelected(null);
+      setDetail(null);
+    } catch (e) {
+      alert("Error: " + e.message);
+    }
+  }
+
   async function handleSelectUser(user) {
     setSelected(user);
     setDetailLoading(true);
@@ -85,7 +100,12 @@ export function UsersPage({ token }) {
         <div style={card}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
             <div style={cardTitle}>{selected.email}</div>
-            <button style={closeBtn} onClick={() => { setSelected(null); setDetail(null); }}>✕</button>
+            <div style={{ display: "flex", gap: 8 }}>
+              <button style={deleteBtn} onClick={() => handleDeleteUser(selected)}>
+                Delete User
+              </button>
+              <button style={closeBtn} onClick={() => { setSelected(null); setDetail(null); }}>✕</button>
+            </div>
           </div>
 
           {detailLoading ? <div style={{ color: "#aaa", fontSize: 13 }}>Loading…</div> : detail && (
@@ -164,6 +184,12 @@ export function fmtDate(iso) {
 const searchInput = {
   width: "100%", padding: "8px 12px", border: "1px solid #ddd",
   borderRadius: 8, fontSize: 13, outline: "none",
+};
+
+const deleteBtn = {
+  padding: "4px 12px", background: "#fce4ec", color: "#c62828",
+  border: "1px solid #ffcdd2", borderRadius: 6, fontSize: 12,
+  fontWeight: 600, cursor: "pointer",
 };
 
 const closeBtn = {

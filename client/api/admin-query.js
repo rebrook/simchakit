@@ -214,6 +214,37 @@ export default async function handler(req, res) {
         break;
       }
 
+      case "delete_event": {
+        const { eventId } = params || {};
+        if (!eventId) return res.status(400).json({ error: "Missing eventId." });
+        const { error: deleteError } = await supabaseAdmin
+          .from("events")
+          .delete()
+          .eq("id", eventId);
+        if (deleteError) return res.status(500).json({ error: deleteError.message });
+        result = { ok: true };
+        break;
+      }
+
+      case "delete_user": {
+        const { userId: deleteUserId } = params || {};
+        if (!deleteUserId) return res.status(400).json({ error: "Missing userId." });
+        // Delete user_profiles row — events and collection data cascade via FK
+        const { error: profileError } = await supabaseAdmin
+          .from("user_profiles")
+          .delete()
+          .eq("id", deleteUserId);
+        if (profileError) return res.status(500).json({ error: profileError.message });
+        // Delete from auth.users via admin API
+        const { error: authError } = await supabaseAdmin.auth.admin.deleteUser(deleteUserId);
+        if (authError) {
+          console.error("[SimchaKit Admin] Could not delete auth user:", authError.message);
+          // Non-fatal — profile and data are gone, auth record cleanup can be manual
+        }
+        result = { ok: true };
+        break;
+      }
+
       default:
         return res.status(400).json({ error: `Unknown query: ${query}` });
     }

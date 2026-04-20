@@ -33,6 +33,19 @@ export function EventsPage({ token }) {
       .catch(e  => { setError(e.message); setLoading(false); });
   }, [token]);
 
+  async function handleDeleteEvent(event) {
+    const confirmed = window.prompt(
+      `This will permanently delete "${event.name || "Unnamed"}" and ALL its planning data.\n\nType DELETE to confirm.`
+    );
+    if (confirmed !== "DELETE") return;
+    try {
+      await adminQuery(token, "delete_event", { eventId: event.id });
+      setEvents(prev => prev.filter(e => e.id !== event.id));
+    } catch (e) {
+      alert("Error: " + e.message);
+    }
+  }
+
   const filtered = events.filter(e => {
     if (filter === "active"   && e.archived)  return false;
     if (filter === "archived" && !e.archived) return false;
@@ -72,11 +85,12 @@ export function EventsPage({ token }) {
               <th style={th}>Owner</th>
               <th style={th}>Status</th>
               <th style={th}>Created</th>
+              <th style={th}>Actions</th>
             </tr>
           </thead>
           <tbody>
             {filtered.length === 0 ? (
-              <tr><td colSpan={5} style={{ ...td, textAlign: "center", color: "#aaa" }}>No events found.</td></tr>
+              <tr><td colSpan={6} style={{ ...td, textAlign: "center", color: "#aaa" }}>No events found.</td></tr>
             ) : filtered.map(e => (
               <tr key={e.id}>
                 <td style={{ ...td, fontWeight: 600 }}>{e.name || "Unnamed"}</td>
@@ -92,6 +106,11 @@ export function EventsPage({ token }) {
                   </span>
                 </td>
                 <td style={td}>{fmtDate(e.created_at)}</td>
+                <td style={td}>
+                  <button style={deleteBtn} onClick={() => handleDeleteEvent(e)}>
+                    Delete
+                  </button>
+                </td>
               </tr>
             ))}
           </tbody>
@@ -100,6 +119,12 @@ export function EventsPage({ token }) {
     </div>
   );
 }
+
+const deleteBtn = {
+  padding: "3px 10px", background: "#fce4ec", color: "#c62828",
+  border: "1px solid #ffcdd2", borderRadius: 6, fontSize: 11,
+  fontWeight: 600, cursor: "pointer",
+};
 
 const searchInput = {
   padding: "8px 12px", border: "1px solid #ddd",
