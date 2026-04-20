@@ -1,19 +1,32 @@
 {
-  "current": "V3.1.3",
+  "current": "V3.1.4",
   "whatsNew": [
-    "\ud83d\udccb Day-of Mode has moved to the \u22ef More menu alongside Guide, What's New, and Activity Log"
+    "\ud83d\udd0d Search results now scroll to and highlight the matched row \u2014 click any search result to jump directly to it"
   ],
   "changelog": [
+    {
+      "version": "V3.1.4",
+      "date": "2026-04-20",
+      "type": "feature",
+      "summary": "Search scroll-to-item on navigate",
+      "changes": [
+        "Search results now scroll to and highlight the matched row when navigating from the search overlay",
+        "searchHighlight state added to AppShell and passed to all tabs via tabProps \u2014 shape: { tab, itemId, collection, householdId }",
+        "clearSearchHighlight and setSearchHighlight passed to tabs so useSearchHighlight hook can clear state after animation completes",
+        "onNavigate in SearchOverlay now closes search, navigates to tab, then sets searchHighlight after 150ms delay to allow tab render before DOM targeting",
+        "GuestsTab: people results scroll to and expand the household card containing the matched person via householdId"
+      ]
+    },
     {
       "version": "V3.1.3",
       "date": "2026-04-20",
       "type": "fix",
-      "summary": "Day-of Mode moved to overflow More menu (V2 parity); changelog fix",
+      "summary": "Day-of Mode moved to overflow More menu (V2 parity)",
       "changes": [
-        "Removed standalone \ud83d\udccb Day-of Mode icon from header-actions \u2014 saves real-estate, consistent with V2 design decision (Apr 8 session)",
+        "Removed standalone \ud83d\udccb Day-of Mode icon from header-actions \u2014 saves real-estate, consistent with V2 design decision",
         "Added \ud83d\udccb Day-of Mode to overflow More menu between What's New and Activity Log",
         "Fixed Activity Log icon from \ud83d\udccb to \ud83d\udcca to match V2",
-        "Fixed V3.1.2 changelog entry field name: 'details' \u2192 'changes' so it renders in the Change Log"
+        "Fixed V3.1.2 changelog entry field name: details \u2192 changes so it renders in the Change Log"
       ]
     },
     {

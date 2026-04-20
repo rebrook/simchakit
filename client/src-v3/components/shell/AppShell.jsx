@@ -73,6 +73,7 @@ export function AppShell({ session, eventId, onBack }) {
   const [showActivityLog, setShowActivityLog] = useState(false);
   const [showWhatsNew,    setShowWhatsNew]    = useState(false);
   const [showDayOf,       setShowDayOf]       = useState(false);
+  const [searchHighlight, setSearchHighlight] = useState(null); // { tab, itemId, collection, householdId }
 
   const navInnerRef = useRef(null);
   const toastTimer  = useRef(null);
@@ -296,7 +297,10 @@ export function AppShell({ session, eventId, onBack }) {
     setActiveTab:  navigateTo,
     onOpenAdmin:   () => openAdmin("event"),
     onOpenAdminTo: openAdmin,
-    onOpenGuide:   () => setShowGuide(true),
+    onOpenGuide:         () => setShowGuide(true),
+    searchHighlight,
+    clearSearchHighlight: () => setSearchHighlight(null),
+    setSearchHighlight,
   };
 
   // ── Render ─────────────────────────────────────────────────────────────────
@@ -360,6 +364,11 @@ export function AppShell({ session, eventId, onBack }) {
               🔍
             </button>
 
+            {/* Day-of Mode */}
+            <button className="icon-btn" title="Day-of Mode" onClick={() => setShowDayOf(true)}>
+              📋
+            </button>
+
             {/* Admin Mode */}
             <button className="icon-btn" title="Admin Mode" onClick={() => openAdmin("event")}>
               ⚙
@@ -410,13 +419,8 @@ export function AppShell({ session, eventId, onBack }) {
                   </button>
 
                   <button className="header-overflow-item"
-                    onClick={() => { setShowOverflow(false); setShowDayOf(true); }}>
-                    📋 <span>Day-of Mode</span>
-                  </button>
-
-                  <button className="header-overflow-item"
                     onClick={() => { setShowOverflow(false); setShowActivityLog(true); }}>
-                    📊 <span>Activity Log</span>
+                    📋 <span>Activity Log</span>
                   </button>
 
                   <button className="header-overflow-item"
@@ -600,8 +604,11 @@ export function AppShell({ session, eventId, onBack }) {
           eventId={eventId}
           adminConfig={adminConfig}
           onNavigate={(tab, id, collection, householdId) => {
+            setShowSearch(false);
             navigateTo(tab);
-            // TODO Phase 6: scroll to item via searchHighlight
+            setTimeout(() => {
+              setSearchHighlight({ tab, itemId: id, collection, householdId: householdId || null });
+            }, 150);
           }}
           onClose={() => setShowSearch(false)}
         />
