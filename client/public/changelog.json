@@ -1,12 +1,23 @@
 {
-  "current": "V3.1.2",
+  "current": "V3.1.3",
   "whatsNew": {
-    "version": "V3.1.2",
+    "version": "V3.1.3",
     "items": [
-      "\ud83d\udda8 Print Event Brief is now fully functional \u2014 open Day-of Mode and tap Print Event Brief to generate a comprehensive printable summary including timeline, guests, vendors, tasks, and ceremony roles"
+      "\ud83d\udccb Day-of Mode has moved to the \u22ef More menu alongside Guide, What's New, and Activity Log"
     ]
   },
   "changelog": [
+    {
+      "version": "V3.1.3",
+      "date": "2026-04-20",
+      "type": "fix",
+      "summary": "Day-of Mode moved to overflow More menu (V2 parity)",
+      "details": [
+        "Removed standalone \ud83d\udccb Day-of Mode icon from header-actions \u2014 saves real-estate, consistent with V2 design decision",
+        "Added \ud83d\udccb Day-of Mode to overflow More menu between What's New and Activity Log",
+        "Fixed Activity Log icon from \ud83d\udccb (now used by Day-of Mode) to \ud83d\udcca, matching V2"
+      ]
+    },
     {
       "version": "V3.1.2",
       "date": "2026-04-20",

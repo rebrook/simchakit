@@ -360,11 +360,6 @@ export function AppShell({ session, eventId, onBack }) {
               🔍
             </button>
 
-            {/* Day-of Mode */}
-            <button className="icon-btn" title="Day-of Mode" onClick={() => setShowDayOf(true)}>
-              📋
-            </button>
-
             {/* Admin Mode */}
             <button className="icon-btn" title="Admin Mode" onClick={() => openAdmin("event")}>
               ⚙
@@ -415,8 +410,13 @@ export function AppShell({ session, eventId, onBack }) {
                   </button>
 
                   <button className="header-overflow-item"
+                    onClick={() => { setShowOverflow(false); setShowDayOf(true); }}>
+                    📋 <span>Day-of Mode</span>
+                  </button>
+
+                  <button className="header-overflow-item"
                     onClick={() => { setShowOverflow(false); setShowActivityLog(true); }}>
-                    📋 <span>Activity Log</span>
+                    📊 <span>Activity Log</span>
                   </button>
 
                   <button className="header-overflow-item"
