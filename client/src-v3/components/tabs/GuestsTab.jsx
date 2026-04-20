@@ -637,8 +637,10 @@ export function HouseholdModal({ household, members, adminConfig, onSave, onClos
           <select className="form-select" value={p.mealChoice||""} onChange={e=>setPF(p.id,"mealChoice",e.target.value)}><option value="">— Select —</option>{mealChoices.map(m=><option key={m} value={m}>{m}</option>)}</select>
         </div>
         <div className="form-group" style={{marginBottom:10}}>
-          <label className="form-label">Kosher</label>
-          <select className="form-select" value={p.kosher?"yes":"no"} onChange={e=>setPF(p.id,"kosher",e.target.value==="yes")}><option value="no">No</option><option value="yes">Yes</option></select>
+          <label style={{display:"flex",alignItems:"center",gap:7,fontSize:13,cursor:"pointer"}}>
+            <input type="checkbox" checked={!!p.kosher} onChange={e=>setPF(p.id,"kosher",e.target.checked)} style={{width:15,height:15,accentColor:"var(--accent-primary)"}} />
+            Kosher meal required
+          </label>
         </div>
       </div>
       <div className="form-group" style={{marginBottom:6}}><label className="form-label">Dietary Notes</label><input className="form-input" value={p.dietary||""} onChange={e=>setPF(p.id,"dietary",e.target.value)} placeholder="Allergies, restrictions…" /></div>
@@ -676,6 +678,22 @@ export function HouseholdModal({ household, members, adminConfig, onSave, onClos
               <label className="form-label">RSVP Date</label>
               <input className="form-input" type="date" value={hh.rsvpDate} onChange={e=>setHHF("rsvpDate",e.target.value)} />
               {hh.rsvpDate && <div style={{fontSize:11,color:"var(--text-muted)",marginTop:3}}>{new Date(hh.rsvpDate+"T00:00:00").toLocaleDateString("en-US",{weekday:"short",year:"numeric",month:"short",day:"numeric"})}</div>}
+            </div>
+            <div className="form-grid-2" style={{marginBottom:0}}>
+              <div className="form-group" style={{marginBottom:0}}>
+                <label className="form-label">Attending Adults</label>
+                <input className="form-input" type="number" min="0"
+                  value={hh.attendingAdults ?? ""}
+                  onChange={e=>setHHF("attendingAdults", e.target.value==="" ? null : Math.max(0, parseInt(e.target.value)||0))}
+                  placeholder="Default: computed from members" />
+              </div>
+              <div className="form-group" style={{marginBottom:0}}>
+                <label className="form-label">Attending Kids</label>
+                <input className="form-input" type="number" min="0"
+                  value={hh.attendingKids ?? ""}
+                  onChange={e=>setHHF("attendingKids", e.target.value==="" ? null : Math.max(0, parseInt(e.target.value)||0))}
+                  placeholder="Default: computed from members" />
+              </div>
             </div>
             {sections.length>0 && (
               <div className="form-group">

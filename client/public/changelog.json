@@ -1,9 +1,27 @@
 {
-  "current": "V3.2.2",
+  "current": "V3.2.4",
   "whatsNew": [
     "⭐ Favors tab rebuilt with full V2 features — inline setup, available guest panel, conditional columns, and one-click add from your guest list"
   ],
   "changelog": [
+    {
+      "version": "V3.2.4",
+      "date": "2026-04-20",
+      "type": "fix",
+      "summary": "GuestsTab — Kosher field restored to checkbox matching V2",
+      "changes": [
+        "Kosher field on person records was a yes/no select in V3 — V2 uses an inline checkbox labeled 'Kosher meal required'. Replaced select with checkbox matching V2 pattern exactly. Age column confirmed identical in both versions — no change needed."
+      ]
+    },
+    {
+      "version": "V3.2.3",
+      "date": "2026-04-20",
+      "type": "fix",
+      "summary": "GuestsTab — Attending Adults and Attending Kids fields restored",
+      "changes": [
+        "Attending Adults and Attending Kids number inputs were missing from the HouseholdModal in V3 — present in V2. These fields allow RSVP count overrides when fewer people attend than invited. Restored after RSVP Date field, before Invited To Sub-Events, matching V2 layout and null-on-empty behavior exactly."
+      ]
+    },
     {
       "version": "V3.2.2",
       "date": "2026-04-20",
