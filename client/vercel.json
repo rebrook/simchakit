@@ -1,4 +1,5 @@
 {
+  "cleanUrls": false,
   "crons": [
     {
       "path": "/api/reset-demo",
