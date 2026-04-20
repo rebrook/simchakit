@@ -1,5 +1,5 @@
 {
-  "current": "V3.0.12",
+  "current": "V3.1.0",
   "whatsNew": [
     "Admin dashboard live at simchakit-admin.vercel.app",
     "User, event, purchase, and coupon management for Brook Creative LLC",
@@ -8,7 +8,7 @@
   ],
   "changelog": [
     {
-      "version": "V3.0.12",
+      "version": "V3.1.0",
       "date": "2026-04-20",
       "summary": "V3 Phase 10 — Brook Creative LLC admin dashboard",
       "changes": [
