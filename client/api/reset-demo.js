@@ -1,7 +1,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // SimchaKit V3 — api/reset-demo.js
 // Resets the demo event to baseline Simpsons data.
-// Called by Vercel cron (nightly 6am UTC) or manually via GET/POST with token.
+// V3 schema: all collection rows use { id, event_id, data: jsonb }
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { createClient } from "@supabase/supabase-js";
@@ -3569,6 +3569,24 @@ const SEED = {
   }
 };
 
+// Convert a flat array of records into V3 schema rows: { id, event_id, data, ...indexed }
+function toRows(eventId, records, indexedFields = []) {
+  return records.map(r => {
+    const row = {
+      id:         r.id,
+      event_id:   eventId,
+      data:       r,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+    // Copy indexed fields to top-level columns
+    for (const field of indexedFields) {
+      if (r[field] !== undefined) row[field] = r[field];
+    }
+    return row;
+  });
+}
+
 export default async function handler(req, res) {
   const authHeader = req.headers.authorization || "";
   const token      = authHeader.replace("Bearer ", "");
@@ -3604,7 +3622,7 @@ export default async function handler(req, res) {
       demoUser = created.user;
     }
 
-    // 2. Upsert the demo event row with the pre-set UUID
+    // 2. Upsert the demo event row
     const { error: eventErr } = await supabase.from("events").upsert({
       id:           DEMO_EVENT_ID,
       owner_id:     demoUser.id,
@@ -3623,24 +3641,23 @@ export default async function handler(req, res) {
       if (error) console.warn(`[reset-demo] Could not clear ${col}: ${error.message}`);
     }
 
-    // 4. Re-insert baseline seed data
+    // 4. Re-insert seed data using V3 schema: { id, event_id, data: jsonb }
     const inserts = [
-      { table: "households",     rows: SEED.households     },
-      { table: "people",         rows: SEED.people         },
-      { table: "expenses",       rows: SEED.expenses       },
-      { table: "vendors",        rows: SEED.vendors        },
-      { table: "tasks",          rows: SEED.tasks          },
-      { table: "prep",           rows: SEED.prep           },
-      { table: "tables",         rows: SEED.tables         },
-      { table: "gifts",          rows: SEED.gifts          },
-      { table: "favors",         rows: SEED.favors         },
-      { table: "ceremony_roles", rows: SEED.ceremonyRoles  },
+      { table: "households",     rows: toRows(DEMO_EVENT_ID, SEED.households,    ["status"]).map(r => ({ ...r, group_name: r.data.group, out_of_town: r.data.outOfTown || false })) },
+      { table: "people",         rows: toRows(DEMO_EVENT_ID, SEED.people)         },
+      { table: "expenses",       rows: toRows(DEMO_EVENT_ID, SEED.expenses)       },
+      { table: "vendors",        rows: toRows(DEMO_EVENT_ID, SEED.vendors)        },
+      { table: "tasks",          rows: toRows(DEMO_EVENT_ID, SEED.tasks)          },
+      { table: "prep",           rows: toRows(DEMO_EVENT_ID, SEED.prep)           },
+      { table: "tables",         rows: toRows(DEMO_EVENT_ID, SEED.tables)         },
+      { table: "gifts",          rows: toRows(DEMO_EVENT_ID, SEED.gifts)          },
+      { table: "favors",         rows: toRows(DEMO_EVENT_ID, SEED.favors)         },
+      { table: "ceremony_roles", rows: toRows(DEMO_EVENT_ID, SEED.ceremonyRoles)  },
     ];
 
     for (const { table, rows } of inserts) {
       if (!rows || rows.length === 0) continue;
-      const tagged = rows.map(r => ({ ...r, event_id: DEMO_EVENT_ID }));
-      const { error } = await supabase.from(table).insert(tagged);
+      const { error } = await supabase.from(table).insert(rows);
       if (error) throw new Error(`Failed to insert ${table}: ${error.message}`);
     }
 
