@@ -1,0 +1,18 @@
+name: Reset Demo Event
+
+on:
+  schedule:
+    - cron: '0 6 * * *'  # 6am UTC daily
+  workflow_dispatch:       # Allow manual trigger from GitHub Actions UI
+
+jobs:
+  reset:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Reset SimchaKit demo event
+        run: |
+          curl -X GET https://simchakit.vercel.app/api/reset-demo \
+            -H "Authorization: Bearer ${{ secrets.ADMIN_RESET_TOKEN }}" \
+            --fail \
+            --silent \
+            --show-error

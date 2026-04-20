@@ -1,9 +1,34 @@
 {
-  "current": "V3.1.5",
+  "current": "V3.1.7",
   "whatsNew": [
     "\ud83c\udfad Try SimchaKit before you buy \u2014 visit simchakit.vercel.app/demo to explore a fully-loaded demo event (Bart Simpson's Bar Mitzvah) with no account required"
   ],
   "changelog": [
+    {
+      "version": "V3.1.7",
+      "date": "2026-04-20",
+      "type": "fix",
+      "summary": "Demo reset via GitHub Actions instead of Vercel cron",
+      "changes": [
+        "Replaced Vercel cron (requires Pro plan) with GitHub Actions workflow \u2014 .github/workflows/reset-demo.yml runs nightly at 6am UTC",
+        "workflow_dispatch added so demo can be manually triggered from GitHub Actions UI at any time",
+        "Removed crons block from vercel.json \u2014 no longer needed",
+        "ADMIN_RESET_TOKEN must be added as a GitHub Actions secret (same value as Vercel env var)"
+      ]
+    },
+    {
+      "version": "V3.1.6",
+      "date": "2026-04-20",
+      "type": "fix",
+      "summary": "Demo mode bug fixes \u2014 routing, auth, seed data, RLS",
+      "changes": [
+        "vercel.json: fixed SPA routing \u2014 changed rewrite destination from /index.html to /index.v3.html (Vercel builds from index.v3.html input), added cleanUrls: false, changed pattern to /:path*",
+        "AppShell.jsx: guarded session.user.id access with optional chaining \u2014 null session in demo mode was crashing on load",
+        "App.v3.jsx: updated DEMO_EVENT_ID to actual Supabase UUID (440a8b9e-e92e-4ad6-b352-41965bd8383b); added supabase.auth.signOut() in demo mode so authenticated users use anon key for demo queries",
+        "reset-demo.js: complete rewrite \u2014 V3 jsonb schema (all rows use {id, event_id, data}), all seed IDs remapped to UUIDs with cross-references preserved, duplicate IDs in V2 source data fixed, vendor contact\u2192contactName field rename, household indexed columns (group_name, status, out_of_town) mapped correctly",
+        "Supabase: RLS policies added for anon read+write on all 13 collection tables scoped to demo event UUID"
+      ]
+    },
     {
       "version": "V3.1.5",
       "date": "2026-04-20",
