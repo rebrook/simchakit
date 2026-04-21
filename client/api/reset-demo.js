@@ -1865,7 +1865,7 @@ const SEED = {
     {
       "id": "bc948f12-17a9-45e1-a57b-db5461a3649b",
       "description": "Temple Beth Springfield \u2014 Kiddush Sponsorship",
-      "category": "Catering",
+      "category": "Catering & Bar",
       "vendor": "Temple Beth Springfield",
       "vendorId": "87e37e59-ea1b-4e7a-9543-f4fae0e10971",
       "amount": "800",
@@ -1879,7 +1879,7 @@ const SEED = {
     {
       "id": "a8c653a7-0128-4e78-8ae3-d48a04df6b37",
       "description": "Shelbyville Snapshots \u2014 Retainer",
-      "category": "Photography/Video",
+      "category": "Photography",
       "vendor": "Shelbyville Snapshots",
       "vendorId": "d89fbb73-3235-4505-988c-1877de831779",
       "amount": "1400",
@@ -1893,7 +1893,7 @@ const SEED = {
     {
       "id": "ec518b0b-85be-4ecb-844e-97382e5ab954",
       "description": "Shelbyville Snapshots \u2014 Second Payment",
-      "category": "Photography/Video",
+      "category": "Photography",
       "vendor": "Shelbyville Snapshots",
       "vendorId": "d89fbb73-3235-4505-988c-1877de831779",
       "amount": "1400",
@@ -1907,7 +1907,7 @@ const SEED = {
     {
       "id": "6c4e481a-6029-4cd6-8fe0-d62277e3074c",
       "description": "Shelbyville Snapshots \u2014 Final Payment",
-      "category": "Photography/Video",
+      "category": "Photography",
       "vendor": "Shelbyville Snapshots",
       "vendorId": "d89fbb73-3235-4505-988c-1877de831779",
       "amount": "1400",
@@ -1921,7 +1921,7 @@ const SEED = {
     {
       "id": "8542d710-ea50-4f51-94bc-ee8660cb3a10",
       "description": "DJ Krusty Spins \u2014 Retainer",
-      "category": "DJ/Entertainment",
+      "category": "DJ / Band / Entertainment",
       "vendor": "DJ Krusty Spins",
       "vendorId": "6f27dc7c-94b7-4b62-b260-cafd1315a8bd",
       "amount": "1500",
@@ -1935,7 +1935,7 @@ const SEED = {
     {
       "id": "527528b2-e820-4e56-ac8d-9e41ee720617",
       "description": "DJ Krusty Spins \u2014 Balance",
-      "category": "DJ/Entertainment",
+      "category": "DJ / Band / Entertainment",
       "vendor": "DJ Krusty Spins",
       "vendorId": "6f27dc7c-94b7-4b62-b260-cafd1315a8bd",
       "amount": "7000",
@@ -1949,7 +1949,7 @@ const SEED = {
     {
       "id": "5a8b8eac-dc80-43cd-ab8f-69d1350b458e",
       "description": "Bouvier Event Design \u2014 Retainer",
-      "category": "Florals/Decor",
+      "category": "Florals & Decor",
       "vendor": "Bouvier Event Design",
       "vendorId": "0a3772fe-257e-4d7c-9b46-46a514e3fa51",
       "amount": "1875",
@@ -1963,7 +1963,7 @@ const SEED = {
     {
       "id": "ebd3c214-4e40-475d-8707-fba8e6fcd56e",
       "description": "Bouvier Event Design \u2014 Balance",
-      "category": "Florals/Decor",
+      "category": "Florals & Decor",
       "vendor": "Bouvier Event Design",
       "vendorId": "0a3772fe-257e-4d7c-9b46-46a514e3fa51",
       "amount": "1875",
@@ -1977,7 +1977,7 @@ const SEED = {
     {
       "id": "e7ed1290-0e1a-4af2-8825-88394afdb6ce",
       "description": "Springfield Country Club \u2014 Catering",
-      "category": "Catering",
+      "category": "Catering & Bar",
       "vendor": "Springfield Country Club",
       "vendorId": "ca3e22ab-8d5e-44ef-8fd2-75886684c13a",
       "amount": "8500",
@@ -2005,7 +2005,7 @@ const SEED = {
     {
       "id": "30ea7e21-dcec-451c-aaa1-361ff3c889e8",
       "description": "Invitations and Stationery",
-      "category": "Invitations/Stationery",
+      "category": "Invitations & Stationery",
       "vendor": "",
       "vendorId": "",
       "amount": "650",
@@ -2019,7 +2019,7 @@ const SEED = {
     {
       "id": "35cab954-1eb7-4a8e-954a-4cd9bceabdbd",
       "description": "Kippot \u2014 Temple Sisterhood",
-      "category": "Other",
+      "category": "Miscellaneous",
       "vendor": "Temple Beth Springfield",
       "vendorId": "87e37e59-ea1b-4e7a-9543-f4fae0e10971",
       "amount": "180",
@@ -2033,7 +2033,7 @@ const SEED = {
     {
       "id": "482af73b-d9c6-4e8c-9f0e-6d0c5fb2e640",
       "description": "Hair and Makeup \u2014 Marge Simpson",
-      "category": "Hair/Makeup",
+      "category": "Hair & Makeup",
       "vendor": "",
       "vendorId": "",
       "amount": "350",
@@ -2047,7 +2047,7 @@ const SEED = {
     {
       "id": "b9cc46c6-8fd1-40f8-9e2a-51160da660e5",
       "description": "Springfield Florist \u2014 Centerpieces Quote",
-      "category": "Florals/Decor",
+      "category": "Florals & Decor",
       "vendor": "Springfield Florist",
       "vendorId": "0749dc45-fb72-413c-9cda-654e8bbe860f",
       "amount": "1200",
@@ -2472,7 +2472,7 @@ const SEED = {
     {
       "id": "abbc5830-1ced-47a3-9d71-816461fd3e71",
       "task": "Final guest count to Springfield Country Club",
-      "category": "Catering",
+      "category": "Catering & Bar",
       "priority": "High",
       "due": "2027-10-09",
       "done": false,
@@ -2481,7 +2481,7 @@ const SEED = {
     {
       "id": "992cff9a-d16a-4f04-ae26-9559919064d2",
       "task": "Send allergy and dietary restrictions to caterer",
-      "category": "Catering",
+      "category": "Catering & Bar",
       "priority": "High",
       "due": "2027-10-09",
       "done": false,
