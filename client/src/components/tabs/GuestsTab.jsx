@@ -359,15 +359,20 @@ export function HouseholdModal({ household, members, adminConfig, onSave, onClos
                   <label className="form-label">Dietary Notes</label>
                   <input className="form-input" value={p.dietary} onChange={e=>setPF(p.id,"dietary",e.target.value)} placeholder="Allergies, preferences, restrictions..." />
                 </div>
-                <div style={{display:"flex",gap:20,flexWrap:"wrap"}}>
-                  <label style={{display:"flex",alignItems:"center",gap:7,fontSize:13,cursor:"pointer"}}>
-                    <input type="checkbox" checked={!!p.isChild} onChange={e=>setPF(p.id,"isChild",e.target.checked)} style={{width:15,height:15,accentColor:"var(--accent-primary)"}} />
-                    Child
-                  </label>
-                  <label style={{display:"flex",alignItems:"center",gap:7,fontSize:13,cursor:"pointer"}}>
-                    <input type="checkbox" checked={!!p.kosher} onChange={e=>setPF(p.id,"kosher",e.target.checked)} style={{width:15,height:15,accentColor:"var(--accent-primary)"}} />
-                    Kosher meal required
-                  </label>
+                <div className="form-grid-2">
+                  <div className="form-group" style={{marginBottom:10}}>
+                    <label className="form-label">Age</label>
+                    <select className="form-select" value={p.isChild?"child":"adult"} onChange={e=>setPF(p.id,"isChild",e.target.value==="child")}>
+                      <option value="adult">Adult</option>
+                      <option value="child">Child</option>
+                    </select>
+                  </div>
+                  <div className="form-group" style={{marginBottom:10}}>
+                    <label style={{display:"flex",alignItems:"center",gap:7,fontSize:13,cursor:"pointer"}}>
+                      <input type="checkbox" checked={!!p.kosher} onChange={e=>setPF(p.id,"kosher",e.target.checked)} style={{width:15,height:15,accentColor:"var(--accent-primary)"}} />
+                      Kosher meal required
+                    </label>
+                  </div>
                 </div>
               </div>
             ))}
@@ -616,15 +621,20 @@ export function HouseholdModal({ household, members, adminConfig, onSave, onClos
                   <label className="form-label">Dietary Notes</label>
                   <input className="form-input" value={p.dietary} onChange={e=>setPF(p.id,"dietary",e.target.value)} placeholder="Allergies, preferences, restrictions..." />
                 </div>
-                <div style={{display:"flex",gap:20,flexWrap:"wrap"}}>
-                  <label style={{display:"flex",alignItems:"center",gap:7,fontSize:13,cursor:"pointer"}}>
-                    <input type="checkbox" checked={!!p.isChild} onChange={e=>setPF(p.id,"isChild",e.target.checked)} style={{width:15,height:15,accentColor:"var(--accent-primary)"}} />
-                    Child
-                  </label>
-                  <label style={{display:"flex",alignItems:"center",gap:7,fontSize:13,cursor:"pointer"}}>
-                    <input type="checkbox" checked={!!p.kosher} onChange={e=>setPF(p.id,"kosher",e.target.checked)} style={{width:15,height:15,accentColor:"var(--accent-primary)"}} />
-                    Kosher meal required
-                  </label>
+                <div className="form-grid-2">
+                  <div className="form-group" style={{marginBottom:10}}>
+                    <label className="form-label">Age</label>
+                    <select className="form-select" value={p.isChild?"child":"adult"} onChange={e=>setPF(p.id,"isChild",e.target.value==="child")}>
+                      <option value="adult">Adult</option>
+                      <option value="child">Child</option>
+                    </select>
+                  </div>
+                  <div className="form-group" style={{marginBottom:10}}>
+                    <label style={{display:"flex",alignItems:"center",gap:7,fontSize:13,cursor:"pointer"}}>
+                      <input type="checkbox" checked={!!p.kosher} onChange={e=>setPF(p.id,"kosher",e.target.checked)} style={{width:15,height:15,accentColor:"var(--accent-primary)"}} />
+                      Kosher meal required
+                    </label>
+                  </div>
                 </div>
               </div>
             ))}

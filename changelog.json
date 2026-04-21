@@ -1,9 +1,19 @@
 {
-  "current": "V3.2.4",
+  "current": "V3.2.5",
   "whatsNew": [
     "⭐ Favors tab rebuilt with full V2 features — inline setup, available guest panel, conditional columns, and one-click add from your guest list"
   ],
   "changelog": [
+    {
+      "version": "V3.2.5",
+      "date": "2026-04-20",
+      "type": "fix",
+      "summary": "GuestsTab — Attending Sub-Events filtered to household's invited sub-events",
+      "changes": [
+        "Person form Attending Sub-Events was showing all sub-events regardless of which ones the household was invited to. Now derives availableSections filtered to hh.invitedSections (matching V2 behavior exactly). Hint 'Only sub-events the household is invited to are shown' added when household has invited sections configured.",
+        "V2: GuestsTab — replaced inline 'Child' checkbox on person records with Age select dropdown (Adult/Child) matching V3. Kosher meal required checkbox moved alongside Age in a two-column layout. isChild field unchanged."
+      ]
+    },
     {
       "version": "V3.2.4",
       "date": "2026-04-20",

@@ -299,8 +299,8 @@ export function GuestsTab({ eventId, event, adminConfig, showToast, isArchived, 
             <option value="All">All Statuses</option>
             {RSVP_STATUSES.map(s=><option key={s} value={s}>{s}</option>)}
           </select>
-          <button className={`btn btn-sm ${outOfTownFilter?"btn-primary":"btn-secondary"}`} onClick={()=>setOutOfTownFilter(f=>!f)}>🧳 Out of Town{outOfTownFilter?" ✓":""}</button>
-          <button className={`btn btn-sm ${missingAddressFilter?"btn-primary":"btn-secondary"}`} onClick={()=>setMissingAddressFilter(f=>!f)}>📭 No Address{missingAddressFilter?" ✓":""}</button>
+          <button className={`btn btn-sm ${outOfTownFilter?"btn-primary":"btn-secondary"}`} title="Show out-of-town households only" onClick={()=>setOutOfTownFilter(f=>!f)}>🧳 Out of Town{outOfTownFilter?" ✓":""}</button>
+          <button className={`btn btn-sm ${missingAddressFilter?"btn-primary":"btn-secondary"}`} title="Show households missing a mailing address" onClick={()=>setMissingAddressFilter(f=>!f)}>📭 No Address{missingAddressFilter?" ✓":""}</button>
         </div>
       </div>
 
@@ -606,11 +606,15 @@ export function HouseholdModal({ household, members, adminConfig, onSave, onClos
           <select className="form-select" value={p.isChild?"child":"adult"} onChange={e=>setPF(p.id,"isChild",e.target.value==="child")}><option value="adult">Adult</option><option value="child">Child</option></select>
         </div>
       </div>
-      {sections.length>0 && (
+      {sections.length>0 && (() => {
+        const availableSections = (hh.invitedSections || []).length > 0
+          ? sections.filter(s => (hh.invitedSections || []).includes(s.id))
+          : sections;
+        return availableSections.length > 0 ? (
         <div className="form-group" style={{marginBottom:10}}>
           <label className="form-label">Attending Sub-Events</label>
           <div style={{display:"flex",flexWrap:"wrap",gap:5,marginTop:2}}>
-            {sections.map(s=>(
+            {availableSections.map(s=>(
               <label key={s.id} style={{display:"flex",alignItems:"center",gap:5,fontSize:12,cursor:"pointer",background:"var(--bg-surface)",border:"1px solid var(--border)",borderRadius:"var(--radius-sm)",padding:"3px 8px"}}>
                 <input type="checkbox" checked={(p.attendingSections||[]).includes(s.id)}
                   onChange={e=>{const cur=p.attendingSections||[];setPF(p.id,"attendingSections",e.target.checked?[...cur,s.id]:cur.filter(x=>x!==s.id));}}
@@ -619,8 +623,12 @@ export function HouseholdModal({ household, members, adminConfig, onSave, onClos
               </label>
             ))}
           </div>
+          {(hh.invitedSections || []).length > 0 && (
+            <div className="form-hint">Only sub-events the household is invited to are shown.</div>
+          )}
         </div>
-      )}
+        ) : null;
+      })()}
       <div className="form-grid-2">
         <div className="form-group" style={{marginBottom:10}}>
           <label className="form-label">Shirt Size</label>
@@ -655,7 +663,7 @@ export function HouseholdModal({ household, members, adminConfig, onSave, onClos
             <div className="modal-title">{isEdit?"Edit Household":"Add Household"}</div>
             {!isEdit && <div style={{fontSize:12,color:"var(--text-muted)",marginTop:2}}>Step {step} of 2 — {step===1?"Household Details":"Members"}</div>}
           </div>
-          <button className="icon-btn" onClick={onClose}>✕</button>
+          <button className="icon-btn" title="Close" onClick={onClose}>✕</button>
         </div>
         {isEdit && (
           <div className="hh-modal-tabs">
@@ -678,8 +686,16 @@ export function HouseholdModal({ household, members, adminConfig, onSave, onClos
               <label className="form-label">RSVP Date</label>
               <input className="form-input" type="date" value={hh.rsvpDate} onChange={e=>setHHF("rsvpDate",e.target.value)} />
               {hh.rsvpDate && <div style={{fontSize:11,color:"var(--text-muted)",marginTop:3}}>{new Date(hh.rsvpDate+"T00:00:00").toLocaleDateString("en-US",{weekday:"short",year:"numeric",month:"short",day:"numeric"})}</div>}
+            {hh.rsvpDate && new Date(hh.rsvpDate+"T00:00:00") > new Date(Date.now() + 30*24*60*60*1000) && (
+              <div style={{fontSize:11,color:"var(--gold,#b45309)",marginTop:3}}>&#9888; Date is more than 30 days in the future</div>
+            )}
             </div>
-            <div className="form-grid-2" style={{marginBottom:0}}>
+            <div style={{background:"var(--green-light,rgba(34,197,94,0.08))",border:"1px solid var(--green,#16a34a)",borderRadius:"var(--radius-sm)",padding:"12px 14px",marginBottom:16}}>
+              <div style={{fontSize:12,fontWeight:700,color:"var(--green)",textTransform:"uppercase",letterSpacing:"0.04em",marginBottom:4}}>Attending Count Override</div>
+              <div style={{fontSize:12,color:"var(--green)",marginBottom:10,lineHeight:1.5}}>
+                Leave blank to use the count from individual members. Set these only when fewer people are attending than invited.
+              </div>
+              <div className="form-grid-2" style={{marginBottom:0}}>
               <div className="form-group" style={{marginBottom:0}}>
                 <label className="form-label">Attending Adults</label>
                 <input className="form-input" type="number" min="0"
@@ -694,6 +710,7 @@ export function HouseholdModal({ household, members, adminConfig, onSave, onClos
                   onChange={e=>setHHF("attendingKids", e.target.value==="" ? null : Math.max(0, parseInt(e.target.value)||0))}
                   placeholder="Default: computed from members" />
               </div>
+            </div>
             </div>
             {sections.length>0 && (
               <div className="form-group">
@@ -726,6 +743,15 @@ export function HouseholdModal({ household, members, adminConfig, onSave, onClos
               </div>
               <div className="form-group"><label className="form-label">{getAddressFields(hh.country).postalLabel}</label><input className="form-input" value={hh.postalCode||""} onChange={e=>setHHF("postalCode",e.target.value)} placeholder="Postal code" /></div>
             </div>
+            {(() => {
+              const v = hh.postalCode || "";
+              let invalid = false;
+              if (hh.country === "United States")  invalid = !/^\d{5}(-\d{4})?$/.test(v) && v.length > 0;
+              else if (hh.country === "Canada")        invalid = !/^[A-Za-z]\d[A-Za-z][ -]?\d[A-Za-z]\d$/.test(v) && v.length > 0;
+              else if (hh.country === "United Kingdom") invalid = !/^[A-Za-z]{1,2}\d/.test(v) && v.length > 0;
+              else if (hh.country === "Australia")      invalid = !/^\d{4}$/.test(v) && v.length > 0;
+              return invalid ? <div style={{fontSize:11,color:"var(--gold,#b45309)",marginTop:3}}>⚠ Format looks off for {hh.country}</div> : null;
+            })()}
             <div className="form-grid-2">
               <div className="form-group"><label className="form-label">Phone</label><input className="form-input" value={hh.phone} onChange={e=>setHHF("phone",e.target.value)} onBlur={e=>setHHF("phone",formatPhone(e.target.value))} placeholder="(555) 555-1234" /></div>
               <div className="form-group"><label className="form-label">Email</label><input className="form-input" value={hh.email} onChange={e=>setHHF("email",e.target.value)} onBlur={e=>setHHF("email",e.target.value.toLowerCase().trim())} placeholder="email@example.com" /></div>
@@ -776,13 +802,14 @@ export function HouseholdModal({ household, members, adminConfig, onSave, onClos
                 </div>
                 <div style={{display:"flex",gap:8,alignItems:"flex-start"}}>
                   <input className="form-input" style={{flex:1}} value={c.notes||""} onChange={e=>updateHHContact(c.id,"notes",e.target.value)} placeholder="Notes about this contact…" />
-                  <button className="icon-btn" style={{color:"var(--red)",flexShrink:0,marginTop:2}} onClick={()=>deleteHHContact(c.id)}>✕</button>
+                  <button className="icon-btn" title="Remove contact" style={{color:"var(--red)",flexShrink:0,marginTop:2}} onClick={()=>deleteHHContact(c.id)}>✕</button>
                 </div>
               </div>
             ))}
           </>)}
 
           <div className="modal-footer">
+            <span style={{fontSize:11,color:"var(--text-muted)",marginRight:"auto"}}>* required</span>
             {!isEdit && step===1 && <><button className="btn btn-ghost" onClick={onClose}>Cancel</button><button className="btn btn-primary" onClick={()=>setStep(2)} disabled={!hh.formalName.trim()}>Next: Members →</button></>}
             {!isEdit && step===2 && <><button className="btn btn-secondary" onClick={()=>setStep(1)}>← Back</button><button className="btn btn-primary" onClick={handleSave} disabled={!hh.formalName.trim()}>Add Household</button></>}
             {isEdit && <><button className="btn btn-ghost" onClick={onClose}>Cancel</button><button className="btn btn-primary" onClick={handleSave} disabled={!hh.formalName.trim()||isArchived}>Save Changes</button></>}
@@ -854,7 +881,7 @@ export function ImportModal({ adminConfig, onImport, onClose }) {
   return (
     <div className="modal-backdrop" onMouseDown={e=>{if(e.target===e.currentTarget)onClose();}}>
       <div className="modal modal-lg" onClick={e=>e.stopPropagation()}>
-        <div className="modal-header"><div className="modal-title">Import Guests</div><button className="icon-btn" onClick={onClose}>✕</button></div>
+        <div className="modal-header"><div className="modal-title">Import Guests</div><button className="icon-btn" title="Close" onClick={onClose}>✕</button></div>
         <div className="modal-body">
           {stage==="upload" && (<>
             <div className="alert alert-info" style={{marginBottom:16}}>Upload any CSV file — SimchaKit will detect your columns automatically.</div>
@@ -919,7 +946,7 @@ export function TimelineEntryModal({ entry, onSave, onClose }) {
   return (
     <div className="modal-backdrop" onMouseDown={e=>{if(e.target===e.currentTarget)onClose();}}>
       <div className="modal" style={{maxWidth:480}} onClick={e=>e.stopPropagation()}>
-        <div className="modal-header"><div className="modal-title">{isEdit?"Edit Timeline Event":"Add Timeline Event"}</div><button className="icon-btn" onClick={onClose}>✕</button></div>
+        <div className="modal-header"><div className="modal-title">{isEdit?"Edit Timeline Event":"Add Timeline Event"}</div><button className="icon-btn" title="Close" onClick={onClose}>✕</button></div>
         <div className="modal-body">
           <div className="form-grid-2">
             <div className="form-group" style={{flex:"0 0 80px"}}><label className="form-label">Icon</label><input className="form-input" value={form.icon} onChange={e=>setF("icon",e.target.value)} placeholder="📅" style={{textAlign:"center",fontSize:20}} maxLength={4} /></div>
@@ -968,7 +995,7 @@ export function GuestExportModal({ households, people, tables, adminConfig, onPr
   return (
     <div className="modal-backdrop" onMouseDown={e=>{if(e.target===e.currentTarget)onClose();}}>
       <div className="modal modal-lg" style={{maxWidth:640}} onClick={e=>e.stopPropagation()}>
-        <div className="modal-header"><div className="modal-title">Export Guest List</div><button className="icon-btn" onClick={onClose}>✕</button></div>
+        <div className="modal-header"><div className="modal-title">Export Guest List</div><button className="icon-btn" title="Close" onClick={onClose}>✕</button></div>
         <div className="modal-body">
           <div style={{display:"flex",gap:10,marginBottom:20,flexWrap:"wrap"}}>
             <button style={OPTION("byHousehold")} onClick={()=>{setActiveExport("byHousehold");setCopied(false);}}><div style={{fontSize:22,marginBottom:6}}>🏠</div><div style={{fontWeight:700,fontSize:13,marginBottom:4}}>By Household</div><div style={{fontSize:11,color:"var(--text-muted)",lineHeight:1.5}}>One row per household with RSVP, headcount, address.</div></button>
