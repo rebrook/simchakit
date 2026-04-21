@@ -353,14 +353,19 @@ export function AdminPanel({ eventId, password, config, onClose, onConfigSaved, 
   };
 
   // ── Generate backup (fetch from Supabase) ─────────────────────────────────
+  const [backupCounts, setBackupCounts] = useState(null);
+
   const generateBackup = async () => {
     setBackupLoading(true);
     const COLLECTIONS = ["households","people","expenses","vendors","tasks","prep","tables","gifts","favors","ceremony_roles","seating","audit_log"];
     const result = { exportedAt: new Date().toISOString(), eventId, adminConfig: form };
+    const counts = {};
     await Promise.all(COLLECTIONS.map(async (col) => {
       const { data } = await supabase.from(col).select("id, data, created_at, updated_at").eq("event_id", eventId);
       result[col] = (data || []).map(r => ({ ...(r.data || {}), _rowId: r.id }));
+      counts[col] = result[col].length;
     }));
+    setBackupCounts(counts);
     setBackupData(JSON.stringify(result, null, 2));
     setBackupLoading(false);
     setBackupModal(true);
@@ -566,6 +571,7 @@ export function AdminPanel({ eventId, password, config, onClose, onConfigSaved, 
                 <div className="admin-section-title">Guest Groups</div>
                 <p style={{fontSize:13,color:"var(--text-secondary)",lineHeight:1.6,marginBottom:12}}>
                   Groups appear as filter options in the Guests tab and as dropdown choices when adding or editing households.
+                  Drag to reorder — order here matches the order in the Guests tab filter.
                 </p>
                 <div style={{display:"flex",flexDirection:"column",gap:6,marginBottom:10}}>
                   {(form.groups||[]).map((g,i) => (
@@ -593,6 +599,7 @@ export function AdminPanel({ eventId, password, config, onClose, onConfigSaved, 
                 <div className="admin-section-title">Meal Choices</div>
                 <p style={{fontSize:13,color:"var(--text-secondary)",lineHeight:1.6,marginBottom:12}}>
                   Meal choices appear in the household meal selection dropdown and in the Catering Summary.
+                  Set these before entering guest data so selections are consistent.
                 </p>
                 <div style={{display:"flex",flexDirection:"column",gap:6,marginBottom:10}}>
                   {(form.mealChoices||[]).map((m,i) => (
@@ -884,7 +891,7 @@ export function AdminPanel({ eventId, password, config, onClose, onConfigSaved, 
               <div className="admin-section">
                 <div className="admin-section-title">Access Passcode</div>
                 <div className="admin-section-desc">
-                  Require a passcode before the event dashboard loads. Anyone with the direct event URL must enter this passcode to view the dashboard.
+                  Require a passcode before the event dashboard loads. Anyone with the direct event URL must enter this passcode to view the dashboard. Separate from your Admin Mode password.
                 </div>
                 {config?.accessPasscode && <div className="alert alert-success" style={{marginBottom:12}}>🔒 An access passcode is currently set.</div>}
                 {passcodeMsg && <div className={`alert ${passcodeMsg.startsWith("✓")?"alert-success":"alert-error"}`} style={{marginBottom:12}}>{passcodeMsg}</div>}
@@ -914,6 +921,28 @@ export function AdminPanel({ eventId, password, config, onClose, onConfigSaved, 
                 <p style={{fontSize:13,color:"var(--text-secondary)",lineHeight:1.6,marginBottom:16}}>
                   Creates a complete JSON snapshot of all event data. Save it somewhere safe before making large changes or archiving.
                 </p>
+                <div style={{background:"var(--bg-subtle)",border:"1px solid var(--border)",borderRadius:"var(--radius-md)",padding:"14px 16px",marginBottom:16}}>
+                  <div style={{display:"flex",justifyContent:"space-between",flexWrap:"wrap",gap:8,fontSize:12,color:"var(--text-muted)"}}>
+                    {[
+                      ["Households", "households"],
+                      ["People",     "people"],
+                      ["Expenses",   "expenses"],
+                      ["Vendors",    "vendors"],
+                      ["Tasks",      "tasks"],
+                      ["Gifts",      "gifts"],
+                      ["Favors",     "favors"],
+                      ["Tables",     "tables"],
+                    ].map(([label, key]) => (
+                      <div key={label} style={{textAlign:"center",minWidth:64}}>
+                        <div style={{fontSize:20,fontWeight:800,color:"var(--text-primary)",fontFamily:"var(--font-display)"}}>
+                          {backupCounts ? (backupCounts[key] ?? 0) : "—"}
+                        </div>
+                        <div style={{fontSize:11,textTransform:"uppercase",letterSpacing:"0.04em"}}>{label}</div>
+                      </div>
+                    ))}
+                  </div>
+                  {!backupCounts && <div style={{fontSize:11,color:"var(--text-muted)",marginTop:8,textAlign:"center"}}>Counts loaded when backup is generated</div>}
+                </div>
                 <button className="btn btn-primary" onClick={generateBackup} disabled={backupLoading}>
                   {backupLoading ? "Building backup…" : "↓ Export Backup"}
                 </button>
@@ -937,8 +966,9 @@ export function AdminPanel({ eventId, password, config, onClose, onConfigSaved, 
                       Upload a previously exported SimchaKit backup file (.json) to replace all current event data.
                     </p>
                     <div style={{background:"var(--bg-subtle)",border:"1px solid var(--border)",borderRadius:"var(--radius-md)",padding:"12px 14px",marginBottom:14,fontSize:13,lineHeight:1.7}}>
-                      <strong>What is preserved:</strong> your admin password, event configuration, and archived status.<br/>
-                      <strong style={{color:"var(--red)"}}>This cannot be undone.</strong> Export a fresh backup first.
+                      <strong>What this restores:</strong> guests, people, budget, vendors, tasks, prep, seating, gifts, favors, ceremony roles, and notes.<br/>
+                      <strong>What is preserved:</strong> your admin password, event configuration (name, theme, timeline), and archived status.<br/>
+                      <strong style={{color:"var(--red)"}}>This cannot be undone.</strong> Export a fresh backup first if you want to save your current data.
                     </div>
                     <div style={{fontSize:12,fontWeight:700,color:"var(--text-muted)",textTransform:"uppercase",letterSpacing:"0.04em",marginBottom:6}}>Step 1 — Select your backup file</div>
                     <input type="file" accept=".json" style={{fontSize:13,marginBottom:14,display:"block"}}
@@ -1020,7 +1050,7 @@ export function AdminPanel({ eventId, password, config, onClose, onConfigSaved, 
       {tlDelete && (
         <div className="modal-backdrop" onMouseDown={e => { if (e.target===e.currentTarget) setTlDelete(null); }}>
           <div className="modal" style={{maxWidth:380}} onClick={e=>e.stopPropagation()}>
-            <div className="modal-header"><div className="modal-title">Delete Timeline Entry</div><button className="icon-btn" onClick={()=>setTlDelete(null)}>✕</button></div>
+            <div className="modal-header"><div className="modal-title">Delete Timeline Entry</div><button className="icon-btn" title="Close" onClick={()=>setTlDelete(null)}>✕</button></div>
             <div className="modal-body">
               <p style={{fontSize:14,color:"var(--text-primary)",lineHeight:1.6}}>Delete <strong>{tlDelete.title}</strong>? This cannot be undone.</p>
               <div className="modal-footer"><button className="btn btn-ghost" onClick={()=>setTlDelete(null)}>Cancel</button><button className="btn btn-danger" onClick={()=>handleTlDelete(tlDelete.id)}>Delete</button></div>
@@ -1033,12 +1063,23 @@ export function AdminPanel({ eventId, password, config, onClose, onConfigSaved, 
       {backupModal && (
         <div className="modal-backdrop" onMouseDown={e => { if (e.target===e.currentTarget){setBackupModal(false);setBackupCopied(false);} }}>
           <div className="modal modal-lg" style={{maxWidth:600}} onClick={e=>e.stopPropagation()}>
-            <div className="modal-header"><div className="modal-title">↓ Export Full Backup</div><button className="icon-btn" onClick={()=>{setBackupModal(false);setBackupCopied(false);}}>✕</button></div>
+            <div className="modal-header"><div className="modal-title">↓ Export Full Backup</div><button className="icon-btn" title="Close" onClick={()=>{setBackupModal(false);setBackupCopied(false);}}>✕</button></div>
             <div className="modal-body">
               <p style={{fontSize:13,color:"var(--text-secondary)",marginBottom:12,lineHeight:1.6}}>Copy the JSON below and save it to a file as a complete snapshot of your event data.</p>
               <textarea readOnly value={backupData||""} onClick={e=>e.target.select()} style={{width:"100%",minHeight:220,fontFamily:"var(--font-mono,monospace)",fontSize:11,background:"var(--bg-subtle)",border:"1px solid var(--border)",borderRadius:"var(--radius-sm)",padding:"10px 12px",color:"var(--text-secondary)",resize:"vertical",outline:"none"}} />
               <div className="modal-footer" style={{marginTop:12}}>
                 <button className="btn btn-ghost" onClick={()=>{setBackupModal(false);setBackupCopied(false);}}>Close</button>
+                <button className="btn btn-secondary" onClick={() => {
+                  const blob = new Blob([backupData||""], { type: "application/json" });
+                  const url  = URL.createObjectURL(blob);
+                  const a    = document.createElement("a");
+                  a.href     = url;
+                  a.download = `simchakit-backup-${eventId}-${new Date().toISOString().slice(0,10)}.json`;
+                  a.click();
+                  URL.revokeObjectURL(url);
+                }}>
+                  ⬇ Download File
+                </button>
                 <button className="btn btn-primary" onClick={()=>navigator.clipboard.writeText(backupData||"").then(()=>{setBackupCopied(true);setTimeout(()=>setBackupCopied(false),2500);})}>
                   {backupCopied?"✓ Copied!":"Copy to Clipboard"}
                 </button>
@@ -1054,10 +1095,18 @@ export function AdminPanel({ eventId, password, config, onClose, onConfigSaved, 
           <div className="modal" onClick={e=>e.stopPropagation()}>
             <div className="modal-header"><div className="modal-title">Unarchive Event</div><button className="icon-btn" onClick={()=>setShowUnarchive(false)}>✕</button></div>
             <div className="modal-body">
-              <p style={{fontSize:13,color:"var(--text-secondary)",lineHeight:1.6,marginBottom:16}}>You will need your <strong>admin password</strong> and the <strong>unlock code</strong> set when the event was archived.</p>
+              <p style={{fontSize:13,color:"var(--text-secondary)",lineHeight:1.6,marginBottom:16}}>
+                Unarchiving restores the event to fully editable. You will need two things:
+                your <strong>admin password</strong> and the <strong>unlock code</strong> you set
+                when the event was archived.
+              </p>
               {unarchiveMsg && <div className="alert alert-error" style={{marginBottom:12}}>{unarchiveMsg}</div>}
               <div className="form-group"><label className="form-label">Admin Password</label><input className="form-input" type="password" value={unarchivePass} onChange={e=>setUnarchivePass(e.target.value)} placeholder="Your admin password" /></div>
-              <div className="form-group"><label className="form-label">Archive Unlock Code</label><input className="form-input" type="password" value={unarchiveCode} onChange={e=>setUnarchiveCode(e.target.value)} placeholder="The code you set when archiving" /></div>
+              <div className="form-group">
+                <label className="form-label">Archive Unlock Code</label>
+                <input className="form-input" type="password" value={unarchiveCode} onChange={e=>setUnarchiveCode(e.target.value)} placeholder="The code you set when archiving" />
+                <div className="form-hint">This is the separate unlock code set at archive time, not your admin password.</div>
+              </div>
               <div className="modal-footer">
                 <button className="btn btn-ghost" onClick={()=>setShowUnarchive(false)}>Cancel</button>
                 <button className="btn btn-primary" disabled={unarchiving||!unarchivePass||!unarchiveCode} onClick={handleUnarchive}>{unarchiving?"Unarchiving…":"Unarchive Event"}</button>
@@ -1073,7 +1122,23 @@ export function AdminPanel({ eventId, password, config, onClose, onConfigSaved, 
           <div className="modal" onClick={e=>e.stopPropagation()}>
             <div className="modal-header"><div className="modal-title">Reset Event Data</div><button className="icon-btn" onClick={()=>setShowReset(false)}>✕</button></div>
             <div className="modal-body">
-              <p style={{fontSize:13,color:"var(--text-secondary)",lineHeight:1.6,marginBottom:12}}>This will permanently delete all planning data for this event.</p>
+              <p style={{fontSize:13,color:"var(--text-secondary)",lineHeight:1.6,marginBottom:12}}>
+                This will permanently delete all planning data for this event:
+              </p>
+              <ul style={{fontSize:13,color:"var(--text-secondary)",lineHeight:2,marginBottom:12,paddingLeft:20}}>
+                <li>All guests and household records</li>
+                <li>All expenses and budget entries</li>
+                <li>All vendors</li>
+                <li>All tasks</li>
+                <li>All prep items</li>
+                <li>All seating tables and assignments</li>
+                <li>All gifts and favors</li>
+                <li>Quick notes</li>
+              </ul>
+              <p style={{fontSize:13,color:"var(--text-secondary)",lineHeight:1.6,marginBottom:16}}>
+                <strong>Your event configuration will be kept</strong> — the event name, type, timeline,
+                theme, accommodations settings, and admin password are not affected.
+              </p>
               <p style={{fontSize:13,color:"var(--red)",fontWeight:600,lineHeight:1.6,marginBottom:16}}>⚠ This cannot be undone. Export a backup first if you need this data.</p>
               {resetMsg && <div className="alert alert-error" style={{marginBottom:12}}>{resetMsg}</div>}
               <div className="form-group">

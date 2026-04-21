@@ -1,15 +1,37 @@
 {
-  "current": "V3.3.7",
+  "current": "V3.3.8",
   "whatsNew": [
-    "FavorsTab: Full V2 parity \u2014 field names corrected to match Supabase schema",
-    "FavorsTab: printName, preprint, attending restored as string fields (TBD/Yes/No)",
-    "FavorsTab: Sub-event distribution field restored to Favor Setup card",
-    "FavorsTab: Delete confirm modal, FavorExportModal, and print preview restored",
-    "FavorsTab: Tooltip (i) info popovers on Name on Favor and Pre-Printed columns",
-    "FavorsTab: FavorModal restored to full V2 spec including all hint text",
-    "Guide: Favors section fully rewritten \u2014 5 items covering setup, available panel, inline editing, size/category, export"
+    "AdminPanel: Download File button added to backup export modal",
+    "AdminPanel: Record counts panel added to Data section",
+    "AdminPanel: Restore info box restored to full V2 text",
+    "AdminPanel: Reset modal restored with bullet list and full preservation text",
+    "AdminPanel: Unarchive modal intro text and unlock code hint restored",
+    "AdminPanel: Guest Groups and Meal Choices descriptions restored to full V2 text",
+    "AdminPanel: Access Passcode description restored to full V2 text"
   ],
   "changelog": [
+    {
+      "version": "V3.3.8",
+      "date": "2026-04-21",
+      "type": "fix",
+      "summary": "AdminPanel \u2014 9 V2 parity gaps closed. Architecture (Supabase endpoints) correct and preserved.",
+      "changes": [
+        "Gap 3: Download File button added to backup export modal \u2014 generates a .json blob download using URL.createObjectURL.",
+        "Gap 4: Record counts panel added to Data section \u2014 shows Households, People, Expenses, Vendors, Tasks, Gifts, Favors, Tables. Shows dashes until backup is generated, then shows live counts from Supabase fetch.",
+        "Gap 4b: backupCounts state added; generateBackup now populates counts alongside backup data.",
+        "Gap 5: Restore info box text restored to full V2 \u2014 includes \"What this restores\" list and \"What is preserved\" line.",
+        "Gap 6: Reset modal restored with 8-bullet <ul> list of deleted collections matching V2.",
+        "Gap 7: Reset modal \"What is preserved\" paragraph restored to include accommodations settings.",
+        "Gap 8: Unarchive modal intro text restored to full V2 \u2014 \"You will need two things: your admin password and the unlock code you set when the event was archived.\"",
+        "Gap 9: form-hint added to Archive Unlock Code field in Unarchive modal.",
+        "Gap 11: Guest Groups description restored to include \"Drag to reorder \u2014 order here matches the order in the Guests tab filter.\"",
+        "Gap 12: Meal Choices description restored to include \"Set these before entering guest data so selections are consistent.\"",
+        "Gap 14: title=Close added to timeline delete modal X button.",
+        "Gap 15: title=Close added to backup export modal X button.",
+        "Gap 17: Access Passcode description restored to include \"Separate from your Admin Mode password.\"",
+        "No V2 changes. Architecture differences (Supabase vs NAS REST) are intentional V3 adaptations and preserved."
+      ]
+    },
     {
       "version": "V3.3.7",
       "date": "2026-04-21",
