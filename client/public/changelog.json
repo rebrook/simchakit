@@ -1,15 +1,20 @@
 {
-  "current": "V3.3.10",
+  "current": "V3.3.11",
   "whatsNew": [
-    "AppShell: Print Brief fully wired \u2014 generates and displays event brief PDF preview",
-    "AppShell: Tab badges restored \u2014 Guests, Budget (unpaid), Tasks (undone), Accommodations (out-of-town unnotified)",
-    "AppShell: Exit Admin Mode button (\ud83d\udd13) restored to header",
-    "AppShell: Day-of Mode pulse button restored to header on event days",
-    "AppShell: Archived banner Unarchive buttons restored",
-    "AppShell: App version shown in footer with What's New click handler",
-    "AppShell: Overflow menu order, Guide label, and Day-of conditional all restored to V2 spec"
+    "AppShell: Print Brief now populates vendors, guests, tasks, and ceremony roles correctly"
   ],
   "changelog": [
+    {
+      "version": "V3.3.11",
+      "date": "2026-04-21",
+      "type": "fix",
+      "summary": "AppShell \u2014 Print Brief data fix: generateEventBriefHTML now receives full collection data",
+      "changes": [
+        "Bug: generateEventBriefHTML was receiving the raw event row (id, name, type only) instead of collection data \u2014 vendors, guests, tasks, and ceremony roles all showed empty.",
+        "Fix: Added useEventData hooks for vendors and ceremony_roles at AppShell level (alongside existing badge hooks). Both onPrintBrief calls (tabProps and DayOfOverlay) now pass a full state object: { people, households, expenses, vendors, tasks, ceremonyRoles }.",
+        "exports_v3.js requires no changes \u2014 generateEventBriefHTML signature is identical to V2 and correct."
+      ]
+    },
     {
       "version": "V3.3.10",
       "date": "2026-04-21",

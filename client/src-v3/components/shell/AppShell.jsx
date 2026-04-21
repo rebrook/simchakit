@@ -225,13 +225,14 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false }) {
   const { items: _badgeHouseholds }   = useEventData(eventId, "households");
   const { items: _badgeExpenses }     = useEventData(eventId, "expenses");
   const { items: _badgeTasks }        = useEventData(eventId, "tasks");
+  const { items: _badgeVendors }      = useEventData(eventId, "vendors");
+  const { items: _ceremonyRoles }     = useEventData(eventId, "ceremony_roles");
 
   const guestBadge  = _badgePeople.length || null;
   const budgetBadge = _badgeExpenses.filter(e => !e.paid).length || null;
   const tasksBadge  = _badgeTasks.filter(t => !t.done && !t.dismissed).length || null;
   const accomBadge  = _badgeHouseholds.filter(h => h.outOfTown && !h.accomNotified).length || null;
   const moreBadge   = [accomBadge].some(b => b != null && b > 0);
-
   const ALL_TABS = [
     { id: "overview",       icon: "✦",  label: "Overview"                        },
     { id: "guests",         icon: "👥", label: "Guests",        badge: guestBadge  },
@@ -328,7 +329,10 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false }) {
     onOpenAdmin:   () => openAdmin("event"),
     onOpenAdminTo: openAdmin,
     onOpenGuide:          () => setShowGuide(true),
-    onPrintBrief:         () => setBriefHTML(generateEventBriefHTML(event, adminConfig)),
+    onPrintBrief:         () => setBriefHTML(generateEventBriefHTML(
+      { people: _badgePeople, households: _badgeHouseholds, expenses: _badgeExpenses, vendors: _badgeVendors, tasks: _badgeTasks, ceremonyRoles: _ceremonyRoles },
+      adminConfig
+    )),
     onConfigSaved,
     searchHighlight,
     clearSearchHighlight: () => setSearchHighlight(null),
@@ -747,7 +751,10 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false }) {
           event={event}
           adminConfig={adminConfig}
           onClose={() => setShowDayOf(false)}
-          onPrintBrief={() => setBriefHTML(generateEventBriefHTML(event, adminConfig))}
+          onPrintBrief={() => setBriefHTML(generateEventBriefHTML(
+            { people: _badgePeople, households: _badgeHouseholds, expenses: _badgeExpenses, vendors: _badgeVendors, tasks: _badgeTasks, ceremonyRoles: _ceremonyRoles },
+            adminConfig
+          ))}
         />
       )}
 
