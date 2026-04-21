@@ -487,7 +487,7 @@ export function GuestsTab({ eventId, event, adminConfig, showToast, isArchived, 
               <div style={{fontFamily:"var(--font-display)",fontSize:17,fontWeight:700,color:"var(--text-primary)"}}>Print Preview — Guest List</div>
               <div style={{display:"flex",gap:8}}>
                 <button className="btn btn-primary" style={{fontSize:12}} onClick={()=>{const f=document.getElementById("guest-print-frame");if(f?.contentWindow)f.contentWindow.print();}}>🖨 Print</button>
-                <button className="icon-btn" onClick={()=>setGuestPrintHTML(null)}>✕</button>
+                <button className="icon-btn" title="Close" onClick={()=>setGuestPrintHTML(null)}>✕</button>
               </div>
             </div>
             <iframe id="guest-print-frame" srcDoc={guestPrintHTML} style={{flex:1,border:"none",borderRadius:"0 0 var(--radius-lg) var(--radius-lg)"}} title="Guest List Print Preview" />
@@ -497,7 +497,7 @@ export function GuestsTab({ eventId, event, adminConfig, showToast, isArchived, 
       {deleteConfirm && (
         <div className="modal-backdrop" onMouseDown={e=>{if(e.target===e.currentTarget)setDeleteConfirm(null);}}>
           <div className="modal" style={{maxWidth:400}} onClick={e=>e.stopPropagation()}>
-            <div className="modal-header"><div className="modal-title">Delete Household</div><button className="icon-btn" onClick={()=>setDeleteConfirm(null)}>✕</button></div>
+            <div className="modal-header"><div className="modal-title">Delete Household</div><button className="icon-btn" title="Close" onClick={()=>setDeleteConfirm(null)}>✕</button></div>
             <div className="modal-body">
               <p style={{fontSize:14,color:"var(--text-primary)",marginBottom:8}}>This will permanently delete this household and all its members.</p>
               <div className="modal-footer">
@@ -642,7 +642,7 @@ export function HouseholdModal({ household, members, adminConfig, onSave, onClos
       <div className="form-grid-2">
         <div className="form-group" style={{marginBottom:10}}>
           <label className="form-label">Meal Choice</label>
-          <select className="form-select" value={p.mealChoice||""} onChange={e=>setPF(p.id,"mealChoice",e.target.value)}><option value="">— Select —</option>{mealChoices.map(m=><option key={m} value={m}>{m}</option>)}</select>
+          <select className="form-select" value={p.mealChoice||""} onChange={e=>setPF(p.id,"mealChoice",e.target.value)}><option value="">(none)</option>{mealChoices.map(m=><option key={m} value={m}>{m}</option>)}</select>
         </div>
         <div className="form-group" style={{marginBottom:10}}>
           <label style={{display:"flex",alignItems:"center",gap:7,fontSize:13,cursor:"pointer"}}>
@@ -690,6 +690,7 @@ export function HouseholdModal({ household, members, adminConfig, onSave, onClos
               <div style={{fontSize:11,color:"var(--gold,#b45309)",marginTop:3}}>&#9888; Date is more than 30 days in the future</div>
             )}
             </div>
+            {hh.status === "RSVP Yes" && (
             <div style={{background:"var(--green-light,rgba(34,197,94,0.08))",border:"1px solid var(--green,#16a34a)",borderRadius:"var(--radius-sm)",padding:"12px 14px",marginBottom:16}}>
               <div style={{fontSize:12,fontWeight:700,color:"var(--green)",textTransform:"uppercase",letterSpacing:"0.04em",marginBottom:4}}>Attending Count Override</div>
               <div style={{fontSize:12,color:"var(--green)",marginBottom:10,lineHeight:1.5}}>
@@ -712,6 +713,7 @@ export function HouseholdModal({ household, members, adminConfig, onSave, onClos
               </div>
             </div>
             </div>
+            )}
             {sections.length>0 && (
               <div className="form-group">
                 <label className="form-label">Invited To Sub-Events</label>
@@ -724,6 +726,7 @@ export function HouseholdModal({ household, members, adminConfig, onSave, onClos
                     </label>
                   ))}
                 </div>
+                <div className="form-hint">Which sub-events is this household invited to?</div>
               </div>
             )}
           </>)}
@@ -741,14 +744,14 @@ export function HouseholdModal({ household, members, adminConfig, onSave, onClos
                   ? <select className="form-select" value={hh.stateProvince||""} onChange={e=>setHHF("stateProvince",e.target.value)}><option value="">— Select —</option>{getAddressFields(hh.country).stateOptions.map(s=><option key={s} value={s}>{s}</option>)}</select>
                   : <input className="form-input" value={hh.stateProvince||""} onChange={e=>setHHF("stateProvince",e.target.value)} placeholder="Region" />}
               </div>
-              <div className="form-group"><label className="form-label">{getAddressFields(hh.country).postalLabel}</label><input className="form-input" value={hh.postalCode||""} onChange={e=>setHHF("postalCode",e.target.value)} placeholder="Postal code" /></div>
+              <div className="form-group"><label className="form-label">{getAddressFields(hh.country).postalLabel}</label><input className="form-input" value={hh.postalCode||""} onChange={e=>setHHF("postalCode",e.target.value)} placeholder={hh.country==="United States"?"62701":hh.country==="Canada"?"A1A 1A1":hh.country==="United Kingdom"?"EC1A 1BB":"Postal code"} /></div>
             </div>
             {(() => {
               const v = hh.postalCode || "";
               let invalid = false;
               if (hh.country === "United States")  invalid = !/^\d{5}(-\d{4})?$/.test(v) && v.length > 0;
               else if (hh.country === "Canada")        invalid = !/^[A-Za-z]\d[A-Za-z][ -]?\d[A-Za-z]\d$/.test(v) && v.length > 0;
-              else if (hh.country === "United Kingdom") invalid = !/^[A-Za-z]{1,2}\d/.test(v) && v.length > 0;
+              else if (hh.country === "United Kingdom") invalid = !/^[A-Za-z]{1,2}\d[A-Za-z\d]? ?\d[A-Za-z]{2}$/.test(v) && v.length > 0;
               else if (hh.country === "Australia")      invalid = !/^\d{4}$/.test(v) && v.length > 0;
               return invalid ? <div style={{fontSize:11,color:"var(--gold,#b45309)",marginTop:3}}>⚠ Format looks off for {hh.country}</div> : null;
             })()}
@@ -782,31 +785,46 @@ export function HouseholdModal({ household, members, adminConfig, onSave, onClos
           </>)}
 
           {/* Contact Log tab (edit only) */}
-          {isEdit && activeTab==="contacts" && (<>
-            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
-              <div style={{fontSize:13,color:"var(--text-muted)"}}>Log calls, texts, and emails with this household.</div>
-              <button className="btn btn-secondary btn-sm" onClick={addHHContact}>+ Log Contact</button>
-            </div>
-            {(hh.contactLog||[]).length===0 && <div style={{fontSize:13,color:"var(--text-muted)",fontStyle:"italic",padding:"16px 0"}}>No contacts logged yet.</div>}
-            {[...(hh.contactLog||[])].sort((a,b)=>(b.date||"").localeCompare(a.date||"")).map(c=>(
-              <div key={c.id} style={{background:"var(--bg-subtle)",border:"1px solid var(--border)",borderRadius:"var(--radius-sm)",padding:"10px 12px",marginBottom:8}}>
-                <div className="form-grid-2">
-                  <div className="form-group" style={{marginBottom:8}}>
-                    <label className="form-label">Type</label>
-                    <select className="form-select" value={c.type||"Call"} onChange={e=>updateHHContact(c.id,"type",e.target.value)}>{["Call","Text","Email","In Person","Other"].map(t=><option key={t} value={t}>{t}</option>)}</select>
-                  </div>
-                  <div className="form-group" style={{marginBottom:8}}>
-                    <label className="form-label">Date</label>
-                    <input className="form-input" type="date" value={c.date||""} onChange={e=>updateHHContact(c.id,"date",e.target.value)} />
-                  </div>
-                </div>
-                <div style={{display:"flex",gap:8,alignItems:"flex-start"}}>
-                  <input className="form-input" style={{flex:1}} value={c.notes||""} onChange={e=>updateHHContact(c.id,"notes",e.target.value)} placeholder="Notes about this contact…" />
-                  <button className="icon-btn" title="Remove contact" style={{color:"var(--red)",flexShrink:0,marginTop:2}} onClick={()=>deleteHHContact(c.id)}>✕</button>
-                </div>
+          {isEdit && activeTab==="contacts" && (
+            <div className="form-group" style={{marginBottom:0}}>
+              <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:8}}>
+                <label className="form-label" style={{marginBottom:0}}>Contact Log</label>
+                <button type="button" className="btn btn-secondary btn-sm" disabled={isArchived} onClick={addHHContact}>+ Log Contact</button>
               </div>
-            ))}
-          </>)}
+              {(hh.contactLog||[]).length===0 ? (
+                <div style={{fontSize:12,color:"var(--text-muted)",fontStyle:"italic",padding:"10px 12px",background:"var(--bg-subtle)",borderRadius:"var(--radius-sm)",border:"1px solid var(--border)"}}>
+                  No contacts logged yet — record calls, texts, emails, and RSVP follow-ups.
+                </div>
+              ) : (
+                <div style={{display:"flex",flexDirection:"column",gap:8}}>
+                  {[...(hh.contactLog||[])].sort((a,b)=>(b.date||"").localeCompare(a.date||"")).map(c=>(
+                    <div key={c.id} style={{display:"flex",gap:8,alignItems:"flex-start",padding:"10px 12px",background:"var(--bg-subtle)",borderRadius:"var(--radius-sm)",border:"1px solid var(--border)"}}>
+                      <div style={{flex:1,display:"flex",flexDirection:"column",gap:6}}>
+                        <div style={{display:"flex",gap:6}}>
+                          <input className="form-input" type="date" value={c.date||""}
+                            onChange={e=>updateHHContact(c.id,"date",e.target.value)}
+                            style={{fontSize:13,flex:"0 0 150px"}} />
+                          <select className="form-select" value={c.type||"Call"}
+                            onChange={e=>updateHHContact(c.id,"type",e.target.value)}
+                            style={{fontSize:13,flex:"0 0 130px"}}>
+                            {["Call","Text","Email","In Person","Other"].map(t=><option key={t} value={t}>{t}</option>)}
+                          </select>
+                        </div>
+                        <input className="form-input" value={c.notes||""}
+                          onChange={e=>updateHHContact(c.id,"notes",e.target.value)}
+                          placeholder="What was discussed or decided?"
+                          style={{fontSize:13}} />
+                      </div>
+                      <button type="button" className="icon-btn" title="Remove contact"
+                        style={{color:"var(--red)",flexShrink:0,marginTop:2}}
+                        disabled={isArchived}
+                        onClick={()=>deleteHHContact(c.id)}>✕</button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
 
           <div className="modal-footer">
             <span style={{fontSize:11,color:"var(--text-muted)",marginRight:"auto"}}>* required</span>
@@ -884,9 +902,13 @@ export function ImportModal({ adminConfig, onImport, onClose }) {
         <div className="modal-header"><div className="modal-title">Import Guests</div><button className="icon-btn" title="Close" onClick={onClose}>✕</button></div>
         <div className="modal-body">
           {stage==="upload" && (<>
-            <div className="alert alert-info" style={{marginBottom:16}}>Upload any CSV file — SimchaKit will detect your columns automatically.</div>
+            <div className="alert alert-info" style={{marginBottom:16}}>Upload any CSV file — SimchaKit will detect your columns automatically. Or download the template for a pre-formatted starting point.</div>
             {error && <div className="alert alert-error" style={{marginBottom:12}}>{error}</div>}
-            <div style={{marginBottom:16}}><button className="btn btn-secondary" onClick={handleDownloadTemplate}>↓ Download CSV Template</button></div>
+            <div style={{marginBottom:16}}>
+              <button className="btn btn-secondary" onClick={handleDownloadTemplate}>↓ Download CSV Template</button>
+              <div className="form-hint" style={{marginTop:6}}>Fill out in Excel or Google Sheets, then upload below. Any CSV format is also accepted.</div>
+            </div>
+            <div className="divider" />
             <div className="divider" />
             <div className="form-group"><label className="form-label">Upload CSV File</label><input type="file" accept=".csv,.txt" onChange={handleFile} style={{fontSize:13,color:"var(--text-primary)"}} /></div>
             <div className="form-group">
@@ -915,7 +937,7 @@ export function ImportModal({ adminConfig, onImport, onClose }) {
           </>)}
           {stage==="preview" && preview && (<>
             {preview.peopleCentric&&<div className="alert alert-info" style={{marginBottom:12}}><strong>Person-by-person format detected.</strong> Households have been automatically grouped.</div>}
-            {preview.errors&&preview.errors.length>0&&(<div className="alert alert-error" style={{marginBottom:12}}><div style={{fontWeight:700,marginBottom:6}}>⚠ {preview.errors.length} row{preview.errors.length!==1?"s":""} could not be imported</div><div style={{maxHeight:120,overflowY:"auto"}}>{preview.errors.map((err,i)=>(<div key={i} style={{fontSize:12,borderTop:i>0?"1px solid rgba(0,0,0,0.1)":"none",paddingTop:i>0?4:0,marginTop:i>0?4:0}}><strong>Row {err.rowIndex}:</strong> {err.message}</div>))}</div></div>)}
+            {preview.errors&&preview.errors.length>0&&(<div className="alert alert-error" style={{marginBottom:12}}><div style={{fontWeight:700,marginBottom:6}}>⚠ {preview.errors.length} row{preview.errors.length!==1?"s":""} could not be imported</div><div style={{maxHeight:120,overflowY:"auto"}}>{preview.errors.map((err,i)=>(<div key={i} style={{fontSize:12,borderTop:i>0?"1px solid rgba(0,0,0,0.1)":"none",paddingTop:i>0?4:0,marginTop:i>0?4:0}}><strong>Row {err.rowIndex}:</strong> {err.message}{err.rawRow&&Object.values(err.rawRow).filter(Boolean).length>0&&<span style={{color:"var(--text-muted)",marginLeft:6}}>({Object.values(err.rawRow).filter(Boolean).slice(0,3).join(", ")}{Object.values(err.rawRow).filter(Boolean).length>3?"…":""})</span>}</div>))}</div><div style={{fontSize:12,marginTop:8,fontStyle:"italic"}}>The {preview.households.length} valid household{preview.households.length!==1?"s":""} below will still be imported.</div></div>)}
             <div className="alert alert-success" style={{marginBottom:12}}>Ready to import {preview.households.length} household{preview.households.length!==1?"s":""} and {preview.people.length} individual{preview.people.length!==1?"s":""}.</div>
             <div style={{maxHeight:280,overflowY:"auto",border:"1px solid var(--border)",borderRadius:"var(--radius-sm)"}}><table style={{width:"100%",borderCollapse:"collapse",fontSize:12}}><thead><tr style={{background:"var(--bg-subtle)",position:"sticky",top:0}}>{["Household","Members","Group","Status"].map(h=>(<th key={h} style={{padding:"8px 12px",textAlign:"left",fontWeight:700,color:"var(--text-muted)",borderBottom:"1px solid var(--border)",fontSize:11,textTransform:"uppercase"}}>{h}</th>))}</tr></thead><tbody>{preview.households.map(hh=>{const members=preview.people.filter(p=>p.householdId===hh.id);return(<tr key={hh.id} style={{borderBottom:"1px solid var(--border)"}}><td style={{padding:"8px 12px",fontWeight:600}}>{hh.formalName}</td><td style={{padding:"8px 12px",color:"var(--text-secondary)"}}>{members.length>0?members.map(p=>[p.firstName,p.lastName].filter(Boolean).join(" ")||p.name||"?").join(", "):<span style={{color:"var(--text-muted)",fontStyle:"italic"}}>None</span>}</td><td style={{padding:"8px 12px",color:"var(--text-muted)"}}>{hh.group}</td><td style={{padding:"8px 12px",color:"var(--text-muted)"}}>{hh.status}</td></tr>);})}</tbody></table></div>
             <div style={{marginTop:10,fontSize:12,color:"var(--text-muted)"}}>Mode: <strong>{mergeMode==="append"?"Append to existing list":"Replace existing list"}</strong></div>
@@ -924,7 +946,7 @@ export function ImportModal({ adminConfig, onImport, onClose }) {
           <div className="modal-footer">
             <button className="btn btn-ghost" onClick={onClose}>{stage==="done"?"Close":"Cancel"}</button>
             {stage==="mapping"&&<><button className="btn btn-secondary" onClick={()=>{setStage("upload");setError("");}}>Back</button><button className="btn btn-primary" onClick={handleApplyMapping}>Preview Import</button></>}
-            {stage==="preview"&&<><button className="btn btn-secondary" onClick={()=>setStage("upload")}>Back</button><button className="btn btn-primary" onClick={()=>{onImport(preview,mergeMode);setStage("done");}}>Confirm Import{preview?.errors?.length>0?` (${preview.households.length} rows)`:""}</button></>}
+            {stage==="preview"&&<><button className="btn btn-secondary" onClick={()=>setStage(headers.length>0&&mapping["FormalName"]?"mapping":"upload")}>Back</button><button className="btn btn-primary" onClick={()=>{onImport(preview,mergeMode);setStage("done");}}>Confirm Import{preview?.errors?.length>0?` (${preview.households.length} rows)`:""}</button></>}
           </div>
         </div>
       </div>
@@ -957,14 +979,14 @@ export function TimelineEntryModal({ entry, onSave, onClose }) {
             <div className="form-group"><label className="form-label">Start Time</label><div style={{display:"flex",gap:4}}><select className="form-select" style={selStyle} value={sH} onChange={e=>{setSH(e.target.value);onStartPart(e.target.value,sM,sAP);}}><option value="">HH</option>{TL_HOURS.map(h=><option key={h} value={h}>{h}</option>)}</select><select className="form-select" style={selStyle} value={sM} onChange={e=>{setSM(e.target.value);onStartPart(sH,e.target.value,sAP);}}><option value="">MM</option>{TL_MINUTES.map(m=><option key={m} value={m}>{m}</option>)}</select><select className="form-select" style={selStyle} value={sAP} onChange={e=>{setSAP(e.target.value);onStartPart(sH,sM,e.target.value);}}><option value="">—</option><option value="AM">AM</option><option value="PM">PM</option></select></div></div>
           </div>
           <div className="form-grid-2">
-            <div className="form-group"><label className="form-label">End Date</label><input className="form-input" type="date" value={form.endDate||""} onChange={e=>setF("endDate",e.target.value)} /><div className="form-hint">Leave blank if same day</div></div>
+            <div className="form-group"><label className="form-label">End Date</label><input className="form-input" type="date" value={form.endDate||""} onChange={e=>setF("endDate",e.target.value)} /><div className="form-hint">Leave blank if same day as start</div></div>
             <div className="form-group"><label className="form-label">End Time</label><div style={{display:"flex",gap:4}}><select className="form-select" style={selStyle} value={eH} onChange={e=>{setEH(e.target.value);onEndPart(e.target.value,eM,eAP);}}><option value="">HH</option>{TL_HOURS.map(h=><option key={h} value={h}>{h}</option>)}</select><select className="form-select" style={selStyle} value={eM} onChange={e=>{setEM(e.target.value);onEndPart(eH,e.target.value,eAP);}}><option value="">MM</option>{TL_MINUTES.map(m=><option key={m} value={m}>{m}</option>)}</select><select className="form-select" style={selStyle} value={eAP} onChange={e=>{setEAP(e.target.value);onEndPart(eH,eM,e.target.value);}}><option value="">—</option><option value="AM">AM</option><option value="PM">PM</option></select></div></div>
           </div>
           <div className="form-group"><label className="form-label">Venue / Location</label><input className="form-input" value={form.venue||""} onChange={e=>setF("venue",e.target.value)} placeholder="e.g., Springfield Grand Ballroom" /></div>
           <div className="form-group"><label className="form-label">Notes</label><input className="form-input" value={form.notes||""} onChange={e=>setF("notes",e.target.value)} placeholder="Any additional details…" /></div>
           <label style={{display:"flex",alignItems:"center",gap:8,cursor:"pointer",fontSize:13,color:"var(--text-primary)",marginBottom:16}}>
             <input type="checkbox" checked={!!form.isMainEvent} onChange={e=>setF("isMainEvent",e.target.checked)} style={{width:15,height:15,accentColor:"var(--accent-primary)"}} />
-            Count down to this event
+            Count down to this event (sets date and venue for the countdown clock)
           </label>
           <div className="modal-footer">
             <button className="btn btn-ghost" onClick={onClose}>Cancel</button>
@@ -991,17 +1013,17 @@ export function GuestExportModal({ households, people, tables, adminConfig, onPr
   };
   const OPTION=(key)=>({flex:"1 1 180px",padding:"14px 16px",borderRadius:"var(--radius-md)",border:activeExport===key?"2px solid var(--accent-primary)":"2px solid var(--border)",background:activeExport===key?"var(--accent-light)":"var(--bg-surface)",cursor:"pointer",textAlign:"left",transition:"border-color 0.15s"});
   const PRINT_OPT=()=>({flex:"1 1 180px",padding:"14px 16px",borderRadius:"var(--radius-md)",border:"2px solid var(--border)",background:"var(--bg-surface)",cursor:"pointer",textAlign:"left"});
-  const ALERT_TEXT={byHousehold:"One row per household, sorted by last name.",byPerson:"One row per person with meal, kosher, dietary, shirt size, and table.",mailing:"Address fields split into columns for mail-merge. Ready for any vendor."};
+  const ALERT_TEXT={byHousehold:"One row per household, sorted by last name. Paste into Excel or Google Sheets.",byPerson:"One row per individual with meal choice, kosher flag, dietary notes, shirt size, and table. Best pasted into Excel — filter by Kosher, Meal, or Dietary to prep catering sheets.",mailing:"Address fields are split into separate columns (Street, City, State, Zip, Country) for mail-merge compatibility. Paste into Excel or share with anyone who needs a structured address list."};
   return (
     <div className="modal-backdrop" onMouseDown={e=>{if(e.target===e.currentTarget)onClose();}}>
       <div className="modal modal-lg" style={{maxWidth:640}} onClick={e=>e.stopPropagation()}>
         <div className="modal-header"><div className="modal-title">Export Guest List</div><button className="icon-btn" title="Close" onClick={onClose}>✕</button></div>
         <div className="modal-body">
           <div style={{display:"flex",gap:10,marginBottom:20,flexWrap:"wrap"}}>
-            <button style={OPTION("byHousehold")} onClick={()=>{setActiveExport("byHousehold");setCopied(false);}}><div style={{fontSize:22,marginBottom:6}}>🏠</div><div style={{fontWeight:700,fontSize:13,marginBottom:4}}>By Household</div><div style={{fontSize:11,color:"var(--text-muted)",lineHeight:1.5}}>One row per household with RSVP, headcount, address.</div></button>
-            <button style={OPTION("byPerson")} onClick={()=>{setActiveExport("byPerson");setCopied(false);}}><div style={{fontSize:22,marginBottom:6}}>👤</div><div style={{fontWeight:700,fontSize:13,marginBottom:4}}>By Person</div><div style={{fontSize:11,color:"var(--text-muted)",lineHeight:1.5}}>One row per individual — meal, kosher, dietary, shirt, table.</div></button>
-            <button style={OPTION("mailing")} onClick={()=>{setActiveExport("mailing");setCopied(false);}}><div style={{fontSize:22,marginBottom:6}}>✉️</div><div style={{fontWeight:700,fontSize:13,marginBottom:4}}>Mailing / Invitations</div><div style={{fontSize:11,color:"var(--text-muted)",lineHeight:1.5}}>Formal names + split address columns for mail-merge.</div></button>
-            <button style={PRINT_OPT()} onClick={handlePrint}><div style={{fontSize:22,marginBottom:6}}>🖨</div><div style={{fontWeight:700,fontSize:13,marginBottom:4}}>Printable View</div><div style={{fontSize:11,color:"var(--text-muted)",lineHeight:1.5}}>Grouped by family with RSVP, headcount, dietary flags.</div></button>
+            <button style={OPTION("byHousehold")} onClick={()=>{setActiveExport("byHousehold");setCopied(false);}}><div style={{fontSize:22,marginBottom:6}}>🏠</div><div style={{fontWeight:700,fontSize:13,marginBottom:4}}>By Household</div><div style={{fontSize:11,color:"var(--text-muted)",lineHeight:1.5}}>One row per household with RSVP status, headcount, address, and sub-events. Best for your planner or a full reference spreadsheet.</div></button>
+            <button style={OPTION("byPerson")} onClick={()=>{setActiveExport("byPerson");setCopied(false);}}><div style={{fontSize:22,marginBottom:6}}>👤</div><div style={{fontWeight:700,fontSize:13,marginBottom:4}}>By Person</div><div style={{fontSize:11,color:"var(--text-muted)",lineHeight:1.5}}>One row per individual with meal choice, kosher flag, dietary notes, shirt size, and table. Best for catering, favors vendor, or day-of staff.</div></button>
+            <button style={OPTION("mailing")} onClick={()=>{setActiveExport("mailing");setCopied(false);}}><div style={{fontSize:22,marginBottom:6}}>✉️</div><div style={{fontWeight:700,fontSize:13,marginBottom:4}}>Mailing / Invitations</div><div style={{fontSize:11,color:"var(--text-muted)",lineHeight:1.5}}>Formal names and addresses with split columns (Street, City, State, Zip, Country). Ready for mail-merge, a calligrapher, or any vendor that needs a structured address list.</div></button>
+            <button style={PRINT_OPT()} onClick={handlePrint}><div style={{fontSize:22,marginBottom:6}}>🖨</div><div style={{fontWeight:700,fontSize:13,marginBottom:4}}>Printable View</div><div style={{fontSize:11,color:"var(--text-muted)",lineHeight:1.5}}>Grouped by family / friend group with members, RSVP status, headcount, and dietary flags. Print-ready for a day-of binder or door checklist.</div></button>
           </div>
           {activeExport && (<><div className="alert alert-info" style={{marginBottom:10}}>{ALERT_TEXT[activeExport]}</div><textarea readOnly value={csvContent} onClick={e=>e.target.select()} style={{width:"100%",minHeight:180,background:"var(--bg-subtle)",border:"1px solid var(--border)",borderRadius:"var(--radius-sm)",padding:10,fontFamily:"var(--font-mono,monospace)",fontSize:11,resize:"vertical"}} /><div className="modal-footer" style={{marginTop:12}}><button className="btn btn-ghost" onClick={onClose}>Close</button><button className="btn btn-primary" onClick={()=>navigator.clipboard.writeText(csvContent).then(()=>{setCopied(true);setTimeout(()=>setCopied(false),2000);})}>{copied?"✓ Copied!":"Copy to Clipboard"}</button></div></>)}
           {!activeExport && <div className="modal-footer"><button className="btn btn-ghost" onClick={onClose}>Cancel</button></div>}
@@ -1050,7 +1072,7 @@ function GuestInsights({ households, people, groups, statusStyle }) {
           <div className="card-title" style={{marginBottom:0}}>👥 Guest Insights</div>
           {!open&&<div className="card-subtitle" style={{marginBottom:0,marginTop:4}}>{collapsedSummary} · click to expand</div>}
         </div>
-        <button className="budget-insights-toggle">{open?"▴":"▾"}</button>
+        <button className="budget-insights-toggle" aria-label={open?"Collapse":"Expand"}>{open?"▴":"▾"}</button>
       </div>
       {open && (
         <div className="budget-insights-body">

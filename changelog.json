@@ -1,5 +1,5 @@
 {
-  "current": "V3.2.6",
+  "current": "V3.2.7",
   "whatsNew": [
     "BudgetTab: Invoice Date field added to expense form",
     "BudgetTab: Custom category support added",
@@ -7,6 +7,31 @@
     "BudgetTab: Payment date prompt when marking expenses paid"
   ],
   "changelog": [
+    {
+      "version": "V3.2.7",
+      "date": "2026-04-20",
+      "type": "fix",
+      "summary": "GuestsTab — full V2 parity (17 gaps closed)",
+      "changes": [
+        "HouseholdModal: Attending Count Override section now only shown when RSVP status is 'RSVP Yes', matching V2 behavior",
+        "HouseholdModal: Invited To Sub-Events field now shows hint 'Which sub-events is this household invited to?'",
+        "HouseholdModal: Postal code placeholder is now dynamic based on country (62701 for US, A1A 1A1 for Canada, EC1A 1BB for UK)",
+        "HouseholdModal: UK postal code validation regex tightened to full postcode format",
+        "HouseholdModal: Meal Choice empty option label corrected to '(none)' matching V2",
+        "HouseholdModal: Contact Log edit layout restored to V2 pattern — date+type inline flex row, notes below; empty state uses styled bordered box with descriptive text",
+        "ImportModal: Upload stage alert text restored to full V2 text including template suggestion",
+        "ImportModal: Hint text and divider added below Download CSV Template button",
+        "ImportModal: Preview stage error rows now include rawRow context (first 3 column values) to identify problematic rows",
+        "ImportModal: Back button from preview now correctly returns to mapping stage if column mapping was performed",
+        "TimelineEntryModal: isMainEvent checkbox label restored to full text including '(sets date and venue for the countdown clock)'",
+        "TimelineEntryModal: End Date hint restored to 'Leave blank if same day as start'",
+        "GuestInsights: Collapse/expand toggle button now has aria-label='Collapse'/'Expand'",
+        "GuestsTab: Print preview modal ✕ button now has title='Close'",
+        "GuestsTab: Delete confirm modal ✕ button now has title='Close'",
+        "GuestExportModal: All 4 export option card descriptions restored to full V2 text with recommendations and use cases",
+        "GuestExportModal: Alert text for each export option restored to full V2 text"
+      ]
+    },
     {
       "version": "V3.2.6",
       "date": "2026-04-20",
