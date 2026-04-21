@@ -111,8 +111,9 @@ const GUIDE_SECTIONS = [
     color: "var(--green)",
     colorLight: "var(--green-light)",
     items: [
-      { heading: "Recording gifts", body: "Log each gift with the giver's name (autocompleted from your guest list), type (Cash/Check, Gift Card, Israel Bond, Physical Gift, Donation in Honor, Other), amount, date received, and notes. The stat cards track total gifts, total cash/checks, thank-yous sent, and thank-yous pending." },
-      { heading: "Thank-you tracking", body: "Check off thank-yous as they're sent using the checkbox on each gift row. Filter by Needs Thank You to work through the list. Export to CSV for a printable thank-you checklist." },
+      { heading: "Recording gifts", body: "Log each gift with the donor's name, gift type, amount, description, date received, and whether the donor attended. If the name matches a household in your guest list, the record links automatically and pulls in their address — no manual entry needed. For donors not on your guest list, enter their address manually for use in thank-you exports. The stat cards show Total Gifts, Total Monetary Value (all gifts with amounts), Cash / Check Total, Thank Yous Pending (not yet written), and Thank Yous Complete (written and mailed)." },
+      { heading: "Thank-you tracking", body: "Each gift tracks two independent thank-you steps: Written (the note has been written) and Mailed (the note has been sent). Toggle each step directly on the table row — Written uses a green checkbox, Mailed uses a blue checkbox. Filter by Needs Written, Written Needs Mailed, or Complete to work through your list in order. The Thank Yous Complete stat card counts only gifts where both steps are done." },
+      { heading: "Exporting gifts", body: "Click ↓ Export to open the export modal. CSV Export generates one row per gift sorted by last name, including address, amounts, and thank-you status — paste into Excel. Printable View generates a print-ready HTML page grouped by donor with address, gift details, and thank-you status, which doubles as a mailing checklist." },
     ],
   },
   {

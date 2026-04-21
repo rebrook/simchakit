@@ -1,253 +1,712 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // SimchaKit V3.0.0 — GiftsTab.jsx
 // Ported from V2. Uses useEventData for Supabase persistence.
+// Field names match Supabase schema: fromName, giftType, thankYouWritten,
+// thankYouMailed, attended, householdId, address1/2, city, stateProvince,
+// postalCode, country.
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { useState } from "react";
-import { useEventData }       from "@/hooks/useEventData.js";
-import { useSearchHighlight } from "@/hooks/useSearchHighlight.js";
-import { GIFT_TYPES }         from "@/constants/gifts.js";
-import { newGiftId }          from "@/utils/ids.js";
-import { exportGiftsCSV }     from "@/utils/exports.js";
-import { ArchivedNotice }     from "@/components/shared/ArchivedNotice.jsx";
+import { useState, useEffect } from "react";
+import { useEventData }        from "@/hooks/useEventData.js";
+import { useSearchHighlight }  from "@/hooks/useSearchHighlight.js";
+import { GIFT_TYPES }          from "@/constants/gifts.js";
+import { newGiftId }           from "@/utils/ids.js";
+import { exportGiftsCSV, generateGiftPrintHTML } from "@/utils/exports.js";
+import { getAddressFields, formatAddress, migrateCityStateZip, COUNTRIES } from "@/utils/guests.js";
+import { ArchivedNotice }      from "@/components/shared/ArchivedNotice.jsx";
 
 export function GiftsTab({ eventId, event, adminConfig, showToast, isArchived, searchHighlight, clearSearchHighlight }) {
   const { items: gifts,      loading: gLoading, save, remove } = useEventData(eventId, "gifts");
   const { items: households, loading: hLoading }                = useEventData(eventId, "households");
 
-  const [showAdd,      setShowAdd]      = useState(false);
-  const [editing,      setEditing]      = useState(null);
-  const [filterTY,     setFilterTY]     = useState("All");
-  const [filterType,   setFilterType]   = useState("All");
-  const [search,       setSearch]       = useState("");
-
   useSearchHighlight(searchHighlight, clearSearchHighlight, "gifts");
 
+  const [showModal,     setShowModal]     = useState(false);
+  const [editGift,      setEditGift]      = useState(null);
+  const [deleteConfirm, setDeleteConfirm] = useState(null);
+  const [search,        setSearch]        = useState("");
+  const [filterType,    setFilterType]    = useState("all");
+  const [filterTY,      setFilterTY]      = useState("all");
+  const [showExport,    setShowExport]    = useState(false);
+  const [printHTML,     setPrintHTML]     = useState(null);
+
+  // Mobile card layout
+  const [isMobile,      setIsMobile]      = useState(() => window.innerWidth < 640);
+  const [expandedCards, setExpandedCards] = useState(new Set());
+
+  useEffect(() => {
+    const handler = () => setIsMobile(window.innerWidth < 640);
+    window.addEventListener("resize", handler);
+    return () => window.removeEventListener("resize", handler);
+  }, []);
+
+  const toggleExpand = (id) => setExpandedCards(prev => {
+    const next = new Set(prev);
+    next.has(id) ? next.delete(id) : next.add(id);
+    return next;
+  });
+
+  const handleAdd    = async (g) => { if (isArchived) return; await save(g); showToast("Gift added");   setShowModal(false); };
+  const handleEdit   = async (g) => { if (isArchived) return; await save(g); showToast("Gift updated"); setEditGift(null);   };
+  const handleDelete = async (id) => {
+    if (isArchived) return;
+    const g = gifts.find(x => x.id === id);
+    if (g) await remove(g._rowId);
+    showToast("Gift deleted");
+    setDeleteConfirm(null);
+  };
+
+  const toggleWritten = async (id) => {
+    if (isArchived) return;
+    const g = gifts.find(x => x.id === id);
+    if (g) await save({ ...g, thankYouWritten: !g.thankYouWritten });
+    showToast("Thank-you note updated");
+  };
+
+  const toggleMailed = async (id) => {
+    if (isArchived) return;
+    const g = gifts.find(x => x.id === id);
+    if (g) await save({ ...g, thankYouMailed: !g.thankYouMailed });
+    showToast("Thank-you mailed updated");
+  };
+
+  // ── Stats ──────────────────────────────────────────────────────────────────
+  const totalMonetary = gifts.reduce((s, g) => s + (parseFloat(g.amount) || 0), 0);
+  const cashTotal     = gifts.filter(g => g.giftType === "Cash / Check").reduce((s, g) => s + (parseFloat(g.amount) || 0), 0);
+  const tyPending     = gifts.filter(g => !g.thankYouWritten).length;
+  const tyComplete    = gifts.filter(g => g.thankYouWritten && g.thankYouMailed).length;
+
+  // ── Filter + sort ──────────────────────────────────────────────────────────
+  const getLastName = (name) => (name || "").trim().split(" ").pop();
+
   const filtered = gifts.filter(g => {
-    if (filterTY === "pending" && g.thankYouSent) return false;
-    if (filterTY === "sent"    && !g.thankYouSent) return false;
-    if (filterType !== "All" && g.type !== filterType) return false;
+    if (filterType !== "all" && g.giftType !== filterType) return false;
+    if (filterTY === "needs-written"  && g.thankYouWritten)                    return false;
+    if (filterTY === "needs-mailed"   && (!g.thankYouWritten || g.thankYouMailed)) return false;
+    if (filterTY === "complete"       && !(g.thankYouWritten && g.thankYouMailed)) return false;
     if (search) {
       const q = search.toLowerCase();
-      if (!g.from?.toLowerCase().includes(q) && !(g.description||"").toLowerCase().includes(q) && !(g.notes||"").toLowerCase().includes(q)) return false;
+      if (!(g.fromName   || "").toLowerCase().includes(q) &&
+          !(g.description || "").toLowerCase().includes(q) &&
+          !(g.giftType    || "").toLowerCase().includes(q)) return false;
     }
     return true;
   }).sort((a, b) => {
-    if (a.thankYouSent !== b.thankYouSent) return a.thankYouSent ? 1 : -1;
-    return (b.dateReceived || "").localeCompare(a.dateReceived || "");
+    if (a.dateReceived && b.dateReceived) {
+      const diff = new Date(b.dateReceived) - new Date(a.dateReceived);
+      if (diff !== 0) return diff;
+    }
+    if (a.dateReceived && !b.dateReceived) return -1;
+    if (!a.dateReceived && b.dateReceived) return 1;
+    return getLastName(a.fromName).localeCompare(getLastName(b.fromName));
   });
 
-  // Stats
-  const totalCash    = gifts.filter(g => g.type === "Cash / Check" || g.type === "Cash/Check").reduce((s, g) => s + (parseFloat(g.amount) || 0), 0);
-  const tyPending    = gifts.filter(g => !g.thankYouSent).length;
-  const tySent       = gifts.filter(g => g.thankYouSent).length;
+  const usedTypes = [...new Set(gifts.map(g => g.giftType).filter(Boolean))].sort();
 
-  const toggleTY = async (gift) => {
-    await save({ ...gift, thankYouSent: !gift.thankYouSent });
-    showToast(gift.thankYouSent ? "Marked as pending" : "Thank you sent ✓");
-  };
-
-  const handleSave = async (data) => {
-    await save(data);
-    setShowAdd(false);
-    setEditing(null);
-    showToast(editing ? "Gift updated" : "Gift recorded");
-  };
-
-  const handleDelete = async (g) => {
-    await remove(g._rowId);
-    showToast("Gift deleted");
-  };
-
-  const handleExport = () => {
-    const csv = exportGiftsCSV(gifts, households);
-    navigator.clipboard.writeText(csv).then(() => showToast("CSV copied to clipboard"));
+  const TYPE_COLORS = {
+    "Cash / Check":               { bg: "var(--green-light)",  color: "var(--green)"          },
+    "Gift Card":                  { bg: "var(--blue-light)",   color: "var(--blue)"            },
+    "Charitable Fund / Donation": { bg: "var(--gold-light)",   color: "var(--gold)"            },
+    "Israel Bond":                { bg: "var(--gold-light)",   color: "var(--gold)"            },
+    "Physical Gift":              { bg: "var(--accent-light)", color: "var(--accent-primary)"  },
+    "Combination":                { bg: "var(--bg-muted)",     color: "var(--text-secondary)"  },
+    "Religious Item":             { bg: "var(--accent-light)", color: "var(--accent-primary)"  },
+    "Ceremonial / Tribute":       { bg: "var(--accent-light)", color: "var(--accent-primary)"  },
+    "Experience / Activity":      { bg: "var(--blue-light)",   color: "var(--blue)"            },
+    "Home / Judaica":             { bg: "var(--accent-light)", color: "var(--accent-primary)"  },
+    "Books / Media":              { bg: "var(--bg-muted)",     color: "var(--text-secondary)"  },
+    "Clothing / Accessories":     { bg: "var(--bg-muted)",     color: "var(--text-secondary)"  },
+    "Online / Digital":           { bg: "var(--blue-light)",   color: "var(--blue)"            },
+    "Other":                      { bg: "var(--bg-muted)",     color: "var(--text-muted)"      },
   };
 
   if (gLoading || hLoading) return <div style={loadingStyle}>Loading gifts…</div>;
 
-  // Guest name suggestions from households
-  const guestNames = households.map(h => h.displayName || h.name || "").filter(Boolean).sort();
-
   return (
-    <div>
+    <div className="tab-content">
       {isArchived && <ArchivedNotice />}
 
+      {/* Header */}
       <div className="section-header">
         <div>
-          <div className="section-title">Gifts</div>
-          <div className="section-subtitle">
-            {gifts.length} recorded · ${totalCash.toLocaleString()} cash/checks · {tyPending} thank-you{tyPending !== 1 ? "s" : ""} pending
-          </div>
+          <div className="section-title">Gift Tracker</div>
+          <div className="section-sub">Log gifts as they arrive and track thank-you letters.</div>
         </div>
         <div style={{ display: "flex", gap: 8 }}>
           {gifts.length > 0 && (
-            <button className="btn btn-secondary btn-sm" onClick={handleExport}>↓ Export CSV</button>
+            <button className="btn btn-secondary" onClick={() => setShowExport(true)}>↓ Export</button>
           )}
-          {!isArchived && (
-            <button className="btn btn-primary btn-sm" onClick={() => { setEditing(null); setShowAdd(true); }}>
-              + Add Gift
-            </button>
-          )}
+          <button className="btn btn-primary" disabled={isArchived} onClick={() => setShowModal(true)}>+ Add Gift</button>
         </div>
       </div>
 
       {/* Stat cards */}
-      <div className="stat-grid">
+      <div className="stat-grid" style={{ marginBottom: 20 }}>
         <div className="stat-card">
           <div className="stat-label">Total Gifts</div>
           <div className="stat-value">{gifts.length}</div>
         </div>
         <div className="stat-card">
-          <div className="stat-label">Cash / Checks</div>
-          <div className="stat-value stat-green">${totalCash.toLocaleString()}</div>
+          <div className="stat-label">Total Monetary Value</div>
+          <div className="stat-value" style={{ color: "var(--green)" }}>
+            ${totalMonetary.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+          </div>
+          <div className="stat-sub">all gifts with amounts</div>
+        </div>
+        <div className="stat-card">
+          <div className="stat-label">Cash / Check Total</div>
+          <div className="stat-value" style={{ color: "var(--green)" }}>
+            ${cashTotal.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+          </div>
         </div>
         <div className="stat-card">
           <div className="stat-label">Thank Yous Pending</div>
-          <div className="stat-value" style={{ color: tyPending > 0 ? "var(--gold)" : "var(--text-primary)" }}>{tyPending}</div>
+          <div className="stat-value" style={{ color: tyPending > 0 ? "var(--red)" : "var(--green)" }}>
+            {tyPending}
+          </div>
+          <div className="stat-sub">not yet written</div>
         </div>
         <div className="stat-card">
-          <div className="stat-label">Thank Yous Sent</div>
-          <div className="stat-value stat-green">{tySent}</div>
+          <div className="stat-label">Thank Yous Complete</div>
+          <div className="stat-value" style={{ color: "var(--green)" }}>{tyComplete}</div>
+          <div className="stat-sub">written and mailed</div>
         </div>
       </div>
 
       {/* Filters */}
       <div className="filter-bar">
-        <input className="form-input" type="text" placeholder="Search gifts…"
+        <input className="form-input"
+          placeholder="Search by name or gift…"
           value={search} onChange={e => setSearch(e.target.value)} />
-        <select className="form-select" value={filterTY} onChange={e => setFilterTY(e.target.value)}>
-          <option value="All">All Gifts</option>
-          <option value="pending">Needs Thank You</option>
-          <option value="sent">Thank You Sent</option>
+        <select className="form-select"
+          value={filterType} onChange={e => setFilterType(e.target.value)}>
+          <option value="all">All Types</option>
+          {usedTypes.map(t => <option key={t} value={t}>{t}</option>)}
         </select>
-        <select className="form-select" value={filterType} onChange={e => setFilterType(e.target.value)}>
-          <option value="All">All Types</option>
-          {GIFT_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
+        <select className="form-select" style={{ minWidth: 190 }}
+          value={filterTY} onChange={e => setFilterTY(e.target.value)}>
+          <option value="all">All Thank-You Status</option>
+          <option value="needs-written">Needs Written</option>
+          <option value="needs-mailed">Written, Needs Mailed</option>
+          <option value="complete">Complete</option>
         </select>
       </div>
 
-      {/* Gift list */}
-      <div className="card" style={{ padding: 0, overflow: "hidden" }}>
-        {filtered.length === 0 ? (
-          <div style={{ padding: "48px 24px", textAlign: "center", color: "var(--text-muted)", fontSize: 14 }}>
-            {gifts.length === 0 ? "No gifts recorded yet." : "No gifts match your filters."}
-          </div>
-        ) : (
+      {/* Empty state */}
+      {gifts.length === 0 && (
+        <div style={{ textAlign: "center", padding: "60px 24px", color: "var(--text-muted)", background: "var(--bg-surface)", borderRadius: "var(--radius-md)", border: "1px solid var(--border)" }}>
+          <div style={{ fontSize: 36, marginBottom: 12 }}>🎁</div>
+          <div style={{ fontFamily: "var(--font-display)", fontSize: 20, color: "var(--text-primary)", marginBottom: 8 }}>No gifts recorded yet</div>
+          <div style={{ fontSize: 14, marginBottom: 24 }}>Add gifts as they arrive to track thank-you letters and totals.</div>
+          <button className="btn btn-primary" onClick={() => setShowModal(true)}>+ Add First Gift</button>
+        </div>
+      )}
+
+      {/* Table (desktop) */}
+      {gifts.length > 0 && !isMobile && (
+        <div style={{ overflowX: "auto" }}>
           <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
             <thead>
-              <tr style={{ background: "var(--bg-subtle)", borderBottom: "1px solid var(--border)" }}>
-                <th style={th}>✓ TY</th>
-                <th style={th}>From</th>
-                <th style={th}>Type</th>
-                <th style={th}>Amount</th>
-                <th style={th}>Date</th>
-                <th style={th}>Notes</th>
-                {!isArchived && <th style={{ ...th, width: 60 }}></th>}
+              <tr style={{ borderBottom: "1px solid var(--border)" }}>
+                <th style={TH}>From</th>
+                <th style={TH}>Type</th>
+                <th style={TH}>Description</th>
+                <th style={{ ...TH, textAlign: "right" }}>Amount</th>
+                <th style={TH}>Received</th>
+                <th style={{ ...TH, textAlign: "center" }}>Attended</th>
+                <th style={{ ...TH, textAlign: "center" }}>Written</th>
+                <th style={{ ...TH, textAlign: "center" }}>Mailed</th>
+                <th style={{ ...TH, textAlign: "center", width: 64 }}>Actions</th>
               </tr>
             </thead>
             <tbody>
-              {filtered.map(g => (
-                <tr key={g.id || g._rowId} id={`row-${g.id}`}
-                  style={{ borderBottom: "1px solid var(--border)", background: g.thankYouSent ? "var(--green-light)" : "var(--bg-surface)", opacity: g.thankYouSent ? 0.75 : 1 }}>
-                  <td style={{ ...td, textAlign: "center" }}>
-                    <div className={`paid-check ${g.thankYouSent ? "checked" : ""}`}
-                      onClick={() => !isArchived && toggleTY(g)}>
-                      {g.thankYouSent && <svg width="10" height="8" viewBox="0 0 10 8"><polyline points="1,4 4,7 9,1" stroke="white" strokeWidth="1.5" fill="none"/></svg>}
-                    </div>
-                  </td>
-                  <td style={{ ...td, fontWeight: 600 }}>{g.from}</td>
-                  <td style={td}>{g.type}</td>
-                  <td style={{ ...td, fontWeight: 600 }}>{g.amount ? `$${parseFloat(g.amount).toLocaleString()}` : ""}</td>
-                  <td style={td}>{g.dateReceived ? new Date(g.dateReceived + "T00:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric" }) : ""}</td>
-                  <td style={{ ...td, color: "var(--text-muted)", maxWidth: 180, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{g.notes || g.description || ""}</td>
-                  {!isArchived && (
-                    <td style={td}>
-                      <div style={{ display: "flex", gap: 4 }}>
-                        <button className="icon-btn" style={{ width: 26, height: 26 }} title="Edit" onClick={() => { setEditing(g); setShowAdd(true); }}>✎</button>
-                        <button className="icon-btn" style={{ width: 26, height: 26 }} title="Delete" onClick={() => handleDelete(g)}>✕</button>
-                      </div>
-                    </td>
-                  )}
-                </tr>
-              ))}
+              {filtered.length === 0 ? (
+                <tr><td colSpan={9} style={{ textAlign: "center", padding: 30, color: "var(--text-muted)" }}>No matching gifts.</td></tr>
+              ) : (
+                filtered.map(g => {
+                  const tc = TYPE_COLORS[g.giftType] || TYPE_COLORS["Other"];
+                  return (
+                    <tr key={g.id || g._rowId} id={`row-${g.id}`}>
+                      <td style={TD}>
+                        <div style={{ fontWeight: 600, color: "var(--text-primary)", fontSize: 13 }}>{g.fromName || "—"}</div>
+                        {g.householdId && (
+                          <div style={{ fontSize: 11, color: "var(--accent-medium)" }}>● Guest list</div>
+                        )}
+                      </td>
+                      <td style={TD}>
+                        <span style={{ fontSize: 11, fontWeight: 700, padding: "2px 8px", borderRadius: 99, background: tc.bg, color: tc.color, whiteSpace: "nowrap" }}>
+                          {g.giftType}
+                        </span>
+                      </td>
+                      <td style={{ ...TD, color: "var(--text-secondary)", maxWidth: 200, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}
+                        title={g.description || undefined}>
+                        {g.description || "—"}
+                      </td>
+                      <td style={{ ...TD, textAlign: "right", fontWeight: 700, color: "var(--green)", fontFamily: "var(--font-mono)", fontSize: 13 }}>
+                        {g.amount != null ? `$${parseFloat(g.amount).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : "—"}
+                      </td>
+                      <td style={{ ...TD, fontSize: 12, color: "var(--text-muted)", whiteSpace: "nowrap" }}>
+                        {g.dateReceived ? new Date(g.dateReceived + "T00:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "—"}
+                      </td>
+                      <td style={{ ...TD, textAlign: "center" }}>
+                        <div style={{ width: 22, height: 22, borderRadius: 6, border: `2px solid ${g.attended === true ? "var(--green)" : g.attended === false ? "var(--red)" : "var(--border)"}`, background: g.attended === true ? "var(--green)" : g.attended === false ? "var(--red)" : "transparent", display: "inline-flex", alignItems: "center", justifyContent: "center", opacity: g.attended == null ? 0.4 : 1 }}
+                          title={g.attended === true ? "Attended" : g.attended === false ? "Did not attend" : "Unknown"}>
+                          {g.attended === true  && <svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4L3.5 6.5L9 1" stroke="white" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg>}
+                          {g.attended === false && <svg width="8"  height="8" viewBox="0 0 8 8"  fill="none"><path d="M1 1L7 7M7 1L1 7" stroke="white" strokeWidth="1.6" strokeLinecap="round"/></svg>}
+                        </div>
+                      </td>
+                      <td style={{ ...TD, textAlign: "center" }}>
+                        <div onClick={() => toggleWritten(g.id)}
+                          style={{ width: 22, height: 22, borderRadius: 6, border: `2px solid ${g.thankYouWritten ? "var(--green)" : "var(--border)"}`, background: g.thankYouWritten ? "var(--green)" : "transparent", display: "inline-flex", alignItems: "center", justifyContent: "center", cursor: "pointer", transition: "all 0.15s" }}>
+                          {g.thankYouWritten && <span style={{ color: "white", fontSize: 13, fontWeight: 700 }}>✓</span>}
+                        </div>
+                      </td>
+                      <td style={{ ...TD, textAlign: "center" }}>
+                        <div onClick={() => toggleMailed(g.id)}
+                          style={{ width: 22, height: 22, borderRadius: 6, border: `2px solid ${g.thankYouMailed ? "var(--blue)" : "var(--border)"}`, background: g.thankYouMailed ? "var(--blue)" : "transparent", display: "inline-flex", alignItems: "center", justifyContent: "center", cursor: "pointer", transition: "all 0.15s" }}>
+                          {g.thankYouMailed && <span style={{ color: "white", fontSize: 13, fontWeight: 700 }}>✓</span>}
+                        </div>
+                      </td>
+                      <td style={{ ...TD, textAlign: "center" }}>
+                        <div style={{ display: "flex", gap: 4, justifyContent: "center" }}>
+                          <button className="icon-btn" title="Edit"   disabled={isArchived} onClick={() => setEditGift(g)}>✎</button>
+                          <button className="icon-btn icon-btn-danger" title="Delete" disabled={isArchived} onClick={() => setDeleteConfirm(g)}>✕</button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
             </tbody>
           </table>
-        )}
-      </div>
+        </div>
+      )}
 
-      {showAdd && (
-        <GiftModal
-          gift={editing}
-          guestNames={guestNames}
-          onSave={handleSave}
-          onClose={() => { setShowAdd(false); setEditing(null); }}
-          isArchived={isArchived}
+      {/* Cards (mobile) */}
+      {gifts.length > 0 && isMobile && (
+        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+          {filtered.length === 0 ? (
+            <div style={{ textAlign: "center", padding: 30, color: "var(--text-muted)", fontSize: 13 }}>No matching gifts.</div>
+          ) : (
+            filtered.map(g => {
+              const tc         = TYPE_COLORS[g.giftType] || TYPE_COLORS["Other"];
+              const isExpanded = expandedCards.has(g.id);
+              return (
+                <div key={g.id || g._rowId} id={`row-${g.id}`} style={{ background: "var(--bg-surface)", border: "1px solid var(--border)", borderRadius: "var(--radius-md)", overflow: "hidden" }}>
+                  {/* Primary row */}
+                  <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 14px" }}>
+                    {/* Name + type */}
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontWeight: 700, fontSize: 14, color: "var(--text-primary)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                        {g.fromName || "—"}
+                      </div>
+                      <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 3, flexWrap: "wrap" }}>
+                        <span style={{ fontSize: 11, fontWeight: 700, padding: "2px 7px", borderRadius: 99, background: tc.bg, color: tc.color, whiteSpace: "nowrap" }}>
+                          {g.giftType}
+                        </span>
+                        {g.householdId && (
+                          <span style={{ fontSize: 11, color: "var(--accent-medium)" }}>● Guest list</span>
+                        )}
+                      </div>
+                    </div>
+                    {/* Amount */}
+                    {g.amount != null && (
+                      <div style={{ fontWeight: 700, color: "var(--green)", fontFamily: "var(--font-mono)", fontSize: 15, flexShrink: 0 }}>
+                        ${parseFloat(g.amount).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      </div>
+                    )}
+                    {/* Thank-you checkboxes */}
+                    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4, flexShrink: 0 }}>
+                      <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+                        <span style={{ fontSize: 10, color: "var(--text-muted)", fontWeight: 600 }}>W</span>
+                        <div onClick={() => toggleWritten(g.id)} style={{ width: 24, height: 24, borderRadius: 6, border: `2px solid ${g.thankYouWritten ? "var(--green)" : "var(--border)"}`, background: g.thankYouWritten ? "var(--green)" : "transparent", display: "inline-flex", alignItems: "center", justifyContent: "center", cursor: "pointer", transition: "all 0.15s" }}>
+                          {g.thankYouWritten && <span style={{ color: "white", fontSize: 13, fontWeight: 700 }}>✓</span>}
+                        </div>
+                        <span style={{ fontSize: 10, color: "var(--text-muted)", fontWeight: 600 }}>M</span>
+                        <div onClick={() => toggleMailed(g.id)} style={{ width: 24, height: 24, borderRadius: 6, border: `2px solid ${g.thankYouMailed ? "var(--blue)" : "var(--border)"}`, background: g.thankYouMailed ? "var(--blue)" : "transparent", display: "inline-flex", alignItems: "center", justifyContent: "center", cursor: "pointer", transition: "all 0.15s" }}>
+                          {g.thankYouMailed && <span style={{ color: "white", fontSize: 13, fontWeight: 700 }}>✓</span>}
+                        </div>
+                      </div>
+                    </div>
+                    {/* Actions */}
+                    <div style={{ display: "flex", flexDirection: "column", gap: 4, flexShrink: 0 }}>
+                      <button className="icon-btn" title="Edit"   disabled={isArchived} onClick={() => setEditGift(g)}>✎</button>
+                      <button className="icon-btn icon-btn-danger" title="Delete" disabled={isArchived} onClick={() => setDeleteConfirm(g)}>✕</button>
+                    </div>
+                    {/* Expand chevron */}
+                    <div onClick={() => toggleExpand(g.id)} style={{ cursor: "pointer", color: "var(--text-muted)", fontSize: 16, flexShrink: 0, padding: "0 2px", transform: isExpanded ? "rotate(90deg)" : "none", transition: "transform 0.2s ease" }}>›</div>
+                  </div>
+                  {/* Expanded details */}
+                  {isExpanded && (
+                    <div style={{ padding: "10px 14px 14px", borderTop: "1px solid var(--border)", background: "var(--bg-subtle)", display: "flex", flexDirection: "column", gap: 6 }}>
+                      {g.description && (
+                        <div style={{ fontSize: 13, color: "var(--text-secondary)" }}>
+                          <span style={{ fontWeight: 600, color: "var(--text-muted)", fontSize: 11, textTransform: "uppercase", letterSpacing: "0.04em" }}>Description </span>
+                          {g.description}
+                        </div>
+                      )}
+                      <div style={{ display: "flex", gap: 20, flexWrap: "wrap" }}>
+                        <div style={{ fontSize: 12, color: "var(--text-muted)" }}>
+                          <span style={{ fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.04em", fontSize: 11 }}>Received </span>
+                          {g.dateReceived ? new Date(g.dateReceived + "T00:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "—"}
+                        </div>
+                        <div style={{ fontSize: 12, color: "var(--text-muted)" }}>
+                          <span style={{ fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.04em", fontSize: 11 }}>Attended </span>
+                          {g.attended === true ? "Yes" : g.attended === false ? "No" : "—"}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })
+          )}
+        </div>
+      )}
+
+      {/* Add modal */}
+      {showModal && (
+        <GiftModal households={households} onSave={handleAdd} onClose={() => setShowModal(false)} isArchived={isArchived} />
+      )}
+
+      {/* Edit modal */}
+      {editGift && (
+        <GiftModal gift={editGift} households={households} onSave={handleEdit} onClose={() => setEditGift(null)} isArchived={isArchived} />
+      )}
+
+      {/* Delete confirm */}
+      {deleteConfirm && (
+        <div className="modal-backdrop" onMouseDown={e => { if (e.target === e.currentTarget) { setDeleteConfirm(null); } }}>
+          <div className="modal" style={{ maxWidth: 400 }} onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <div className="modal-title">Delete Gift</div>
+              <button className="icon-btn" title="Close" onClick={() => setDeleteConfirm(null)}>✕</button>
+            </div>
+            <div className="modal-body">
+              <p style={{ fontSize: 14, color: "var(--text-primary)", lineHeight: 1.6 }}>
+                Permanently remove the gift from <strong>{deleteConfirm.fromName || "this donor"}</strong>? This cannot be undone.
+              </p>
+              <div className="modal-footer">
+                <button className="btn btn-ghost" onClick={() => setDeleteConfirm(null)}>Cancel</button>
+                <button className="btn btn-danger" onClick={() => handleDelete(deleteConfirm.id)}>Delete Gift</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Export modal */}
+      {showExport && (
+        <GiftExportModal
+          gifts={gifts}
+          households={households}
+          adminConfig={adminConfig || {}}
+          onPrint={(html) => { setPrintHTML(html); setShowExport(false); }}
+          onClose={() => setShowExport(false)}
         />
+      )}
+
+      {/* Print preview */}
+      {printHTML && (
+        <div className="modal-backdrop" onMouseDown={e => { if (e.target === e.currentTarget) { setPrintHTML(null); } }}>
+          <div onClick={e => e.stopPropagation()} style={{ background: "var(--bg-surface)", borderRadius: "var(--radius-lg)", width: "95%", maxWidth: 960, height: "90vh", display: "flex", flexDirection: "column", boxShadow: "var(--shadow-lg)" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "14px 20px", borderBottom: "1px solid var(--border)", flexShrink: 0 }}>
+              <div style={{ fontFamily: "var(--font-display)", fontSize: 17, fontWeight: 700, color: "var(--text-primary)" }}>Print Preview — Gift List</div>
+              <div style={{ display: "flex", gap: 8 }}>
+                <button className="btn btn-primary" style={{ fontSize: 12 }}
+                  onClick={() => { const f = document.getElementById("gift-print-frame"); if (f?.contentWindow) f.contentWindow.print(); }}>
+                  🖨 Print
+                </button>
+                <button className="icon-btn" title="Close" onClick={() => setPrintHTML(null)}>✕</button>
+              </div>
+            </div>
+            <iframe id="gift-print-frame" srcDoc={printHTML}
+              style={{ flex: 1, border: "none", borderRadius: "0 0 var(--radius-lg) var(--radius-lg)" }}
+              title="Gift List Print Preview" />
+          </div>
+        </div>
       )}
     </div>
   );
 }
 
 // ── GiftModal ─────────────────────────────────────────────────────────────────
-function GiftModal({ gift, guestNames, onSave, onClose, isArchived }) {
-  const blank = { id: newGiftId(), from: "", type: "Cash / Check", description: "", amount: "", dateReceived: "", thankYouSent: false, notes: "" };
-  const [form, setForm] = useState(gift || blank);
-  const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
+export function GiftModal({ gift, households, onSave, onClose, isArchived }) {
+  const isEdit = !!gift;
+  const [form, setForm] = useState(gift || {
+    id:              newGiftId(),
+    householdId:     null,
+    fromName:        "",
+    address1:        "",
+    address2:        "",
+    city:            "",
+    stateProvince:   "",
+    postalCode:      "",
+    country:         "",
+    giftType:        "Cash / Check",
+    description:     "",
+    amount:          "",
+    dateReceived:    "",
+    attended:        null,
+    thankYouWritten: false,
+    thankYouMailed:  false,
+    notes:           "",
+  });
+
+  const setF = (k, v) => setForm(f => ({ ...f, [k]: v }));
+
+  const hhMap   = Object.fromEntries(households.map(h => [h.id, h]));
+  const hhNames = households.map(h => ({ id: h.id, name: h.formalName || "" })).filter(h => h.name).sort((a, b) => a.name.localeCompare(b.name));
+
+  const handleFromChange = (val) => {
+    const match = hhNames.find(h => h.name.toLowerCase() === val.toLowerCase());
+    if (match) {
+      setForm(f => ({ ...f, fromName: match.name, householdId: match.id, address1: "", address2: "", city: "", stateProvince: "", postalCode: "", country: "" }));
+    } else {
+      setForm(f => ({ ...f, fromName: val, householdId: null }));
+    }
+  };
+
+  const linkedHH       = form.householdId ? hhMap[form.householdId] : null;
+  const resolvedAddress = linkedHH ? formatAddress(migrateCityStateZip(linkedHH)) : null;
+
+  const handleSave = () => {
+    if (!form.fromName.trim()) return;
+    onSave({
+      ...form,
+      fromName: form.fromName.trim(),
+      amount: form.amount !== "" ? parseFloat(form.amount) : null,
+    });
+  };
 
   return (
     <div className="modal-backdrop" onMouseDown={e => { if (e.target === e.currentTarget) onClose(); }}>
-      <div className="modal">
+      <div className="modal modal-lg" style={{ maxWidth: 520 }} onClick={e => e.stopPropagation()}>
         <div className="modal-header">
-          <div className="modal-title">{gift ? "Edit Gift" : "Add Gift"}</div>
-          <button className="icon-btn" onClick={onClose}>✕</button>
+          <div className="modal-title">{isEdit ? "Edit Gift" : "Add Gift"}</div>
+          <button className="icon-btn" title="Close" onClick={onClose}>✕</button>
         </div>
         <div className="modal-body">
-          <div className="form-group">
+
+          {/* From */}
+          <div className="form-row">
             <label className="form-label">From *</label>
-            <input className="form-input" list="gift-names" value={form.from} onChange={e => set("from", e.target.value)} placeholder="Who is the gift from?" autoFocus />
-            <datalist id="gift-names">{guestNames.map(n => <option key={n} value={n} />)}</datalist>
+            <input
+              className="form-input" autoFocus
+              list="gift-from-list"
+              value={form.fromName}
+              onChange={e => handleFromChange(e.target.value)}
+              placeholder="Name or select from guest list…"
+            />
+            <datalist id="gift-from-list">
+              {hhNames.map(h => <option key={h.id} value={h.name} />)}
+            </datalist>
+            {linkedHH && (
+              <div style={{ fontSize: 11, color: "var(--accent-medium)", marginTop: 4 }}>
+                ● Linked to guest list · {resolvedAddress || "No address on file"}
+              </div>
+            )}
           </div>
-          <div className="form-grid-2">
+
+          {/* Address — only shown for non-linked donors */}
+          {!linkedHH && (<>
             <div className="form-group">
+              <label className="form-label">Address</label>
+              <input className="form-input" value={form.address1 || ""} onChange={e => setF("address1", e.target.value)} placeholder="Street address" />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Address Line 2</label>
+              <input className="form-input" value={form.address2 || ""} onChange={e => setF("address2", e.target.value)} placeholder="Apt, Suite, Unit (optional)" />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Country</label>
+              <select className="form-select" value={form.country || ""} onChange={e => setF("country", e.target.value)}>
+                <option value="">— Select country —</option>
+                {COUNTRIES.map(c => <option key={c} value={c}>{c}</option>)}
+              </select>
+            </div>
+            <div className="form-group">
+              <label className="form-label">City</label>
+              <input className="form-input" value={form.city || ""} onChange={e => setF("city", e.target.value)} placeholder="City" />
+            </div>
+            <div className="form-grid-2">
+              <div className="form-group">
+                <label className="form-label">{getAddressFields(form.country).stateLabel}</label>
+                {getAddressFields(form.country).stateOptions
+                  ? <select className="form-select" value={form.stateProvince || ""} onChange={e => setF("stateProvince", e.target.value)}>
+                      <option value="">— Select —</option>
+                      {getAddressFields(form.country).stateOptions.map(s => <option key={s} value={s}>{s}</option>)}
+                    </select>
+                  : <input className="form-input" value={form.stateProvince || ""} onChange={e => setF("stateProvince", e.target.value)} placeholder="Region" />
+                }
+              </div>
+              <div className="form-group">
+                <label className="form-label">{getAddressFields(form.country).postalLabel}</label>
+                <input className="form-input" value={form.postalCode || ""} onChange={e => setF("postalCode", e.target.value)}
+                  placeholder={form.country === "United States" ? "62701" : form.country === "Canada" ? "A1A 1A1" : form.country === "United Kingdom" ? "EC1A 1BB" : "Postal code"} />
+                {form.postalCode && (() => {
+                  const v = form.postalCode.trim();
+                  let invalid = false;
+                  if (form.country === "United States")       invalid = !/^\d{5}(-\d{4})?$/.test(v);
+                  else if (form.country === "Canada")         invalid = !/^[A-Za-z]\d[A-Za-z][ -]?\d[A-Za-z]\d$/.test(v);
+                  else if (form.country === "United Kingdom") invalid = !/^[A-Za-z]{1,2}\d[A-Za-z\d]? ?\d[A-Za-z]{2}$/.test(v);
+                  else if (form.country === "Australia")      invalid = !/^\d{4}$/.test(v);
+                  return invalid ? <div style={{ fontSize: 11, color: "var(--gold,#b45309)", marginTop: 3 }}>⚠ Format looks off for {form.country}</div> : null;
+                })()}
+              </div>
+            </div>
+          </>)}
+
+          {/* Gift Type + Amount */}
+          <div className="form-row two-col">
+            <div>
               <label className="form-label">Gift Type</label>
-              <select className="form-select" value={form.type} onChange={e => set("type", e.target.value)}>
+              <select className="form-input" value={form.giftType} onChange={e => setF("giftType", e.target.value)}>
                 {GIFT_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
               </select>
             </div>
-            <div className="form-group">
+            <div>
               <label className="form-label">Amount ($)</label>
-              <input className="form-input" type="number" min="0" step="0.01" value={form.amount || ""} onChange={e => set("amount", e.target.value)} placeholder="0.00" />
+              <input className="form-input" type="number" min="0" step="0.01"
+                value={form.amount} onChange={e => setF("amount", e.target.value)}
+                placeholder="0.00" />
             </div>
           </div>
-          <div className="form-group">
+
+          {/* Description */}
+          <div className="form-row">
             <label className="form-label">Description</label>
-            <input className="form-input" value={form.description || ""} onChange={e => set("description", e.target.value)} placeholder="e.g. Amazon gift card, Israel bond" />
+            <input className="form-input" value={form.description || ""}
+              onChange={e => setF("description", e.target.value)}
+              placeholder="e.g., Schneider Fund, Amazon gift card $50, Tallit" />
           </div>
-          <div className="form-grid-2">
-            <div className="form-group">
+
+          {/* Date Received + Attended */}
+          <div className="form-row two-col">
+            <div>
               <label className="form-label">Date Received</label>
-              <input className="form-input" type="date" value={form.dateReceived || ""} onChange={e => set("dateReceived", e.target.value)} />
+              <input className="form-input" type="date" value={form.dateReceived || ""}
+                onChange={e => setF("dateReceived", e.target.value)} />
             </div>
-            <div className="form-group">
-              <label className="form-label">Thank You Sent?</label>
-              <select className="form-select" value={form.thankYouSent ? "yes" : "no"} onChange={e => set("thankYouSent", e.target.value === "yes")}>
-                <option value="no">No</option>
+            <div>
+              <label className="form-label">Attended</label>
+              <select className="form-input"
+                value={form.attended === true ? "yes" : form.attended === false ? "no" : ""}
+                onChange={e => setF("attended", e.target.value === "yes" ? true : e.target.value === "no" ? false : null)}>
+                <option value="">Unknown</option>
                 <option value="yes">Yes</option>
+                <option value="no">No</option>
               </select>
             </div>
           </div>
-          <div className="form-group">
-            <label className="form-label">Notes</label>
-            <textarea className="form-textarea" value={form.notes || ""} onChange={e => set("notes", e.target.value)} placeholder="Card message, etc." />
+
+          {/* Thank You checkboxes */}
+          <div className="form-row">
+            <label className="form-label">Thank You</label>
+            <div style={{ display: "flex", gap: 20, marginTop: 4 }}>
+              <label style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer", fontSize: 13 }}>
+                <input type="checkbox" checked={!!form.thankYouWritten}
+                  onChange={e => setF("thankYouWritten", e.target.checked)} />
+                Written
+              </label>
+              <label style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer", fontSize: 13 }}>
+                <input type="checkbox" checked={!!form.thankYouMailed}
+                  onChange={e => setF("thankYouMailed", e.target.checked)} />
+                Mailed
+              </label>
+            </div>
           </div>
+
+          {/* Notes */}
+          <div className="form-row">
+            <label className="form-label">Notes</label>
+            <textarea className="form-input notes-area" rows={2}
+              value={form.notes || ""} onChange={e => setF("notes", e.target.value)}
+              placeholder="Any additional notes…" />
+          </div>
+
           <div className="modal-footer">
+            <span style={{ fontSize: 11, color: "var(--text-muted)", marginRight: "auto" }}>* required</span>
             <button className="btn btn-ghost" onClick={onClose}>Cancel</button>
-            <button className="btn btn-primary" disabled={!form.from?.trim() || isArchived}
-              onClick={() => onSave({ ...form })}>
-              {gift ? "Save Changes" : "Add Gift"}
+            <button className="btn btn-primary" onClick={handleSave} disabled={!form.fromName.trim() || isArchived}>
+              {isEdit ? "Save Changes" : "Add Gift"}
             </button>
           </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── GiftExportModal ───────────────────────────────────────────────────────────
+export function GiftExportModal({ gifts, households, adminConfig, onPrint, onClose }) {
+  const [showCSV, setShowCSV] = useState(false);
+  const [copied,  setCopied]  = useState(false);
+
+  const csvContent = showCSV ? exportGiftsCSV(gifts, households) : "";
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(csvContent).then(() => { setCopied(true); setTimeout(() => setCopied(false), 2000); }).catch(() => {});
+  };
+
+  const handlePrint = () => {
+    const mainEvt = (adminConfig?.timeline || []).find(e => e.isMainEvent);
+    onPrint(generateGiftPrintHTML(gifts, households, adminConfig.name || "", mainEvt?.startDate || "", adminConfig.theme || {}));
+  };
+
+  const OPTION_STYLES = (active) => ({
+    flex: 1, padding: "14px 16px",
+    borderRadius: "var(--radius-md)",
+    border: active ? "2px solid var(--accent-primary)" : "2px solid var(--border)",
+    background: active ? "var(--accent-light)" : "var(--bg-surface)",
+    cursor: "pointer", textAlign: "left",
+    transition: "border-color 0.15s, background 0.15s",
+  });
+
+  return (
+    <div className="modal-backdrop" onMouseDown={e => { if (e.target === e.currentTarget) onClose(); }}>
+      <div className="modal modal-lg" style={{ maxWidth: 520 }} onClick={e => e.stopPropagation()}>
+        <div className="modal-header">
+          <div className="modal-title">Export Gift List</div>
+          <button className="icon-btn" title="Close" onClick={onClose}>✕</button>
+        </div>
+        <div className="modal-body">
+          <div style={{ display: "flex", gap: 10, marginBottom: 20 }}>
+            <button style={OPTION_STYLES(showCSV)} onClick={() => { setShowCSV(true); setCopied(false); }}>
+              <div style={{ fontSize: 20, marginBottom: 6 }}>📋</div>
+              <div style={{ fontWeight: 700, fontSize: 13, color: "var(--text-primary)", marginBottom: 4 }}>CSV Export</div>
+              <div style={{ fontSize: 11, color: "var(--text-muted)", lineHeight: 1.5 }}>
+                One row per gift, sorted by last name. Includes address, amounts, and thank-you status.
+              </div>
+            </button>
+            <button style={OPTION_STYLES(false)} onClick={handlePrint}>
+              <div style={{ fontSize: 20, marginBottom: 6 }}>🖨</div>
+              <div style={{ fontWeight: 700, fontSize: 13, color: "var(--text-primary)", marginBottom: 4 }}>Printable View</div>
+              <div style={{ fontSize: 11, color: "var(--text-muted)", lineHeight: 1.5 }}>
+                Grouped by donor with address, gift details, and thank-you status. Works as a mailing checklist.
+              </div>
+            </button>
+          </div>
+          {showCSV && (
+            <>
+              <div className="alert alert-info" style={{ marginBottom: 10 }}>
+                Copy the CSV below and paste into Excel.
+              </div>
+              <textarea readOnly value={csvContent} onClick={e => e.target.select()}
+                style={{ width: "100%", minHeight: 180, background: "var(--bg-subtle)", border: "1px solid var(--border)", borderRadius: "var(--radius-sm)", padding: 10, fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--text-primary)", resize: "vertical" }} />
+              <div className="modal-footer" style={{ marginTop: 12 }}>
+                <button className="btn btn-ghost" onClick={onClose}>Close</button>
+                <button className="btn btn-primary" onClick={handleCopy}>
+                  {copied ? "✓ Copied!" : "Copy to Clipboard"}
+                </button>
+              </div>
+            </>
+          )}
+          {!showCSV && (
+            <div className="modal-footer">
+              <button className="btn btn-ghost" onClick={onClose}>Cancel</button>
+            </div>
+          )}
         </div>
       </div>
     </div>
@@ -255,5 +714,5 @@ function GiftModal({ gift, guestNames, onSave, onClose, isArchived }) {
 }
 
 const loadingStyle = { padding: "48px 24px", textAlign: "center", color: "var(--text-muted)", fontSize: 14 };
-const th = { padding: "8px 12px", fontSize: 11, fontWeight: 700, color: "var(--text-muted)", textAlign: "left", textTransform: "uppercase", letterSpacing: "0.04em", whiteSpace: "nowrap" };
-const td = { padding: "10px 12px", verticalAlign: "middle" };
+const TH = { padding: "6px 10px", textAlign: "left", fontWeight: 700, color: "var(--text-muted)", fontSize: 11, textTransform: "uppercase", letterSpacing: "0.04em", whiteSpace: "nowrap" };
+const TD = { padding: "6px 10px" };
