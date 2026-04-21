@@ -12,7 +12,7 @@ import { ArchivedNotice } from "@/components/shared/ArchivedNotice.jsx";
 import { VendorQuickView } from "@/components/shared/VendorQuickView.jsx";
 import { VendorModal } from "@/components/shared/VendorModal.jsx";
 
-export function GratuityCalculator({ expenses, vendors, onAddExpense, isArchived, showToast }) {
+export function GratuityCalculator({ expenses, vendors, onAddExpense, isArchived }) {
   const [open,        setOpen]        = useState(true);
   const [selected,    setSelected]    = useState({});   // vendorKey → true/false
   const [customBase,  setCustomBase]  = useState({});   // vendorKey → string override
@@ -78,7 +78,6 @@ export function GratuityCalculator({ expenses, vendors, onAddExpense, isArchived
     });
     setAdded(a => ({ ...a, [g.key]: true }));
     setTimeout(() => setAdded(a => ({ ...a, [g.key]: false })), 2500);
-    if (showToast) showToast("Gratuity added to budget");
   };
 
   const handleAddAll = () => {
@@ -925,7 +924,6 @@ export function BudgetTab({ state, updateData, appendAuditLog, isArchived, showT
     navigator.clipboard.writeText(csv).then(() => {
       setCopyMsg("Copied!");
       setTimeout(() => setCopyMsg(""), 2500);
-      showToast("CSV copied to clipboard");
     }).catch(() => setCopyMsg("Copy failed — select all and copy manually."));
   };
 
@@ -1074,7 +1072,6 @@ export function BudgetTab({ state, updateData, appendAuditLog, isArchived, showT
         vendors={vendors}
         onAddExpense={(exp) => { if (!isArchived) saveExpenses([...expenses, exp]); }}
         isArchived={isArchived}
-        showToast={showToast}
       />
 
       {/* Expense list */}
@@ -1136,8 +1133,8 @@ export function BudgetTab({ state, updateData, appendAuditLog, isArchived, showT
         {expenses.length === 0 && (
           <div style={{textAlign:"center",padding:"48px 24px",color:"var(--text-muted)"}}>
             <div style={{fontSize:36,marginBottom:12,opacity:0.4}}>💰</div>
-            <div style={{fontFamily:"var(--font-display)",fontSize:18,marginBottom:6,color:"var(--text-primary)"}}>No expenses yet — add your first expense.</div>
-            <div style={{fontSize:13,marginBottom:20}}>Track costs, payments, and your overall budget here.</div>
+            <div style={{fontFamily:"var(--font-display)",fontSize:18,marginBottom:6,color:"var(--text-primary)"}}>No expenses yet</div>
+            <div style={{fontSize:13,marginBottom:20}}>Add your first expense to start tracking your budget.</div>
             <button className="btn btn-primary" onClick={() => setShowModal(true)}>+ Add Expense</button>
           </div>
         )}
