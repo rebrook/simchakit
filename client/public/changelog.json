@@ -4584,6 +4584,12 @@
       "summary": "Admin Mode section nav overflows horizontally on mobile",
       "detail": "The Admin Mode section tab bar (Event Details, Timeline, Guests, Accommodations, Theme, Tabs, Security, Data) renders as a single non-wrapping horizontal row. On screens narrower than ~640px the row overflows the modal width, requiring horizontal scroll to reach tabs beyond the visible area. Workaround: scroll the tab bar horizontally. Resolved in V2.48.3 \u2014 section nav container updated to flex-wrap: wrap so tabs flow onto multiple rows on narrow screens.",
       "workaround": "Scroll the Admin Mode section tab bar horizontally to reach hidden tabs."
+    },
+    {
+      "id": 12,
+      "severity": "open",
+      "summary": "BudgetTab V2 \u2014 vendor filter shows unlinked expenses",
+      "detail": "In V2, expenses with no vendor assigned (empty vendorId) appear in results regardless of which vendor is selected in the filter dropdown. Expenses with a valid vendorId filter correctly. Root cause unconfirmed \u2014 code, data, and build all verified correct. V3 is not affected."
     }
   ],
   "auditItems": [
@@ -5382,16 +5388,5 @@
         "trigger": "Platform-level change \u2014 SaaS, authentication, database backend"
       }
     ]
-  },
-  "known_issues": [
-    {
-      "id": "ki-001",
-      "area": "BudgetTab",
-      "affects": "V2",
-      "priority": "P2",
-      "title": "Vendor filter \u2014 unlinked expenses always shown",
-      "description": "In V2, expenses with no vendor assigned (empty vendorId) appear in results regardless of which vendor is selected in the filter. Expenses with a valid vendorId filter correctly. Fix was attempted (treating falsy vendorId as empty string) but did not resolve the issue. Root cause unconfirmed \u2014 code, data, and build all verified correct. V3 is not affected.",
-      "status": "open"
-    }
-  ]
+  }
 }
