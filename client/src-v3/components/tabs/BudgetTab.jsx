@@ -44,6 +44,10 @@ export function BudgetTab({ eventId, event, adminConfig, showToast, isArchived, 
   const [filterSection,  setFilterSection]  = useState("All");
   const [search,         setSearch]         = useState("");
   const [insightsOpen,   setInsightsOpen]   = useState(false);
+  const [expandedNotes,  setExpandedNotes]  = useState({});
+  const [pendingPaidId,  setPendingPaidId]  = useState(null);
+  const [pendingPaidIdx, setPendingPaidIdx] = useState(null);
+  const [pendingPaidDate,setPendingPaidDate]= useState("");
   const [viewMode,       setViewMode]       = useState("list"); // list | timeline
 
   const { items: vendorsForExpense } = useEventData(eventId, "vendors");
