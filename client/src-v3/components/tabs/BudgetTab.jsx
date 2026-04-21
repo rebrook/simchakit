@@ -355,6 +355,7 @@ export function BudgetTab({ eventId, event, adminConfig, showToast, isArchived, 
   const [pendingPaidIdx,   setPendingPaidIdx]   = useState(null);
   const [pendingPaidDate,  setPendingPaidDate]  = useState("");
   const [sortBy,           setSortBy]           = useState("due");
+  const [deleteConfirm,    setDeleteConfirm]    = useState(null); // expense object
   const [expandedVendors,  setExpandedVendors]  = useState({});
   const [expandedSections, setExpandedSections] = useState({});
   const [viewMode,         setViewMode]         = useState("list"); // list | vendor | section
@@ -438,16 +439,7 @@ export function BudgetTab({ eventId, event, adminConfig, showToast, isArchived, 
   }, [expenses, filterPaid, filterCat, filterVendor, filterSection, search, sortBy]);
 
   // ── Category breakdown ───────────────────────────────────────────────────
-  const catBreakdown = useMemo(() => {
-    const map = {};
-    expenses.forEach(e => {
-      const cat = e.category || "Uncategorized";
-      if (!map[cat]) map[cat] = { total: 0, paid: 0 };
-      map[cat].total += parseFloat(e.amount) || 0;
-      if (e.paid) map[cat].paid += parseFloat(e.amount) || 0;
-    });
-    return Object.entries(map).map(([name, v]) => ({ name, ...v })).sort((a, b) => b.total - a.total);
-  }, [expenses]);
+
 
   // ── Vendor groups (By Vendor view) ──────────────────────────────────────────
   const vendorGroups = (() => {
@@ -491,11 +483,24 @@ export function BudgetTab({ eventId, event, adminConfig, showToast, isArchived, 
 
   const fmt = (d) => d ? new Date(d + "T00:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "";
 
-  const togglePaid = async (expense) => {
-    const updated = { ...expense, paid: !expense.paid };
-    if (!expense.paid && !expense.datePaid) updated.datePaid = new Date().toISOString().slice(0, 10);
-    await save(updated);
-    showToast(updated.paid ? "Marked as paid ✓" : "Marked as unpaid");
+  const togglePaid = async (expense, eIdx) => {
+    if (isArchived) return;
+    // Marking unpaid — always immediate
+    if (expense.paid) {
+      await save({ ...expense, paid: false, datePaid: "" });
+      showToast("Marked unpaid");
+      return;
+    }
+    // Marking paid — if date already set, proceed immediately
+    if (expense.datePaid || expense.date) {
+      await save({ ...expense, paid: true });
+      showToast("Marked paid");
+      return;
+    }
+    // Marking paid with no date — show inline date prompt
+    setPendingPaidId(expense.id || expense._rowId);
+    setPendingPaidIdx(eIdx);
+    setPendingPaidDate(new Date().toISOString().slice(0, 10));
   };
 
   const confirmPaid = async () => {
@@ -596,30 +601,6 @@ export function BudgetTab({ eventId, event, adminConfig, showToast, isArchived, 
         </div>
       </div>
 
-      {/* Category breakdown bar */}
-      {catBreakdown.length > 0 && (
-        <div className="card" style={{ marginBottom: 20 }}>
-          {catBreakdown.slice(0, 6).map((c, i) => {
-            const paidPct   = c.total > 0 ? (c.paid / c.total) * 100 : 0;
-            const unpaidPct = 100 - paidPct;
-            return (
-              <div key={c.name} className="budget-bar-row">
-                <div className="budget-bar-meta">
-                  <span className="budget-bar-label">{c.name}</span>
-                  <span className="budget-bar-amount">{fmt$(c.total)}<span className="budget-bar-pct">({Math.round((c.total/totalExpenses)*100)}%)</span></span>
-                </div>
-                <div className="budget-bar-track">
-                  <div className="budget-bar-fill" style={{ width: "100%" }}>
-                    <div className="budget-bar-paid"   style={{ width: `${paidPct}%` }} />
-                    <div className="budget-bar-unpaid" style={{ left: `${paidPct}%`, width: `${unpaidPct}%` }} />
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
-
       {/* Budget Insights */}
       <BudgetInsights
         expenses={expenses}
@@ -683,6 +664,16 @@ export function BudgetTab({ eventId, event, adminConfig, showToast, isArchived, 
           ))}
         </div>
       </div>
+
+      {/* Gratuity calculator */}
+      {expenses.length > 0 && !isArchived && (
+        <GratuityCalculator
+          expenses={expenses}
+          vendors={vendors}
+          onAddExpense={async (exp) => { await save(exp); showToast("Gratuity added to budget"); }}
+          isArchived={isArchived}
+        />
+      )}
 
       {/* Expense list */}
       <div className="card">
@@ -781,7 +772,7 @@ export function BudgetTab({ eventId, event, adminConfig, showToast, isArchived, 
                       disabled={isArchived} onClick={() => { setEditing(e); setShowAdd(true); }}>✎</button>
                     <button className="icon-btn" title="Delete"
                       style={{width:28,height:28,fontSize:13,color:"var(--red)"}}
-                      disabled={isArchived} onClick={() => handleDelete(e)}>✕</button>
+                      disabled={isArchived} onClick={() => setDeleteConfirm(e)}>✕</button>
                   </div>
                   {pendingPaidId === (e.id || e._rowId) && pendingPaidIdx === eIdx && (
                     <div style={{gridColumn:"1/-1",display:"flex",alignItems:"center",gap:8,flexWrap:"wrap",marginTop:6,padding:"10px 12px",background:"var(--green-light)",border:"1px solid var(--green)",borderRadius:"var(--radius-sm)"}}>
@@ -910,7 +901,7 @@ export function BudgetTab({ eventId, event, adminConfig, showToast, isArchived, 
                             disabled={isArchived} onClick={() => { setEditing(e); setShowAdd(true); }}>✎</button>
                           <button className="icon-btn" title="Delete"
                             style={{width:28,height:28,fontSize:13,color:"var(--red)"}}
-                            disabled={isArchived} onClick={() => handleDelete(e)}>✕</button>
+                            disabled={isArchived} onClick={() => setDeleteConfirm(e)}>✕</button>
                         </div>
                         {pendingPaidId === (e.id || e._rowId) && pendingPaidIdx === eIdx && (
                           <div style={{gridColumn:"1/-1",display:"flex",alignItems:"center",gap:8,flexWrap:"wrap",marginTop:6,padding:"10px 12px",background:"var(--green-light)",border:"1px solid var(--green)",borderRadius:"var(--radius-sm)"}}>
@@ -1022,7 +1013,7 @@ export function BudgetTab({ eventId, event, adminConfig, showToast, isArchived, 
                               <button className="icon-btn" title="Edit" disabled={isArchived}
                                 onClick={() => { setEditing(e); setShowAdd(true); }}>✎</button>
                               <button className="icon-btn" title="Delete" disabled={isArchived}
-                                onClick={() => handleDelete(e)}>✕</button>
+                                onClick={() => setDeleteConfirm(e)}>✕</button>
                             </div>
                             {pendingPaidId === (e.id || e._rowId) && pendingPaidIdx === eIdx && (
                               <div style={{gridColumn:"1/-1",display:"flex",alignItems:"center",gap:8,flexWrap:"wrap",marginTop:6,padding:"10px 12px",background:"var(--green-light)",border:"1px solid var(--green)",borderRadius:"var(--radius-sm)"}}>
@@ -1045,6 +1036,26 @@ export function BudgetTab({ eventId, event, adminConfig, showToast, isArchived, 
           </div>
         )}
       </div>
+
+      {deleteConfirm && (
+        <div className="modal-backdrop" onMouseDown={e => { if (e.target === e.currentTarget) setDeleteConfirm(null); }}>
+          <div className="modal" style={{ maxWidth: 380 }} onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <div className="modal-title">Delete Expense</div>
+              <button className="icon-btn" title="Close" onClick={() => setDeleteConfirm(null)}>✕</button>
+            </div>
+            <div className="modal-body">
+              <p style={{ fontSize: 14, color: "var(--text-primary)", marginBottom: 4 }}>
+                This will permanently remove <strong>{deleteConfirm.description}</strong> from your budget.
+              </p>
+              <div className="modal-footer">
+                <button className="btn btn-ghost" onClick={() => setDeleteConfirm(null)}>Cancel</button>
+                <button className="btn btn-danger" onClick={() => { handleDelete(deleteConfirm); setDeleteConfirm(null); }}>Delete</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {vendorQuick && (
         <VendorQuickView
