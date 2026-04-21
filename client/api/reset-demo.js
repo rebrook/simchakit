@@ -3640,7 +3640,14 @@ export default async function handler(req, res) {
       { table: "tables",         rows: toRows(DEMO_EVENT_ID, SEED.tables)         },
       { table: "gifts",          rows: toRows(DEMO_EVENT_ID, SEED.gifts)          },
       { table: "favors",         rows: toRows(DEMO_EVENT_ID, SEED.favors)         },
-      { table: "ceremony_roles", rows: toRows(DEMO_EVENT_ID, SEED.ceremonyRoles)  },
+      { table: "ceremony_roles", rows: [{
+          id: "6fc82695-9b28-4b3e-8f05-1a8f54368976",
+          event_id: DEMO_EVENT_ID,
+          data: { roles: SEED.ceremonyRoles },
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        }]
+      },
     ];
     for (const { table, rows } of inserts) {
       if (!rows || rows.length === 0) continue;
