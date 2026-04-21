@@ -99,7 +99,7 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false }) {
 
   // ── Fetch app version from changelog ─────────────────────────────────────
   useEffect(() => {
-    fetch("/simcha/changelog")
+    fetch("/changelog.json")
       .then(r => r.json())
       .then(d => { if (d.current) setAppVersion(d.current); })
       .catch(() => {});

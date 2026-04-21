@@ -1,9 +1,18 @@
 {
-  "current": "V3.3.11",
+  "current": "V3.3.12",
   "whatsNew": [
-    "AppShell: Print Brief now populates vendors, guests, tasks, and ceremony roles correctly"
+    "AppShell: Version number now displays correctly in footer"
   ],
   "changelog": [
+    {
+      "version": "V3.3.12",
+      "date": "2026-04-21",
+      "type": "fix",
+      "summary": "AppShell \u2014 changelog fetch URL corrected for V3 Vercel deployment",
+      "changes": [
+        "Bug: changelog fetch was hitting /simcha/changelog (V2 NAS Express route) which does not exist on Vercel. Fixed to /changelog.json (static file served from client/public/)."
+      ]
+    },
     {
       "version": "V3.3.11",
       "date": "2026-04-21",
