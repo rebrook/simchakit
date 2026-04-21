@@ -1,9 +1,39 @@
 {
-  "current": "V3.2.5",
+  "current": "V3.2.6",
   "whatsNew": [
-    "⭐ Favors tab rebuilt with full V2 features — inline setup, available guest panel, conditional columns, and one-click add from your guest list"
+    "BudgetTab: Invoice Date field added to expense form",
+    "BudgetTab: Custom category support added",
+    "BudgetTab: Inline notes expand/collapse on expense rows",
+    "BudgetTab: Payment date prompt when marking expenses paid"
   ],
   "changelog": [
+    {
+      "version": "V3.2.6",
+      "date": "2026-04-20",
+      "type": "fix",
+      "summary": "BudgetTab — full V2 parity plus V2 improvements",
+      "changes": [
+        "ExpenseModal: description placeholder updated to concrete example 'e.g., Photography — Retainer'",
+        "ExpenseModal: Custom Category field added — text input shown when category is set to 'Custom'; handleSave extracts customCategory before saving",
+        "ExpenseModal: $ prefix added to Amount and Budgeted inputs (absolute-positioned span)",
+        "ExpenseModal: Amount and Budgeted inputs clamp negative values to 0",
+        "ExpenseModal: Budgeted placeholder updated to 'Original estimate'; hint expanded to include 'Leave blank to exclude this item from estimate tracking'",
+        "ExpenseModal: Invoice Date field added (separate from Due Date), stored as form.date",
+        "ExpenseModal: Due Date hint 'Leave blank if no due date' added",
+        "ExpenseModal: vendor dropdown now includes fallback free-text input when no vendors exist ('Other / no vendor' option)",
+        "ExpenseModal: Event Section field now uses timeline titles (matching V2); hint 'Which part of the event does this expense belong to?' added",
+        "ExpenseModal: Notes placeholder updated to full V2 text including 'confirmation numbers, contract details'",
+        "ExpenseModal: '* required' legend added to modal footer",
+        "ExpenseModal: title='Close' added to modal ✕ button",
+        "Expense rows: inline notes expand/collapse (▾ notes / ▴ hide) added when expense has notes",
+        "Expense rows: togglePaid replaced with V2 interactive inline date prompt — when marking paid with no date set, shows green '📅 Payment date' input with Confirm/Cancel buttons instead of auto-setting silently",
+        "Expense rows: paid date display updated to fall back to e.date if e.datePaid not set",
+        "Stat cards: Total Budget (was 'Total Expenses'), Paid to Date (was 'Paid'), Outstanding sub-labels added: '{N} line items', '{N} of {N} paid', '{N} unpaid items'",
+        "V2: Empty state updated to 'No expenses yet — add your first expense.' matching V3",
+        "V2: GratuityCalculator shows 'Gratuity added to budget' toast when adding a line item",
+        "V2: CSV export shows 'CSV copied to clipboard' toast on successful copy"
+      ]
+    },
     {
       "version": "V3.2.5",
       "date": "2026-04-20",

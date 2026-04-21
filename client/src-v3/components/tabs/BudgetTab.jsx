@@ -93,11 +93,22 @@ export function BudgetTab({ eventId, event, adminConfig, showToast, isArchived, 
     return Object.entries(map).map(([name, v]) => ({ name, ...v })).sort((a, b) => b.total - a.total);
   }, [expenses]);
 
-  const togglePaid = async (expense) => {
-    const updated = { ...expense, paid: !expense.paid };
-    if (!expense.paid && !expense.datePaid) updated.datePaid = new Date().toISOString().slice(0, 10);
-    await save(updated);
-    showToast(updated.paid ? "Marked as paid ✓" : "Marked as unpaid");
+  const togglePaid = async (expense, eIdx) => {
+    if (isArchived) return;
+    if (expense.paid) {
+      await save({ ...expense, paid: false });
+      showToast("Marked unpaid");
+      return;
+    }
+    if (expense.datePaid || expense.date) {
+      await save({ ...expense, paid: true });
+      showToast("Marked paid");
+      return;
+    }
+    const rowId = expense.id || expense._rowId;
+    setPendingPaidId(rowId);
+    setPendingPaidIdx(eIdx);
+    setPendingPaidDate(new Date().toISOString().slice(0, 10));
   };
 
   const handleSave = async (data) => {
@@ -105,6 +116,21 @@ export function BudgetTab({ eventId, event, adminConfig, showToast, isArchived, 
     setShowAdd(false);
     setEditing(null);
     showToast(editing ? "Expense updated" : "Expense added");
+  };
+
+  const toggleNotes = (id) => setExpandedNotes(n => ({...n, [id]: !n[id]}));
+
+  const confirmPaid = async () => {
+    if (!pendingPaidId) return;
+    const exp = expenses.find(e => (e.id || e._rowId) === pendingPaidId);
+    if (!exp) return;
+    await save({ ...exp, paid: true, datePaid: pendingPaidDate || new Date().toISOString().slice(0,10) });
+    showToast("Marked paid");
+    setPendingPaidId(null); setPendingPaidIdx(null); setPendingPaidDate("");
+  };
+
+  const cancelPaid = () => {
+    setPendingPaidId(null); setPendingPaidIdx(null); setPendingPaidDate("");
   };
 
   const handleDelete = async (e) => {
@@ -145,16 +171,19 @@ export function BudgetTab({ eventId, event, adminConfig, showToast, isArchived, 
       {/* Stat cards */}
       <div className="budget-stat-grid">
         <div className="stat-card">
-          <div className="stat-label">Total Expenses</div>
+          <div className="stat-label">Total Budget</div>
           <div className="stat-value">{fmt$(totalExpenses)}</div>
+          <div className="stat-sub">{expenses.length} line item{expenses.length!==1?"s":""}</div>
         </div>
         <div className="stat-card">
-          <div className="stat-label">Paid</div>
+          <div className="stat-label">Paid to Date</div>
           <div className="stat-value stat-green">{fmt$(totalPaid)}</div>
+          <div className="stat-sub">{expenses.filter(e=>e.paid).length} of {expenses.length} paid</div>
         </div>
         <div className="stat-card">
           <div className="stat-label">Outstanding</div>
-          <div className="stat-value" style={{ color: totalUnpaid > 0 ? "var(--red)" : "var(--text-primary)" }}>{fmt$(totalUnpaid)}</div>
+          <div className="stat-value stat-red">{fmt$(totalUnpaid)}</div>
+          <div className="stat-sub">{expenses.filter(e=>!e.paid).length} unpaid item{expenses.filter(e=>!e.paid).length!==1?"s":""}</div>
         </div>
         {hasBudgeted && (
           <div className="stat-card">
@@ -279,13 +308,15 @@ export function BudgetTab({ eventId, event, adminConfig, showToast, isArchived, 
             {expenses.length === 0 ? "No expenses yet — add your first expense." : "No expenses match your filters."}
           </div>
         ) : (
-          filtered.map(e => {
+          filtered.map((e, eIdx) => {
             const due = getDueStatus(e);
             const vendor = e.vendorId ? vendorMap[e.vendorId] : null;
             return (
               <div key={e.id || e._rowId} id={`row-${e.id}`} className="expense-row">
                 <div className="expense-row-check">
-                  <div className={`paid-check ${e.paid ? "checked" : ""}`} onClick={() => !isArchived && togglePaid(e)}>
+                  <div className={`paid-check ${e.paid ? "checked" : ""}`}
+                    title={e.paid ? "Mark as unpaid" : "Mark as paid"}
+                    onClick={() => !isArchived && togglePaid(e, eIdx)}>
                     {e.paid && <svg width="10" height="8" viewBox="0 0 10 8"><polyline points="1,4 4,7 9,1" stroke="white" strokeWidth="1.5" fill="none"/></svg>}
                   </div>
                 </div>
@@ -302,12 +333,21 @@ export function BudgetTab({ eventId, event, adminConfig, showToast, isArchived, 
                     {e.dueDate && !e.paid && due && (
                       <span className={`expense-row-meta ${due.cls}`}>{due.label}</span>
                     )}
-                    {e.paid && e.datePaid && (
+                    {e.paid && (e.datePaid || e.date) && (
                       <span style={{ color: "var(--green)", fontSize: 11 }}>
-                        Paid {new Date(e.datePaid + "T00:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                        Paid {new Date((e.datePaid||e.date) + "T00:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric" })}
                       </span>
                     )}
+                    {!!(e.notes && e.notes.trim()) && (
+                      <button style={{background:"none",border:"none",cursor:"pointer",fontSize:11,color:"var(--text-muted)",padding:"0 0 0 4px"}}
+                        onClick={() => toggleNotes(e.id || e._rowId)}>
+                        {expandedNotes[e.id || e._rowId] ? "▴ hide" : "▾ notes"}
+                      </button>
+                    )}
                   </div>
+                  {!!(e.notes && e.notes.trim()) && expandedNotes[e.id || e._rowId] && (
+                    <div className="task-notes-text">{e.notes}</div>
+                  )}
                 </div>
                 <div className="expense-row-amount">{fmt$(e.amount)}</div>
                 <div className="expense-row-actions">
@@ -316,6 +356,16 @@ export function BudgetTab({ eventId, event, adminConfig, showToast, isArchived, 
                     <button className="icon-btn" style={{ width: 26, height: 26 }} title="Delete" onClick={() => handleDelete(e)}>✕</button>
                   </>)}
                 </div>
+                {pendingPaidId === (e.id || e._rowId) && pendingPaidIdx === eIdx && (
+                  <div style={{gridColumn:"1/-1",display:"flex",alignItems:"center",gap:8,flexWrap:"wrap",marginTop:6,padding:"10px 12px",background:"var(--green-light)",border:"1px solid var(--green)",borderRadius:"var(--radius-sm)"}}>
+                    <span style={{fontSize:12,fontWeight:600,color:"var(--green)",flexShrink:0}}>📅 Payment date:</span>
+                    <input className="form-input" type="date" value={pendingPaidDate}
+                      onChange={e2 => setPendingPaidDate(e2.target.value)}
+                      style={{width:150,fontSize:12,padding:"4px 8px"}} />
+                    <button className="btn btn-primary btn-sm" style={{fontSize:12}} onClick={confirmPaid}>Confirm paid</button>
+                    <button className="btn btn-secondary btn-sm" style={{fontSize:12}} onClick={cancelPaid}>Cancel</button>
+                  </div>
+                )}
               </div>
             );
           })
@@ -371,84 +421,191 @@ export function BudgetTab({ eventId, event, adminConfig, showToast, isArchived, 
 
 // ── ExpenseModal ──────────────────────────────────────────────────────────────
 export function ExpenseModal({ expense, vendors, adminConfig, onSave, onClose, isArchived }) {
-  const blank = { id: newExpenseId(), description: "", category: "", vendorId: "", amount: "", budgeted: "", dueDate: "", datePaid: "", eventSection: "", paid: false, notes: "" };
+  const isEdit = !!expense;
+  const blank = {
+    id: newExpenseId(), description: "", category: "",
+    customCategory: "", vendor: "", vendorId: "", amount: "",
+    budgeted: "", date: "", dueDate: "", datePaid: "", paid: false,
+    notes: "", eventSection: "",
+  };
   const [form, setForm] = useState(expense || blank);
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
-  const timeline = (adminConfig?.timeline || []).filter(t => t.title);
+
+  // Build section list from timeline
+  const sectionList = [
+    "All Events",
+    ...((adminConfig?.timeline || [])
+      .filter(e => e.title && e.startDate)
+      .sort((a, b) => (a.startDate || "").localeCompare(b.startDate || ""))
+      .map(e => e.title)
+    ),
+  ];
+
+  const hasVendors = (vendors || []).length > 0;
+  const vendorSelectVal = form.vendorId || (hasVendors ? "__other__" : "");
+
+  const handleVendorSelect = (val) => {
+    if (val === "__other__") {
+      setForm(f => ({ ...f, vendor: "", vendorId: "" }));
+    } else {
+      const v = (vendors || []).find(v => v.id === val);
+      if (v) setForm(f => ({ ...f, vendor: v.name, vendorId: v.id }));
+    }
+  };
+
+  const handleSave = () => {
+    if (!form.description.trim()) return;
+    const category = form.category === "Custom" ? (form.customCategory.trim() || "Custom") : form.category;
+    onSave({ ...form, category });
+  };
 
   return (
     <div className="modal-backdrop" onMouseDown={e => { if (e.target === e.currentTarget) onClose(); }}>
       <div className="modal modal-lg">
         <div className="modal-header">
-          <div className="modal-title">{expense ? "Edit Expense" : "Add Expense"}</div>
-          <button className="icon-btn" onClick={onClose}>✕</button>
+          <div className="modal-title">{isEdit ? "Edit Expense" : "Add Expense"}</div>
+          <button className="icon-btn" title="Close" onClick={onClose}>✕</button>
         </div>
         <div className="modal-body">
+
+          {/* Description */}
           <div className="form-group">
             <label className="form-label">Description *</label>
-            <input className="form-input" value={form.description} onChange={e => set("description", e.target.value)} placeholder="What is this expense?" autoFocus />
+            <input className="form-input" value={form.description}
+              onChange={e => set("description", e.target.value)}
+              placeholder="e.g., Photography — Retainer" autoFocus />
           </div>
+
+          {/* Category + Vendor */}
           <div className="form-grid-2">
             <div className="form-group">
               <label className="form-label">Category</label>
-              <select className="form-select" value={form.category} onChange={e => set("category", e.target.value)}>
-                <option value="">Select category…</option>
+              <select className="form-select" value={form.category}
+                onChange={e => set("category", e.target.value)}>
+                <option value="">— Select category —</option>
                 {EXPENSE_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
               </select>
             </div>
             <div className="form-group">
               <label className="form-label">Vendor</label>
-              <select className="form-select" value={form.vendorId || ""} onChange={e => set("vendorId", e.target.value)}>
-                <option value="">No vendor</option>
-                {vendors.map(v => <option key={v.id} value={v.id}>{v.name}</option>)}
-              </select>
+              {hasVendors ? (
+                <>
+                  <select className="form-select" value={vendorSelectVal}
+                    onChange={e => handleVendorSelect(e.target.value)}>
+                    {(vendors || []).slice().sort((a, b) => a.name.localeCompare(b.name)).map(v => (
+                      <option key={v.id} value={v.id}>{v.name}</option>
+                    ))}
+                    <option value="__other__">Other / no vendor</option>
+                  </select>
+                  {vendorSelectVal === "__other__" && (
+                    <input className="form-input" style={{ marginTop: 6 }} value={form.vendor}
+                      onChange={e => set("vendor", e.target.value)}
+                      placeholder="Vendor name (optional)" />
+                  )}
+                </>
+              ) : (
+                <input className="form-input" value={form.vendor}
+                  onChange={e => set("vendor", e.target.value)}
+                  placeholder="Vendor name" />
+              )}
             </div>
           </div>
+
+          {/* Custom Category */}
+          {form.category === "Custom" && (
+            <div className="form-group">
+              <label className="form-label">Custom Category Name</label>
+              <input className="form-input" value={form.customCategory || ""}
+                onChange={e => set("customCategory", e.target.value)}
+                placeholder="Enter your category name" />
+            </div>
+          )}
+
+          {/* Amount + Budgeted */}
           <div className="form-grid-2">
             <div className="form-group">
-              <label className="form-label">Amount ($) *</label>
-              <input className="form-input" type="number" min="0" step="0.01" value={form.amount} onChange={e => set("amount", e.target.value)} placeholder="0.00" />
+              <label className="form-label">Amount ($)</label>
+              <div style={{ position: "relative" }}>
+                <span style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", fontSize: 13, color: "var(--text-muted)", pointerEvents: "none" }}>$</span>
+                <input className="form-input" type="number" min="0" step="0.01"
+                  style={{ paddingLeft: 22 }}
+                  value={form.amount}
+                  onChange={e => set("amount", e.target.value < 0 ? "0" : e.target.value)}
+                  placeholder="0.00" />
+              </div>
             </div>
             <div className="form-group">
-              <label className="form-label">Budgeted ($)</label>
-              <input className="form-input" type="number" min="0" step="0.01" value={form.budgeted || ""} onChange={e => set("budgeted", e.target.value)} placeholder="Estimate" />
-              <div className="form-hint">Used in budget vs. actual charts.</div>
+              <label className="form-label">Budgeted ($) <span style={{ fontWeight: 400, color: "var(--text-muted)", fontSize: 11 }}>optional</span></label>
+              <div style={{ position: "relative" }}>
+                <span style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", fontSize: 13, color: "var(--text-muted)", pointerEvents: "none" }}>$</span>
+                <input className="form-input" type="number" min="0" step="0.01"
+                  style={{ paddingLeft: 22 }}
+                  value={form.budgeted || ""}
+                  onChange={e => set("budgeted", e.target.value < 0 ? "0" : e.target.value)}
+                  placeholder="Original estimate" />
+              </div>
+              <div className="form-hint">Used in budget vs. actual charts. Leave blank to exclude this item from estimate tracking.</div>
             </div>
           </div>
+
+          {/* Invoice Date + Due Date */}
           <div className="form-grid-2">
+            <div className="form-group">
+              <label className="form-label">Invoice Date</label>
+              <input className="form-input" type="date" value={form.date || ""}
+                onChange={e => set("date", e.target.value)} />
+            </div>
             <div className="form-group">
               <label className="form-label">Due Date</label>
-              <input className="form-input" type="date" value={form.dueDate || ""} onChange={e => set("dueDate", e.target.value)} />
+              <input className="form-input" type="date" value={form.dueDate || ""}
+                onChange={e => set("dueDate", e.target.value)} />
+              <div className="form-hint">Leave blank if no due date</div>
             </div>
-            {timeline.length > 0 && (
-              <div className="form-group">
-                <label className="form-label">Event Section</label>
-                <select className="form-select" value={form.eventSection || ""} onChange={e => set("eventSection", e.target.value)}>
-                  <option value="">No section</option>
-                  {timeline.map(t => <option key={t.id} value={t.id}>{t.title}</option>)}
-                </select>
-              </div>
-            )}
           </div>
+
+          {/* Paid checkbox + date (V3 pattern — better than V2 select) */}
           <div className="form-group" style={{ display: "flex", alignItems: "center", gap: 10 }}>
             <div className={`paid-check ${form.paid ? "checked" : ""}`} onClick={() => set("paid", !form.paid)}>
               {form.paid && <svg width="10" height="8" viewBox="0 0 10 8"><polyline points="1,4 4,7 9,1" stroke="white" strokeWidth="1.5" fill="none"/></svg>}
             </div>
             <label className="form-label" style={{ margin: 0, textTransform: "none", fontSize: 14, fontWeight: 500 }}>Paid</label>
             {form.paid && (
-              <input className="form-input" type="date" value={form.datePaid || ""} onChange={e => set("datePaid", e.target.value)}
+              <input className="form-input" type="date" value={form.datePaid || ""}
+                onChange={e => set("datePaid", e.target.value)}
                 style={{ flex: 1, maxWidth: 180 }} placeholder="Date paid" />
             )}
           </div>
+
+          {/* Event Section */}
+          {sectionList.length > 1 && (
+            <div className="form-group">
+              <label className="form-label">Event Section</label>
+              <select className="form-select"
+                value={form.eventSection || ""}
+                onChange={e => set("eventSection", e.target.value === "All Events" ? "" : e.target.value)}>
+                {sectionList.map(s => (
+                  <option key={s} value={s === "All Events" ? "" : s}>{s}</option>
+                ))}
+              </select>
+              <div className="form-hint">Which part of the event does this expense belong to?</div>
+            </div>
+          )}
+
+          {/* Notes */}
           <div className="form-group">
             <label className="form-label">Notes</label>
-            <textarea className="form-textarea" value={form.notes || ""} onChange={e => set("notes", e.target.value)} placeholder="Payment terms, deposit details…" />
+            <textarea className="form-textarea" rows={3} value={form.notes || ""}
+              onChange={e => set("notes", e.target.value)}
+              placeholder="Payment terms, confirmation numbers, contract details..." />
           </div>
+
           <div className="modal-footer">
+            <span style={{ fontSize: 11, color: "var(--text-muted)", marginRight: "auto" }}>* required</span>
             <button className="btn btn-ghost" onClick={onClose}>Cancel</button>
-            <button className="btn btn-primary" disabled={!form.description?.trim() || !form.amount || isArchived}
-              onClick={() => onSave({ ...form })}>
-              {expense ? "Save Changes" : "Add Expense"}
+            <button className="btn btn-primary"
+              disabled={!form.description?.trim() || !form.amount || isArchived}
+              onClick={handleSave}>
+              {isEdit ? "Save Changes" : "Add Expense"}
             </button>
           </div>
         </div>
