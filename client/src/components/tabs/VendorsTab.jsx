@@ -70,16 +70,11 @@ export function VendorsTab({ state, updateData, appendAuditLog, isArchived, show
       const q = search.toLowerCase();
       if (!(v.name||"").toLowerCase().includes(q) &&
           !(v.contactName||"").toLowerCase().includes(q) &&
-          !(v.type||"").toLowerCase().includes(q)) return false;
+          !(v.type||"").toLowerCase().includes(q) &&
+          !(v.notes||"").toLowerCase().includes(q)) return false;
     }
     return true;
-  }).sort((a,b) => {
-    // Sort by status lifecycle order, then name
-    const sOrder = VENDOR_STATUSES.reduce((acc,s,i) => ({...acc,[s]:i}), {});
-    const diff = (sOrder[a.status]??99) - (sOrder[b.status]??99);
-    if (diff !== 0) return diff;
-    return (a.name||"").localeCompare(b.name||"");
-  });
+  }).sort((a,b) => (a.name||"").localeCompare(b.name||""));
 
   const fmt = (d) => d ? new Date(d+"T00:00:00").toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"}) : "";
 
@@ -358,7 +353,7 @@ export function VendorsTab({ state, updateData, appendAuditLog, isArchived, show
         <VendorQuickView
           vendor={vendorQuickView}
           expenses={expenses}
-          onEdit={(v) => { setEditVendor(v); }}
+          onEdit={(v) => { setVendorQuickView(null); setEditVendor(v); setShowModal(true); }}
           onClose={() => setVendorQuickView(null)}
           isArchived={isArchived}
         />

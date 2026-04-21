@@ -1,9 +1,52 @@
 {
-  "current": "V3.3.1",
+  "current": "V3.3.2",
   "whatsNew": [
-    "BudgetTab: Vendor filter now correctly excludes unlinked expenses"
+    "VendorsTab: Stat cards added \u2014 Total Vendors, Confirmed, Total Contracted, Total Paid, Need Follow-up",
+    "VendorsTab: Need Follow-up card is clickable \u2014 filters to vendors needing contact",
+    "VendorsTab: Vendor cards now show website, formatted phone, contract link, and address",
+    "VendorsTab: Notes are expandable/collapsible on vendor cards",
+    "VendorsTab: Last contacted shows full date, color-coded status, and correct 60-day threshold",
+    "VendorsTab: Delete confirm modal added",
+    "V2: Vendor search now includes notes field",
+    "V2: Opening edit from QuickView now closes QuickView and opens modal immediately"
   ],
   "changelog": [
+    {
+      "version": "V3.3.2",
+      "date": "2026-04-21",
+      "type": "fix",
+      "summary": "VendorsTab \u2014 full V2 parity (21 gaps closed) + V2 improvements",
+      "changes": [
+        "V3: Added formatAddress and formatPhone imports from @/utils/guests.js.",
+        "V3: Added state \u2014 deleteConfirm, expandedNotes, filterFollowUp.",
+        "V3: Added toggleNotes function and fmt date helper.",
+        "V3: Added derived stats \u2014 totalContract, needsFollowUp, usedTypes, usedStatuses.",
+        "V3: Filter initial states corrected from \"All\" to \"all\" for filterType and filterStatus.",
+        "V3: Filter logic corrected from \"All\" to \"all\" for both type and status checks.",
+        "V3: Added filterFollowUp filter logic block (FOLLOW_UP_STATUSES + 60-day threshold).",
+        "V3: Search now includes type and notes fields (was name + contactName only).",
+        "V3: Sort restored to name alphabetical (matches approved V3-preferred sort).",
+        "V3: Type filter now conditional on usedTypes.length > 1; status filter conditional on usedStatuses.length > 1.",
+        "V3: Filter bar option text corrected to \"All types\" / \"All statuses\"; marginBottom:0 added.",
+        "V3: Added Needs Follow-up toggle button to filter bar.",
+        "V3: Section subtitle restored to V2 format: \"{N} vendors tracked \u00b7 {N} confirmed\".",
+        "V3: Add Vendor button changed from hidden-when-archived to disabled-when-archived.",
+        "V3: All 5 stat cards added \u2014 Total Vendors, Confirmed, Total Contracted, Total Paid, Need Follow-up (clickable to toggle follow-up filter).",
+        "V3: Empty state restored \u2014 icon + title + subtitle + Add Vendor button; separate no-results block added.",
+        "V3: Contacts section made conditional on any contact field existing; formatPhone() used for phone; website row added.",
+        "V3: Financials section always shown; Unscheduled row added; paid/total text + percentage added; \"No expenses linked\" hint added.",
+        "V3: Notes made expandable/collapsible via expandedNotes state and toggleNotes; title attr added.",
+        "V3: Last contacted restored to full V2 logic \u2014 isPaidStatus, stale/warm/noLog colors, full date label, icon matrix, 60-day threshold, only shown for FOLLOW_UP_STATUSES vendors.",
+        "V3: Footer left restored \u2014 contractDate shows \"Signed {date}\" or formatAddress(v) fallback.",
+        "V3: Contract link (\ud83d\udcc4 Contract) added to footer when v.contractUrl exists.",
+        "V3: Edit and delete buttons restored to icon-btn style (width:28, height:28, fontSize:13); delete opens confirm modal.",
+        "V3: Delete confirm modal added matching V2 exactly.",
+        "V3: Status tag flexShrink:0 added.",
+        "V2: Sort changed from status lifecycle order to name alphabetical (V3-preferred).",
+        "V2: Search now includes notes as fourth search field.",
+        "V2: QuickView onEdit now closes QuickView and opens edit modal immediately."
+      ]
+    },
     {
       "version": "V3.3.1",
       "date": "2026-04-21",
