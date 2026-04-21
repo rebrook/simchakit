@@ -1,13 +1,18 @@
 {
-  "current": "V3.3.0",
+  "current": "V3.3.1",
   "whatsNew": [
-    "BudgetTab: Vendor filter added to filter bar — filter expenses by linked vendor",
-    "BudgetTab: Stat card labels corrected — 'Total Budget' and 'Paid to Date'",
-    "BudgetTab: Sub-labels restored on Total Budget, Paid to Date, and Outstanding cards",
-    "BudgetTab: Stat card order corrected — Next Payment Due before Est. vs. Actual",
-    "V2: Vendor filter added to BudgetTab filter bar"
+    "BudgetTab: Vendor filter now correctly excludes unlinked expenses"
   ],
   "changelog": [
+    {
+      "version": "V3.3.1",
+      "date": "2026-04-21",
+      "type": "fix",
+      "summary": "BudgetTab — vendor filter excludes unlinked expenses",
+      "changes": [
+        "V2: Vendor filter was showing expenses with no vendor assigned (empty vendorId) when any specific vendor was selected. Fixed by treating falsy vendorId as empty string before comparison — (e.vendorId || '') !== filterVendor."
+      ]
+    },
     {
       "version": "V3.3.0",
       "date": "2026-04-21",

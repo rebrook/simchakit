@@ -757,8 +757,9 @@ export function BudgetTab({ state, updateData, appendAuditLog, isArchived, showT
 
   const [showModal,    setShowModal]    = useState(false);
   const [editExpense,  setEditExpense]  = useState(null);
-  const [filterPaid,   setFilterPaid]   = useState("all");
-  const [filterCat,    setFilterCat]    = useState("all");
+  const [filterPaid,    setFilterPaid]    = useState("all");
+  const [filterCat,     setFilterCat]     = useState("all");
+  const [filterVendor,  setFilterVendor]  = useState("all");
   const [filterSection, setFilterSection] = useState("all");
   const [search,       setSearch]       = useState("");
   const [sortBy,       setSortBy]       = useState("due");
@@ -816,6 +817,7 @@ export function BudgetTab({ state, updateData, appendAuditLog, isArchived, showT
     if (filterPaid === "paid"   && !e.paid) return false;
     if (filterPaid === "unpaid" &&  e.paid) return false;
     if (filterCat !== "all" && e.category !== filterCat) return false;
+    if (filterVendor !== "all" && (e.vendorId || "") !== filterVendor) return false;
     if (filterSection !== "all") {
       const sec = e.eventSection || "";
       if (filterSection === "__none__" && sec !== "") return false;
@@ -1091,6 +1093,15 @@ export function BudgetTab({ state, updateData, appendAuditLog, isArchived, showT
               onChange={e => setFilterCat(e.target.value)}>
               <option value="all">All categories</option>
               {usedCats.map(c => <option key={c} value={c}>{c}</option>)}
+            </select>
+          )}
+          {vendors.length > 0 && (
+            <select className="form-select" value={filterVendor}
+              onChange={e => setFilterVendor(e.target.value)}>
+              <option value="all">All vendors</option>
+              {vendors.slice().sort((a,b) => a.name.localeCompare(b.name)).map(v => (
+                <option key={v.id} value={v.id}>{v.name}</option>
+              ))}
             </select>
           )}
           {hasSections && (
