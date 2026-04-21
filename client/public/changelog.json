@@ -1,9 +1,41 @@
 {
-  "current": "V3.3.14",
+  "current": "V3.3.16",
   "whatsNew": [
-    "AppShell: Print Brief now shows ceremony roles correctly"
+    "CalendarTab: 9 V2 parity gaps closed \u2014 stat cards, legend, popover, month grid, and CSS classes restored"
   ],
   "changelog": [
+    {
+      "version": "V3.3.16",
+      "date": "2026-04-21",
+      "type": "fix",
+      "summary": "CalendarTab \u2014 9 V2 parity gaps closed",
+      "changes": [
+        "Gap 1: Added tab-content class to outer div.",
+        "Gap 2: Section subtitle corrected to \"sources\" (was \"categories\").",
+        "Gaps 4+13: Added isMobile state with resize handler; view toggle now hidden on mobile and moved to filter bar.",
+        "Gap 7: Restored 4 stat cards (Total Events, Overdue, This Week, Upcoming).",
+        "Gap 8: Restored cal-filter-legend using CAL_SOURCES.",
+        "Gap 9: Restored cal-list-month and cal-month-heading CSS classes on list view month headings.",
+        "Gap 10: Restored cal-event-row class and popover trigger on list event rows.",
+        "Gap 11: Restored full event detail popover with backdrop, position calculation, and canNav/tabLabel navigation.",
+        "Gap 12: Month grid now uses cal-grid-* CSS classes and fills 42 cells with trailing days from next month.",
+        "Gap 14: thisWeekCount restored at 7 days (was 14).",
+        "Gap 16: Empty state restored to cal-empty class with all three nav buttons (Tasks, Vendors, Prep).",
+        "Cleanup: Removed now-unused SOURCE_LABELS, SOURCE_ICONS, BADGE_STYLES, and handleNavigate."
+      ]
+    },
+    {
+      "version": "V3.3.15",
+      "date": "2026-04-21",
+      "type": "fix",
+      "summary": "AccommodationsTab \u2014 4 V2 parity gaps closed",
+      "changes": [
+        "Gap 3: done key added to bannerStyles matching V2.",
+        "Gap 5: title=\"Close\" added to AccomEditModal X button.",
+        "Gap 7: marginTop:4 restored on check-out date warning div.",
+        "Gap 8: Edit button title restored to \"Edit accommodation details\"."
+      ]
+    },
     {
       "version": "V3.3.14",
       "date": "2026-04-21",
