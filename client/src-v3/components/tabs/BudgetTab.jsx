@@ -713,7 +713,7 @@ export function BudgetTab({ eventId, event, adminConfig, showToast, isArchived, 
                   <div className="expense-row-check">
                     <div
                       className={`paid-check ${e.paid ? "checked" : ""}`}
-                      onClick={() => togglePaid(e.id, eIdx)}
+                      onClick={() => togglePaid(e)}
                       title={e.paid ? "Mark as unpaid" : "Mark as paid"}
                     >
                       {e.paid && (
@@ -778,12 +778,12 @@ export function BudgetTab({ eventId, event, adminConfig, showToast, isArchived, 
                   <div className="expense-row-actions">
                     <button className="icon-btn" title="Edit"
                       style={{width:28,height:28,fontSize:13}}
-                      disabled={isArchived} onClick={() => setEditing(e); setShowAdd(true)}>✎</button>
+                      disabled={isArchived} onClick={() => { setEditing(e); setShowAdd(true); }}>✎</button>
                     <button className="icon-btn" title="Delete"
                       style={{width:28,height:28,fontSize:13,color:"var(--red)"}}
                       disabled={isArchived} onClick={() => handleDelete(e)}>✕</button>
                   </div>
-                  {pendingPaidId === e.id && pendingPaidIdx === eIdx && (
+                  {pendingPaidId === (e.id || e._rowId) && pendingPaidIdx === eIdx && (
                     <div style={{gridColumn:"1/-1",display:"flex",alignItems:"center",gap:8,flexWrap:"wrap",marginTop:6,padding:"10px 12px",background:"var(--green-light)",border:"1px solid var(--green)",borderRadius:"var(--radius-sm)"}}>
                       <span style={{fontSize:12,fontWeight:600,color:"var(--green)",flexShrink:0}}>📅 Payment date:</span>
                       <input className="form-input" type="date" value={pendingPaidDate}
@@ -873,7 +873,7 @@ export function BudgetTab({ eventId, event, adminConfig, showToast, isArchived, 
                         <div className="expense-row-check">
                           <div
                             className={`paid-check ${e.paid ? "checked" : ""}`}
-                            onClick={() => togglePaid(e.id, eIdx)}
+                            onClick={() => togglePaid(e)}
                             title={e.paid ? "Mark as unpaid" : "Mark as paid"}
                           >
                             {e.paid && (
@@ -907,12 +907,12 @@ export function BudgetTab({ eventId, event, adminConfig, showToast, isArchived, 
                         <div className="expense-row-actions">
                           <button className="icon-btn" title="Edit"
                             style={{width:28,height:28,fontSize:13}}
-                            disabled={isArchived} onClick={() => setEditing(e); setShowAdd(true)}>✎</button>
+                            disabled={isArchived} onClick={() => { setEditing(e); setShowAdd(true); }}>✎</button>
                           <button className="icon-btn" title="Delete"
                             style={{width:28,height:28,fontSize:13,color:"var(--red)"}}
                             disabled={isArchived} onClick={() => handleDelete(e)}>✕</button>
                         </div>
-                        {pendingPaidId === e.id && pendingPaidIdx === eIdx && (
+                        {pendingPaidId === (e.id || e._rowId) && pendingPaidIdx === eIdx && (
                           <div style={{gridColumn:"1/-1",display:"flex",alignItems:"center",gap:8,flexWrap:"wrap",marginTop:6,padding:"10px 12px",background:"var(--green-light)",border:"1px solid var(--green)",borderRadius:"var(--radius-sm)"}}>
                             <span style={{fontSize:12,fontWeight:600,color:"var(--green)",flexShrink:0}}>📅 Payment date:</span>
                             <input className="form-input" type="date" value={pendingPaidDate}
@@ -999,7 +999,7 @@ export function BudgetTab({ eventId, event, adminConfig, showToast, isArchived, 
                             style={{opacity: e.paid ? 0.7 : 1}}>
                             <div className="expense-row-check">
                               <div className={`paid-check ${e.paid ? "checked" : ""}`}
-                                onClick={() => togglePaid(e.id, eIdx)}
+                                onClick={() => togglePaid(e)}
                                 title={e.paid ? "Mark as unpaid" : "Mark as paid"}>
                                 {e.paid && (
                                   <svg width="11" height="9" viewBox="0 0 11 9" fill="none">
@@ -1020,11 +1020,11 @@ export function BudgetTab({ eventId, event, adminConfig, showToast, isArchived, 
                             </div>
                             <div className="expense-row-actions">
                               <button className="icon-btn" title="Edit" disabled={isArchived}
-                                onClick={() => setEditing(e); setShowAdd(true)}>✎</button>
+                                onClick={() => { setEditing(e); setShowAdd(true); }}>✎</button>
                               <button className="icon-btn" title="Delete" disabled={isArchived}
                                 onClick={() => handleDelete(e)}>✕</button>
                             </div>
-                            {pendingPaidId === e.id && pendingPaidIdx === eIdx && (
+                            {pendingPaidId === (e.id || e._rowId) && pendingPaidIdx === eIdx && (
                               <div style={{gridColumn:"1/-1",display:"flex",alignItems:"center",gap:8,flexWrap:"wrap",marginTop:6,padding:"10px 12px",background:"var(--green-light)",border:"1px solid var(--green)",borderRadius:"var(--radius-sm)"}}>
                                 <span style={{fontSize:12,fontWeight:600,color:"var(--green)",flexShrink:0}}>📅 Payment date:</span>
                                 <input className="form-input" type="date" value={pendingPaidDate}
