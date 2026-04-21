@@ -349,18 +349,18 @@ export function BudgetTab({ eventId, event, adminConfig, showToast, isArchived, 
   const [filterVendor,   setFilterVendor]   = useState("All");
   const [filterSection,  setFilterSection]  = useState("All");
   const [search,         setSearch]         = useState("");
-  const [insightsOpen,      setInsightsOpen]      = useState(false);
-  const [expandedNotes,     setExpandedNotes]     = useState({});
-  const [pendingPaidId,     setPendingPaidId]     = useState(null);
-  const [pendingPaidIdx,    setPendingPaidIdx]    = useState(null);
-  const [pendingPaidDate,   setPendingPaidDate]   = useState("");
-  const [sortBy,            setSortBy]            = useState("due");
-  const [expandedVendors,   setExpandedVendors]   = useState({});
-  const [expandedSections,  setExpandedSections]  = useState({});
+  const [insightsOpen,     setInsightsOpen]     = useState(false);
+  const [expandedNotes,    setExpandedNotes]    = useState({});
+  const [pendingPaidId,    setPendingPaidId]    = useState(null);
+  const [pendingPaidIdx,   setPendingPaidIdx]   = useState(null);
+  const [pendingPaidDate,  setPendingPaidDate]  = useState("");
+  const [sortBy,           setSortBy]           = useState("due");
+  const [expandedVendors,  setExpandedVendors]  = useState({});
+  const [expandedSections, setExpandedSections] = useState({});
+  const [viewMode,         setViewMode]         = useState("list"); // list | vendor | section
 
-  const toggleVendorGroup  = (key) => setExpandedVendors(v  => ({...v,  [key]: !v[key]}));
-  const toggleSectionGroup = (key) => setExpandedSections(s => ({...s, [key]: !s[key]}));
-  const [viewMode,       setViewMode]       = useState("list"); // list | timeline
+  const toggleVendorGroup  = (key) => setExpandedVendors(v  => ({ ...v,  [key]: !v[key]  }));
+  const toggleSectionGroup = (key) => setExpandedSections(s => ({ ...s, [key]: !s[key] }));
 
   const { items: vendorsForExpense } = useEventData(eventId, "vendors");
   useSearchHighlight(searchHighlight, clearSearchHighlight, "budget");
@@ -369,19 +369,18 @@ export function BudgetTab({ eventId, event, adminConfig, showToast, isArchived, 
   const timelineSections = (adminConfig?.timeline || []).filter(t => t.title);
 
   // ── Stats ────────────────────────────────────────────────────────────────
-  const totalExpenses = expenses.reduce((s, e) => s + (parseFloat(e.amount) || 0), 0);
-  const totalPaid     = expenses.filter(e => e.paid).reduce((s, e) => s + (parseFloat(e.amount) || 0), 0);
-  const totalUnpaid   = totalExpenses - totalPaid;
-  const unpaidCount   = expenses.filter(e => !e.paid).length;
-  const hasBudgeted   = expenses.some(e => e.budgeted && parseFloat(e.budgeted) > 0);
-  const hasAnyBudgeted = hasBudgeted;
-  const totalBudgeted = expenses.reduce((s, e) => s + (parseFloat(e.budgeted) || 0), 0);
+  const totalExpenses     = expenses.reduce((s, e) => s + (parseFloat(e.amount) || 0), 0);
+  const totalPaid         = expenses.filter(e => e.paid).reduce((s, e) => s + (parseFloat(e.amount) || 0), 0);
+  const totalUnpaid       = totalExpenses - totalPaid;
+  const unpaidCount       = expenses.filter(e => !e.paid).length;
+  const hasBudgeted       = expenses.some(e => e.budgeted && parseFloat(e.budgeted) > 0);
+  const hasAnyBudgeted    = hasBudgeted;
+  const totalBudgeted     = expenses.reduce((s, e) => s + (parseFloat(e.budgeted) || 0), 0);
   const estimatedItems    = expenses.filter(e => parseFloat(e.budgeted) > 0);
   const actualOfEstimated = estimatedItems.reduce((s, e) => s + (parseFloat(e.amount) || 0), 0);
   const totalVariance     = hasBudgeted ? actualOfEstimated - totalBudgeted : 0;
-  const overBudgetCount   = estimatedItems.filter(e => (parseFloat(e.amount)||0) > parseFloat(e.budgeted)).length;
-  const variance      = totalBudgeted > 0 ? totalExpenses - totalBudgeted : null;
-  const nextDue       = getNextDue(expenses);
+  const variance          = totalBudgeted > 0 ? totalExpenses - totalBudgeted : null;
+  const nextDue           = getNextDue(expenses);
 
   // ── Category breakdown for BudgetInsights ─────────────────────────────────
   const catTotals   = {};
@@ -389,19 +388,19 @@ export function BudgetTab({ eventId, event, adminConfig, showToast, isArchived, 
   const catBudgeted = {};
   expenses.forEach(e => {
     const cat = e.category || "Miscellaneous";
-    catTotals[cat]   = (catTotals[cat]   || 0) + (parseFloat(e.amount)||0);
-    if (e.paid) catPaid[cat] = (catPaid[cat] || 0) + (parseFloat(e.amount)||0);
-    if (parseFloat(e.budgeted) > 0) catBudgeted[cat] = (catBudgeted[cat] || 0) + (parseFloat(e.budgeted)||0);
+    catTotals[cat]   = (catTotals[cat]   || 0) + (parseFloat(e.amount)   || 0);
+    if (e.paid) catPaid[cat] = (catPaid[cat] || 0) + (parseFloat(e.amount) || 0);
+    if (parseFloat(e.budgeted) > 0) catBudgeted[cat] = (catBudgeted[cat] || 0) + (parseFloat(e.budgeted) || 0);
   });
-  const catRows = Object.entries(catTotals).sort((a,b) => b[1] - a[1]);
+  const catRows = Object.entries(catTotals).sort((a, b) => b[1] - a[1]);
 
-  // ── Derived for filter bar ─────────────────────────────────────────────────
+  // ── Derived for filter bar and view modes ──────────────────────────────────
   const usedCats = [...new Set(expenses.map(e => e.category).filter(Boolean))].sort();
   const sectionList = [
     "All Events",
     ...((adminConfig?.timeline || [])
       .filter(e => e.title && e.startDate)
-      .sort((a,b) => (a.startDate||"").localeCompare(b.startDate||""))
+      .sort((a, b) => (a.startDate || "").localeCompare(b.startDate || ""))
       .map(e => e.title)
     ),
   ];
@@ -426,13 +425,13 @@ export function BudgetTab({ eventId, event, adminConfig, showToast, isArchived, 
           const aDue = !a.paid && a.dueDate ? new Date(a.dueDate).getTime() : Infinity;
           const bDue = !b.paid && b.dueDate ? new Date(b.dueDate).getTime() : Infinity;
           if (aDue !== bDue) return aDue - bDue;
-          return (a.description||"").localeCompare(b.description||"");
+          return (a.description || "").localeCompare(b.description || "");
         }
-        case "amount-desc": return (parseFloat(b.amount)||0) - (parseFloat(a.amount)||0);
-        case "amount-asc":  return (parseFloat(a.amount)||0) - (parseFloat(b.amount)||0);
-        case "description": return (a.description||"").localeCompare(b.description||"");
-        case "category":    return (a.category||"").localeCompare(b.category||"") || (a.description||"").localeCompare(b.description||"");
-        case "date-desc":   return (b.date||"").localeCompare(a.date||"");
+        case "amount-desc": return (parseFloat(b.amount) || 0) - (parseFloat(a.amount) || 0);
+        case "amount-asc":  return (parseFloat(a.amount) || 0) - (parseFloat(b.amount) || 0);
+        case "description": return (a.description || "").localeCompare(b.description || "");
+        case "category":    return (a.category || "").localeCompare(b.category || "") || (a.description || "").localeCompare(b.description || "");
+        case "date-desc":   return (b.date || "").localeCompare(a.date || "");
         default: return 0;
       }
     });
@@ -450,7 +449,7 @@ export function BudgetTab({ eventId, event, adminConfig, showToast, isArchived, 
     return Object.entries(map).map(([name, v]) => ({ name, ...v })).sort((a, b) => b.total - a.total);
   }, [expenses]);
 
-  // ── Vendor groups (for vendor view) ──────────────────────────────────────
+  // ── Vendor groups (By Vendor view) ──────────────────────────────────────────
   const vendorGroups = (() => {
     const groups = {};
     filtered.forEach(e => {
@@ -470,7 +469,7 @@ export function BudgetTab({ eventId, event, adminConfig, showToast, isArchived, 
     });
   })();
 
-  // ── Section groups (for section/timeline view) ─────────────────────────────
+  // ── Section groups (By Timeline view) ────────────────────────────────────────
   const sectionGroups = (() => {
     const groups = {};
     filtered.forEach(e => {
@@ -490,46 +489,35 @@ export function BudgetTab({ eventId, event, adminConfig, showToast, isArchived, 
     });
   })();
 
-  const fmt = (d) => d ? new Date(d+"T00:00:00").toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"}) : "";
+  const fmt = (d) => d ? new Date(d + "T00:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "";
 
-  const togglePaid = async (expense, eIdx) => {
-    if (isArchived) return;
-    if (expense.paid) {
-      await save({ ...expense, paid: false });
-      showToast("Marked unpaid");
-      return;
-    }
-    if (expense.datePaid || expense.date) {
-      await save({ ...expense, paid: true });
-      showToast("Marked paid");
-      return;
-    }
-    const rowId = expense.id || expense._rowId;
-    setPendingPaidId(rowId);
-    setPendingPaidIdx(eIdx);
-    setPendingPaidDate(new Date().toISOString().slice(0, 10));
+  const togglePaid = async (expense) => {
+    const updated = { ...expense, paid: !expense.paid };
+    if (!expense.paid && !expense.datePaid) updated.datePaid = new Date().toISOString().slice(0, 10);
+    await save(updated);
+    showToast(updated.paid ? "Marked as paid ✓" : "Marked as unpaid");
   };
-
-  const handleSave = async (data) => {
-    await save(data);
-    setShowAdd(false);
-    setEditing(null);
-    showToast(editing ? "Expense updated" : "Expense added");
-  };
-
-  const toggleNotes = (id) => setExpandedNotes(n => ({...n, [id]: !n[id]}));
 
   const confirmPaid = async () => {
     if (!pendingPaidId) return;
     const exp = expenses.find(e => (e.id || e._rowId) === pendingPaidId);
     if (!exp) return;
-    await save({ ...exp, paid: true, datePaid: pendingPaidDate || new Date().toISOString().slice(0,10) });
+    await save({ ...exp, paid: true, datePaid: pendingPaidDate || new Date().toISOString().slice(0, 10) });
     showToast("Marked paid");
     setPendingPaidId(null); setPendingPaidIdx(null); setPendingPaidDate("");
   };
 
   const cancelPaid = () => {
     setPendingPaidId(null); setPendingPaidIdx(null); setPendingPaidDate("");
+  };
+
+  const toggleNotes = (id) => setExpandedNotes(n => ({ ...n, [id]: !n[id] }));
+
+  const handleSave = async (data) => {
+    await save(data);
+    setShowAdd(false);
+    setEditing(null);
+    showToast(editing ? "Expense updated" : "Expense added");
   };
 
   const handleDelete = async (e) => {
@@ -570,19 +558,16 @@ export function BudgetTab({ eventId, event, adminConfig, showToast, isArchived, 
       {/* Stat cards */}
       <div className="budget-stat-grid">
         <div className="stat-card">
-          <div className="stat-label">Total Budget</div>
+          <div className="stat-label">Total Expenses</div>
           <div className="stat-value">{fmt$(totalExpenses)}</div>
-          <div className="stat-sub">{expenses.length} line item{expenses.length!==1?"s":""}</div>
         </div>
         <div className="stat-card">
-          <div className="stat-label">Paid to Date</div>
+          <div className="stat-label">Paid</div>
           <div className="stat-value stat-green">{fmt$(totalPaid)}</div>
-          <div className="stat-sub">{expenses.filter(e=>e.paid).length} of {expenses.length} paid</div>
         </div>
         <div className="stat-card">
           <div className="stat-label">Outstanding</div>
-          <div className="stat-value stat-red">{fmt$(totalUnpaid)}</div>
-          <div className="stat-sub">{expenses.filter(e=>!e.paid).length} unpaid item{expenses.filter(e=>!e.paid).length!==1?"s":""}</div>
+          <div className="stat-value" style={{ color: totalUnpaid > 0 ? "var(--red)" : "var(--text-primary)" }}>{fmt$(totalUnpaid)}</div>
         </div>
         {hasAnyBudgeted && (
           <div className="stat-card">
@@ -592,28 +577,48 @@ export function BudgetTab({ eventId, event, adminConfig, showToast, isArchived, 
             </div>
             <div className="stat-sub">
               {totalVariance !== 0
-                ? `${Math.abs(totalVariance).toLocaleString("en-US",{style:"currency",currency:"USD",minimumFractionDigits:0,maximumFractionDigits:0})} ${totalVariance > 0 ? "over" : "under"} estimate`
+                ? `${Math.abs(totalVariance).toLocaleString("en-US", { style: "currency", currency: "USD", minimumFractionDigits: 0, maximumFractionDigits: 0 })} ${totalVariance > 0 ? "over" : "under"} estimate`
                 : "Exactly on estimate"}
-              {" · "}{estimatedItems.length} estimated item{estimatedItems.length!==1?"s":""}
+              {" · "}{estimatedItems.length} estimated item{estimatedItems.length !== 1 ? "s" : ""}
             </div>
           </div>
         )}
         <div className="stat-card">
           <div className="stat-label">Next Payment Due</div>
           {nextDue ? (<>
-            <div className="stat-value stat-gold" style={{fontSize:18,marginTop:2}}>
+            <div className="stat-value stat-gold" style={{ fontSize: 18, marginTop: 2 }}>
               {new Date(nextDue.dueDate + "T00:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
             </div>
-            <div className="stat-sub">
-              {nextDue.description} · {fmt$(parseFloat(nextDue.amount||0))}
-            </div>
+            <div className="stat-sub">{nextDue.description} · {fmt$(parseFloat(nextDue.amount || 0))}</div>
           </>) : (
-            <div className="stat-value" style={{fontSize:16,marginTop:4,color:"var(--text-muted)"}}>None</div>
+            <div className="stat-value" style={{ fontSize: 16, marginTop: 4, color: "var(--text-muted)" }}>None</div>
           )}
         </div>
       </div>
 
-
+      {/* Category breakdown bar */}
+      {catBreakdown.length > 0 && (
+        <div className="card" style={{ marginBottom: 20 }}>
+          {catBreakdown.slice(0, 6).map((c, i) => {
+            const paidPct   = c.total > 0 ? (c.paid / c.total) * 100 : 0;
+            const unpaidPct = 100 - paidPct;
+            return (
+              <div key={c.name} className="budget-bar-row">
+                <div className="budget-bar-meta">
+                  <span className="budget-bar-label">{c.name}</span>
+                  <span className="budget-bar-amount">{fmt$(c.total)}<span className="budget-bar-pct">({Math.round((c.total/totalExpenses)*100)}%)</span></span>
+                </div>
+                <div className="budget-bar-track">
+                  <div className="budget-bar-fill" style={{ width: "100%" }}>
+                    <div className="budget-bar-paid"   style={{ width: `${paidPct}%` }} />
+                    <div className="budget-bar-unpaid" style={{ left: `${paidPct}%`, width: `${unpaidPct}%` }} />
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
 
       {/* Budget Insights */}
       <BudgetInsights
@@ -661,47 +666,35 @@ export function BudgetTab({ eventId, event, adminConfig, showToast, isArchived, 
           <option value="category">Sort: Category A–Z</option>
           <option value="date-desc">Sort: Date paid (newest)</option>
         </select>
-        <div style={{display:"flex",gap:2,background:"var(--bg-subtle)",border:"1px solid var(--border)",borderRadius:"var(--radius-sm)",padding:2,marginLeft:"auto",flexShrink:0}}>
+        <div style={{ display:"flex", gap:2, background:"var(--bg-subtle)", border:"1px solid var(--border)", borderRadius:"var(--radius-sm)", padding:2, marginLeft:"auto", flexShrink:0 }}>
           {[
-            {id:"list",    icon:"☰",  label:"List"},
-            {id:"vendor",  icon:"🏢", label:"By Vendor"},
-            ...(hasSections ? [{id:"section", icon:"📅", label:"By Timeline"}] : []),
+            { id:"list",    icon:"☰",  label:"List"        },
+            { id:"vendor",  icon:"🏢", label:"By Vendor"   },
+            ...(hasSections ? [{ id:"section", icon:"📅", label:"By Timeline" }] : []),
           ].map(v => (
             <button key={v.id} title={v.label} onClick={() => setViewMode(v.id)}
-              style={{padding:"4px 10px",border:"none",borderRadius:4,cursor:"pointer",fontSize:12,fontWeight:600,
-                background: viewMode===v.id ? "var(--bg-surface)" : "transparent",
-                color: viewMode===v.id ? "var(--accent-primary)" : "var(--text-muted)",
-                boxShadow: viewMode===v.id ? "var(--shadow-sm)" : "none",
-                transition:"all 0.15s ease"}}>
+              style={{ padding:"4px 10px", border:"none", borderRadius:4, cursor:"pointer", fontSize:12, fontWeight:600,
+                background: viewMode === v.id ? "var(--bg-surface)" : "transparent",
+                color: viewMode === v.id ? "var(--accent-primary)" : "var(--text-muted)",
+                boxShadow: viewMode === v.id ? "var(--shadow-sm)" : "none",
+                transition:"all 0.15s ease" }}>
               {v.icon} {v.label}
             </button>
           ))}
         </div>
       </div>
 
-      {/* Gratuity calculator */}
-      {expenses.length > 0 && !isArchived && (
-        <GratuityCalculator
-          expenses={expenses}
-          vendors={vendors}
-          onAddExpense={async (exp) => { await save(exp); showToast("Gratuity added to budget"); }}
-          isArchived={isArchived}
-        />
-      )}
-
       {/* Expense list */}
       <div className="card">
-        {/* Empty state */}
         {expenses.length === 0 && (
-          <div style={{textAlign:"center",padding:"48px 24px",color:"var(--text-muted)"}}>
-            <div style={{fontSize:36,marginBottom:12,opacity:0.4}}>💰</div>
-            <div style={{fontFamily:"var(--font-display)",fontSize:18,marginBottom:6,color:"var(--text-primary)"}}>No expenses yet — add your first expense.</div>
-            <div style={{fontSize:13,marginBottom:20}}>Track costs, payments, and your overall budget here.</div>
-            {!isArchived && <button className="btn btn-primary" onClick={() => { setEditing(null); setShowAdd(true); }}>+ Add Expense</button>}
+          <div style={{ textAlign:"center", padding:"48px 24px", color:"var(--text-muted)" }}>
+            <div style={{ fontSize:36, marginBottom:12, opacity:0.4 }}>💰</div>
+            <div style={{ fontFamily:"var(--font-display)", fontSize:18, marginBottom:6, color:"var(--text-primary)" }}>No expenses yet — add your first expense.</div>
+            {!isArchived && <button className="btn btn-primary" style={{ marginTop:12 }} onClick={() => { setEditing(null); setShowAdd(true); }}>+ Add Expense</button>}
           </div>
         )}
         {expenses.length > 0 && filtered.length === 0 && (
-          <div style={{textAlign:"center",padding:"32px 16px",color:"var(--text-muted)",fontSize:13}}>
+          <div style={{ textAlign:"center", padding:"32px 16px", color:"var(--text-muted)", fontSize:13 }}>
             No expenses match your filters.
           </div>
         )}
@@ -740,7 +733,7 @@ export function BudgetTab({ eventId, event, adminConfig, showToast, isArchived, 
                           {linkedVendor ? (
                             <button className="vendor-name-link"
                               style={{fontSize:11,fontWeight:600,color:"var(--accent-primary)"}}
-                              onClick={() => setVendorQuickView(linkedVendor)}>
+                              onClick={() => setVendorQuick(linkedVendor)}>
                               {e.vendor}
                             </button>
                           ) : (
@@ -785,10 +778,10 @@ export function BudgetTab({ eventId, event, adminConfig, showToast, isArchived, 
                   <div className="expense-row-actions">
                     <button className="icon-btn" title="Edit"
                       style={{width:28,height:28,fontSize:13}}
-                      disabled={isArchived} onClick={() => setEditExpense(e)}>✎</button>
+                      disabled={isArchived} onClick={() => setEditing(e); setShowAdd(true)}>✎</button>
                     <button className="icon-btn" title="Delete"
                       style={{width:28,height:28,fontSize:13,color:"var(--red)"}}
-                      disabled={isArchived} onClick={() => setDeleteConfirm(e.id)}>✕</button>
+                      disabled={isArchived} onClick={() => handleDelete(e)}>✕</button>
                   </div>
                   {pendingPaidId === e.id && pendingPaidIdx === eIdx && (
                     <div style={{gridColumn:"1/-1",display:"flex",alignItems:"center",gap:8,flexWrap:"wrap",marginTop:6,padding:"10px 12px",background:"var(--green-light)",border:"1px solid var(--green)",borderRadius:"var(--radius-sm)"}}>
@@ -827,7 +820,7 @@ export function BudgetTab({ eventId, event, adminConfig, showToast, isArchived, 
                         {linkedV ? (
                           <button className="vendor-name-link"
                             style={{fontSize:14,fontWeight:700,color:"var(--accent-primary)",padding:0}}
-                            onClick={e => { e.stopPropagation(); setVendorQuickView(linkedV); }}>
+                            onClick={e => { e.stopPropagation(); setVendorQuick(linkedV); }}>
                             {group.label}
                           </button>
                         ) : (
@@ -914,10 +907,10 @@ export function BudgetTab({ eventId, event, adminConfig, showToast, isArchived, 
                         <div className="expense-row-actions">
                           <button className="icon-btn" title="Edit"
                             style={{width:28,height:28,fontSize:13}}
-                            disabled={isArchived} onClick={() => setEditExpense(e)}>✎</button>
+                            disabled={isArchived} onClick={() => setEditing(e); setShowAdd(true)}>✎</button>
                           <button className="icon-btn" title="Delete"
                             style={{width:28,height:28,fontSize:13,color:"var(--red)"}}
-                            disabled={isArchived} onClick={() => setDeleteConfirm(e.id)}>✕</button>
+                            disabled={isArchived} onClick={() => handleDelete(e)}>✕</button>
                         </div>
                         {pendingPaidId === e.id && pendingPaidIdx === eIdx && (
                           <div style={{gridColumn:"1/-1",display:"flex",alignItems:"center",gap:8,flexWrap:"wrap",marginTop:6,padding:"10px 12px",background:"var(--green-light)",border:"1px solid var(--green)",borderRadius:"var(--radius-sm)"}}>
@@ -1027,9 +1020,9 @@ export function BudgetTab({ eventId, event, adminConfig, showToast, isArchived, 
                             </div>
                             <div className="expense-row-actions">
                               <button className="icon-btn" title="Edit" disabled={isArchived}
-                                onClick={() => setEditExpense(e)}>✎</button>
+                                onClick={() => setEditing(e); setShowAdd(true)}>✎</button>
                               <button className="icon-btn" title="Delete" disabled={isArchived}
-                                onClick={() => setDeleteConfirm(e.id)}>✕</button>
+                                onClick={() => handleDelete(e)}>✕</button>
                             </div>
                             {pendingPaidId === e.id && pendingPaidIdx === eIdx && (
                               <div style={{gridColumn:"1/-1",display:"flex",alignItems:"center",gap:8,flexWrap:"wrap",marginTop:6,padding:"10px 12px",background:"var(--green-light)",border:"1px solid var(--green)",borderRadius:"var(--radius-sm)"}}>
@@ -1052,8 +1045,6 @@ export function BudgetTab({ eventId, event, adminConfig, showToast, isArchived, 
           </div>
         )}
       </div>
-
-
 
       {vendorQuick && (
         <VendorQuickView
@@ -1094,191 +1085,84 @@ export function BudgetTab({ eventId, event, adminConfig, showToast, isArchived, 
 
 // ── ExpenseModal ──────────────────────────────────────────────────────────────
 export function ExpenseModal({ expense, vendors, adminConfig, onSave, onClose, isArchived }) {
-  const isEdit = !!expense;
-  const blank = {
-    id: newExpenseId(), description: "", category: "",
-    customCategory: "", vendor: "", vendorId: "", amount: "",
-    budgeted: "", date: "", dueDate: "", datePaid: "", paid: false,
-    notes: "", eventSection: "",
-  };
+  const blank = { id: newExpenseId(), description: "", category: "", vendorId: "", amount: "", budgeted: "", dueDate: "", datePaid: "", eventSection: "", paid: false, notes: "" };
   const [form, setForm] = useState(expense || blank);
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
-
-  // Build section list from timeline
-  const sectionList = [
-    "All Events",
-    ...((adminConfig?.timeline || [])
-      .filter(e => e.title && e.startDate)
-      .sort((a, b) => (a.startDate || "").localeCompare(b.startDate || ""))
-      .map(e => e.title)
-    ),
-  ];
-
-  const hasVendors = (vendors || []).length > 0;
-  const vendorSelectVal = form.vendorId || (hasVendors ? "__other__" : "");
-
-  const handleVendorSelect = (val) => {
-    if (val === "__other__") {
-      setForm(f => ({ ...f, vendor: "", vendorId: "" }));
-    } else {
-      const v = (vendors || []).find(v => v.id === val);
-      if (v) setForm(f => ({ ...f, vendor: v.name, vendorId: v.id }));
-    }
-  };
-
-  const handleSave = () => {
-    if (!form.description.trim()) return;
-    const category = form.category === "Custom" ? (form.customCategory.trim() || "Custom") : form.category;
-    onSave({ ...form, category });
-  };
+  const timeline = (adminConfig?.timeline || []).filter(t => t.title);
 
   return (
     <div className="modal-backdrop" onMouseDown={e => { if (e.target === e.currentTarget) onClose(); }}>
       <div className="modal modal-lg">
         <div className="modal-header">
-          <div className="modal-title">{isEdit ? "Edit Expense" : "Add Expense"}</div>
-          <button className="icon-btn" title="Close" onClick={onClose}>✕</button>
+          <div className="modal-title">{expense ? "Edit Expense" : "Add Expense"}</div>
+          <button className="icon-btn" onClick={onClose}>✕</button>
         </div>
         <div className="modal-body">
-
-          {/* Description */}
           <div className="form-group">
             <label className="form-label">Description *</label>
-            <input className="form-input" value={form.description}
-              onChange={e => set("description", e.target.value)}
-              placeholder="e.g., Photography — Retainer" autoFocus />
+            <input className="form-input" value={form.description} onChange={e => set("description", e.target.value)} placeholder="What is this expense?" autoFocus />
           </div>
-
-          {/* Category + Vendor */}
           <div className="form-grid-2">
             <div className="form-group">
               <label className="form-label">Category</label>
-              <select className="form-select" value={form.category}
-                onChange={e => set("category", e.target.value)}>
-                <option value="">— Select category —</option>
+              <select className="form-select" value={form.category} onChange={e => set("category", e.target.value)}>
+                <option value="">Select category…</option>
                 {EXPENSE_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
               </select>
             </div>
             <div className="form-group">
               <label className="form-label">Vendor</label>
-              {hasVendors ? (
-                <>
-                  <select className="form-select" value={vendorSelectVal}
-                    onChange={e => handleVendorSelect(e.target.value)}>
-                    {(vendors || []).slice().sort((a, b) => a.name.localeCompare(b.name)).map(v => (
-                      <option key={v.id} value={v.id}>{v.name}</option>
-                    ))}
-                    <option value="__other__">Other / no vendor</option>
-                  </select>
-                  {vendorSelectVal === "__other__" && (
-                    <input className="form-input" style={{ marginTop: 6 }} value={form.vendor}
-                      onChange={e => set("vendor", e.target.value)}
-                      placeholder="Vendor name (optional)" />
-                  )}
-                </>
-              ) : (
-                <input className="form-input" value={form.vendor}
-                  onChange={e => set("vendor", e.target.value)}
-                  placeholder="Vendor name" />
-              )}
+              <select className="form-select" value={form.vendorId || ""} onChange={e => set("vendorId", e.target.value)}>
+                <option value="">No vendor</option>
+                {vendors.map(v => <option key={v.id} value={v.id}>{v.name}</option>)}
+              </select>
             </div>
           </div>
-
-          {/* Custom Category */}
-          {form.category === "Custom" && (
-            <div className="form-group">
-              <label className="form-label">Custom Category Name</label>
-              <input className="form-input" value={form.customCategory || ""}
-                onChange={e => set("customCategory", e.target.value)}
-                placeholder="Enter your category name" />
-            </div>
-          )}
-
-          {/* Amount + Budgeted */}
           <div className="form-grid-2">
             <div className="form-group">
-              <label className="form-label">Amount ($)</label>
-              <div style={{ position: "relative" }}>
-                <span style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", fontSize: 13, color: "var(--text-muted)", pointerEvents: "none" }}>$</span>
-                <input className="form-input" type="number" min="0" step="0.01"
-                  style={{ paddingLeft: 22 }}
-                  value={form.amount}
-                  onChange={e => set("amount", e.target.value < 0 ? "0" : e.target.value)}
-                  placeholder="0.00" />
-              </div>
+              <label className="form-label">Amount ($) *</label>
+              <input className="form-input" type="number" min="0" step="0.01" value={form.amount} onChange={e => set("amount", e.target.value)} placeholder="0.00" />
             </div>
             <div className="form-group">
-              <label className="form-label">Budgeted ($) <span style={{ fontWeight: 400, color: "var(--text-muted)", fontSize: 11 }}>optional</span></label>
-              <div style={{ position: "relative" }}>
-                <span style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", fontSize: 13, color: "var(--text-muted)", pointerEvents: "none" }}>$</span>
-                <input className="form-input" type="number" min="0" step="0.01"
-                  style={{ paddingLeft: 22 }}
-                  value={form.budgeted || ""}
-                  onChange={e => set("budgeted", e.target.value < 0 ? "0" : e.target.value)}
-                  placeholder="Original estimate" />
-              </div>
-              <div className="form-hint">Used in budget vs. actual charts. Leave blank to exclude this item from estimate tracking.</div>
+              <label className="form-label">Budgeted ($)</label>
+              <input className="form-input" type="number" min="0" step="0.01" value={form.budgeted || ""} onChange={e => set("budgeted", e.target.value)} placeholder="Estimate" />
+              <div className="form-hint">Used in budget vs. actual charts.</div>
             </div>
           </div>
-
-          {/* Invoice Date + Due Date */}
           <div className="form-grid-2">
-            <div className="form-group">
-              <label className="form-label">Invoice Date</label>
-              <input className="form-input" type="date" value={form.date || ""}
-                onChange={e => set("date", e.target.value)} />
-            </div>
             <div className="form-group">
               <label className="form-label">Due Date</label>
-              <input className="form-input" type="date" value={form.dueDate || ""}
-                onChange={e => set("dueDate", e.target.value)} />
-              <div className="form-hint">Leave blank if no due date</div>
+              <input className="form-input" type="date" value={form.dueDate || ""} onChange={e => set("dueDate", e.target.value)} />
             </div>
+            {timeline.length > 0 && (
+              <div className="form-group">
+                <label className="form-label">Event Section</label>
+                <select className="form-select" value={form.eventSection || ""} onChange={e => set("eventSection", e.target.value)}>
+                  <option value="">No section</option>
+                  {timeline.map(t => <option key={t.id} value={t.id}>{t.title}</option>)}
+                </select>
+              </div>
+            )}
           </div>
-
-          {/* Paid checkbox + date (V3 pattern — better than V2 select) */}
           <div className="form-group" style={{ display: "flex", alignItems: "center", gap: 10 }}>
             <div className={`paid-check ${form.paid ? "checked" : ""}`} onClick={() => set("paid", !form.paid)}>
               {form.paid && <svg width="10" height="8" viewBox="0 0 10 8"><polyline points="1,4 4,7 9,1" stroke="white" strokeWidth="1.5" fill="none"/></svg>}
             </div>
             <label className="form-label" style={{ margin: 0, textTransform: "none", fontSize: 14, fontWeight: 500 }}>Paid</label>
             {form.paid && (
-              <input className="form-input" type="date" value={form.datePaid || ""}
-                onChange={e => set("datePaid", e.target.value)}
+              <input className="form-input" type="date" value={form.datePaid || ""} onChange={e => set("datePaid", e.target.value)}
                 style={{ flex: 1, maxWidth: 180 }} placeholder="Date paid" />
             )}
           </div>
-
-          {/* Event Section */}
-          {sectionList.length > 1 && (
-            <div className="form-group">
-              <label className="form-label">Event Section</label>
-              <select className="form-select"
-                value={form.eventSection || ""}
-                onChange={e => set("eventSection", e.target.value === "All Events" ? "" : e.target.value)}>
-                {sectionList.map(s => (
-                  <option key={s} value={s === "All Events" ? "" : s}>{s}</option>
-                ))}
-              </select>
-              <div className="form-hint">Which part of the event does this expense belong to?</div>
-            </div>
-          )}
-
-          {/* Notes */}
           <div className="form-group">
             <label className="form-label">Notes</label>
-            <textarea className="form-textarea" rows={3} value={form.notes || ""}
-              onChange={e => set("notes", e.target.value)}
-              placeholder="Payment terms, confirmation numbers, contract details..." />
+            <textarea className="form-textarea" value={form.notes || ""} onChange={e => set("notes", e.target.value)} placeholder="Payment terms, deposit details…" />
           </div>
-
           <div className="modal-footer">
-            <span style={{ fontSize: 11, color: "var(--text-muted)", marginRight: "auto" }}>* required</span>
             <button className="btn btn-ghost" onClick={onClose}>Cancel</button>
-            <button className="btn btn-primary"
-              disabled={!form.description?.trim() || !form.amount || isArchived}
-              onClick={handleSave}>
-              {isEdit ? "Save Changes" : "Add Expense"}
+            <button className="btn btn-primary" disabled={!form.description?.trim() || !form.amount || isArchived}
+              onClick={() => onSave({ ...form })}>
+              {expense ? "Save Changes" : "Add Expense"}
             </button>
           </div>
         </div>

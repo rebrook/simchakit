@@ -1,30 +1,35 @@
 {
   "current": "V3.2.8",
   "whatsNew": [
-    "BudgetTab: Gratuity calculator now works correctly",
+    "BudgetTab: Gratuity calculator now works correctly for DJ and photography vendors",
     "BudgetTab: Budget Insights restored to 3-chart view (Spend by Category, Upcoming Payments, Est. vs. Actual)",
     "BudgetTab: By Vendor and By Timeline view modes added",
-    "BudgetTab: Sort dropdown added to filter bar"
+    "BudgetTab: Sort dropdown added to filter bar",
+    "BudgetTab: Edit and delete buttons work in all view modes"
   ],
   "changelog": [
     {
       "version": "V3.2.8",
       "date": "2026-04-20",
       "type": "fix",
-      "summary": "BudgetTab — full V2 parity (8 remaining gaps closed)",
+      "summary": "BudgetTab — full V2 parity (8 gaps closed)",
       "changes": [
-        "GratuityCalculator: fixed tippable vendor detection — now checks expense categories (matching V2) instead of vendor type strings, which never matched TIPPABLE_CATEGORIES. DJ Krusty Spins and Shelbyville Snapshots now correctly appear in the calculator.",
-        "Budget Insights: replaced V3's CSS progress bars + pie chart with V2's BudgetInsights component — 3 Recharts charts: Spend by Category (stacked bar), Upcoming Payments (monthly bar), Est. vs. Actual (grouped bar). Category breakdown bar removed.",
-        "Budget Insights: recharts imports corrected — removed PieChart/Pie/Legend, added LabelList.",
-        "Est. vs. Actual stat card: now shows directional labels '▲ Over Budget' / '▼ Under Budget' with dollar amount and item count in sub-label, matching V2.",
-        "Next Payment Due stat card: now always shown (None when no upcoming payments); sub-label now shows description + amount matching V2.",
-        "Expense list: added By Vendor view (collapsible vendor groups with contracted/paid/balance summary) and By Timeline view (collapsible section groups with total/paid/owed summary), matching V2.",
-        "Filter bar: added sort dropdown (6 options: Due date, Amount high/low, Description, Category, Date paid) matching V2.",
-        "Filter bar: added view mode switcher (☰ List / 🏢 By Vendor / 📅 By Timeline) matching V2.",
-        "Filter bar: category filter now uses usedCats (dynamic, only categories in data) instead of static EXPENSE_CATEGORIES list, matching V2.",
-        "Derived stats: added catRows, catPaid, catBudgeted, hasAnyBudgeted, unpaidCount, usedCats, sectionList, hasSections — all required by BudgetInsights and view modes.",
-        "State: added sortBy, expandedVendors, expandedSections, toggleVendorGroup, toggleSectionGroup.",
-        "filtered sort: updated to use sortBy with all 6 V2 sort options."
+        "GratuityCalculator: fixed tippable vendor detection — now checks expense categories instead of vendor type strings. DJ and photography vendors now correctly appear in the calculator.",
+        "Budget Insights: replaced V3 CSS bars + pie chart with V2's BudgetInsights component — 3 Recharts charts: Spend by Category (stacked bar), Upcoming Payments (monthly bar), Est. vs. Actual (grouped bar).",
+        "Recharts imports: removed PieChart/Pie/Legend, added LabelList.",
+        "Est. vs. Actual stat card: now shows '▲ Over Budget' / '▼ Under Budget' directional labels with dollar amount and item count.",
+        "Next Payment Due stat card: now always shown (None when no upcoming); sub-label shows description + amount.",
+        "Expense list: added By Vendor view (collapsible vendor groups) and By Timeline view (collapsible section groups), matching V2.",
+        "Filter bar: added sort dropdown with 6 options (Due date, Amount high/low, Description, Category, Date paid).",
+        "Filter bar: added view mode switcher (☰ List / 🏢 By Vendor / 📅 By Timeline).",
+        "Filter bar: category filter now uses dynamic usedCats instead of static EXPENSE_CATEGORIES list.",
+        "Added missing derived stats: catRows, catPaid, catBudgeted, hasAnyBudgeted, unpaidCount, usedCats, sectionList, hasSections.",
+        "Added missing state: sortBy, expandedVendors, expandedSections, toggleVendorGroup, toggleSectionGroup.",
+        "Added missing functions: confirmPaid, cancelPaid, toggleNotes.",
+        "Added vendorGroups and sectionGroups computed values, fmt date helper.",
+        "Edit buttons: all 3 view modes now correctly call setEditing + setShowAdd.",
+        "Delete buttons: all 3 view modes now correctly call handleDelete.",
+        "Vendor quick-view links: now correctly call setVendorQuick."
       ]
     },
     {
