@@ -15,7 +15,7 @@ import { ArchivedNotice }     from "@/components/shared/ArchivedNotice.jsx";
 export function SeatingTab({ eventId, event, adminConfig, showToast, isArchived, setActiveTab, searchHighlight, clearSearchHighlight }) {
   const { items: tables,     loading: tLoading, save: saveTable, remove: removeTable } = useEventData(eventId, "tables");
   const { items: people,     loading: pLoading, save: savePerson }                     = useEventData(eventId, "people", { promoteColumns: peoplePromoteColumns });
-  const { items: households, loading: hLoading }                                        = useEventData(eventId, "households");
+  const { items: households, loading: hLoading, save: saveHousehold }                   = useEventData(eventId, "households");
 
   // Seating config — single document pattern
   const [seatingConfig,  setSeatingConfig]  = useState({});
@@ -79,6 +79,23 @@ export function SeatingTab({ eventId, event, adminConfig, showToast, isArchived,
     window.addEventListener("resize", onResize);
     return () => window.removeEventListener("resize", onResize);
   }, []);
+
+  // One-time migration: strip stale adultTableId / kidsTableId from households
+  const migrated = useRef(false);
+  useEffect(() => {
+    if (migrated.current || households.length === 0) return;
+    migrated.current = true;
+    const needsMigration = households.some(h => "adultTableId" in h || "kidsTableId" in h);
+    if (needsMigration) {
+      const cleaned = households.map(h => {
+        const c = { ...h };
+        delete c.adultTableId;
+        delete c.kidsTableId;
+        return c;
+      });
+      cleaned.forEach(h => saveHousehold(h));
+    }
+  }, [households]);
 
   const hasSeating  = !!seatingConfig.hasSeating;
   const sectionId   = seatingConfig.eventSectionId || "";
@@ -200,14 +217,14 @@ export function SeatingTab({ eventId, event, adminConfig, showToast, isArchived,
   if (tLoading || pLoading || hLoading || configLoading) return <div style={loadingStyle}>Loading seating chart…</div>;
 
   return (
-    <div>
+    <div className="tab-content">
       {isArchived && <ArchivedNotice />}
 
       {/* Header */}
       <div className="section-header">
         <div>
           <div className="section-title">Seating Chart</div>
-          <div className="section-subtitle">
+          <div className="section-sub">
             {selectedPerson
               ? <span style={{ color: "var(--accent-primary)", fontWeight: 600 }}>❆ {getPersonDisplayName(selectedPerson)} selected — click a table to assign</span>
               : activeSection
@@ -359,15 +376,15 @@ export function SeatingTab({ eventId, event, adminConfig, showToast, isArchived,
                           <div>
                             <div style={{ fontFamily: "var(--font-display)", fontSize: 17, fontWeight: 700, color: "var(--text-primary)" }}>{table.name}</div>
                             {isTarget
-                              ? <span style={{ fontSize: 11, fontWeight: 700, padding: "2px 8px", borderRadius: 99, background: "var(--accent-light)", color: "var(--accent-primary)" }}>✦ Click to assign</span>
+                              ? <span style={{ fontSize: 11, fontWeight: 700, padding: "2px 8px", borderRadius: 99, background: "var(--accent-light)", color: "var(--accent-primary)" }}>✦ Click to assign {selectedPerson ? (selectedPerson.firstName || getPersonDisplayName(selectedPerson).split(" ")[0]) : ""}</span>
                               : <span style={{ fontSize: 11, fontWeight: 700, padding: "2px 8px", borderRadius: 99, background: tb.bg, color: tb.color }}>{table.type}</span>}
                           </div>
                           <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                             <span style={{ fontSize: 12, fontWeight: 700, color: isOver ? "var(--red)" : "var(--text-secondary)" }}>{filled}/{cap}</span>
-                            <button className="icon-btn" style={{ fontSize: 12, opacity: tableIndex === 0 ? 0.3 : 1 }} disabled={isArchived || tableIndex === 0} onClick={e => { e.stopPropagation(); handleMoveTable(table.id, "up"); }}>↑</button>
-                            <button className="icon-btn" style={{ fontSize: 12, opacity: tableIndex === lastIndex ? 0.3 : 1 }} disabled={isArchived || tableIndex === lastIndex} onClick={e => { e.stopPropagation(); handleMoveTable(table.id, "down"); }}>↓</button>
-                            <button className="icon-btn" disabled={isArchived} onClick={e => { e.stopPropagation(); setEditTable(table); }}>✎</button>
-                            <button className="icon-btn" disabled={isArchived} onClick={e => { e.stopPropagation(); setDeleteConfirm(table); }}>✕</button>
+                            <button className="icon-btn" title="Move up" style={{ fontSize: 12, opacity: tableIndex === 0 ? 0.3 : 1 }} disabled={isArchived || tableIndex === 0} onClick={e => { e.stopPropagation(); handleMoveTable(table.id, "up"); }}>↑</button>
+                            <button className="icon-btn" title="Move down" style={{ fontSize: 12, opacity: tableIndex === lastIndex ? 0.3 : 1 }} disabled={isArchived || tableIndex === lastIndex} onClick={e => { e.stopPropagation(); handleMoveTable(table.id, "down"); }}>↓</button>
+                            <button className="icon-btn" title="Edit" disabled={isArchived} onClick={e => { e.stopPropagation(); setEditTable(table); }}>✎</button>
+                            <button className="icon-btn icon-btn-danger" title="Delete" disabled={isArchived} onClick={e => { e.stopPropagation(); setDeleteConfirm(table); }}>✕</button>
                           </div>
                         </div>
                         <div style={{ height: 5, background: "var(--bg-muted)", borderRadius: 99, overflow: "hidden", marginBottom: 10 }}>
@@ -383,7 +400,7 @@ export function SeatingTab({ eventId, event, adminConfig, showToast, isArchived,
                                 {members.map(p => (
                                   <div key={p.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "2px 4px", borderRadius: 4, fontSize: 13 }}>
                                     <span style={{ color: "var(--text-primary)" }}>{getPersonDisplayName(p)}</span>
-                                    <button className="icon-btn" style={{ padding: "1px 3px", fontSize: 10 }} onClick={e => { e.stopPropagation(); unassignPerson(p.id); }}>✕</button>
+                                    <button className="icon-btn icon-btn-danger" style={{ padding: "1px 3px", fontSize: 10 }} onClick={e => { e.stopPropagation(); unassignPerson(p.id); }}>✕</button>
                                   </div>
                                 ))}
                               </div>
@@ -456,11 +473,11 @@ export function SeatingTab({ eventId, event, adminConfig, showToast, isArchived,
         return (
           <div className="modal-backdrop" onMouseDown={e => { if (e.target === e.currentTarget) setDeleteConfirm(null); }}>
             <div className="modal" style={{ maxWidth: 400 }} onClick={e => e.stopPropagation()}>
-              <div className="modal-header"><div className="modal-title">Delete Table</div><button className="icon-btn" onClick={() => setDeleteConfirm(null)}>✕</button></div>
+              <div className="modal-header"><div className="modal-title">Delete Table</div><button className="icon-btn" title="Close" onClick={() => setDeleteConfirm(null)}>✕</button></div>
               <div className="modal-body">
                 <p style={{ fontSize: 14, color: "var(--text-primary)", lineHeight: 1.6, marginBottom: 4 }}>
                   Permanently delete <strong>{deleteConfirm.name}</strong>?
-                  {affected > 0 && <span style={{ color: "var(--red)" }}> {affected} person{affected !== 1 ? "s" : ""} will be unassigned.</span>}
+                  {affected > 0 && <span style={{ color: "var(--red)" }}> {affected} person{affected !== 1 ? "s" : ""} assigned here will be unassigned.</span>}
                 </p>
                 <div className="modal-footer">
                   <button className="btn btn-ghost" onClick={() => setDeleteConfirm(null)}>Cancel</button>
@@ -482,10 +499,10 @@ export function SeatingTab({ eventId, event, adminConfig, showToast, isArchived,
         <div className="modal-backdrop" onMouseDown={e => { if (e.target === e.currentTarget) setPrintHTML(null); }}>
           <div onClick={e => e.stopPropagation()} style={{ background: "var(--bg-surface)", borderRadius: "var(--radius-lg)", width: "95%", maxWidth: 960, height: "90vh", display: "flex", flexDirection: "column", boxShadow: "var(--shadow-lg)" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "14px 20px", borderBottom: "1px solid var(--border)", flexShrink: 0 }}>
-              <div style={{ fontFamily: "var(--font-display)", fontSize: 17, fontWeight: 700 }}>Print Preview — Seating Chart</div>
+              <div style={{ fontFamily: "var(--font-display)", fontSize: 17, fontWeight: 700, color: "var(--text-primary)" }}>Print Preview — Seating Chart</div>
               <div style={{ display: "flex", gap: 8 }}>
                 <button className="btn btn-primary" style={{ fontSize: 12 }} onClick={() => { const f = document.getElementById("seating-print-frame"); if (f?.contentWindow) f.contentWindow.print(); }}>🖨 Print</button>
-                <button className="icon-btn" onClick={() => setPrintHTML(null)}>✕</button>
+                <button className="icon-btn" title="Close" onClick={() => setPrintHTML(null)}>✕</button>
               </div>
             </div>
             <iframe id="seating-print-frame" srcDoc={printHTML} style={{ flex: 1, border: "none", borderRadius: "0 0 var(--radius-lg) var(--radius-lg)" }} title="Seating Chart Print Preview" />
@@ -525,7 +542,7 @@ export function AssignModal({ table, tables, people, households, sectionId, getP
   return (
     <div className="modal-backdrop" onMouseDown={e => { if (e.target === e.currentTarget) onClose(); }}>
       <div className="modal" style={{ maxWidth: 540 }} onClick={e => e.stopPropagation()}>
-        <div className="modal-header"><div className="modal-title">Manage — {table.name}</div><button className="icon-btn" onClick={onClose}>✕</button></div>
+        <div className="modal-header"><div className="modal-title">Manage — {table.name}</div><button className="icon-btn" title="Close" onClick={onClose}>✕</button></div>
         <div className="modal-body">
           <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
             <span style={{ fontSize: 13, color: "var(--text-secondary)" }}>{assigned.length} of {cap} seats filled</span>
@@ -543,7 +560,7 @@ export function AssignModal({ table, tables, people, households, sectionId, getP
                     {members.map(p => (
                       <div key={p.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "5px 10px", borderTop: "1px solid var(--border)" }}>
                         <span style={{ fontSize: 13 }}>{getPersonDisplayName(p)}</span>
-                        <button className="icon-btn" onClick={() => onUnassign(p.id)} title="Unassign">✕</button>
+                        <button className="icon-btn icon-btn-danger" onClick={() => onUnassign(p.id)} title="Unassign">✕</button>
                       </div>
                     ))}
                   </div>
@@ -553,7 +570,7 @@ export function AssignModal({ table, tables, people, households, sectionId, getP
           )}
           <div style={{ display: "flex", gap: 8, marginBottom: 10 }}>
             <input className="form-input" style={{ flex: 1, fontSize: 12, padding: "5px 8px" }} placeholder="Search by name…" value={search} onChange={e => setSearch(e.target.value)} />
-            <select className="form-select" style={{ width: 140, fontSize: 12, padding: "5px 8px" }} value={groupFilter} onChange={e => setGroupFilter(e.target.value)}>
+            <select className="form-input" style={{ width: 140, fontSize: 12, padding: "5px 8px" }} value={groupFilter} onChange={e => setGroupFilter(e.target.value)}>
               <option value="All">All Groups</option>
               {groups.map(g => <option key={g} value={g}>{g}</option>)}
             </select>
@@ -561,7 +578,7 @@ export function AssignModal({ table, tables, people, households, sectionId, getP
           <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: 6 }}>Available ({filteredAvailable.length})</div>
           <div style={{ maxHeight: 240, overflowY: "auto", border: "1px solid var(--border)", borderRadius: "var(--radius-sm)" }}>
             {filteredAvailable.length === 0 ? (
-              <div style={{ padding: 20, textAlign: "center", color: "var(--text-muted)", fontSize: 13 }}>{available.length === 0 ? "All people are assigned." : "No matching people."}</div>
+              <div style={{ padding: 20, textAlign: "center", color: "var(--text-muted)", fontSize: 13 }}>{available.length === 0 ? "All people are assigned to tables." : "No matching people."}</div>
             ) : filteredAvailable.map(p => (
               <div key={p.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "7px 10px", borderBottom: "1px solid var(--border)" }}>
                 <div>
@@ -583,20 +600,43 @@ export function TableModal({ table, tableCount, onSave, onClose, isArchived }) {
   const isEdit = !!table;
   const [form, setForm] = useState(table || { id: newTableId(), name: `Table ${(tableCount || 0) + 1}`, type: "Mixed", capacity: 10, notes: "" });
   const setF = (k, v) => setForm(f => ({ ...f, [k]: v }));
+
+  const handleSave = () => {
+    if (!form.name.trim() || !form.capacity) return;
+    onSave({ ...form, name: form.name.trim(), capacity: parseInt(form.capacity) || 10 });
+  };
+
   return (
     <div className="modal-backdrop" onMouseDown={e => { if (e.target === e.currentTarget) onClose(); }}>
       <div className="modal" style={{ maxWidth: 420 }} onClick={e => e.stopPropagation()}>
-        <div className="modal-header"><div className="modal-title">{isEdit ? "Edit Table" : "Add Table"}</div><button className="icon-btn" onClick={onClose}>✕</button></div>
+        <div className="modal-header"><div className="modal-title">{isEdit ? "Edit Table" : "Add Table"}</div><button className="icon-btn" title="Close" onClick={onClose}>✕</button></div>
         <div className="modal-body">
-          <div className="form-group"><label className="form-label">Table Name *</label><input className="form-input" autoFocus value={form.name} onChange={e => setF("name", e.target.value)} placeholder="e.g., Table 1, Head Table" /></div>
-          <div className="form-grid-2">
-            <div className="form-group"><label className="form-label">Type</label><select className="form-select" value={form.type} onChange={e => setF("type", e.target.value)}><option value="Adult">Adult</option><option value="Kids">Kids</option><option value="Mixed">Mixed</option></select></div>
-            <div className="form-group"><label className="form-label">Capacity *</label><input className="form-input" type="number" min="1" value={form.capacity} onChange={e => setF("capacity", e.target.value)} placeholder="10" /></div>
+          <div className="form-row">
+            <label className="form-label">Table Name *</label>
+            <input className="form-input" autoFocus value={form.name} onChange={e => setF("name", e.target.value)} placeholder="e.g., Table 1, Head Table, Kids Table A" />
           </div>
-          <div className="form-group"><label className="form-label">Notes</label><textarea className="form-textarea" rows={2} value={form.notes || ""} onChange={e => setF("notes", e.target.value)} placeholder="Location, special needs, etc." /></div>
+          <div className="form-row two-col">
+            <div>
+              <label className="form-label">Type</label>
+              <select className="form-input" value={form.type} onChange={e => setF("type", e.target.value)}>
+                <option value="Adult">Adult</option>
+                <option value="Kids">Kids</option>
+                <option value="Mixed">Mixed</option>
+              </select>
+            </div>
+            <div>
+              <label className="form-label">Capacity (seats) *</label>
+              <input className="form-input" type="number" min="1" value={form.capacity} onChange={e => setF("capacity", e.target.value)} placeholder="10" />
+            </div>
+          </div>
+          <div className="form-row">
+            <label className="form-label">Notes</label>
+            <textarea className="form-input notes-area" rows={2} value={form.notes || ""} onChange={e => setF("notes", e.target.value)} placeholder="Location, special needs, etc." />
+          </div>
           <div className="modal-footer">
+            <span style={{fontSize:11,color:"var(--text-muted)",marginRight:"auto"}}>* required</span>
             <button className="btn btn-ghost" onClick={onClose}>Cancel</button>
-            <button className="btn btn-primary" onClick={() => { if (!form.name.trim() || !form.capacity) return; onSave({ ...form, name: form.name.trim(), capacity: parseInt(form.capacity) || 10 }); }} disabled={!form.name.trim() || !form.capacity || isArchived}>{isEdit ? "Save Changes" : "Add Table"}</button>
+            <button className="btn btn-primary" onClick={handleSave} disabled={!form.name.trim() || !form.capacity || isArchived}>{isEdit ? "Save Changes" : "Add Table"}</button>
           </div>
         </div>
       </div>
@@ -616,12 +656,12 @@ export function SeatingExportModal({ tables, people, households, adminConfig, on
   return (
     <div className="modal-backdrop" onMouseDown={e => { if (e.target === e.currentTarget) onClose(); }}>
       <div className="modal modal-lg" style={{ maxWidth: 560 }} onClick={e => e.stopPropagation()}>
-        <div className="modal-header"><div className="modal-title">Export Seating Chart</div><button className="icon-btn" onClick={onClose}>✕</button></div>
+        <div className="modal-header"><div className="modal-title">Export Seating Chart</div><button className="icon-btn" title="Close" onClick={onClose}>✕</button></div>
         <div className="modal-body">
           <div style={{ display: "flex", gap: 10, marginBottom: 20 }}>
-            <button style={OPTION(activeExport === "byTable")} onClick={() => { setActiveExport("byTable"); setCopied(false); }}><div style={{ fontSize: 20, marginBottom: 6 }}>📋</div><div style={{ fontWeight: 700, fontSize: 13, marginBottom: 4 }}>By Table</div><div style={{ fontSize: 11, color: "var(--text-muted)", lineHeight: 1.5 }}>Tables as columns. Best for venue staff.</div></button>
-            <button style={OPTION(activeExport === "byPerson")} onClick={() => { setActiveExport("byPerson"); setCopied(false); }}><div style={{ fontSize: 20, marginBottom: 6 }}>👤</div><div style={{ fontWeight: 700, fontSize: 13, marginBottom: 4 }}>By Person</div><div style={{ fontSize: 11, color: "var(--text-muted)", lineHeight: 1.5 }}>One row per person. Best for catering.</div></button>
-            <button style={OPTION(false)} onClick={handlePrint}><div style={{ fontSize: 20, marginBottom: 6 }}>🖨</div><div style={{ fontWeight: 700, fontSize: 13, marginBottom: 4 }}>Printable View</div><div style={{ fontSize: 11, color: "var(--text-muted)", lineHeight: 1.5 }}>Grouped by table, print-ready.</div></button>
+            <button style={OPTION(activeExport === "byTable")} onClick={() => { setActiveExport("byTable"); setCopied(false); }}><div style={{ fontSize: 20, marginBottom: 6 }}>📋</div><div style={{ fontWeight: 700, fontSize: 13, color: "var(--text-primary)", marginBottom: 4 }}>By Table</div><div style={{ fontSize: 11, color: "var(--text-muted)", lineHeight: 1.5 }}>Tables as columns, names listed underneath. Best for venue staff and day-of binders.</div></button>
+            <button style={OPTION(activeExport === "byPerson")} onClick={() => { setActiveExport("byPerson"); setCopied(false); }}><div style={{ fontSize: 20, marginBottom: 6 }}>👤</div><div style={{ fontWeight: 700, fontSize: 13, color: "var(--text-primary)", marginBottom: 4 }}>By Person</div><div style={{ fontSize: 11, color: "var(--text-muted)", lineHeight: 1.5 }}>One row per person with table, household, group, and meal. Best for planning and catering.</div></button>
+            <button style={OPTION(false)} onClick={handlePrint}><div style={{ fontSize: 20, marginBottom: 6 }}>🖨</div><div style={{ fontWeight: 700, fontSize: 13, color: "var(--text-primary)", marginBottom: 4 }}>Printable View</div><div style={{ fontSize: 11, color: "var(--text-muted)", lineHeight: 1.5 }}>Grouped by table with names, household, group, meal, and dietary flags. Print-ready.</div></button>
           </div>
           {activeExport && (<>
             <div className="alert alert-info" style={{ marginBottom: 10 }}>{activeExport === "byTable" ? "Copy the CSV and paste into Excel. Tables appear as columns." : "Copy the CSV and paste into Excel. One row per person."}</div>

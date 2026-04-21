@@ -1,16 +1,44 @@
 {
-  "current": "V3.3.4",
+  "current": "V3.3.5",
   "whatsNew": [
-    "PrepTab: Stat cards added \u2014 Total Items, Complete, In Progress, Not Started",
-    "PrepTab: Overall progress bar added",
-    "PrepTab: Items now grouped by category with headers and item counts",
-    "PrepTab: Inline progress slider added \u2014 dragging auto-derives status",
-    "PrepTab: Clergy and Tutor contact card restored",
-    "PrepTab: Target date color-coded by proximity (red/gold/green)",
-    "PrepTab: Delete confirm modal added",
-    "PrepTab: Field name corrected from item to title matching V2 and Supabase schema"
+    "SeatingTab: 22 V2 parity gaps closed",
+    "SeatingTab: Household migration effect added \u2014 strips legacy adultTableId/kidsTableId fields",
+    "SeatingTab: Table card delete and unassign buttons now styled as danger",
+    "SeatingTab: TableModal restored to V2 layout and field specs",
+    "SeatingTab: All export option descriptions restored to full V2 text",
+    "Guide: Seating section updated with export formats entry",
+    "V2: Removed personal name reference from SeatingExportModal export description"
   ],
   "changelog": [
+    {
+      "version": "V3.3.5",
+      "date": "2026-04-21",
+      "type": "fix",
+      "summary": "SeatingTab \u2014 full V2 parity (22 gaps closed) + guide update + V2 cleanup",
+      "changes": [
+        "V3 Gap 1: tab-content class added to outer div.",
+        "V3 Gap 3: Household migration useEffect added \u2014 strips stale adultTableId/kidsTableId fields; saveHousehold added to households useEventData destructure.",
+        "V3 Gap 4: section-subtitle class corrected to section-sub.",
+        "V3 Gap 5: Click to assign label now shows person first name matching V2.",
+        "V3 Gap 6: title attrs added to all table card action buttons.",
+        "V3 Gap 7: Table card delete button class corrected to icon-btn-danger.",
+        "V3 Gap 8: Table card occupant unassign button class corrected to icon-btn-danger.",
+        "V3 Gap 9: Delete confirm affected text restored to match V2; title=Close added to X button.",
+        "V3 Gaps 10-14: TableModal fully restored to V2 spec \u2014 form-row/two-col layout, form-input notes-area, Capacity label corrected to \"Capacity (seats) *\", title=Close on X, * required legend, handleSave extracted.",
+        "V3 Gap 15: AssignModal unassign button class corrected to icon-btn-danger.",
+        "V3 Gap 16: AssignModal group filter select class corrected from form-select to form-input.",
+        "V3 Gap 17: AssignModal empty available message corrected to \"All people are assigned to tables.\"",
+        "V3 Gap 18: AssignModal title=Close added to X button.",
+        "V3 Gap 19: SeatingExportModal By Table description restored to full V2 text; personal name reference removed.",
+        "V3 Gap 20: SeatingExportModal By Person description restored to full V2 text.",
+        "V3 Gap 21: SeatingExportModal Printable View description restored to full V2 text.",
+        "V3 Gap 22: SeatingExportModal title=Close added to X button.",
+        "V3 Gap 23: Print preview title color restored to var(--text-primary).",
+        "V3 Gap 24: Print preview title=Close added to X button.",
+        "V2: SeatingExportModal By Table description updated \u2014 personal name reference removed; replaced with \"Best for venue staff and day-of binders.\"",
+        "V2/V3 Guide: Seating section \u2014 Exporting the seating chart item added describing By Table, By Person, and Printable View formats."
+      ]
+    },
     {
       "version": "V3.3.4",
       "date": "2026-04-21",

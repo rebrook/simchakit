@@ -891,7 +891,7 @@ export function SeatingExportModal({ tables, people, households, adminConfig, on
               <div style={{ fontSize: 20, marginBottom: 6 }}>📋</div>
               <div style={{ fontWeight: 700, fontSize: 13, color: "var(--text-primary)", marginBottom: 4 }}>By Table</div>
               <div style={{ fontSize: 11, color: "var(--text-muted)", lineHeight: 1.5 }}>
-                Tables as columns, names listed underneath. Matches Asher's format. Best for venue staff.
+                Tables as columns, names listed underneath. Best for venue staff and day-of binders.
               </div>
             </button>
 

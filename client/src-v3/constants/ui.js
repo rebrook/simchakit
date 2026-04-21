@@ -101,6 +101,7 @@ const GUIDE_SECTIONS = [
       { heading: "Assigning guests", body: "Select a person from the unseated panel then click a table to assign them, or use Manage Assignments on any table card for bulk assignment. The unseated panel shows only people confirmed for the active sub-event — if someone is missing, check their sub-event attendance in the Guests tab." },
       { heading: "TBD attendees", body: "People whose sub-event attendance is not yet confirmed (TBD) are excluded from the unseated panel and shown as a count below the Unseated header. They cannot be seated until their attendance is confirmed in the Guests tab." },
       { heading: "Seating gap warning", body: "The Overview tab shows a seating gap warning when the total configured seat capacity is less than the confirmed attendee count for the active seating sub-event. The warning only appears when seating is configured for a specific sub-event." },
+      { heading: "Exporting the seating chart", body: "Use the ↓ Export Seating button (visible once seating is configured and tables exist) to export in three formats. By Table exports a CSV with tables as columns and names listed underneath — best for venue staff and day-of binders. By Person exports a CSV with one row per person including their table, household, group, and meal choice — best for catering and planning. Printable View generates a print-ready HTML page grouped by table with names, household, group, meal, and dietary flags — open it in your browser and use Print to PDF." },
     ],
   },
   {
