@@ -102,12 +102,10 @@ export function OverviewTab({ eventId, event, adminConfig, showToast, setActiveT
           <div className="section-title">Overview</div>
           <div className="section-subtitle">Event summary and countdown</div>
         </div>
-        {onPrintBrief && (
-          <button className="btn btn-secondary btn-sm" onClick={onPrintBrief}
-            style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0 }}>
-            🖨 Print Brief
-          </button>
-        )}
+        <button className="btn btn-secondary btn-sm" onClick={onPrintBrief}
+          style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0 }}>
+          🖨 Print Brief
+        </button>
       </div>
 
       {/* Get Started card */}

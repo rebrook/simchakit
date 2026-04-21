@@ -1,6 +1,7 @@
 {
   "current": "V3.3.9",
   "whatsNew": [
+    "OverviewTab: Print Brief button always rendered \u2014 removed incorrect conditional guard",
     "OverviewTab: Seating gap warning restored \u2014 reads tables and seating config from Supabase via useEventData",
     "OverviewTab: Fixed variable name collision in getSubEventCounts (eventId \u2192 sectionId)",
     "OverviewTab: Restored full notes placeholder text and empty countdown subtitle"
@@ -12,6 +13,7 @@
       "type": "fix",
       "summary": "OverviewTab \u2014 4 V2 parity gaps closed including seating gap warning restoration and naming bug fix",
       "changes": [
+        "Gap 1 (corrected): Print Brief button guard removed \u2014 button now always rendered matching V2. The {onPrintBrief && ...} guard was incorrectly passed as a V3 improvement in audit; onPrintBrief is always provided by AppShell.",
         "Bug fix: getSubEventCounts inner parameter renamed from eventId to sectionId \u2014 was shadowing the outer eventId prop, causing sub-event counts to always use the event UUID instead of the timeline entry ID.",
         "Gap 6: Empty countdown subtitle restored to full V2 text \u2014 \"Add your event timeline and mark a main event in Admin Mode to start the countdown\".",
         "Gap 5: Notes textarea placeholder restored to full V2 text \u2014 \"Jot down ideas, reminders, open questions, things to follow up on, or anything you want to remember\u2026\".",
