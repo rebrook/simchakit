@@ -4872,7 +4872,7 @@
       "id": "roadmap-ical",
       "title": "iCal / Calendar Subscribe",
       "description": "Export planning calendar as .ics file (download) and/or live webcal:// subscribe URL. Applies to both V2 and V3. Scope TBD: download vs live subscribe, which event sources to include.",
-      "status": "planned",
+      "status": "future",
       "platforms": [
         "v2",
         "v3"
