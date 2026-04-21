@@ -1,9 +1,20 @@
 {
-  "current": "V3.3.17",
+  "current": "V3.3.18",
   "whatsNew": [
-    "CalendarTab: Show completed restored as toggle button (was checkbox)"
+    "DayOfOverlay: 3 V2 parity gaps closed"
   ],
   "changelog": [
+    {
+      "version": "V3.3.18",
+      "date": "2026-04-21",
+      "type": "fix",
+      "summary": "DayOfOverlay \u2014 3 V2 parity gaps closed",
+      "changes": [
+        "Gap 1: title=\"Close\" added to DayOfItemModal X button.",
+        "Gap 3: ceremony_roles load hardened \u2014 now orders by updated_at DESC and finds the array-format row (same fix as CeremonyRolesTab V3.3.14).",
+        "Gap 4: dayof load now orders by updated_at DESC to ensure most recent document is returned."
+      ]
+    },
     {
       "version": "V3.3.17",
       "date": "2026-04-21",

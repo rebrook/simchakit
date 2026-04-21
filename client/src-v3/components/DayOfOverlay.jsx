@@ -257,7 +257,7 @@ export function DayOfItemModal({ item, onSave, onClose }) {
       <div className="modal" onClick={e => e.stopPropagation()}>
         <div className="modal-header">
           <div className="modal-title">{isEdit ? "Edit Item" : "Add Day-of Item"}</div>
-          <button className="icon-btn" onClick={onClose}>✕</button>
+          <button className="icon-btn" title="Close" onClick={onClose}>✕</button>
         </div>
         <div className="modal-body">
           <div className="form-group">
@@ -312,7 +312,7 @@ export function DayOfOverlay({ eventId, event, adminConfig, onClose, onPrintBrie
   useEffect(() => {
     if (!eventId) return;
     async function load() {
-      const { data: rows } = await supabase.from("dayof").select("id, data").eq("event_id", eventId).limit(1);
+      const { data: rows } = await supabase.from("dayof").select("id, data").eq("event_id", eventId).order("updated_at", { ascending: false }).limit(1);
       if (rows && rows.length > 0) {
         setDayOfRowId(rows[0].id);
         setDayOf(rows[0].data || { checklist: [], timelineChecks: {} });
@@ -325,8 +325,12 @@ export function DayOfOverlay({ eventId, event, adminConfig, onClose, onPrintBrie
   useEffect(() => {
     if (!eventId) return;
     async function load() {
-      const { data: rows } = await supabase.from("ceremony_roles").select("data").eq("event_id", eventId).limit(1);
-      if (rows && rows.length > 0) setCeremonyRoles(rows[0].data?.roles || []);
+      const { data: rows } = await supabase.from("ceremony_roles").select("data").eq("event_id", eventId).order("updated_at", { ascending: false });
+      if (rows && rows.length > 0) {
+        const arrayRow = rows.find(r => Array.isArray(r.data?.roles));
+        const row = arrayRow || rows[0];
+        setCeremonyRoles(row.data?.roles || []);
+      }
     }
     load();
   }, [eventId]);
