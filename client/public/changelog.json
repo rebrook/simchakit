@@ -1,9 +1,25 @@
 {
-  "current": "V3.3.12",
+  "current": "V3.3.13",
   "whatsNew": [
-    "AppShell: Version number now displays correctly in footer"
+    "CeremonyRolesTab: V2 parity fixes \u2014 tab-content class, moveRole bug fix, modal title attributes, RoleModal required legend and scroll constraint, empty state text, loadTemplate guard"
   ],
   "changelog": [
+    {
+      "version": "V3.3.13",
+      "date": "2026-04-21",
+      "type": "fix",
+      "summary": "CeremonyRolesTab \u2014 7 V2 parity gaps closed",
+      "changes": [
+        "Gap 1: Outer div changed to className=\"tab-content\".",
+        "Gap 3: moveRole bug fixed \u2014 now sorts roles by sortOrder first before finding index, matching V2 behavior.",
+        "Gap 5: title=\"Close\" added to delete confirm modal X button.",
+        "Gap 7: title=\"Close\" added to RoleModal X button.",
+        "Gap 8: \"* required\" legend added to RoleModal footer.",
+        "Gap 9: modal-body in RoleModal given overflowY:\"auto\" and maxHeight:\"calc(85vh - 120px)\" scroll constraint.",
+        "Gap 11: Empty state description restored to full V2 text \u2014 \"Add roles manually to track who will participate in the ceremony.\"",
+        "Gap 12: isArchived guard added to loadTemplate."
+      ]
+    },
     {
       "version": "V3.3.12",
       "date": "2026-04-21",
