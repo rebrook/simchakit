@@ -74,6 +74,7 @@ export function AccommodationsTab({ eventId, event, adminConfig, showToast, isAr
     info:   { background: "var(--blue-light)",  color: "var(--blue)",  border: "1px solid var(--blue)"  },
     warn:   { background: "var(--gold-light)",  color: "var(--gold)",  border: "1px solid var(--gold)"  },
     urgent: { background: "var(--red-light)",   color: "var(--red)",   border: "1px solid var(--red)"   },
+    done:   { background: "var(--green-light)", color: "var(--green)", border: "1px solid var(--green)" },
   };
 
   const toggleNotified = async (hh) => {
@@ -220,7 +221,7 @@ export function AccommodationsTab({ eventId, event, adminConfig, showToast, isAr
                         <td style={{ padding: "10px 12px", fontSize: 12, color: checkOut ? "var(--text-primary)" : "var(--text-muted)" }}>{checkOut || <span style={{ fontStyle: "italic" }}>—</span>}</td>
                         <td style={{ padding: "10px 12px", fontSize: 12, color: "var(--text-muted)", maxWidth: 180, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{hh.accomNotes || ""}</td>
                         <td style={{ padding: "10px 12px", textAlign: "right" }}>
-                          <button className="icon-btn" style={{ width: 28, height: 28 }} title="Edit" onClick={() => setEditingHH(hh)}>✎</button>
+                          <button className="icon-btn" style={{ width: 28, height: 28 }} title="Edit accommodation details" onClick={() => setEditingHH(hh)}>✎</button>
                         </td>
                       </tr>
                     );
@@ -260,7 +261,7 @@ export function AccomEditModal({ household, onSave, onClose, isArchived }) {
       <div className="modal" onClick={e => e.stopPropagation()}>
         <div className="modal-header">
           <div className="modal-title">🧳 {household.formalName}</div>
-          <button className="icon-btn" onClick={onClose}>✕</button>
+          <button className="icon-btn" title="Close" onClick={onClose}>✕</button>
         </div>
         <div className="modal-body">
           <div style={{ display: "flex", gap: 16, marginBottom: 16 }}>
@@ -284,7 +285,7 @@ export function AccomEditModal({ household, onSave, onClose, isArchived }) {
             </div>
           </div>
           {form.accomCheckIn && form.accomCheckOut && form.accomCheckOut < form.accomCheckIn && (
-            <div style={{ fontSize: 12, color: "var(--red)", marginBottom: 8 }}>⚠ Check-out date is before check-in date</div>
+            <div style={{ fontSize: 12, color: "var(--red)", marginTop: 4, marginBottom: 8 }}>⚠ Check-out date is before check-in date</div>
           )}
           <div className="form-group">
             <label className="form-label">Notes</label>
