@@ -1431,4 +1431,182 @@ export function GratuityCalculator({ expenses, vendors, onAddExpense, isArchived
   );
 }
 
+export function ExpenseModal({ expense, vendors, adminConfig, onSave, onClose, isArchived }) {
+  const blank = { id: newExpenseId(), description: "", category: "", vendorId: "", amount: "", budgeted: "", dueDate: "", datePaid: "", eventSection: "", paid: false, notes: "" };
+  const [form, setForm] = useState(expense || blank);
+  const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
+  const timeline = (adminConfig?.timeline || []).filter(t => t.title);
 
+  return (
+    <div className="modal-backdrop" onMouseDown={e => { if (e.target === e.currentTarget) onClose(); }}>
+      <div className="modal modal-lg">
+        <div className="modal-header">
+          <div className="modal-title">{expense ? "Edit Expense" : "Add Expense"}</div>
+          <button className="icon-btn" onClick={onClose}>✕</button>
+        </div>
+        <div className="modal-body">
+          <div className="form-group">
+            <label className="form-label">Description *</label>
+            <input className="form-input" value={form.description} onChange={e => set("description", e.target.value)} placeholder="What is this expense?" autoFocus />
+          </div>
+          <div className="form-grid-2">
+            <div className="form-group">
+              <label className="form-label">Category</label>
+              <select className="form-select" value={form.category} onChange={e => set("category", e.target.value)}>
+                <option value="">Select category…</option>
+                {EXPENSE_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+              </select>
+            </div>
+            <div className="form-group">
+              <label className="form-label">Vendor</label>
+              <select className="form-select" value={form.vendorId || ""} onChange={e => set("vendorId", e.target.value)}>
+                <option value="">No vendor</option>
+                {vendors.map(v => <option key={v.id} value={v.id}>{v.name}</option>)}
+              </select>
+            </div>
+          </div>
+          <div className="form-grid-2">
+            <div className="form-group">
+              <label className="form-label">Amount ($) *</label>
+              <input className="form-input" type="number" min="0" step="0.01" value={form.amount} onChange={e => set("amount", e.target.value)} placeholder="0.00" />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Budgeted ($)</label>
+              <input className="form-input" type="number" min="0" step="0.01" value={form.budgeted || ""} onChange={e => set("budgeted", e.target.value)} placeholder="Estimate" />
+              <div className="form-hint">Used in budget vs. actual charts.</div>
+            </div>
+          </div>
+          <div className="form-grid-2">
+            <div className="form-group">
+              <label className="form-label">Due Date</label>
+              <input className="form-input" type="date" value={form.dueDate || ""} onChange={e => set("dueDate", e.target.value)} />
+            </div>
+            {timeline.length > 0 && (
+              <div className="form-group">
+                <label className="form-label">Event Section</label>
+                <select className="form-select" value={form.eventSection || ""} onChange={e => set("eventSection", e.target.value)}>
+                  <option value="">No section</option>
+                  {timeline.map(t => <option key={t.id} value={t.id}>{t.title}</option>)}
+                </select>
+              </div>
+            )}
+          </div>
+          <div className="form-group" style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <div className={`paid-check ${form.paid ? "checked" : ""}`} onClick={() => set("paid", !form.paid)}>
+              {form.paid && <svg width="10" height="8" viewBox="0 0 10 8"><polyline points="1,4 4,7 9,1" stroke="white" strokeWidth="1.5" fill="none"/></svg>}
+            </div>
+            <label className="form-label" style={{ margin: 0, textTransform: "none", fontSize: 14, fontWeight: 500 }}>Paid</label>
+            {form.paid && (
+              <input className="form-input" type="date" value={form.datePaid || ""} onChange={e => set("datePaid", e.target.value)}
+                style={{ flex: 1, maxWidth: 180 }} placeholder="Date paid" />
+            )}
+          </div>
+          <div className="form-group">
+            <label className="form-label">Notes</label>
+            <textarea className="form-textarea" value={form.notes || ""} onChange={e => set("notes", e.target.value)} placeholder="Payment terms, deposit details…" />
+          </div>
+          <div className="modal-footer">
+            <button className="btn btn-ghost" onClick={onClose}>Cancel</button>
+            <button className="btn btn-primary" disabled={!form.description?.trim() || !form.amount || isArchived}
+              onClick={() => onSave({ ...form })}>
+              {expense ? "Save Changes" : "Add Expense"}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── GratuityCalculator ────────────────────────────────────────────────────────
+export function GratuityCalculator({ expenses, vendors, onAddExpense, isArchived }) {
+  const [open,      setOpen]      = useState(false);
+  const [tipPct,    setTipPct]    = useState(20);
+  const [custom,    setCustom]    = useState("");
+  const [overrides, setOverrides] = useState({});
+
+  const tippableVendors = vendors.filter(v => {
+    const linked = expenses.filter(e => e.vendorId === v.id);
+    const total  = linked.reduce((s, e) => s + (parseFloat(e.amount) || 0), 0);
+    return TIPPABLE_CATEGORIES.has(v.type) && total > 0;
+  });
+
+  if (tippableVendors.length === 0) return null;
+
+  const effectivePct = custom ? parseFloat(custom) : tipPct;
+
+  const rows = tippableVendors.map(v => {
+    const linked = expenses.filter(e => e.vendorId === v.id);
+    const base   = overrides[v.id] !== undefined ? parseFloat(overrides[v.id]) || 0
+                 : linked.reduce((s, e) => s + (parseFloat(e.amount) || 0), 0);
+    return { vendor: v, base, tip: Math.round(base * (effectivePct / 100)) };
+  });
+
+  return (
+    <div className="card" style={{ marginTop: 20 }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", cursor: "pointer" }}
+        onClick={() => setOpen(o => !o)}>
+        <div className="card-title" style={{ marginBottom: 0 }}>🧾 Gratuity Calculator</div>
+        <span style={{ fontSize: 12, color: "var(--text-muted)" }}>{open ? "▲ collapse" : "▼ expand"}</span>
+      </div>
+      {open && (
+        <div style={{ marginTop: 16 }}>
+          <div style={{ display: "flex", gap: 8, marginBottom: 16, flexWrap: "wrap", alignItems: "center" }}>
+            <span style={{ fontSize: 13, color: "var(--text-muted)" }}>Tip rate:</span>
+            {[15, 18, 20, 25].map(p => (
+              <button key={p} className={`btn btn-sm ${tipPct === p && !custom ? "btn-primary" : "btn-secondary"}`}
+                onClick={() => { setTipPct(p); setCustom(""); }}>
+                {p}%
+              </button>
+            ))}
+            <input className="form-input" type="number" min="0" max="100" value={custom}
+              onChange={e => setCustom(e.target.value)} placeholder="Custom %" style={{ width: 90 }} />
+          </div>
+          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13, marginBottom: 12 }}>
+            <thead>
+              <tr style={{ background: "var(--bg-subtle)" }}>
+                <th style={th}>Vendor</th>
+                <th style={th}>Type</th>
+                <th style={th}>Base Amount</th>
+                <th style={th}>Suggested Tip</th>
+                <th style={{ ...th, width: 80 }}></th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map(({ vendor, base, tip }) => (
+                <tr key={vendor.id} style={{ borderBottom: "1px solid var(--border)" }}>
+                  <td style={{ ...td, fontWeight: 600 }}>{vendor.name}</td>
+                  <td style={td}>{vendor.type}</td>
+                  <td style={td}>
+                    <input className="form-input" type="number" min="0" step="0.01"
+                      value={overrides[vendor.id] !== undefined ? overrides[vendor.id] : base}
+                      onChange={e => setOverrides(o => ({ ...o, [vendor.id]: e.target.value }))}
+                      style={{ width: 100 }} />
+                  </td>
+                  <td style={{ ...td, fontWeight: 700, color: "var(--accent-primary)" }}>${tip.toLocaleString()}</td>
+                  <td style={td}>
+                    {!isArchived && (
+                      <button className="btn btn-secondary btn-sm" onClick={() => {
+                        onAddExpense({
+                          id: newExpenseId(), description: `Gratuity — ${vendor.name}`, category: "Gratuities & Tips",
+                          vendorId: vendor.id, amount: String(tip), paid: false, notes: `${effectivePct}% gratuity`,
+                        });
+                      }}>+ Add</button>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <div style={{ fontSize: 12, color: "var(--text-muted)", fontStyle: "italic" }}>
+            Tip amounts are suggestions. Edit the base amount to adjust.
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+const loadingStyle = { padding: "48px 24px", textAlign: "center", color: "var(--text-muted)", fontSize: 14 };
+const th = { padding: "8px 12px", fontSize: 11, fontWeight: 700, color: "var(--text-muted)", textAlign: "left", textTransform: "uppercase", letterSpacing: "0.04em", whiteSpace: "nowrap" };
+const td = { padding: "10px 12px", verticalAlign: "middle" };
