@@ -1,9 +1,39 @@
 {
-  "current": "V3.3.13",
+  "current": "V3.3.14",
   "whatsNew": [
-    "CeremonyRolesTab: V2 parity fixes \u2014 tab-content class, moveRole bug fix, modal title attributes, RoleModal required legend and scroll constraint, empty state text, loadTemplate guard"
+    "AppShell: Print Brief now shows ceremony roles correctly"
   ],
   "changelog": [
+    {
+      "version": "V3.3.14",
+      "date": "2026-04-21",
+      "type": "fix",
+      "summary": "AppShell \u2014 Print Brief ceremony roles fix",
+      "changes": [
+        "Bug: _ceremonyRoles from useEventData returns [{roles:[...], _rowId}] \u2014 one item wrapping the roles array. generateEventBriefHTML expects a flat array of role objects, so ceremony roles showed empty in the print brief.",
+        "Fix: Both onPrintBrief calls now pass _ceremonyRoles[0]?.roles || [] to unwrap the array correctly."
+      ]
+    },
+    {
+      "version": "V3.3.14",
+      "date": "2026-04-21",
+      "type": "fix",
+      "summary": "CeremonyRolesTab \u2014 load function hardened against non-deterministic row ordering",
+      "changes": [
+        "Bug: .limit(1) with no ORDER BY returned a non-deterministic row \u2014 if a flat-format row was returned instead of the array-format row, roles showed empty.",
+        "Fix: Now fetches all ceremony_roles rows ordered by updated_at DESC, then finds the first row where data.roles is an array. Falls back to rows[0] if none found.",
+        "Root cause: reset-demo.js was inserting one row per role (flat format) instead of one row with data.roles array. That script has also been fixed."
+      ]
+    },
+    {
+      "version": "V3.3.14",
+      "date": "2026-04-21",
+      "type": "fix",
+      "summary": "AppShell \u2014 Print Brief ceremony roles fix",
+      "changes": [
+        "Bug: _ceremonyRoles from useEventData returns [{roles:[...]}] (one wrapper object). generateEventBriefHTML expects a flat array of role objects. Fixed by unwrapping _ceremonyRoles[0].roles before passing to generateEventBriefHTML."
+      ]
+    },
     {
       "version": "V3.3.13",
       "date": "2026-04-21",

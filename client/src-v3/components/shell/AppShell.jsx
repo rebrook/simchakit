@@ -330,7 +330,7 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false }) {
     onOpenAdminTo: openAdmin,
     onOpenGuide:          () => setShowGuide(true),
     onPrintBrief:         () => setBriefHTML(generateEventBriefHTML(
-      { people: _badgePeople, households: _badgeHouseholds, expenses: _badgeExpenses, vendors: _badgeVendors, tasks: _badgeTasks, ceremonyRoles: _ceremonyRoles },
+      { people: _badgePeople, households: _badgeHouseholds, expenses: _badgeExpenses, vendors: _badgeVendors, tasks: _badgeTasks, ceremonyRoles: _ceremonyRoles[0]?.roles || [] },
       adminConfig
     )),
     onConfigSaved,
@@ -752,7 +752,7 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false }) {
           adminConfig={adminConfig}
           onClose={() => setShowDayOf(false)}
           onPrintBrief={() => setBriefHTML(generateEventBriefHTML(
-            { people: _badgePeople, households: _badgeHouseholds, expenses: _badgeExpenses, vendors: _badgeVendors, tasks: _badgeTasks, ceremonyRoles: _ceremonyRoles },
+            { people: _badgePeople, households: _badgeHouseholds, expenses: _badgeExpenses, vendors: _badgeVendors, tasks: _badgeTasks, ceremonyRoles: _ceremonyRoles[0]?.roles || [] },
             adminConfig
           ))}
         />
