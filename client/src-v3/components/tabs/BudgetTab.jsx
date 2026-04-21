@@ -1182,95 +1182,253 @@ export function ExpenseModal({ expense, vendors, adminConfig, onSave, onClose, i
   );
 }
 
-// ── GratuityCalculator ────────────────────────────────────────────────────────
+// ── GratuityCalculator ─────────────────────────────────────────────────────────
 export function GratuityCalculator({ expenses, vendors, onAddExpense, isArchived }) {
-  const [open,      setOpen]      = useState(false);
-  const [tipPct,    setTipPct]    = useState(20);
-  const [custom,    setCustom]    = useState("");
-  const [overrides, setOverrides] = useState({});
+  const [open,        setOpen]        = useState(true);
+  const [selected,    setSelected]    = useState({});   // vendorKey → true/false
+  const [customBase,  setCustomBase]  = useState({});   // vendorKey → string override
+  const [tipPct,      setTipPct]      = useState(20);   // active preset %
+  const [customPct,   setCustomPct]   = useState("");   // custom % input
+  const [useCustom,   setUseCustom]   = useState(false);
+  const [added,       setAdded]       = useState({});   // vendorKey → true (flash)
 
-  const tippableVendors = vendors.filter(v => {
-    const linked = expenses.filter(e => e.vendorId === v.id);
-    const total  = linked.reduce((s, e) => s + (parseFloat(e.amount) || 0), 0);
-    return linked.some(e => TIPPABLE_CATEGORIES.has(e.category)) && total > 0;
-  });
+  // Build tippable vendor groups from expenses
+  const groups = (() => {
+    const map = {};
+    expenses.forEach(e => {
+      if (!TIPPABLE_CATEGORIES.has(e.category)) return;
+      if (e.category === "Gratuities & Tips") return;
+      const key   = e.vendorId || e.vendor || e.description;
+      const label = e.vendorId
+        ? (vendors.find(v => v.id === e.vendorId)?.name || e.vendor || e.description)
+        : (e.vendor || e.description);
+      if (!map[key]) map[key] = { key, label, category: e.category, vendorId: e.vendorId || "", vendorName: label, total: 0 };
+      map[key].total += parseFloat(e.amount) || 0;
+    });
+    return Object.values(map).sort((a, b) => a.label.localeCompare(b.label));
+  })();
 
-  if (tippableVendors.length === 0) return null;
+  // Tip % in use
+  const effectivePct = useCustom
+    ? (parseFloat(customPct) || 0)
+    : tipPct;
 
-  const effectivePct = custom ? parseFloat(custom) : tipPct;
+  // Tip amount for a group
+  const tipAmount = (g) => {
+    const base = parseFloat(customBase[g.key]) || g.total;
+    return Math.round(base * (effectivePct / 100) * 100) / 100;
+  };
 
-  const rows = tippableVendors.map(v => {
-    const linked = expenses.filter(e => e.vendorId === v.id);
-    const base   = overrides[v.id] !== undefined ? parseFloat(overrides[v.id]) || 0
-                 : linked.reduce((s, e) => s + (parseFloat(e.amount) || 0), 0);
-    return { vendor: v, base, tip: Math.round(base * (effectivePct / 100)) };
-  });
+  // Total selected tips
+  const totalTip = groups
+    .filter(g => selected[g.key])
+    .reduce((s, g) => s + tipAmount(g), 0);
+
+  // Auto-open when tippable vendors exist and user hasn't explicitly closed
+  const hasGroups = groups.length > 0;
+
+  const handleToggle = (key) => {
+    setSelected(s => ({ ...s, [key]: !s[key] }));
+  };
+
+  const handleAddOne = (g) => {
+    if (isArchived) return;
+    const amt = tipAmount(g);
+    if (amt <= 0) return;
+    onAddExpense({
+      id:          newExpenseId(),
+      description: `Gratuity — ${g.label}`,
+      category:    "Gratuities & Tips",
+      vendor:      g.vendorName,
+      vendorId:    g.vendorId,
+      amount:      amt.toFixed(2),
+      date:        "",
+      dueDate:     "",
+      paid:        false,
+      notes:       `${effectivePct}% gratuity on $${(parseFloat(customBase[g.key]) || g.total).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+    });
+    setAdded(a => ({ ...a, [g.key]: true }));
+    setTimeout(() => setAdded(a => ({ ...a, [g.key]: false })), 2500);
+    
+  };
+
+  const handleAddAll = () => {
+    if (isArchived) return;
+    groups.filter(g => selected[g.key]).forEach(g => handleAddOne(g));
+  };
+
+  if (!hasGroups) return null;
 
   return (
-    <div className="card" style={{ marginTop: 20 }}>
+    <div className="card" style={{ marginBottom: 20 }}>
+      {/* Header row — always visible */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", cursor: "pointer" }}
         onClick={() => setOpen(o => !o)}>
-        <div className="card-title" style={{ marginBottom: 0 }}>🧾 Gratuity Calculator</div>
-        <span style={{ fontSize: 12, color: "var(--text-muted)" }}>{open ? "▲ collapse" : "▼ expand"}</span>
+        <div>
+          <div className="card-title" style={{ marginBottom: 0 }}>💵 Gratuity Calculator</div>
+          {!open && (
+            <div className="card-subtitle" style={{ marginBottom: 0, marginTop: 4 }}>
+              {groups.length} tippable vendor{groups.length !== 1 ? "s" : ""} · click to expand
+            </div>
+          )}
+        </div>
+        <button style={{ background: "none", border: "none", cursor: "pointer", fontSize: 18,
+          color: "var(--text-muted)", padding: "0 4px", lineHeight: 1 }}>
+          {open ? "▴" : "▾"}
+        </button>
       </div>
+
       {open && (
         <div style={{ marginTop: 16 }}>
-          <div style={{ display: "flex", gap: 8, marginBottom: 16, flexWrap: "wrap", alignItems: "center" }}>
-            <span style={{ fontSize: 13, color: "var(--text-muted)" }}>Tip rate:</span>
-            {[15, 18, 20, 25].map(p => (
-              <button key={p} className={`btn btn-sm ${tipPct === p && !custom ? "btn-primary" : "btn-secondary"}`}
-                onClick={() => { setTipPct(p); setCustom(""); }}>
-                {p}%
+          <div className="card-subtitle" style={{ marginBottom: 16 }}>
+            Select vendors to tip, adjust the base amount if needed, then add each tip as a budget line item.
+          </div>
+
+          {/* Tip rate selector */}
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 20, flexWrap: "wrap" }}>
+            <span style={{ fontSize: 12, fontWeight: 600, color: "var(--text-secondary)", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+              Tip rate:
+            </span>
+            {[15, 20, 25].map(pct => (
+              <button key={pct}
+                onClick={() => { setTipPct(pct); setUseCustom(false); }}
+                className={(!useCustom && tipPct === pct) ? "btn btn-primary btn-sm" : "btn btn-secondary btn-sm"}>
+                {pct}%
               </button>
             ))}
-            <input className="form-input" type="number" min="0" max="100" value={custom}
-              onChange={e => setCustom(e.target.value)} placeholder="Custom %" style={{ width: 90 }} />
+            <button
+              onClick={() => setUseCustom(u => !u)}
+              className={useCustom ? "btn btn-primary btn-sm" : "btn btn-secondary btn-sm"}>
+              Custom
+            </button>
+            {useCustom && (
+              <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                <input
+                  type="number" min="0" max="100" step="0.5"
+                  value={customPct}
+                  onChange={e => setCustomPct(e.target.value < 0 ? "0" : e.target.value)}
+                  placeholder="e.g. 18"
+                  style={{ width: 70, padding: "4px 8px", border: "1px solid var(--border)",
+                    borderRadius: "var(--radius-sm)", fontSize: 13,
+                    fontFamily: "var(--font-body)", color: "var(--text-primary)",
+                    background: "var(--bg-surface)" }}
+                />
+                <span style={{ fontSize: 13, color: "var(--text-secondary)" }}>%</span>
+              </div>
+            )}
           </div>
-          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13, marginBottom: 12 }}>
-            <thead>
-              <tr style={{ background: "var(--bg-subtle)" }}>
-                <th style={th}>Vendor</th>
-                <th style={th}>Type</th>
-                <th style={th}>Base Amount</th>
-                <th style={th}>Suggested Tip</th>
-                <th style={{ ...th, width: 80 }}></th>
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map(({ vendor, base, tip }) => (
-                <tr key={vendor.id} style={{ borderBottom: "1px solid var(--border)" }}>
-                  <td style={{ ...td, fontWeight: 600 }}>{vendor.name}</td>
-                  <td style={td}>{vendor.type}</td>
-                  <td style={td}>
-                    <input className="form-input" type="number" min="0" step="0.01"
-                      value={overrides[vendor.id] !== undefined ? overrides[vendor.id] : base}
-                      onChange={e => setOverrides(o => ({ ...o, [vendor.id]: e.target.value }))}
-                      style={{ width: 100 }} />
-                  </td>
-                  <td style={{ ...td, fontWeight: 700, color: "var(--accent-primary)" }}>${tip.toLocaleString()}</td>
-                  <td style={td}>
-                    {!isArchived && (
-                      <button className="btn btn-secondary btn-sm" onClick={() => {
-                        onAddExpense({
-                          id: newExpenseId(), description: `Gratuity — ${vendor.name}`, category: "Gratuities & Tips",
-                          vendorId: vendor.id, amount: String(tip), paid: false, notes: `${effectivePct}% gratuity`,
-                        });
-                      }}>+ Add</button>
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          <div style={{ fontSize: 12, color: "var(--text-muted)", fontStyle: "italic" }}>
-            Tip amounts are suggestions. Edit the base amount to adjust.
+
+          {/* Vendor rows */}
+          <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 16 }}>
+            {groups.map(g => {
+              const base    = parseFloat(customBase[g.key]) || g.total;
+              const tip     = tipAmount(g);
+              const isAdded = !!added[g.key];
+              // Check if a gratuity line item already exists for this vendor
+              const alreadyLogged = expenses.some(e =>
+                e.category === "Gratuities & Tips" &&
+                (e.vendorId === g.vendorId && g.vendorId ? true : e.vendor === g.vendorName)
+              );
+
+              return (
+                <div key={g.key} style={{
+                  display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap",
+                  padding: "12px 14px",
+                  background: selected[g.key] ? "var(--accent-light)" : "var(--bg-subtle)",
+                  border: `1px solid ${selected[g.key] ? "var(--accent-medium)" : "var(--border)"}`,
+                  borderRadius: "var(--radius-md)", transition: "all 0.15s ease",
+                }}>
+                  {/* Checkbox */}
+                  <input type="checkbox"
+                    checked={!!selected[g.key]}
+                    onChange={() => handleToggle(g.key)}
+                    style={{ width: 16, height: 16, accentColor: "var(--accent-primary)", flexShrink: 0, cursor: "pointer" }}
+                  />
+
+                  {/* Name + category */}
+                  <div style={{ flex: "1 1 160px", minWidth: 0 }}>
+                    <div style={{ fontWeight: 600, fontSize: 14, color: "var(--text-primary)",
+                      overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                      {g.label}
+                    </div>
+                    <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 2 }}>
+                      {g.category}
+                      {alreadyLogged && (
+                        <span style={{ marginLeft: 8, color: "var(--green)", fontWeight: 600 }}>
+                          ✓ tip already logged
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Base amount override */}
+                  <div style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0 }}>
+                    <span style={{ fontSize: 12, color: "var(--text-muted)" }}>Base:</span>
+                    <div style={{ position: "relative" }}>
+                      <span style={{ position: "absolute", left: 8, top: "50%", transform: "translateY(-50%)",
+                        fontSize: 13, color: "var(--text-muted)", pointerEvents: "none" }}>$</span>
+                      <input
+                        type="number" min="0" step="0.01"
+                        value={customBase[g.key] !== undefined ? customBase[g.key] : g.total.toFixed(2)}
+                        onChange={e => setCustomBase(b => ({ ...b, [g.key]: e.target.value < 0 ? "0" : e.target.value }))}
+                        style={{ width: 100, paddingLeft: 20, paddingRight: 6, paddingTop: 4, paddingBottom: 4,
+                          border: "1px solid var(--border)", borderRadius: "var(--radius-sm)",
+                          fontSize: 13, fontFamily: "var(--font-body)", color: "var(--text-primary)",
+                          background: "var(--bg-surface)" }}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Tip amount */}
+                  <div style={{ minWidth: 80, textAlign: "right", flexShrink: 0 }}>
+                    <div style={{ fontWeight: 700, fontSize: 15, color: "var(--accent-primary)" }}>
+                      ${tip.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </div>
+                    <div style={{ fontSize: 11, color: "var(--text-muted)" }}>
+                      {effectivePct > 0 ? `@ ${effectivePct}%` : "—"}
+                    </div>
+                  </div>
+
+                  {/* Add button */}
+                  <button
+                    className={isAdded ? "btn btn-secondary btn-sm" : "btn btn-primary btn-sm"}
+                    disabled={isArchived || tip <= 0 || isAdded}
+                    onClick={() => handleAddOne(g)}
+                    style={{ flexShrink: 0, minWidth: 90 }}>
+                    {isAdded ? "✓ Added" : "+ Add to Budget"}
+                  </button>
+                </div>
+              );
+            })}
           </div>
+
+          {/* Footer — total + add all selected */}
+          {Object.values(selected).some(Boolean) && (
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between",
+              paddingTop: 14, borderTop: "1px solid var(--border)", flexWrap: "wrap", gap: 10 }}>
+              <div>
+                <span style={{ fontSize: 13, color: "var(--text-secondary)" }}>
+                  Selected tip total:{" "}
+                </span>
+                <span style={{ fontWeight: 700, fontSize: 16, color: "var(--accent-primary)" }}>
+                  ${totalTip.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </span>
+                <span style={{ fontSize: 12, color: "var(--text-muted)", marginLeft: 6 }}>
+                  ({groups.filter(g => selected[g.key]).length} vendor{groups.filter(g => selected[g.key]).length !== 1 ? "s" : ""})
+                </span>
+              </div>
+              <button
+                className="btn btn-primary btn-sm"
+                disabled={isArchived}
+                onClick={handleAddAll}>
+                + Add All Selected to Budget
+              </button>
+            </div>
+          )}
         </div>
       )}
     </div>
   );
 }
 
-const loadingStyle = { padding: "48px 24px", textAlign: "center", color: "var(--text-muted)", fontSize: 14 };
-const th = { padding: "8px 12px", fontSize: 11, fontWeight: 700, color: "var(--text-muted)", textAlign: "left", textTransform: "uppercase", letterSpacing: "0.04em", whiteSpace: "nowrap" };
-const td = { padding: "10px 12px", verticalAlign: "middle" };
+
