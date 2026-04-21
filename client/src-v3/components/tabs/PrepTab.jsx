@@ -15,201 +15,466 @@ import { TorahPortionCard }   from "@/components/shared/TorahPortionCard.jsx";
 export function PrepTab({ eventId, event, adminConfig, showToast, isArchived, searchHighlight, clearSearchHighlight }) {
   const { items: prep, loading, save, remove } = useEventData(eventId, "prep");
 
-  const [showAdd, setShowAdd] = useState(false);
-  const [editing, setEditing] = useState(null);
-  const [filterCat, setFilterCat] = useState("All");
-  const [filterStatus, setFilterStatus] = useState("All");
-  const [search, setSearch] = useState("");
+  const [showModal,     setShowModal]     = useState(false);
+  const [editItem,      setEditItem]      = useState(null);
+  const [deleteConfirm, setDeleteConfirm] = useState(null);
+  const [expandedNotes, setExpandedNotes] = useState({});
 
   useSearchHighlight(searchHighlight, clearSearchHighlight, "prep");
 
-  const isMitzvah = MITZVAH_TYPES.has(adminConfig?.type);
+  const saveItem   = async (item) => { await save(item); };
+  const handleAdd  = async (item) => { if (isArchived) return; await saveItem(item); showToast("Prep item added");   setShowModal(false); };
+  const handleEdit = async (item) => { if (isArchived) return; await saveItem(item); showToast("Prep item updated"); setEditItem(null);   };
+  const handleDelete = async (id) => {
+    if (isArchived) return;
+    const p = prep.find(x => x.id === id);
+    if (p) await remove(p._rowId);
+    showToast("Prep item deleted");
+    setDeleteConfirm(null);
+  };
 
-  const filtered = prep.filter(p => {
-    if (filterCat !== "All" && p.category !== filterCat) return false;
-    if (filterStatus !== "All" && p.status !== filterStatus) return false;
-    if (search && !p.item?.toLowerCase().includes(search.toLowerCase()) && !(p.notes||"").toLowerCase().includes(search.toLowerCase())) return false;
-    return true;
+  const toggleNotes = (id) => setExpandedNotes(n => ({ ...n, [id]: !n[id] }));
+
+  // Inline progress slider — auto-derive status from new progress value
+  const handleProgressChange = async (id, val) => {
+    if (isArchived) return;
+    const pct = parseInt(val, 10);
+    let status = "Not Started";
+    if (pct === 100)      status = "Complete";
+    else if (pct >= 50)   status = "Nearly Done";
+    else if (pct >= 1)    status = "In Progress";
+    const p = prep.find(x => x.id === id);
+    if (p) await save({ ...p, progress: pct, status });
+  };
+
+  // ── Stats ──────────────────────────────────────────────────────────────────
+  const total      = prep.length;
+  const complete   = prep.filter(x => x.status === "Complete").length;
+  const inProgress = prep.filter(x => x.status === "In Progress" || x.status === "Nearly Done").length;
+  const notStarted = prep.filter(x => x.status === "Not Started").length;
+  const overallPct = total === 0 ? 0 : Math.round(prep.reduce((s, x) => s + (x.progress || 0), 0) / total);
+
+  // ── Group by category ──────────────────────────────────────────────────────
+  const grouped = {};
+  PREP_CATEGORIES.forEach(cat => { grouped[cat] = []; });
+  prep.forEach(item => {
+    const cat = item.category || "Other";
+    if (!grouped[cat]) grouped[cat] = [];
+    grouped[cat].push(item);
   });
+  Object.keys(grouped).forEach(cat => {
+    grouped[cat].sort((a, b) => (a.order ?? 999) - (b.order ?? 999) || (a.title || "").localeCompare(b.title || ""));
+  });
+  const activeCategories = PREP_CATEGORIES.filter(cat => grouped[cat].length > 0);
 
-  const handleSave = async (data) => {
-    await save(data);
-    setShowAdd(false);
-    setEditing(null);
-    showToast(editing ? "Item updated" : "Item added");
-  };
-
-  const handleDelete = async (p) => {
-    await remove(p._rowId);
-    showToast("Item deleted");
-  };
-
-  const handleProgressUpdate = async (p, field, value) => {
-    await save({ ...p, [field]: value });
-  };
+  const today = new Date(); today.setHours(0, 0, 0, 0);
 
   if (loading) return <div style={loadingStyle}>Loading preparation items…</div>;
 
   return (
-    <div>
+    <div className="tab-content">
       {isArchived && <ArchivedNotice />}
 
-      {isMitzvah && <TorahPortionCard adminConfig={adminConfig} />}
-
+      {/* Section header */}
       <div className="section-header">
         <div>
-          <div className="section-title">Preparation</div>
-          <div className="section-subtitle">
-            {prep.filter(p => p.status === "Complete").length} of {prep.length} complete
+          <div className="section-title">Preparation Tracker</div>
+          <div className="section-sub">Track milestones, study progress, and key preparation items.</div>
+        </div>
+        <button className="btn btn-primary" disabled={isArchived} onClick={() => setShowModal(true)}>
+          + Add Item
+        </button>
+      </div>
+
+      {/* Stat cards */}
+      <div className="stat-grid" style={{ marginBottom: 20 }}>
+        <div className="stat-card">
+          <div className="stat-label">Total Items</div>
+          <div className="stat-value">{total}</div>
+        </div>
+        <div className="stat-card">
+          <div className="stat-label">Complete</div>
+          <div className="stat-value" style={{ color: "var(--green)" }}>{complete}</div>
+          <div className="stat-sub">{total > 0 ? Math.round((complete/total)*100) : 0}% done</div>
+        </div>
+        <div className="stat-card">
+          <div className="stat-label">In Progress</div>
+          <div className="stat-value" style={{ color: "var(--blue)" }}>{inProgress}</div>
+          <div className="stat-sub">including Nearly Done</div>
+        </div>
+        <div className="stat-card">
+          <div className="stat-label">Not Started</div>
+          <div className="stat-value" style={{ color: "var(--text-muted)" }}>{notStarted}</div>
+        </div>
+      </div>
+
+      {/* Overall progress bar */}
+      {total > 0 && (
+        <div style={{ background: "var(--bg-surface)", border: "1px solid var(--border)", borderRadius: "var(--radius-md)", padding: "14px 18px", marginBottom: 24 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+            <span style={{ fontSize: 13, fontWeight: 600, color: "var(--text-primary)" }}>Overall Progress</span>
+            <span style={{ fontSize: 13, fontWeight: 700, color: "var(--accent-primary)", fontFamily: "var(--font-mono)" }}>{overallPct}%</span>
+          </div>
+          <div style={{ height: 8, background: "var(--bg-muted)", borderRadius: 99, overflow: "hidden" }}>
+            <div style={{
+              height: "100%", borderRadius: 99,
+              background: overallPct === 100
+                ? "var(--green)"
+                : "linear-gradient(90deg, var(--accent-primary), var(--accent-medium))",
+              width: overallPct + "%",
+              transition: "width 0.4s ease",
+            }} />
           </div>
         </div>
-        {!isArchived && (
-          <button className="btn btn-primary btn-sm" onClick={() => { setEditing(null); setShowAdd(true); }}>
-            + Add Item
-          </button>
-        )}
-      </div>
+      )}
 
-      {/* Filters */}
-      <div className="filter-bar">
-        <input className="form-input" type="text" placeholder="Search prep items…"
-          value={search} onChange={e => setSearch(e.target.value)} />
-        <select className="form-select" value={filterCat} onChange={e => setFilterCat(e.target.value)}>
-          <option value="All">All Categories</option>
-          {PREP_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
-        </select>
-        <select className="form-select" value={filterStatus} onChange={e => setFilterStatus(e.target.value)}>
-          <option value="All">All Statuses</option>
-          {PREP_STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
-        </select>
-      </div>
+      {/* Torah Portion Card (mitzvah events only) */}
+      {MITZVAH_TYPES.has(adminConfig?.type) && (
+        <TorahPortionCard adminConfig={adminConfig} />
+      )}
 
-      {/* Prep items */}
-      <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-        {filtered.length === 0 ? (
-          <div className="card" style={{ textAlign: "center", padding: "48px 24px", color: "var(--text-muted)", fontSize: 14 }}>
-            {prep.length === 0 ? "No preparation items yet — add your first item." : "No items match your filters."}
+      {/* Clergy & Tutor contacts */}
+      {(() => {
+        const cfg       = adminConfig || {};
+        const isMitzvah = MITZVAH_TYPES.has(cfg.type);
+        const rabbi     = cfg.rabbi  || {};
+        const cantor    = cfg.cantor || {};
+        const tutor     = cfg.tutor  || {};
+        const hasRabbi  = !!(rabbi.name  || rabbi.phone  || rabbi.email);
+        const hasCantor = !!(cantor.name || cantor.phone || cantor.email);
+        const hasTutor  = !!(tutor.name  || tutor.phone  || tutor.email);
+        if (!hasRabbi && !hasCantor && !hasTutor) return null;
+        return (
+          <div style={{ background: "var(--bg-surface)", border: "1px solid var(--border)", borderRadius: "var(--radius-md)", padding: "16px 20px", marginBottom: 24 }}>
+            <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)", marginBottom: 14 }}>Clergy & Tutor</div>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 16 }}>
+              {hasRabbi  && <PrepContactCard label="Rabbi"               icon="✡"  contact={rabbi}  />}
+              {hasCantor && isMitzvah && <PrepContactCard label="Cantor" icon="🎼" contact={cantor} />}
+              {hasTutor  && isMitzvah && <PrepContactCard label="Tutor / Madrikh·a" icon="📖" contact={tutor} />}
+            </div>
           </div>
-        ) : (
-          filtered.map(p => {
-            const ss = PREP_STATUS_STYLES[p.status] || PREP_STATUS_STYLES["Not Started"];
-            const progress = Math.min(100, Math.max(0, parseInt(p.progress) || 0));
-            return (
-              <div key={p.id || p._rowId} id={`row-${p.id}`} className="card" style={{ padding: "16px 20px" }}>
-                <div style={{ display: "flex", alignItems: "flex-start", gap: 12, marginBottom: 10 }}>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontWeight: 700, fontSize: 15, color: "var(--text-primary)", marginBottom: 3 }}>{p.item}</div>
-                    {p.category && <span className="tag tag-muted" style={{ fontSize: 10 }}>{p.category}</span>}
-                    {p.targetDate && (
-                      <span style={{ fontSize: 11, color: "var(--text-muted)", marginLeft: 6 }}>
-                        Target: {new Date(p.targetDate + "T00:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+        );
+      })()}
+
+      {/* Empty state */}
+      {total === 0 && (
+        <div style={{ textAlign: "center", padding: "60px 24px", color: "var(--text-muted)" }}>
+          <div style={{ fontSize: 36, marginBottom: 12 }}>📖</div>
+          <div style={{ fontFamily: "var(--font-display)", fontSize: 20, color: "var(--text-primary)", marginBottom: 8 }}>
+            No preparation items yet
+          </div>
+          <div style={{ fontSize: 14, marginBottom: 24, lineHeight: 1.6 }}>
+            Add milestones to start tracking progress — Torah study, rehearsals, speeches, attire, and more.
+          </div>
+          <button className="btn btn-primary" onClick={() => setShowModal(true)}>+ Add First Item</button>
+        </div>
+      )}
+
+      {/* Grouped item cards */}
+      {activeCategories.map(cat => (
+        <div key={cat} style={{ marginBottom: 28 }}>
+          {/* Category header */}
+          <div style={{
+            display: "flex", alignItems: "center", gap: 10,
+            marginBottom: 12, paddingBottom: 8,
+            borderBottom: "2px solid var(--border)",
+          }}>
+            <span style={{ fontFamily: "var(--font-display)", fontSize: 17, fontWeight: 700, color: "var(--text-primary)" }}>
+              {cat}
+            </span>
+            <span style={{
+              fontSize: 11, fontWeight: 600, color: "var(--text-muted)",
+              background: "var(--bg-muted)", borderRadius: 99,
+              padding: "2px 8px",
+            }}>
+              {grouped[cat].length}
+            </span>
+          </div>
+
+          {/* Item cards */}
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            {grouped[cat].map(item => {
+              const ss  = PREP_STATUS_STYLES[item.status] || PREP_STATUS_STYLES["Not Started"];
+              const pct = item.progress || 0;
+              const hasNotes = !!(item.notes && item.notes.trim());
+
+              // Target date coloring
+              let dateCls = "var(--text-muted)";
+              if (item.targetDate && item.status !== "Complete") {
+                const due  = new Date(item.targetDate + "T00:00:00");
+                const diff = Math.ceil((due - today) / (1000 * 60 * 60 * 24));
+                if (diff < 0)        dateCls = "var(--red)";
+                else if (diff <= 14) dateCls = "var(--gold)";
+                else                 dateCls = "var(--green)";
+              }
+
+              return (
+                <div key={item.id || item._rowId} id={`row-${item.id}`} style={{
+                  background: "var(--bg-surface)",
+                  border: "1px solid var(--border)",
+                  borderRadius: "var(--radius-md)",
+                  padding: "14px 16px",
+                }}>
+                  {/* Row 1: title + status badge + actions */}
+                  <div style={{ display: "flex", alignItems: "flex-start", gap: 10, marginBottom: 10 }}>
+                    <div style={{ flex: 1 }}>
+                      <span style={{
+                        fontFamily: "var(--font-display)", fontSize: 16, fontWeight: 600,
+                        color: "var(--text-primary)", lineHeight: 1.3,
+                      }}>
+                        {item.title || "Untitled"}
+                      </span>
+                    </div>
+                    <span style={{
+                      fontSize: 11, fontWeight: 700, padding: "3px 10px",
+                      borderRadius: 99, whiteSpace: "nowrap", flexShrink: 0,
+                      background: ss.bg, color: ss.color,
+                    }}>
+                      {item.status}
+                    </span>
+                    <div className="row-actions" style={{ display: "flex", gap: 4, flexShrink: 0 }}>
+                      <button className="icon-btn" title="Edit" disabled={isArchived} onClick={() => setEditItem(item)}>✎</button>
+                      <button className="icon-btn icon-btn-danger" title="Delete" disabled={isArchived} onClick={() => setDeleteConfirm(item.id)}>✕</button>
+                    </div>
+                  </div>
+
+                  {/* Row 2: progress bar + percentage */}
+                  <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
+                    <div style={{ flex: 1, height: 6, background: "var(--bg-muted)", borderRadius: 99, overflow: "hidden" }}>
+                      <div style={{
+                        height: "100%", borderRadius: 99, width: pct + "%",
+                        background: pct === 100
+                          ? "var(--green)"
+                          : "linear-gradient(90deg, var(--accent-primary), var(--accent-medium))",
+                        transition: "width 0.3s ease",
+                      }} />
+                    </div>
+                    <span style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", fontFamily: "var(--font-mono)", minWidth: 32, textAlign: "right" }}>
+                      {pct}%
+                    </span>
+                  </div>
+
+                  {/* Row 3: inline progress slider */}
+                  <div style={{ marginBottom: 8 }}>
+                    <input
+                      type="range" min="0" max="100" value={pct}
+                      onChange={e => handleProgressChange(item.id, e.target.value)}
+                      style={{
+                        width: "100%", height: 4, cursor: "pointer",
+                        accentColor: "var(--accent-primary)",
+                      }}
+                    />
+                  </div>
+
+                  {/* Row 4: meta — target date + completed date + notes toggle */}
+                  <div style={{ display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
+                    {item.targetDate && (
+                      <span style={{ fontSize: 12, color: dateCls }}>
+                        🎯 Target: {new Date(item.targetDate + "T00:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
                       </span>
                     )}
+                    {item.completedDate && item.status === "Complete" && (
+                      <span style={{ fontSize: 12, color: "var(--green)" }}>
+                        ✓ Completed: {new Date(item.completedDate + "T00:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                      </span>
+                    )}
+                    {hasNotes && (
+                      <button
+                        className="btn-link"
+                        style={{ fontSize: 12, color: "var(--text-muted)", background: "none", border: "none", cursor: "pointer", padding: 0 }}
+                        onClick={() => toggleNotes(item.id)}
+                      >
+                        {expandedNotes[item.id] ? "▴ hide notes" : "▾ notes"}
+                      </button>
+                    )}
                   </div>
-                  <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
-                    <select
-                      value={p.status || "Not Started"}
-                      onChange={e => !isArchived && handleProgressUpdate(p, "status", e.target.value)}
-                      disabled={isArchived}
-                      style={{ padding: "3px 8px", borderRadius: 20, border: "none", fontSize: 11, fontWeight: 700, cursor: isArchived ? "default" : "pointer", outline: "none", background: ss.bg, color: ss.color }}
-                    >
-                      {PREP_STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
-                    </select>
-                    {!isArchived && (<>
-                      <button className="icon-btn" style={{ width: 26, height: 26 }} title="Edit" onClick={() => { setEditing(p); setShowAdd(true); }}>✎</button>
-                      <button className="icon-btn" style={{ width: 26, height: 26 }} title="Delete" onClick={() => handleDelete(p)}>✕</button>
-                    </>)}
-                  </div>
-                </div>
 
-                {/* Progress bar */}
-                <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: p.notes ? 8 : 0 }}>
-                  <div style={{ flex: 1, height: 8, background: "var(--bg-muted)", borderRadius: 4, overflow: "hidden" }}>
-                    <div style={{ height: "100%", width: `${progress}%`, background: "linear-gradient(90deg, var(--accent-medium), var(--accent-primary))", borderRadius: 4, transition: "width 0.3s ease" }} />
-                  </div>
-                  <input
-                    type="number" min="0" max="100" value={progress}
-                    onChange={e => !isArchived && handleProgressUpdate(p, "progress", Math.min(100, Math.max(0, parseInt(e.target.value) || 0)))}
-                    disabled={isArchived}
-                    style={{ width: 48, padding: "2px 6px", border: "1px solid var(--border)", borderRadius: "var(--radius-sm)", fontSize: 12, textAlign: "center", background: "var(--bg-subtle)", color: "var(--text-primary)" }}
-                  />
-                  <span style={{ fontSize: 11, color: "var(--text-muted)" }}>%</span>
+                  {/* Row 5: expanded notes */}
+                  {hasNotes && expandedNotes[item.id] && (
+                    <div className="task-notes-text" style={{ marginTop: 8 }}>
+                      {item.notes}
+                    </div>
+                  )}
                 </div>
+              );
+            })}
+          </div>
+        </div>
+      ))}
 
-                {p.notes && <div style={{ fontSize: 12, color: "var(--text-muted)", lineHeight: 1.5, marginTop: 4 }}>{p.notes}</div>}
+      {/* Add modal */}
+      {showModal && (
+        <PrepModal onSave={handleAdd} onClose={() => setShowModal(false)} isArchived={isArchived} />
+      )}
+
+      {/* Edit modal */}
+      {editItem && (
+        <PrepModal item={editItem} onSave={handleEdit} onClose={() => setEditItem(null)} isArchived={isArchived} />
+      )}
+
+      {/* Delete confirm */}
+      {deleteConfirm && (
+        <div className="modal-backdrop" onMouseDown={e => { if (e.target === e.currentTarget) { setDeleteConfirm(null); } }}>
+          <div className="modal" style={{ maxWidth: 400 }} onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <div className="modal-title">Delete Item</div>
+              <button className="icon-btn" title="Close" onClick={() => setDeleteConfirm(null)}>✕</button>
+            </div>
+            <div className="modal-body">
+              <p style={{ fontSize: 14, color: "var(--text-primary)", marginBottom: 4, lineHeight: 1.6 }}>
+                This will permanently remove this preparation item. This cannot be undone.
+              </p>
+              <div className="modal-footer">
+                <button className="btn btn-ghost" onClick={() => setDeleteConfirm(null)}>Cancel</button>
+                <button className="btn btn-danger" onClick={() => handleDelete(deleteConfirm)}>Delete Item</button>
               </div>
-            );
-          })
-        )}
-      </div>
-
-      {showAdd && (
-        <PrepModal
-          item={editing}
-          onSave={handleSave}
-          onClose={() => { setShowAdd(false); setEditing(null); }}
-          isArchived={isArchived}
-        />
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
 }
 
-// ── PrepModal ─────────────────────────────────────────────────────────────────
 export function PrepModal({ item, onSave, onClose, isArchived }) {
-  const blank = { id: newPrepId(), item: "", category: "Religious Study", status: "Not Started", progress: 0, targetDate: "", notes: "" };
-  const [form, setForm] = useState(item || blank);
-  const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
+  const isEdit = !!item;
+  const [form, setForm] = useState(() => item ? { ...item } : {
+    id:            newPrepId(),
+    title:         "",
+    category:      PREP_CATEGORIES[0],
+    status:        "Not Started",
+    progress:      0,
+    targetDate:    "",
+    completedDate: "",
+    notes:         "",
+    order:         0,
+  });
+
+  const setF = (k, v) => setForm(f => ({ ...f, [k]: v }));
+
+  // When progress changes, auto-derive status
+  const handleProgressInput = (val) => {
+    const pct = Math.min(100, Math.max(0, parseInt(val, 10) || 0));
+    let status = "Not Started";
+    if (pct === 100)    status = "Complete";
+    else if (pct >= 50) status = "Nearly Done";
+    else if (pct >= 1)  status = "In Progress";
+    setForm(f => ({ ...f, progress: pct, status }));
+  };
+
+  const handleSave = () => {
+    if (!form.title.trim()) return;
+    onSave({ ...form, title: form.title.trim() });
+  };
 
   return (
     <div className="modal-backdrop" onMouseDown={e => { if (e.target === e.currentTarget) onClose(); }}>
-      <div className="modal">
+      <div className="modal" style={{ maxWidth: 500 }} onClick={e => e.stopPropagation()}>
         <div className="modal-header">
-          <div className="modal-title">{item ? "Edit Item" : "Add Prep Item"}</div>
-          <button className="icon-btn" onClick={onClose}>✕</button>
+          <div className="modal-title">{isEdit ? "Edit Preparation Item" : "Add Preparation Item"}</div>
+          <button className="icon-btn" title="Close" onClick={onClose}>✕</button>
         </div>
         <div className="modal-body">
-          <div className="form-group">
-            <label className="form-label">Item *</label>
-            <input className="form-input" value={form.item} onChange={e => set("item", e.target.value)} placeholder="e.g. Torah portion study" autoFocus />
+
+          {/* Title */}
+          <div className="form-row">
+            <label className="form-label">Title *</label>
+            <input
+              className="form-input" autoFocus
+              value={form.title}
+              onChange={e => setF("title", e.target.value)}
+              placeholder="e.g., Torah Portion, First Dance Choreography, Ceremony Rehearsal"
+            />
           </div>
-          <div className="form-grid-2">
-            <div className="form-group">
+
+          {/* Category + Status */}
+          <div className="form-row two-col">
+            <div>
               <label className="form-label">Category</label>
-              <select className="form-select" value={form.category} onChange={e => set("category", e.target.value)}>
+              <select className="form-input" value={form.category} onChange={e => setF("category", e.target.value)}>
                 {PREP_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
               </select>
             </div>
-            <div className="form-group">
+            <div>
               <label className="form-label">Status</label>
-              <select className="form-select" value={form.status} onChange={e => set("status", e.target.value)}>
+              <select className="form-input" value={form.status} onChange={e => setF("status", e.target.value)}>
                 {PREP_STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
               </select>
             </div>
           </div>
-          <div className="form-grid-2">
-            <div className="form-group">
-              <label className="form-label">Progress (%)</label>
-              <input className="form-input" type="number" min="0" max="100" value={form.progress || 0} onChange={e => set("progress", Math.min(100, Math.max(0, parseInt(e.target.value) || 0)))} />
+
+          {/* Progress */}
+          <div className="form-row">
+            <label className="form-label">Progress — {form.progress}%</label>
+            <input
+              type="range" min="0" max="100" value={form.progress}
+              onChange={e => handleProgressInput(e.target.value)}
+              style={{ width: "100%", accentColor: "var(--accent-primary)", cursor: "pointer" }}
+            />
+            <div style={{ height: 6, background: "var(--bg-muted)", borderRadius: 99, overflow: "hidden", marginTop: 6 }}>
+              <div style={{
+                height: "100%", borderRadius: 99,
+                width: form.progress + "%",
+                background: form.progress === 100
+                  ? "var(--green)"
+                  : "linear-gradient(90deg, var(--accent-primary), var(--accent-medium))",
+                transition: "width 0.2s ease",
+              }} />
             </div>
-            <div className="form-group">
+          </div>
+
+          {/* Target Date + Completed Date */}
+          <div className="form-row two-col">
+            <div>
               <label className="form-label">Target Date</label>
-              <input className="form-input" type="date" value={form.targetDate || ""} onChange={e => set("targetDate", e.target.value)} />
+              <input className="form-input" type="date" value={form.targetDate || ""}
+                onChange={e => setF("targetDate", e.target.value)} />
+            </div>
+            <div>
+              <label className="form-label">Completed Date</label>
+              <input className="form-input" type="date" value={form.completedDate || ""}
+                onChange={e => setF("completedDate", e.target.value)} />
             </div>
           </div>
-          <div className="form-group">
+
+          {/* Notes */}
+          <div className="form-row">
             <label className="form-label">Notes</label>
-            <textarea className="form-textarea" value={form.notes || ""} onChange={e => set("notes", e.target.value)} placeholder="Tutor feedback, session notes…" />
+            <textarea className="form-input notes-area" rows={3}
+              value={form.notes || ""}
+              onChange={e => setF("notes", e.target.value)}
+              placeholder="Tutor feedback, session notes, reminders…"
+            />
           </div>
+
           <div className="modal-footer">
+            <span style={{fontSize:11,color:"var(--text-muted)",marginRight:"auto"}}>* required</span>
             <button className="btn btn-ghost" onClick={onClose}>Cancel</button>
-            <button className="btn btn-primary" disabled={!form.item?.trim() || isArchived}
-              onClick={() => onSave({ ...form })}>
-              {item ? "Save Changes" : "Add Item"}
+            <button className="btn btn-primary" onClick={handleSave} disabled={!form.title.trim() || isArchived}>
+              {isEdit ? "Save Changes" : "Add Item"}
             </button>
           </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+// ── PrepContactCard — read-only contact display on Prep tab ──────────────
+function PrepContactCard({ label, icon, contact }) {
+  return (
+    <div style={{ flex: "1 1 200px", minWidth: 180 }}>
+      <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 6 }}>
+        {icon} {label}
+      </div>
+      {contact.name  && <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text-primary)", marginBottom: 3 }}>{contact.name}</div>}
+      {contact.phone && <div style={{ fontSize: 12, color: "var(--text-secondary)", marginBottom: 2 }}>📞 {contact.phone}</div>}
+      {contact.email && (
+        <div style={{ fontSize: 12, color: "var(--text-secondary)", marginBottom: 2 }}>
+          ✉ <a href={`mailto:${contact.email}`} style={{ color: "var(--accent-primary)", textDecoration: "none" }}>{contact.email}</a>
+        </div>
+      )}
+      {contact.notes && <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 4, fontStyle: "italic", lineHeight: 1.5 }}>{contact.notes}</div>}
     </div>
   );
 }

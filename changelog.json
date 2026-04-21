@@ -1,19 +1,42 @@
 {
-  "current": "V3.3.3",
+  "current": "V3.3.4",
   "whatsNew": [
-    "TasksTab: Stat cards added \u2014 Total Tasks, Completed, Overdue, Due This Week",
-    "TasksTab: Task Insights charts added \u2014 completion progress, by category, by priority",
-    "TasksTab: Sort dropdown added (Due date, Priority, Category, A\u2013Z)",
-    "TasksTab: Tasks auto-group by category when sorting by Due date or Category",
-    "TasksTab: Completing a linked task prompts to also update the linked expense or prep item",
-    "TasksTab: Notes are expandable/collapsible on task rows",
-    "TasksTab: Delete confirm modal added",
-    "TasksTab: Smart suggestions now use full event data (expenses, vendors, prep, households)",
-    "TasksTab: Adding a suggestion opens a pre-filled modal for review before saving",
-    "Guide: Vendors section updated \u2014 vendor overview stat cards and updated card interactions documented",
-    "Guide: Tasks section updated \u2014 stat cards, insights, sorting, grouping, and linked task completion documented"
+    "PrepTab: Stat cards added \u2014 Total Items, Complete, In Progress, Not Started",
+    "PrepTab: Overall progress bar added",
+    "PrepTab: Items now grouped by category with headers and item counts",
+    "PrepTab: Inline progress slider added \u2014 dragging auto-derives status",
+    "PrepTab: Clergy and Tutor contact card restored",
+    "PrepTab: Target date color-coded by proximity (red/gold/green)",
+    "PrepTab: Delete confirm modal added",
+    "PrepTab: Field name corrected from item to title matching V2 and Supabase schema"
   ],
   "changelog": [
+    {
+      "version": "V3.3.4",
+      "date": "2026-04-21",
+      "type": "fix",
+      "summary": "PrepTab \u2014 full V2 parity (13 gaps closed)",
+      "changes": [
+        "Critical: field name corrected from p.item/form.item to item.title/form.title throughout PrepTab and PrepModal \u2014 matches V2 data model and confirmed Supabase jsonb schema.",
+        "Stat cards added \u2014 Total Items, Complete (with % done), In Progress (including Nearly Done), Not Started.",
+        "Overall Progress bar added \u2014 full-width bar showing average progress % across all items. Turns green at 100%.",
+        "Section title corrected to Preparation Tracker; subtitle corrected to descriptive text matching V2.",
+        "Add Item button changed from hidden-when-archived to disabled-when-archived.",
+        "Torah Portion Card repositioned to after overall progress bar (matching V2).",
+        "Clergy and Tutor contacts card restored \u2014 shows Rabbi, Cantor (mitzvah only), and Tutor/Madrikh\u00b7a (mitzvah only) with name, phone, email, notes. Hidden when no contacts configured.",
+        "PrepContactCard component added.",
+        "Empty state restored \u2014 icon, display-font title, descriptive subtitle, + Add First Item button.",
+        "Items now grouped by category with styled category headers and item count badges.",
+        "Item card layout restored to V2 \u2014 title as display font, static status badge, progress bar + percentage, inline range slider that auto-derives status, target date with color coding (red/gold/green by proximity), completed date shown when status=Complete, expandable/collapsible notes.",
+        "handleProgressChange added \u2014 inline slider auto-derives status from progress value.",
+        "expandedNotes state and toggleNotes function added.",
+        "deleteConfirm state added; delete button now opens confirm modal instead of deleting directly.",
+        "icon-btn-danger class added to delete button.",
+        "PrepModal restored to V2 spec \u2014 title Title/Add Preparation Item/Edit Preparation Item; title=Close on x; stopPropagation on modal div; maxWidth 500; form-row/two-col layout classes; range slider with live preview bar and auto-derive status; Completed Date field added; notes placeholder corrected; * required legend added; default category uses PREP_CATEGORIES[0]; validation on form.title.",
+        "handleProgressInput added to PrepModal \u2014 auto-derives status from slider value.",
+        "V2/V3 Guide: Prep section \u2014 Preparation items item updated to describe stat cards, overall progress bar, category grouping, inline slider with auto-derive status, and target date color coding; Tutor & session notes item updated to mention expand/collapse toggle; V3 Clergy & Tutor contacts item added (was missing from V3 guide)."
+      ]
+    },
     {
       "version": "V3.3.3",
       "date": "2026-04-21",

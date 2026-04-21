@@ -83,9 +83,10 @@ const GUIDE_SECTIONS = [
     color: "var(--green)",
     colorLight: "var(--green-light)",
     items: [
-      { heading: "Preparation items", body: "The Prep tab tracks the honoree's preparation journey — Torah/Haftarah study, d'var Torah writing, service prayers, mitzvah project, and custom items. Each item has a status (Not Started / In Progress / Nearly Done / Complete), a progress percentage, and optional notes." },
+      { heading: "Preparation items", body: "The Prep tab tracks the honoree's preparation journey — Torah/Haftarah study, d'var Torah writing, service prayers, mitzvah project, and custom items. Items are grouped by category with a header and item count. Each item has a status badge (Not Started / In Progress / Nearly Done / Complete) and a progress percentage. The Overall Progress bar at the top shows the average progress across all items. Use the inline slider on any item card to update progress — the status auto-derives as you drag (1–49% → In Progress, 50–99% → Nearly Done, 100% → Complete). Target dates are color-coded: green (>14 days away), amber (≤14 days), red (overdue). The stat cards show Total Items, Complete, In Progress, and Not Started at a glance." },
       { heading: "Target dates", body: "Set a target date on any prep item to surface it in the Planning Calendar and Task Suggestions. Prep items with target dates are shown in the calendar unless a task already covers them (deduplication). Once Complete, they no longer generate suggestions." },
-      { heading: "Tutor & session notes", body: "The notes field on each prep item is a good place to track tutor feedback, session dates, and practice schedules. These notes appear in the Prep tab and in the calendar popover." },
+      { heading: "Tutor & session notes", body: "The notes field on each prep item is a good place to track tutor feedback, session dates, and practice schedules. Notes are collapsed by default — click ▾ notes on any item card to expand, and ▴ hide notes to collapse. Notes also appear in the calendar popover for prep items with target dates." },
+      { heading: "Clergy & Tutor contacts", body: "When Rabbi, Cantor, or Tutor contact details are configured in Admin Mode, a quick-reference contact card appears at the top of the Prep tab showing their name, phone, email, and notes. For B'nei Mitzvah events, all three contacts are shown. For other event types, only the Rabbi is shown unless added manually. The email address is a clickable mailto link." },
     ],
   },
   {
