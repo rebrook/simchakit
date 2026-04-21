@@ -1,12 +1,39 @@
 {
-  "current": "V3.3.9",
+  "current": "V3.3.10",
   "whatsNew": [
-    "OverviewTab: Print Brief button always rendered \u2014 removed incorrect conditional guard",
-    "OverviewTab: Seating gap warning restored \u2014 reads tables and seating config from Supabase via useEventData",
-    "OverviewTab: Fixed variable name collision in getSubEventCounts (eventId \u2192 sectionId)",
-    "OverviewTab: Restored full notes placeholder text and empty countdown subtitle"
+    "AppShell: Print Brief fully wired \u2014 generates and displays event brief PDF preview",
+    "AppShell: Tab badges restored \u2014 Guests, Budget (unpaid), Tasks (undone), Accommodations (out-of-town unnotified)",
+    "AppShell: Exit Admin Mode button (\ud83d\udd13) restored to header",
+    "AppShell: Day-of Mode pulse button restored to header on event days",
+    "AppShell: Archived banner Unarchive buttons restored",
+    "AppShell: App version shown in footer with What's New click handler",
+    "AppShell: Overflow menu order, Guide label, and Day-of conditional all restored to V2 spec"
   ],
   "changelog": [
+    {
+      "version": "V3.3.10",
+      "date": "2026-04-21",
+      "type": "fix",
+      "summary": "AppShell \u2014 13 V2 parity gaps closed including Print Brief, tab badges, header buttons, and overflow menu fixes",
+      "changes": [
+        "Gap 1+2: briefHTML state and generateEventBriefHTML import added.",
+        "Gap 3: onPrintBrief added to tabProps \u2014 () => setBriefHTML(generateEventBriefHTML(event, adminConfig)).",
+        "Gap 4: Full print preview iframe modal added with brief-print-frame, Print/Save PDF button, and close button.",
+        "Gap 5: DayOfOverlay onPrintBrief stub (\"coming soon\" toast) replaced with real setBriefHTML call.",
+        "Gap 6: Archived banner Unarchive buttons restored \u2014 gold \"Unarchive\" when adminPassword set, \"Admin Login to Unarchive\" otherwise.",
+        "Gap 7: Exit Admin Mode button (\ud83d\udd13) restored to header \u2014 visible when adminPassword is set.",
+        "Gap 8: Day-of Mode pulse button restored to header \u2014 visible on isTodayEventDay with green dot animation.",
+        "Gap 9: todayStr and isTodayEventDay computed values added.",
+        "Gap 10: Overflow menu Guide label restored from \"Guide\" to \"SimchaKit Guide\".",
+        "Gap 11: Day-of Mode in overflow menu now conditionally shown only when timeline has entries AND it is not already an event day (avoids duplicate with header pulse button).",
+        "Gap 12: Overflow menu order restored \u2014 What's New first, then SimchaKit Guide, matching V2.",
+        "Gaps 13+14: Active class restored on Search button (showSearch) and Admin button (adminPassword).",
+        "Gap 15: useEventData hooks added at AppShell level for people, households, expenses, tasks \u2014 badge counts computed and passed to ALL_TABS (guestBadge, budgetBadge, tasksBadge, accomBadge).",
+        "Gap 16: App version button added to footer \u2014 fetches from /simcha/changelog, opens WhatsNew on click.",
+        "Gap 19: appVersion state and changelog fetch added.",
+        "Gap 21: bottom-nav-dot badge restored to More button in mobile bottom bar."
+      ]
+    },
     {
       "version": "V3.3.9",
       "date": "2026-04-21",
