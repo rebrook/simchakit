@@ -1,15 +1,24 @@
 {
-  "current": "V3.3.8",
+  "current": "V3.3.9",
   "whatsNew": [
-    "AdminPanel: Download File button added to backup export modal",
-    "AdminPanel: Record counts panel added to Data section",
-    "AdminPanel: Restore info box restored to full V2 text",
-    "AdminPanel: Reset modal restored with bullet list and full preservation text",
-    "AdminPanel: Unarchive modal intro text and unlock code hint restored",
-    "AdminPanel: Guest Groups and Meal Choices descriptions restored to full V2 text",
-    "AdminPanel: Access Passcode description restored to full V2 text"
+    "OverviewTab: Seating gap warning restored \u2014 reads tables and seating config from Supabase via useEventData",
+    "OverviewTab: Fixed variable name collision in getSubEventCounts (eventId \u2192 sectionId)",
+    "OverviewTab: Restored full notes placeholder text and empty countdown subtitle"
   ],
   "changelog": [
+    {
+      "version": "V3.3.9",
+      "date": "2026-04-21",
+      "type": "fix",
+      "summary": "OverviewTab \u2014 4 V2 parity gaps closed including seating gap warning restoration and naming bug fix",
+      "changes": [
+        "Bug fix: getSubEventCounts inner parameter renamed from eventId to sectionId \u2014 was shadowing the outer eventId prop, causing sub-event counts to always use the event UUID instead of the timeline entry ID.",
+        "Gap 6: Empty countdown subtitle restored to full V2 text \u2014 \"Add your event timeline and mark a main event in Admin Mode to start the countdown\".",
+        "Gap 5: Notes textarea placeholder restored to full V2 text \u2014 \"Jot down ideas, reminders, open questions, things to follow up on, or anything you want to remember\u2026\".",
+        "Gap 8: Seating gap warning banner fully restored. Added useEventData hooks for tables and seating collections. seatingRows[0] provides seating config (hasSeating, eventSectionId). Warning renders when hasSeat + seatSection + tables present + confirmed guests > seats available.",
+        "No V2 changes needed. Architecture differences (Supabase hooks vs state prop) are intentional V3 adaptations."
+      ]
+    },
     {
       "version": "V3.3.8",
       "date": "2026-04-21",

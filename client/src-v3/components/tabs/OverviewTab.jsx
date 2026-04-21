@@ -47,22 +47,24 @@ export function OverviewTab({ eventId, event, adminConfig, showToast, setActiveT
     }, 600);
   }, [eventId]);
 
-  // Load aggregated data for stat cards
-  const { items: households } = useEventData(eventId, "households");
-  const { items: people }     = useEventData(eventId, "people");
-  const { items: expenses }   = useEventData(eventId, "expenses");
-  const { items: tasks }      = useEventData(eventId, "tasks");
-  const { items: vendors }    = useEventData(eventId, "vendors");
+  // Load aggregated data for stat cards and seating warning
+  const { items: households }  = useEventData(eventId, "households");
+  const { items: people }      = useEventData(eventId, "people");
+  const { items: expenses }    = useEventData(eventId, "expenses");
+  const { items: tasks }       = useEventData(eventId, "tasks");
+  const { items: vendors }     = useEventData(eventId, "vendors");
+  const { items: tables }      = useEventData(eventId, "tables");
+  const { items: seatingRows } = useEventData(eventId, "seating");
 
   const timelineEntries = sortTimeline(config.timeline || []);
 
   // Sub-event counts
-  const getSubEventCounts = (eventId) => {
+  const getSubEventCounts = (sectionId) => {
     const invitedHHIds = new Set(
-      households.filter(h => (h.invitedSections || []).includes(eventId)).map(h => h.id)
+      households.filter(h => (h.invitedSections || []).includes(sectionId)).map(h => h.id)
     );
     const invitedPeople  = people.filter(p => invitedHHIds.has(p.householdId));
-    const confirmedCount = people.filter(p => (p.attendingSections || []).includes(eventId)).length;
+    const confirmedCount = people.filter(p => (p.attendingSections || []).includes(sectionId)).length;
     return { invited: invitedPeople.length, confirmed: confirmedCount };
   };
 
@@ -82,8 +84,15 @@ export function OverviewTab({ eventId, event, adminConfig, showToast, setActiveT
   const confirmedCount = people.filter(p => (p.attendingSections || []).length > 0).length;
   const outOfTownCount = households.filter(h => h.outOfTown).length;
 
-  // Seating gap
-  // (simplified — full seating config available in Phase 6b)
+  // Seating gap warning
+  const seatingConfig  = (seatingRows[0]) || {};
+  const hasSeat        = !!seatingConfig.hasSeating;
+  const seatSection    = seatingConfig.eventSectionId || "";
+  const totalSeats     = tables.reduce((s, t) => s + (parseInt(t.capacity) || 0), 0);
+  const seatedConfirmed = hasSeat && seatSection
+    ? people.filter(p => (p.attendingSections || []).includes(seatSection)).length
+    : 0;
+  const seatingGap = seatedConfirmed - totalSeats;
 
   return (
     <div>
@@ -136,7 +145,7 @@ export function OverviewTab({ eventId, event, adminConfig, showToast, setActiveT
       ) : (
         <div className="countdown-card" style={{ textAlign: "center" }}>
           <div className="countdown-title" style={{ marginBottom: 8 }}>Welcome to SimchaKit</div>
-          <div className="countdown-date">Add your event timeline and mark a main event to start the countdown</div>
+          <div className="countdown-date">Add your event timeline and mark a main event in Admin Mode to start the countdown</div>
           <div style={{ marginTop: 16 }}>
             <span className="tag" style={{ background: "rgba(255,255,255,0.2)", color: "white", fontSize: 12 }}>
               ⚙ Click the gear icon in the header to configure your event
@@ -178,6 +187,26 @@ export function OverviewTab({ eventId, event, adminConfig, showToast, setActiveT
           <div className="stat-sub">households travelling</div>
         </button>
       </div>
+
+      {/* Seating gap warning */}
+      {hasSeat && seatSection && tables.length > 0 && seatedConfirmed > 0 && seatingGap > 0 && (
+        <div style={{
+          display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap",
+          background: "var(--red-light)", border: "1px solid var(--red)",
+          borderRadius: "var(--radius-md)", padding: "12px 16px", marginBottom: 20,
+          fontSize: 13, color: "var(--red)",
+        }}>
+          <span style={{ fontSize: 16 }}>⚠</span>
+          <span style={{ flex: 1 }}>
+            <strong>Seating gap —</strong> {totalSeats} seat{totalSeats !== 1 ? "s" : ""} configured
+            for <strong>{seatedConfirmed}</strong> confirmed guest{seatedConfirmed !== 1 ? "s" : ""}. {seatingGap} additional seat{seatingGap !== 1 ? "s" : ""} needed.
+          </span>
+          <button className="btn btn-sm" onClick={() => setActiveTab && setActiveTab("seating")}
+            style={{ background: "var(--red)", color: "white", border: "none", flexShrink: 0, fontSize: 12 }}>
+            → Seating
+          </button>
+        </div>
+      )}
 
       {/* Two-column: timeline + notes */}
       <div className="two-col">
@@ -248,7 +277,7 @@ export function OverviewTab({ eventId, event, adminConfig, showToast, setActiveT
             className="notes-area"
             style={{ minHeight: 240 }}
             value={localNotes}
-            placeholder="Jot down ideas, reminders, open questions…"
+            placeholder="Jot down ideas, reminders, open questions, things to follow up on, or anything you want to remember…"
             onChange={e => handleNotes(e.target.value)}
           />
           {config.notes && (
