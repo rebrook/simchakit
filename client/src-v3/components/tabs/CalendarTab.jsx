@@ -200,11 +200,11 @@ export function CalendarTab({ eventId, event, adminConfig, showToast, isArchived
             <option key={s.key} value={s.key}>{s.label}</option>
           ))}
         </select>
-        <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, cursor: "pointer", whiteSpace: "nowrap", color: "var(--text-secondary)" }}>
-          <input type="checkbox" checked={showCompleted} onChange={e=>setShowCompleted(e.target.checked)}
-            style={{ width: 14, height: 14, accentColor: "var(--accent-primary)" }} />
-          Show completed
-        </label>
+        <button
+          className={`btn btn-sm ${showCompleted ? "btn-primary" : "btn-secondary"}`}
+          onClick={() => setShowCompleted(c => !c)}>
+          {showCompleted ? "✓ Showing completed" : "Show completed"}
+        </button>
         {!isMobile && (
           <div style={{ display: "flex", gap: 2, marginLeft: "auto", background: "var(--bg-subtle)", borderRadius: "var(--radius-sm)", padding: 2, border: "1px solid var(--border)" }}>
             <button className={`btn btn-sm ${view==="list" ? "btn-primary" : "btn-ghost"}`} style={{ padding: "4px 10px", fontSize: 12 }} onClick={() => setView("list")}>☰ List</button>

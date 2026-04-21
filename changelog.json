@@ -1,9 +1,19 @@
 {
-  "current": "V3.3.16",
+  "current": "V3.3.17",
   "whatsNew": [
-    "CalendarTab: 9 V2 parity gaps closed \u2014 stat cards, legend, popover, month grid, and CSS classes restored"
+    "CalendarTab: Show completed restored as toggle button (was checkbox)"
   ],
   "changelog": [
+    {
+      "version": "V3.3.17",
+      "date": "2026-04-21",
+      "type": "fix",
+      "summary": "CalendarTab \u2014 show completed restored as toggle button",
+      "changes": [
+        "Show completed was rendered as a checkbox/label in V3; restored as a btn toggle button matching V2.",
+        "Roadmap: added iCal/calendar subscribe as planned feature (roadmap-ical)."
+      ]
+    },
     {
       "version": "V3.3.16",
       "date": "2026-04-21",
@@ -4857,6 +4867,16 @@
       "priority": "P3",
       "effort": "High",
       "detail": "Separate table sets and seat assignments per sub-event. tableId on person becomes tableAssignments: { [sectionId]: tableId }."
+    },
+    {
+      "id": "roadmap-ical",
+      "title": "iCal / Calendar Subscribe",
+      "description": "Export planning calendar as .ics file (download) and/or live webcal:// subscribe URL. Applies to both V2 and V3. Scope TBD: download vs live subscribe, which event sources to include.",
+      "status": "planned",
+      "platforms": [
+        "v2",
+        "v3"
+      ]
     }
   ],
   "priorities": {
