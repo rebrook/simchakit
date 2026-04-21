@@ -345,7 +345,7 @@ export function BudgetTab({ eventId, event, adminConfig, showToast, isArchived, 
   const [showVendorAdd,  setShowVendorAdd]  = useState(false);
   const [editingVendor,  setEditingVendor]  = useState(null);
   const [filterCat,      setFilterCat]      = useState("All");
-  const [filterPaid,     setFilterPaid]     = useState("All");
+  const [filterPaid,     setFilterPaid]     = useState("all");
   const [filterVendor,   setFilterVendor]   = useState("All");
   const [filterSection,  setFilterSection]  = useState("All");
   const [search,         setSearch]         = useState("");
@@ -563,16 +563,30 @@ export function BudgetTab({ eventId, event, adminConfig, showToast, isArchived, 
       {/* Stat cards */}
       <div className="budget-stat-grid">
         <div className="stat-card">
-          <div className="stat-label">Total Expenses</div>
+          <div className="stat-label">Total Budget</div>
           <div className="stat-value">{fmt$(totalExpenses)}</div>
+          <div className="stat-sub">{expenses.length} line item{expenses.length !== 1 ? "s" : ""}</div>
         </div>
         <div className="stat-card">
-          <div className="stat-label">Paid</div>
+          <div className="stat-label">Paid to Date</div>
           <div className="stat-value stat-green">{fmt$(totalPaid)}</div>
+          <div className="stat-sub">{expenses.filter(e => e.paid).length} of {expenses.length} paid</div>
         </div>
         <div className="stat-card">
           <div className="stat-label">Outstanding</div>
-          <div className="stat-value" style={{ color: totalUnpaid > 0 ? "var(--red)" : "var(--text-primary)" }}>{fmt$(totalUnpaid)}</div>
+          <div className="stat-value stat-red">{fmt$(totalUnpaid)}</div>
+          <div className="stat-sub">{unpaidCount} unpaid item{unpaidCount !== 1 ? "s" : ""}</div>
+        </div>
+        <div className="stat-card">
+          <div className="stat-label">Next Payment Due</div>
+          {nextDue ? (<>
+            <div className="stat-value stat-gold" style={{ fontSize: 18, marginTop: 2 }}>
+              {new Date(nextDue.dueDate + "T00:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+            </div>
+            <div className="stat-sub">{nextDue.description} · {fmt$(parseFloat(nextDue.amount || 0))}</div>
+          </>) : (
+            <div className="stat-value" style={{ fontSize: 16, marginTop: 4, color: "var(--text-muted)" }}>None</div>
+          )}
         </div>
         {hasAnyBudgeted && (
           <div className="stat-card">
@@ -588,17 +602,6 @@ export function BudgetTab({ eventId, event, adminConfig, showToast, isArchived, 
             </div>
           </div>
         )}
-        <div className="stat-card">
-          <div className="stat-label">Next Payment Due</div>
-          {nextDue ? (<>
-            <div className="stat-value stat-gold" style={{ fontSize: 18, marginTop: 2 }}>
-              {new Date(nextDue.dueDate + "T00:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
-            </div>
-            <div className="stat-sub">{nextDue.description} · {fmt$(parseFloat(nextDue.amount || 0))}</div>
-          </>) : (
-            <div className="stat-value" style={{ fontSize: 16, marginTop: 4, color: "var(--text-muted)" }}>None</div>
-          )}
-        </div>
       </div>
 
       {/* Budget Insights */}

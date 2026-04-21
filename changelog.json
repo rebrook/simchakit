@@ -1,13 +1,29 @@
 {
-  "current": "V3.2.8",
+  "current": "V3.3.0",
   "whatsNew": [
-    "BudgetTab: Gratuity calculator now works correctly for DJ and photography vendors",
-    "BudgetTab: Budget Insights restored to 3-chart view (Spend by Category, Upcoming Payments, Est. vs. Actual)",
-    "BudgetTab: By Vendor and By Timeline view modes added",
-    "BudgetTab: Sort dropdown added to filter bar",
-    "BudgetTab: Edit and delete buttons work in all view modes"
+    "BudgetTab: Vendor filter added to filter bar — filter expenses by linked vendor",
+    "BudgetTab: Stat card labels corrected — 'Total Budget' and 'Paid to Date'",
+    "BudgetTab: Sub-labels restored on Total Budget, Paid to Date, and Outstanding cards",
+    "BudgetTab: Stat card order corrected — Next Payment Due before Est. vs. Actual",
+    "V2: Vendor filter added to BudgetTab filter bar"
   ],
   "changelog": [
+    {
+      "version": "V3.3.0",
+      "date": "2026-04-21",
+      "type": "feature",
+      "summary": "BudgetTab — stat card parity fixes + vendor filter (V2 + V3)",
+      "changes": [
+        "Stat card 1: label corrected from 'Total Expenses' to 'Total Budget' to match V2.",
+        "Stat card 2: label corrected from 'Paid' to 'Paid to Date' to match V2.",
+        "Stat card sub-labels: Total Budget now shows '{N} line items'; Paid to Date now shows '{N} of {N} paid'; Outstanding now shows '{N} unpaid items'. These were claimed in V3.2.6 but never present in the deployed code.",
+        "Stat card order: corrected to match V2 — Total Budget, Paid to Date, Outstanding, Next Payment Due, Est. vs. Actual (previously Est. vs. Actual appeared before Next Payment Due).",
+        "Outstanding stat card: value now always uses stat-red class matching V2 (previously used inline conditional color style).",
+        "Filter bar: vendor filter dropdown added — shows when vendors exist, filters expenses by vendorId. Matches V3 behavior.",
+        "filterPaid initial state: corrected from 'All' to 'all' to match option values and prevent select display mismatch.",
+        "V2: vendor filter dropdown added to BudgetTab filter bar — filterVendor state, filter logic, and select rendered between category and section filters."
+      ]
+    },
     {
       "version": "V3.2.8",
       "date": "2026-04-20",
