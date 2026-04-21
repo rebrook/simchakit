@@ -54,7 +54,8 @@ const GUIDE_SECTIONS = [
     color: "var(--orange)",
     colorLight: "var(--orange-light)",
     items: [
-      { heading: "Vendor cards", body: "Each vendor card shows name, type, status, contact info, financials (paid / scheduled / unscheduled balance), and a payment progress bar. Click a card to open the Quick View panel with full details. Click ✎ Edit Vendor to update the record." },
+      { heading: "Vendor overview", body: "The stat cards at the top show Total Vendors, Confirmed (booked or paid), Total Contracted, Total Paid, and Need Follow-up. Click the Need Follow-up card to instantly filter to vendors that haven't been contacted in 60+ days or have never been contacted — click again to clear the filter." },
+      { heading: "Vendor cards", body: "Each vendor card shows name, type, status, contact details, financials (contract / paid / scheduled / unscheduled balance), payment progress bar, and last contacted date. Click the vendor name or the View button to open the Quick View panel. Click ✎ to edit. Click ✕ to delete — a confirmation prompt appears first. If the vendor has notes, click the notes area to expand or collapse them." },
       { heading: "Contract milestones", body: "Add key contract dates as milestones on each vendor — headcount deadlines, asset submission windows, delivery dates. Milestones appear in the Quick View with proximity badges (green > 30 days, amber ≤ 30 days, red overdue). Milestones within 60 days generate Task Suggestions automatically." },
       { heading: "Linking expenses", body: "Link Budget expenses to a vendor by selecting the vendor name when creating the expense. Linked expenses feed the vendor's financial progress bar and are excluded from the unscheduled balance suggestion." },
       { heading: "Contract link", body: "Paste a Dropbox, Google Drive, or any shared link in the Contract Link field. A 📄 View Contract button appears in the Quick View, making it easy to pull up the signed agreement." },
@@ -68,9 +69,11 @@ const GUIDE_SECTIONS = [
     color: "var(--blue)",
     colorLight: "var(--blue-light)",
     items: [
-      { heading: "Manual tasks", body: "Add tasks with a title, due date, and category. Check them off as you complete them. Overdue tasks are flagged in red. The Tasks tab badge in the nav shows the count of incomplete tasks." },
+      { heading: "Manual tasks", body: "Add tasks with a title, due date, category, and priority. Check them off as you complete them. The stat cards show Total Tasks, Completed (with % done), Overdue, and Due This Week at a glance. The Task Insights panel (below stat cards) provides collapsible charts: a completion progress bar and breakdowns by category and priority for incomplete tasks. Overdue tasks are flagged with ⚠ in red. The Tasks tab badge in the nav shows the count of incomplete tasks." },
       { heading: "Smart suggestions", body: "The Suggestions panel (top of the Tasks tab) automatically surfaces action items derived from your data — unpaid expenses with due dates, vendors with unscheduled balances, vendor milestones within 60 days, prep items with upcoming target dates, missing guest addresses, and RSVP deadline countdowns. Dismiss suggestions you don't need. Suggestions linked to a specific record show a \u2192 View button — tapping it navigates directly to the source tab and highlights the matching record." },
       { heading: "Categories", body: "Tasks and suggestions are organized by category (Vendor, Budget, Planning, Guests, etc.) for easy filtering. The category filter in the filter bar lets you focus on one area at a time." },
+      { heading: "Sorting and grouping", body: "Use the Sort dropdown to sort tasks by Due date, Priority, Category, or A–Z. When sorting by Due date or Category with no active search or filter, tasks are automatically grouped under category headers — making it easy to scan what's outstanding in each planning area at a glance. Completed tasks always float to the bottom regardless of sort." },
+      { heading: "Linked task completion", body: "Some tasks are linked to a specific budget expense or prep item — for example, a task automatically created when a payment due date is set. When you check off a linked task, a prompt asks whether you also want to mark the linked expense as paid or the prep item as Complete. Choose 'Complete Task Only' to check off just the task, or the primary button to update both records at once." },
     ],
   },
   {
