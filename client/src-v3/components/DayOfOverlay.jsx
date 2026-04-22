@@ -238,7 +238,7 @@ ${sectionHead("✡", `Ceremony Roles — ${ceremonyRoles.filter(r => r.assignee?
 ${ceremonySection}
 ` : ""}
 
-<div class="print-footer">SimchaKit · ${eventName} · ${new Date().toLocaleDateString()}</div>
+<div class="print-footer">SimchaKit · ${eventName} · ${new Date().toLocaleDateString()} · support@brook-creative.com</div>
 </body>
 </html>`;
 }

@@ -561,7 +561,7 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false }) {
       <footer className="app-footer">
         <span style={{ fontSize:11, color:"var(--text-muted)" }}>
           Designed &amp; Built by{" "}
-          <a href="mailto:ryan@brook-creative.com" className="footer-link">Ryan Brook</a>
+          <a href="mailto:support@brook-creative.com" className="footer-link">Ryan Brook</a>
         </span>
         <span>·</span>
         <span style={{ fontSize:11, color:"var(--text-muted)" }}>Powered by Claude</span>

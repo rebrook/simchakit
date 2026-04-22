@@ -388,7 +388,7 @@ export function EventPicker({ session, onSelectEvent }) {
 
         {/* ── Footer ── */}
         <div style={styles.footer}>
-          Designed &amp; Built by Ryan Brook &nbsp;·&nbsp; Powered by Claude
+          Designed &amp; Built by Ryan Brook &nbsp;·&nbsp; Powered by Claude &nbsp;·&nbsp; <a href="mailto:support@brook-creative.com" style={{ color: "var(--text-muted)" }}>support@brook-creative.com</a>
         </div>
       </div>
 

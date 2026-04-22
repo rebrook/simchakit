@@ -1,9 +1,22 @@
 {
-  "current": "V3.3.20",
+  "current": "V3.3.21",
   "whatsNew": [
-    "AppShell: Demo banner \"Create your account\" link now goes to app.simcha-kit.com"
+    "Support email added to all footers \u2014 support@brook-creative.com"
   ],
   "changelog": [
+    {
+      "version": "V3.3.21",
+      "date": "2026-04-22",
+      "type": "fix",
+      "summary": "Support email added to all page footers",
+      "changes": [
+        "AppShell V3: footer email updated from ryan@ to support@brook-creative.com.",
+        "AppShell V2: footer email updated from ryan@ to support@brook-creative.com.",
+        "App V2: footer email updated from ryan@ to support@brook-creative.com.",
+        "EventPicker: support@brook-creative.com added to footer.",
+        "DayOfOverlay V3: support@brook-creative.com added to print brief footer."
+      ]
+    },
     {
       "version": "V3.3.20",
       "date": "2026-04-21",
