@@ -1,5 +1,13 @@
 {
   "cleanUrls": false,
+  "redirects": [
+    {
+      "source": "/",
+      "has": [{ "type": "host", "value": "demo.simcha-kit.com" }],
+      "destination": "https://demo.simcha-kit.com/demo",
+      "permanent": false
+    }
+  ],
   "rewrites": [
     {
       "source": "/api/:path*",
