@@ -230,6 +230,11 @@ export function PaywallGate({ session, onFreeEventGranted, onCancel }) {
       <div style={styles.trustNote}>
         🔒 Payments are processed securely by Stripe. SimchaKit never stores your payment details.
       </div>
+
+      {/* Support contact */}
+      <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 8, lineHeight: 1.5 }}>
+        Having trouble? Email <a href="mailto:support@brook-creative.com" style={{ color: "var(--text-muted)" }}>support@brook-creative.com</a> and we'll sort it out.
+      </div>
     </div>
   );
 }

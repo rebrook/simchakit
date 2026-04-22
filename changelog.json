@@ -1,9 +1,19 @@
 {
-  "current": "V3.3.22",
+  "current": "V3.3.23",
   "whatsNew": [
-    "AdminPanel: Restore backup now handles V2 backup format"
+    "PaywallGate: support contact added. CreateEventForm: default admin password hint added."
   ],
   "changelog": [
+    {
+      "version": "V3.3.23",
+      "date": "2026-04-22",
+      "type": "improvement",
+      "summary": "PaywallGate and CreateEventForm \u2014 support contact and admin password hint",
+      "changes": [
+        "PaywallGate: Added support contact line below trust note \u2014 \"Having trouble? Email support@brook-creative.com\".",
+        "CreateEventForm: Added hint below form informing users their default admin password is \"admin\" and can be changed in Admin Mode."
+      ]
+    },
     {
       "version": "V3.3.22",
       "date": "2026-04-22",

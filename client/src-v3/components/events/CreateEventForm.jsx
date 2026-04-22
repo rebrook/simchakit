@@ -153,6 +153,10 @@ export function CreateEventForm({ userId, onCreated, onCancel }) {
       {status === "error" && (
         <div style={styles.errorMsg}>{errorMsg}</div>
       )}
+
+      <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 10, lineHeight: 1.6 }}>
+        Your default admin password is <strong>admin</strong>. You can change it anytime in Admin Mode once you're in your dashboard.
+      </div>
     </div>
   );
 }
