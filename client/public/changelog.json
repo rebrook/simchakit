@@ -1,9 +1,19 @@
 {
-  "current": "V3.3.18",
+  "current": "V3.3.19",
   "whatsNew": [
-    "DayOfOverlay: 3 V2 parity gaps closed"
+    "EventPicker: Event card tiles now readable in dark mode"
   ],
   "changelog": [
+    {
+      "version": "V3.3.19",
+      "date": "2026-04-21",
+      "type": "fix",
+      "summary": "EventPicker \u2014 event card tiles readable in dark mode",
+      "changes": [
+        "Bug: card header and footer used hardcoded palette.light hex backgrounds which overrode CSS variables, making cards unreadable in dark mode.",
+        "Fix: EventCard now reads data-theme from document.documentElement and substitutes var(--bg-subtle) for the palette tint when dark mode is active."
+      ]
+    },
     {
       "version": "V3.3.18",
       "date": "2026-04-21",

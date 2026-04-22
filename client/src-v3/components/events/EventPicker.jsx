@@ -410,6 +410,8 @@ export function EventPicker({ session, onSelectEvent }) {
 function EventCard({ event, meta, onSelect, onDeleteClick }) {
   const { palette, typeIcon, dateStr, themeName } = meta;
   const typeLabel = EVENT_TYPE_LABELS[event.type] || "Celebration";
+  const isDark  = document.documentElement.getAttribute("data-theme") === "dark";
+  const cardBg  = isDark ? "var(--bg-subtle)" : palette.light;
 
   function handleDeleteClick(e) {
     e.preventDefault();
@@ -431,7 +433,7 @@ function EventCard({ event, meta, onSelect, onDeleteClick }) {
       <div style={{ height: 4, background: palette.accent }} />
 
       {/* Card header */}
-      <div style={{ padding: "20px 20px 16px", background: palette.light, position: "relative" }}>
+      <div style={{ padding: "20px 20px 16px", background: cardBg, position: "relative" }}>
         <span style={{ fontSize: 28, lineHeight: 1, display: "block", marginBottom: 10 }}>
           {typeIcon}
         </span>
@@ -475,7 +477,7 @@ function EventCard({ event, meta, onSelect, onDeleteClick }) {
       </div>
 
       {/* Card footer */}
-      <div style={{ padding: "12px 20px", borderTop: "1px solid var(--border)", background: palette.light, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+      <div style={{ padding: "12px 20px", borderTop: "1px solid var(--border)", background: cardBg, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <span style={{ fontSize: 13, fontWeight: 600, color: palette.accent }}>
           Open Dashboard
         </span>
