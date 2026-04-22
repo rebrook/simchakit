@@ -1,9 +1,19 @@
 {
-  "current": "V3.3.21",
+  "current": "V3.3.22",
   "whatsNew": [
-    "Support email added to all footers \u2014 support@brook-creative.com"
+    "AdminPanel: Restore backup now handles V2 backup format"
   ],
   "changelog": [
+    {
+      "version": "V3.3.22",
+      "date": "2026-04-22",
+      "type": "fix",
+      "summary": "AdminPanel \u2014 restore backup handles V2 format",
+      "changes": [
+        "Bug: Restoring a V2 backup failed with \"map is not a function\" because V2 exports favors as {config, items} object and ceremonyRoles as a flat array.",
+        "Fix: handleRestore now normalizes V2 backup format before inserting \u2014 favors extracts items array, ceremonyRoles wraps flat array into single-row V3 document format, seating skips non-array config objects, and V2 camelCase key names (ceremonyRoles) are mapped to V3 table names (ceremony_roles)."
+      ]
+    },
     {
       "version": "V3.3.21",
       "date": "2026-04-22",

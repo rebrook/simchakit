@@ -380,18 +380,68 @@ export function AdminPanel({ eventId, password, config, onClose, onConfigSaved, 
       let backup;
       try { backup = JSON.parse(text); }
       catch { setRestoreMsg("Could not parse file — make sure it is a valid SimchaKit backup (.json)."); setRestoring(false); return; }
+
+      // ── Normalize V2 backup format into V3 format ─────────────────────────
+      // V2 uses camelCase keys and different shapes for some collections.
+      // Map V2 key names → V3 table names
+      const V2_KEY_MAP = {
+        households:    "households",
+        people:        "people",
+        expenses:      "expenses",
+        vendors:       "vendors",
+        tasks:         "tasks",
+        prep:          "prep",
+        tables:        "tables",
+        gifts:         "gifts",
+        favors:        "favors",
+        seating:       "seating",
+        ceremonyRoles: "ceremony_roles",
+      };
+
+      // Normalize each collection to a plain array of data objects
+      const normalized = {};
+
+      for (const [v2Key, v3Table] of Object.entries(V2_KEY_MAP)) {
+        const raw = backup[v2Key] || backup[v3Table];
+        if (!raw) continue;
+
+        if (v2Key === "favors") {
+          // V2: { config, items: [...] } — extract items array
+          const items = Array.isArray(raw) ? raw : (raw.items || []);
+          normalized[v3Table] = items;
+        } else if (v2Key === "seating") {
+          // V2: { config } object with no rows — skip, nothing to restore
+          if (Array.isArray(raw)) normalized[v3Table] = raw;
+          // else skip
+        } else if (v2Key === "ceremonyRoles") {
+          // V2: flat array of role objects — wrap into single V3 document
+          if (Array.isArray(raw) && raw.length > 0) {
+            normalized[v3Table] = [{ roles: raw }];
+          } else if (Array.isArray(raw) && raw.length === 0) {
+            normalized[v3Table] = [];
+          } else {
+            normalized[v3Table] = raw; // already V3 format
+          }
+        } else {
+          // Standard collections — must be an array
+          normalized[v3Table] = Array.isArray(raw) ? raw : [];
+        }
+      }
+
+      // ── Write to Supabase ─────────────────────────────────────────────────
       const COLLECTIONS = ["households","people","expenses","vendors","tasks","prep","tables","gifts","favors","ceremony_roles","seating"];
       for (const col of COLLECTIONS) {
-        if (!backup[col]) continue;
+        if (!normalized[col] || normalized[col].length === 0) continue;
         // Delete existing rows
         await supabase.from(col).delete().eq("event_id", eventId);
-        // Re-insert
-        const rows = backup[col].map(item => {
+        // Re-insert — strip V3 tracking fields if present
+        const rows = normalized[col].map(item => {
           const { _rowId, _createdAt, _updatedAt, ...data } = item;
           return { event_id: eventId, data };
         });
         if (rows.length > 0) await supabase.from(col).insert(rows);
       }
+
       if (backup.adminConfig) {
         await supabase.from("events").update({ admin_config: backup.adminConfig, updated_at: new Date().toISOString() }).eq("id", eventId);
         onConfigSaved(backup.adminConfig);
