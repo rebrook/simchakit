@@ -1,9 +1,19 @@
 {
-  "current": "V3.3.19",
+  "current": "V3.3.20",
   "whatsNew": [
-    "EventPicker: Event card tiles now readable in dark mode"
+    "AppShell: Demo banner \"Create your account\" link now goes to app.simcha-kit.com"
   ],
   "changelog": [
+    {
+      "version": "V3.3.20",
+      "date": "2026-04-21",
+      "type": "fix",
+      "summary": "AppShell \u2014 demo banner link fixed",
+      "changes": [
+        "Bug: \"Create your account\" link in demo banner used href=\"/\" which resolved to demo.simcha-kit.com/ when viewed on the demo subdomain.",
+        "Fix: Link now points to https://app.simcha-kit.com explicitly."
+      ]
+    },
     {
       "version": "V3.3.19",
       "date": "2026-04-21",

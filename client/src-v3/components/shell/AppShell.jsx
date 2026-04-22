@@ -6,10 +6,8 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { supabase }                    from "@/lib/supabase.js";
-import { useDarkMode }                 from "@/hooks/useDarkMode.js";
-import { useEventData }                from "@/hooks/useEventData.js";
-import { generateEventBriefHTML }      from "@/utils/exports.js";
+import { supabase }        from "@/lib/supabase.js";
+import { useDarkMode }     from "@/hooks/useDarkMode.js";
 import { ThemeProvider }   from "@/components/shared/ThemeProvider.jsx";
 import { PlaceholderTab }  from "@/components/shared/PlaceholderTab.jsx";
 import { AdminLogin, AdminPanel } from "@/components/AdminPanel.jsx";
@@ -76,8 +74,6 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false }) {
   const [showWhatsNew,    setShowWhatsNew]    = useState(false);
   const [showDayOf,       setShowDayOf]       = useState(false);
   const [searchHighlight, setSearchHighlight] = useState(null); // { tab, itemId, collection, householdId }
-  const [briefHTML,       setBriefHTML]       = useState(null);
-  const [appVersion,      setAppVersion]      = useState("");
 
   const navInnerRef = useRef(null);
   const toastTimer  = useRef(null);
@@ -96,14 +92,6 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false }) {
     window.addEventListener("simchakit:audit-error", handler);
     return () => window.removeEventListener("simchakit:audit-error", handler);
   }, [showToast]);
-
-  // ── Fetch app version from changelog ─────────────────────────────────────
-  useEffect(() => {
-    fetch("/changelog.json")
-      .then(r => r.json())
-      .then(d => { if (d.current) setAppVersion(d.current); })
-      .catch(() => {});
-  }, []);
 
   // ── Load event from Supabase ──────────────────────────────────────────────
   useEffect(() => {
@@ -220,32 +208,19 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false }) {
   }, [loadStatus]); // re-run when tabs become available
 
   // ── Build tab list from adminConfig.visibleTabs ───────────────────────────
-  // Badge data — load lightweight collections at shell level matching V2 behavior
-  const { items: _badgePeople }       = useEventData(eventId, "people");
-  const { items: _badgeHouseholds }   = useEventData(eventId, "households");
-  const { items: _badgeExpenses }     = useEventData(eventId, "expenses");
-  const { items: _badgeTasks }        = useEventData(eventId, "tasks");
-  const { items: _badgeVendors }      = useEventData(eventId, "vendors");
-  const { items: _ceremonyRoles }     = useEventData(eventId, "ceremony_roles");
-
-  const guestBadge  = _badgePeople.length || null;
-  const budgetBadge = _badgeExpenses.filter(e => !e.paid).length || null;
-  const tasksBadge  = _badgeTasks.filter(t => !t.done && !t.dismissed).length || null;
-  const accomBadge  = _badgeHouseholds.filter(h => h.outOfTown && !h.accomNotified).length || null;
-  const moreBadge   = [accomBadge].some(b => b != null && b > 0);
   const ALL_TABS = [
-    { id: "overview",       icon: "✦",  label: "Overview"                        },
-    { id: "guests",         icon: "👥", label: "Guests",        badge: guestBadge  },
-    { id: "budget",         icon: "💰", label: "Budget",        badge: budgetBadge },
-    { id: "vendors",        icon: "🏪", label: "Vendors"                          },
-    { id: "tasks",          icon: "✅", label: "Tasks",         badge: tasksBadge  },
-    { id: "prep",           icon: "📖", label: "Prep"                             },
-    { id: "ceremony",       icon: "📜", label: "Ceremony"                         },
-    { id: "seating",        icon: "🪑", label: "Seating"                          },
-    { id: "gifts",          icon: "🎁", label: "Gifts"                            },
-    { id: "accommodations", icon: "🧳", label: "Stay & Travel", badge: accomBadge  },
-    { id: "favors",         icon: "⭐", label: "Favors"                           },
-    { id: "calendar",       icon: "📅", label: "Calendar"                         },
+    { id: "overview",       icon: "✦",  label: "Overview"      },
+    { id: "guests",         icon: "👥", label: "Guests"        },
+    { id: "budget",         icon: "💰", label: "Budget"        },
+    { id: "vendors",        icon: "🏪", label: "Vendors"       },
+    { id: "tasks",          icon: "✅", label: "Tasks"         },
+    { id: "prep",           icon: "📖", label: "Prep"          },
+    { id: "ceremony",       icon: "📜", label: "Ceremony"      },
+    { id: "seating",        icon: "🪑", label: "Seating"       },
+    { id: "gifts",          icon: "🎁", label: "Gifts"         },
+    { id: "accommodations", icon: "🧳", label: "Stay & Travel" },
+    { id: "favors",         icon: "⭐", label: "Favors"        },
+    { id: "calendar",       icon: "📅", label: "Calendar"      },
   ];
 
   const visibleTabIds = adminConfig?.visibleTabs;
@@ -256,6 +231,7 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false }) {
   const bottomBarTabs  = tabs.filter(t => BOTTOM_BAR_IDS.includes(t.id));
   const moreDrawerTabs = tabs.filter(t => !BOTTOM_BAR_IDS.includes(t.id));
   const moreIsActive   = moreDrawerTabs.some(t => t.id === activeTab);
+
   // ── Navigate to tab ───────────────────────────────────────────────────────
   const navigateTo = (tabId) => {
     setActiveTab(tabId);
@@ -297,8 +273,6 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false }) {
   }
 
   // ── Open admin (from gear button or tab callbacks) ────────────────────────
-  const todayStr        = new Date().toISOString().slice(0, 10);
-  const isTodayEventDay = (adminConfig?.timeline || []).some(e => e.startDate === todayStr);
   const openAdmin = (section = "event") => {
     setAdminSection(section);
     if (adminPassword) { setShowAdminPanel(true); }
@@ -329,10 +303,6 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false }) {
     onOpenAdmin:   () => openAdmin("event"),
     onOpenAdminTo: openAdmin,
     onOpenGuide:          () => setShowGuide(true),
-    onPrintBrief:         () => setBriefHTML(generateEventBriefHTML(
-      { people: _badgePeople, households: _badgeHouseholds, expenses: _badgeExpenses, vendors: _badgeVendors, tasks: _badgeTasks, ceremonyRoles: _ceremonyRoles[0]?.roles || [] },
-      adminConfig
-    )),
     onConfigSaved,
     searchHighlight,
     clearSearchHighlight: () => setSearchHighlight(null),
@@ -356,7 +326,7 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false }) {
           flexWrap: "wrap",
         }}>
           <span>📋 You're viewing the SimchaKit demo · Data resets nightly</span>
-          <a href="/" style={{
+          <a href="https://app.simcha-kit.com" style={{
             color: "white",
             fontWeight: 700,
             textDecoration: "underline",
@@ -369,24 +339,6 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false }) {
       {event?.archived && (
         <div className="archived-banner">
           🔒 This event is archived and read-only.
-          {adminPassword && (
-            <button
-              onClick={() => { setAdminSection("data"); setShowAdminPanel(true); }}
-              style={{ marginLeft:12, background:"var(--gold)", color:"white", border:"none",
-                borderRadius:"var(--radius-sm)", padding:"3px 12px", fontSize:12,
-                fontWeight:700, cursor:"pointer", fontFamily:"var(--font-body)" }}>
-              Unarchive
-            </button>
-          )}
-          {!adminPassword && (
-            <button
-              onClick={() => setShowAdminLogin(true)}
-              style={{ marginLeft:12, background:"var(--gold)", color:"white", border:"none",
-                borderRadius:"var(--radius-sm)", padding:"3px 12px", fontSize:12,
-                fontWeight:700, cursor:"pointer", fontFamily:"var(--font-body)" }}>
-              Admin Login to Unarchive
-            </button>
-          )}
         </div>
       )}
 
@@ -435,44 +387,14 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false }) {
           {/* Header actions */}
           <div className="header-actions">
             {/* Search */}
-            <button className={`icon-btn ${showSearch ? "active" : ""}`}
-              title={typeof window !== "undefined" && window.innerWidth < 640 ? "Search" : "Search (⌘K)"}
-              onClick={() => setShowSearch(s => !s)}>
+            <button className="icon-btn" title="Search (⌘K)" onClick={() => setShowSearch(true)}>
               🔍
             </button>
 
             {/* Admin Mode */}
-            <button className={`icon-btn ${adminPassword ? "active" : ""}`} title="Admin Mode"
-              onClick={() => openAdmin("event")}>
+            <button className="icon-btn" title="Admin Mode" onClick={() => openAdmin("event")}>
               ⚙
             </button>
-
-            {/* Exit Admin Mode */}
-            {adminPassword && (
-              <button className="icon-btn" title="Exit Admin Mode"
-                onClick={() => setAdminPassword(null)}>🔓</button>
-            )}
-
-            {/* Day-of Mode — surfaces directly in header on event days */}
-            {isTodayEventDay && (
-              <button
-                className={`icon-btn ${showDayOf ? "active" : ""}`}
-                title="Day-of Mode"
-                onClick={() => setShowDayOf(s => !s)}
-                style={{
-                  position: "relative",
-                  background: showDayOf ? "var(--accent-primary)" : "var(--accent-light)",
-                  color: showDayOf ? "white" : "var(--accent-primary)",
-                  borderRadius: "var(--radius-sm)",
-                }}>
-                📋
-                <span style={{
-                  position: "absolute", top: -4, right: -4,
-                  width: 8, height: 8, borderRadius: "50%",
-                  background: "var(--green)", border: "2px solid var(--bg-surface)",
-                }} />
-              </button>
-            )}
 
             {/* Overflow menu */}
             <div className="header-overflow-wrap">
@@ -509,21 +431,19 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false }) {
                   </div>
 
                   <button className="header-overflow-item"
+                    onClick={() => { setShowOverflow(false); setShowGuide(true); }}>
+                    📖 <span>Guide</span>
+                  </button>
+
+                  <button className="header-overflow-item"
                     onClick={() => { setShowOverflow(false); setShowWhatsNew(true); }}>
                     ✨ <span>What's New</span>
                   </button>
 
                   <button className="header-overflow-item"
-                    onClick={() => { setShowOverflow(false); setShowGuide(true); }}>
-                    📖 <span>SimchaKit Guide</span>
+                    onClick={() => { setShowOverflow(false); setShowDayOf(true); }}>
+                    📋 <span>Day-of Mode</span>
                   </button>
-
-                  {(adminConfig?.timeline || []).length > 0 && !isTodayEventDay && (
-                    <button className={`header-overflow-item ${showDayOf ? "active" : ""}`}
-                      onClick={() => { setShowDayOf(s => !s); setShowOverflow(false); }}>
-                      📋 <span>Day-of Mode</span>
-                    </button>
-                  )}
 
                   <button className="header-overflow-item"
                     onClick={() => { setShowOverflow(false); setShowActivityLog(true); }}>
@@ -650,11 +570,6 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false }) {
           {eventId}
         </span>
         <span>·</span>
-        <button onClick={() => setShowWhatsNew(true)}
-          style={{ background:"none", border:"none", cursor:"pointer", color:"var(--text-muted)", fontSize:11, fontFamily:"var(--font-body)" }}>
-          {appVersion || "—"}
-        </button>
-        <span>·</span>
         <div className="footer-sync" title="Sync status">
           <div className="sync-dot connected" />
           <span>Supabase</span>
@@ -681,9 +596,6 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false }) {
         >
           <span className="bottom-nav-icon">⋯</span>
           <span className="bottom-nav-label">More</span>
-          {moreBadge && !moreIsActive && !showMoreDrawer && (
-            <span className="bottom-nav-dot" />
-          )}
         </button>
       </div>
 
@@ -751,10 +663,7 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false }) {
           event={event}
           adminConfig={adminConfig}
           onClose={() => setShowDayOf(false)}
-          onPrintBrief={() => setBriefHTML(generateEventBriefHTML(
-            { people: _badgePeople, households: _badgeHouseholds, expenses: _badgeExpenses, vendors: _badgeVendors, tasks: _badgeTasks, ceremonyRoles: _ceremonyRoles[0]?.roles || [] },
-            adminConfig
-          ))}
+          onPrintBrief={() => showToast("Print brief coming soon")}
         />
       )}
 
@@ -777,34 +686,6 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false }) {
           onConfigSaved={onConfigSaved}
           initialSection={adminSection}
         />
-      )}
-
-      {/* ── Print Brief modal ── */}
-      {briefHTML && (
-        <div className="modal-backdrop" onMouseDown={e => { if (e.target === e.currentTarget) setBriefHTML(null); }}>
-          <div onClick={e => e.stopPropagation()} style={{
-            background: "var(--bg-surface)", borderRadius: "var(--radius-lg)",
-            width: "95%", maxWidth: 960, height: "90vh",
-            display: "flex", flexDirection: "column",
-            boxShadow: "var(--shadow-lg)",
-          }}>
-            <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center",
-              padding:"14px 20px", borderBottom:"1px solid var(--border)", flexShrink:0 }}>
-              <div style={{ fontFamily:"var(--font-display)", fontSize:17, fontWeight:700,
-                color:"var(--text-primary)" }}>Print Preview — Event Brief</div>
-              <div style={{ display:"flex", gap:8 }}>
-                <button className="btn btn-primary" style={{ fontSize:12 }}
-                  onClick={() => { const f = document.getElementById("brief-print-frame"); if (f?.contentWindow) f.contentWindow.print(); }}>
-                  🖨 Print / Save PDF
-                </button>
-                <button className="icon-btn" title="Close" onClick={() => setBriefHTML(null)}>✕</button>
-              </div>
-            </div>
-            <iframe id="brief-print-frame" srcDoc={briefHTML}
-              style={{ flex:1, border:"none", borderRadius:"0 0 var(--radius-lg) var(--radius-lg)" }}
-              title="Event Brief Print Preview" />
-          </div>
-        </div>
       )}
 
       {/* ── Toast ── */}
