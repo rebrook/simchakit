@@ -154,6 +154,7 @@ const GUIDE_SECTIONS = [
       { heading: "List vs. month view", body: "Toggle between ☰ List and 📅 Month views using the control in the filter bar. List view groups events by month with full detail. Month view shows a 7-column grid with color-coded chips per day. On mobile, the app automatically switches to list view." },
       { heading: "Click popover & navigation", body: "Click any event in either view to open a detail popover with full title, date, source, and meta. The → [Tab] button navigates directly to the source tab and highlights the originating row." },
       { heading: "Filters", body: "Use the source filter to show only one category (Events, Tasks, Payments, Milestones, or Prep). The Show Completed toggle reveals completed tasks and paid expenses, hidden by default." },
+      { heading: "Export to calendar app (.ics)", body: "Click ⬇ .ics in the filter bar to download all calendar events as a standard .ics file. Import it into Google Calendar, Apple Calendar, Outlook, or any other calendar app. The file includes all visible events based on your current source filter and Show Completed setting." },
     ],
   },
   {
