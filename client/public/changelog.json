@@ -1,9 +1,21 @@
 {
-  "current": "V3.3.24",
+  "current": "V3.4.0",
   "whatsNew": [
-    "Guests: Email List export added to Export Guest List modal"
+    "Calendar: Download .ics file to import into Google Calendar, Apple Calendar, or Outlook"
   ],
   "changelog": [
+    {
+      "version": "V3.4.0",
+      "date": "2026-04-23",
+      "type": "improvement",
+      "summary": "Calendar \u2014 .ics download added (V2 + V3)",
+      "changes": [
+        "New \"\u2b07 .ics\" button in CalendarTab filter bar. Downloads all calendar events as a standard .ics file importable into Google Calendar, Apple Calendar, Outlook, and any other calendar app.",
+        "calendar.js (V2 + V3): added generateICS() function \u2014 converts buildCalendarEvents output to valid VCALENDAR/VEVENT format with proper all-day date handling.",
+        "CalendarTab (V2 + V3): button only appears when there are events to export.",
+        "Roadmap: live webcal:// subscribe URL tracked as follow-up (roadmap-webcal)."
+      ]
+    },
     {
       "version": "V3.3.24",
       "date": "2026-04-23",
@@ -4947,7 +4959,13 @@
       "feature": "iCal / Calendar Subscribe",
       "status": "future",
       "priority": "P3",
-      "detail": "Export planning calendar as .ics file (download) and/or live webcal:// subscribe URL. Applies to both V2 and V3. Scope TBD: download vs live subscribe, which event sources to include."
+      "detail": "Download .ics file \u2014 SHIPPING NOW (V2 + V3). Live webcal:// subscribe URL (calendar app polls a URL and stays in sync) tracked separately as roadmap-webcal."
+    },
+    {
+      "feature": "Live Calendar Subscribe (webcal://)",
+      "status": "future",
+      "priority": "P3",
+      "detail": "Vercel API endpoint that generates an ICS feed on demand. Users subscribe via webcal:// URL and their calendar app stays in sync automatically. V3 only. Follow-up to the .ics download feature."
     }
   ],
   "priorities": {

@@ -8,7 +8,7 @@ import { useState, useEffect, useMemo } from "react";
 import { useEventData }       from "@/hooks/useEventData.js";
 import { useSearchHighlight } from "@/hooks/useSearchHighlight.js";
 import { CAL_SOURCES }        from "@/constants/ui.js";
-import { buildCalendarEvents } from "@/utils/calendar.js";
+import { buildCalendarEvents, generateICS } from "@/utils/calendar.js";
 import { ArchivedNotice }     from "@/components/shared/ArchivedNotice.jsx";
 
 export function CalendarTab({ eventId, event, adminConfig, showToast, isArchived, setActiveTab, searchHighlight, clearSearchHighlight, onNavigateToSource }) {
@@ -138,6 +138,17 @@ export function CalendarTab({ eventId, event, adminConfig, showToast, isArchived
   const upcomingCount = allEvents.filter(e => !e.done && e.diff > 7).length;
   const overdueCount  = allEvents.filter(e => !e.done && e.diff < 0).length;
 
+  const handleDownloadICS = () => {
+    const icsContent = generateICS(allEvents, adminConfig?.name || "SimchaKit");
+    const blob = new Blob([icsContent], { type: "text/calendar;charset=utf-8" });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement("a");
+    a.href     = url;
+    a.download = `${(adminConfig?.name || "simchakit").replace(/\s+/g, "-").toLowerCase()}-calendar.ics`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="tab-content">
       {isArchived && <ArchivedNotice />}
@@ -210,6 +221,9 @@ export function CalendarTab({ eventId, event, adminConfig, showToast, isArchived
             <button className={`btn btn-sm ${view==="list" ? "btn-primary" : "btn-ghost"}`} style={{ padding: "4px 10px", fontSize: 12 }} onClick={() => setView("list")}>☰ List</button>
             <button className={`btn btn-sm ${view==="month" ? "btn-primary" : "btn-ghost"}`} style={{ padding: "4px 10px", fontSize: 12 }} onClick={() => setView("month")}>📅 Month</button>
           </div>
+        )}
+        {allEvents.length > 0 && (
+          <button className="btn btn-secondary btn-sm" onClick={handleDownloadICS} title="Download as .ics calendar file">⬇ .ics</button>
         )}
       </div>
 

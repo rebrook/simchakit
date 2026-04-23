@@ -128,4 +128,44 @@ function buildCalendarEvents(state, adminConfig, showCompleted) {
   );
 }
 
-export { buildCalendarEvents };
+// ── ICS generator ─────────────────────────────────────────────────────────────
+// Converts buildCalendarEvents output to a valid .ics file string.
+function generateICS(events, calendarName) {
+  const esc = (s) => (s || "").replace(/[\\;,]/g, c => "\\" + c).replace(/\n/g, "\\n");
+  const toICSDate = (dateStr) => dateStr.replace(/-/g, "");
+
+  const lines = [
+    "BEGIN:VCALENDAR",
+    "VERSION:2.0",
+    "PRODID:-//SimchaKit//SimchaKit Calendar//EN",
+    "CALSCALE:GREGORIAN",
+    "METHOD:PUBLISH",
+    `X-WR-CALNAME:${esc(calendarName || "SimchaKit")}`,
+    "X-WR-TIMEZONE:America/New_York",
+  ];
+
+  events.forEach(e => {
+    if (!e.date) return;
+    const dtStart = toICSDate(e.date);
+    // All-day events: DTEND is next day
+    const next = new Date(e.date + "T00:00:00");
+    next.setDate(next.getDate() + 1);
+    const dtEnd = `${next.getFullYear()}${String(next.getMonth()+1).padStart(2,"0")}${String(next.getDate()).padStart(2,"0")}`;
+    const uid = `${e.id}@simchakit`;
+    lines.push(
+      "BEGIN:VEVENT",
+      `UID:${uid}`,
+      `DTSTART;VALUE=DATE:${dtStart}`,
+      `DTEND;VALUE=DATE:${dtEnd}`,
+      `SUMMARY:${esc(e.title)}`,
+      ...(e.meta ? [`DESCRIPTION:${esc(e.meta)}`] : []),
+      `CATEGORIES:${esc(e.source)}`,
+      "END:VEVENT"
+    );
+  });
+
+  lines.push("END:VCALENDAR");
+  return lines.join("\r\n");
+}
+
+export { buildCalendarEvents, generateICS };
