@@ -687,6 +687,28 @@ function generateGuestPrintHTML(households, people, eventName, eventDate, theme)
 }
 
 
+// ── Guest export: Email List ─────────────────────────────────────────────────
+// One row per household with email and phone. Audience: mail merge, bulk email, RSVP follow-up.
+function exportEmailListCSV(households) {
+  const esc = v => { const s = String(v || ""); return (s.includes(",") || s.includes('"') || s.includes("\n")) ? '"' + s.replace(/"/g, '""') + '"' : s; };
+  const headers = ["Last Name", "Formal Name", "Group", "RSVP Status", "Email", "Phone"];
+  const sorted = [...households]
+    .filter(hh => hh.email && hh.email.trim())
+    .sort((a, b) => {
+      const la = (a.formalName || "").trim().split(" ").filter(Boolean).pop()?.toLowerCase() || "";
+      const lb = (b.formalName || "").trim().split(" ").filter(Boolean).pop()?.toLowerCase() || "";
+      return la.localeCompare(lb);
+    });
+  const rows = sorted.map(hh => {
+    const lastName = (hh.formalName || "").trim().split(" ").filter(Boolean).pop() || "";
+    return [
+      lastName, hh.formalName || "", hh.group || "",
+      hh.rsvpStatus || "Invited", hh.email || "", hh.phone || "",
+    ];
+  });
+  return [headers.map(esc).join(","), ...rows.map(r => r.map(esc).join(","))].join("\n");
+}
+
 export {
   getPeopleForHousehold,
   isMaleTitle,
@@ -703,6 +725,7 @@ export {
   exportGuestsByHousehold,
   exportGuestsByPerson,
   generateGuestPrintHTML,
+  exportEmailListCSV,
   getAddressFields,
   formatAddress,
   migrateCityStateZip,

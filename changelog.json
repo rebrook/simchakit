@@ -1,9 +1,20 @@
 {
-  "current": "V3.3.23",
+  "current": "V3.3.24",
   "whatsNew": [
-    "PaywallGate: support contact added. CreateEventForm: default admin password hint added."
+    "Guests: Email List export added to Export Guest List modal"
   ],
   "changelog": [
+    {
+      "version": "V3.3.24",
+      "date": "2026-04-23",
+      "type": "improvement",
+      "summary": "Guests \u2014 Email List export added",
+      "changes": [
+        "New export option in Export Guest List modal: Email List \u2014 one row per household with an email address on file, including formal name, group, RSVP status, email, and phone.",
+        "guests.js: added exportEmailListCSV function.",
+        "GuestsTab: added Email List card to GuestExportModal alongside existing export options."
+      ]
+    },
     {
       "version": "V3.3.23",
       "date": "2026-04-22",

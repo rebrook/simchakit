@@ -1,9 +1,30 @@
 {
-  "current": "V3.3.22",
+  "current": "V3.3.24",
   "whatsNew": [
-    "AdminPanel: Restore backup now handles V2 backup format"
+    "Guests: Email List export added to Export Guest List modal"
   ],
   "changelog": [
+    {
+      "version": "V3.3.24",
+      "date": "2026-04-23",
+      "type": "improvement",
+      "summary": "Guests \u2014 Email List export added",
+      "changes": [
+        "New export option in Export Guest List modal: Email List \u2014 one row per household with an email address on file, including formal name, group, RSVP status, email, and phone.",
+        "guests.js: added exportEmailListCSV function.",
+        "GuestsTab: added Email List card to GuestExportModal alongside existing export options."
+      ]
+    },
+    {
+      "version": "V3.3.23",
+      "date": "2026-04-22",
+      "type": "improvement",
+      "summary": "PaywallGate and CreateEventForm \u2014 support contact and admin password hint",
+      "changes": [
+        "PaywallGate: Added support contact line below trust note \u2014 \"Having trouble? Email support@brook-creative.com\".",
+        "CreateEventForm: Added hint below form informing users their default admin password is \"admin\" and can be changed in Admin Mode."
+      ]
+    },
     {
       "version": "V3.3.22",
       "date": "2026-04-22",
