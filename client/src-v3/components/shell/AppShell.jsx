@@ -98,7 +98,7 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false }) {
     async function load() {
       let query = supabase
         .from("events")
-        .select("id, name, type, archived, admin_config, quick_notes")
+        .select("id, name, type, archived, admin_config, quick_notes, calendar_token")
         .eq("id", eventId);
 
       // Demo mode: no session, skip owner_id filter
@@ -680,6 +680,8 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false }) {
       {showAdminPanel && (
         <AdminPanel
           eventId={eventId}
+          userId={session?.user?.id}
+          calendarToken={event?.calendar_token}
           password={adminPassword}
           config={adminConfig}
           onClose={() => setShowAdminPanel(false)}

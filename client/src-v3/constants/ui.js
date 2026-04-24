@@ -155,6 +155,7 @@ const GUIDE_SECTIONS = [
       { heading: "Click popover & navigation", body: "Click any event in either view to open a detail popover with full title, date, source, and meta. The → [Tab] button navigates directly to the source tab and highlights the originating row." },
       { heading: "Filters", body: "Use the source filter to show only one category (Events, Tasks, Payments, Milestones, or Prep). The Show Completed toggle reveals completed tasks and paid expenses, hidden by default." },
       { heading: "Export to calendar app (.ics)", body: "Click ⬇ .ics in the filter bar to download all calendar events as a standard .ics file. Import it into Google Calendar, Apple Calendar, Outlook, or any other calendar app. The file includes all visible events based on your current source filter and Show Completed setting." },
+      { heading: "Live calendar subscription", body: "Click 📅 Subscribe in the filter bar to copy your personal subscribe URL. Paste it into Google Calendar (Other calendars > From URL), Apple Calendar (File > New Calendar Subscription), or Outlook (Add calendar > Subscribe from web). Your calendar app will automatically refresh as you update tasks, payments, and events. To manage or regenerate your subscribe URL, go to Admin Mode > Calendar." },
     ],
   },
   {

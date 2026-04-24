@@ -149,6 +149,18 @@ export function CalendarTab({ eventId, event, adminConfig, showToast, isArchived
     URL.revokeObjectURL(url);
   };
 
+  const handleSubscribe = () => {
+    const token = event?.calendar_token;
+    if (!token) {
+      showToast("Calendar subscription is not available for this event. Open Admin Mode to enable it.");
+      return;
+    }
+    const url = `webcal://app.simcha-kit.com/api/calendar/${token}.ics`;
+    navigator.clipboard.writeText(url)
+      .then(() => showToast("📅 Subscribe URL copied to clipboard — paste it into your calendar app"))
+      .catch(() => showToast("Could not copy. URL: " + url));
+  };
+
   return (
     <div className="tab-content">
       {isArchived && <ArchivedNotice />}
@@ -224,6 +236,9 @@ export function CalendarTab({ eventId, event, adminConfig, showToast, isArchived
         )}
         {allEvents.length > 0 && (
           <button className="btn btn-secondary btn-sm" onClick={handleDownloadICS} title="Download as .ics calendar file">⬇ .ics</button>
+        )}
+        {allEvents.length > 0 && event?.calendar_token && (
+          <button className="btn btn-secondary btn-sm" onClick={handleSubscribe} title="Copy subscribe URL for Google Calendar, Apple Calendar, or Outlook">📅 Subscribe</button>
         )}
       </div>
 

@@ -1,9 +1,24 @@
 {
-  "current": "V3.4.0",
+  "current": "V3.5.0",
   "whatsNew": [
-    "Calendar: Download .ics file to import into Google Calendar, Apple Calendar, or Outlook"
+    "Calendar: Live subscription via webcal:// \u2014 subscribe in Google Calendar, Apple Calendar, or Outlook and stay in sync automatically"
   ],
   "changelog": [
+    {
+      "version": "V3.5.0",
+      "date": "2026-04-23",
+      "type": "feature",
+      "summary": "Calendar \u2014 live webcal:// subscription",
+      "changes": [
+        "New \ud83d\udcc5 Subscribe button in CalendarTab filter bar. Copies a personal webcal:// URL to clipboard for use in Google Calendar, Apple Calendar, Outlook, or any calendar app that supports live subscriptions.",
+        "New Vercel serverless function: api/calendar/[token].js \u2014 public endpoint that generates an ICS feed on demand from all 5 calendar sources (timeline, tasks, payments, milestones, prep). Returns Cache-Control: public, max-age=3600.",
+        "New Vercel serverless function: api/calendar/generate-token.js \u2014 authenticated POST endpoint that regenerates the calendar token for an event, invalidating any previous subscribe URLs.",
+        "Supabase: calendar_token UUID column added to events table. Each event gets a unique unguessable token \u2014 subscribe URLs cannot be enumerated.",
+        "AdminPanel: new Calendar section showing the subscribe URL with a copy button and a Regenerate Link option with confirmation step.",
+        "AppShell: calendar_token fetched alongside event data and passed to CalendarTab and AdminPanel.",
+        "ui_v3.js: guide updated with Live calendar subscription entry explaining how to subscribe in Google Calendar, Apple Calendar, and Outlook."
+      ]
+    },
     {
       "version": "V3.4.0",
       "date": "2026-04-23",
@@ -4963,7 +4978,7 @@
     },
     {
       "feature": "Live Calendar Subscribe (webcal://)",
-      "status": "future",
+      "status": "shipped",
       "priority": "P3",
       "detail": "Vercel API endpoint that generates an ICS feed on demand. Users subscribe via webcal:// URL and their calendar app stays in sync automatically. V3 only. Follow-up to the .ics download feature."
     }
