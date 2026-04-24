@@ -155,7 +155,7 @@ export function CalendarTab({ eventId, event, adminConfig, showToast, isArchived
       showToast("Calendar subscription is not available for this event. Open Admin Mode to enable it.");
       return;
     }
-    const url = `webcal://app.simcha-kit.com/api/calendar/${token}.ics`;
+    const url = `webcal://app.simcha-kit.com/api/calendar/subscribe?token=${token}`;
     navigator.clipboard.writeText(url)
       .then(() => showToast("📅 Subscribe URL copied to clipboard — paste it into your calendar app"))
       .catch(() => showToast("Could not copy. URL: " + url));

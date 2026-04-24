@@ -936,7 +936,7 @@ export function AdminPanel({ eventId, userId, calendarToken: initialCalendarToke
                         <input
                           className="form-input"
                           readOnly
-                          value={`webcal://app.simcha-kit.com/api/calendar/${calendarToken}.ics`}
+                          value={`webcal://app.simcha-kit.com/api/calendar/subscribe?token=${calendarToken}`}
                           onFocus={e => e.target.select()}
                           style={{ fontFamily: "monospace", fontSize: 12 }}
                         />
@@ -944,7 +944,7 @@ export function AdminPanel({ eventId, userId, calendarToken: initialCalendarToke
                           className="btn btn-secondary btn-sm"
                           style={{ flexShrink: 0 }}
                           onClick={() => {
-                            navigator.clipboard.writeText(`webcal://app.simcha-kit.com/api/calendar/${calendarToken}.ics`)
+                            navigator.clipboard.writeText(`webcal://app.simcha-kit.com/api/calendar/subscribe?token=${calendarToken}`)
                               .then(() => { setCalTokenCopied(true); setTimeout(() => setCalTokenCopied(false), 2500); })
                               .catch(() => {});
                           }}

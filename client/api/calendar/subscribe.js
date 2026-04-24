@@ -1,7 +1,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// SimchaKit V3.5.0 — api/calendar/[token].js
+// SimchaKit V3.5.0 — api/calendar/subscribe.js
 // Vercel serverless function — public, no auth required.
-// GET /api/calendar/[token].ics
+// GET /api/calendar/subscribe?token=[calendar_token]
 // Looks up event by calendar_token, builds ICS from all 5 sources,
 // returns text/calendar response suitable for webcal:// subscription.
 // ─────────────────────────────────────────────────────────────────────────────
@@ -122,9 +122,8 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
-  // Extract token from URL — strips trailing .ics if present
-  const raw   = req.query.token || "";
-  const token = raw.replace(/\.ics$/i, "");
+  // Extract token from query string
+  const token = (req.query.token || "").trim();
 
   if (!token) {
     return res.status(400).json({ error: "Missing token" });
