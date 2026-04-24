@@ -4604,9 +4604,10 @@
     },
     {
       "feature": "SimchaKit Platform",
-      "status": "future",
+      "status": "complete",
       "priority": "P4",
-      "detail": "Full multi-event platform: Create New Event provisioning UI, multiple event types, SaaS multi-tenant architecture, user authentication, and per-event billing."
+      "detail": "Full multi-event platform: Create New Event provisioning UI, multiple event types, SaaS multi-tenant architecture, user authentication, and per-event billing.",
+      "completedIn": "V3.0.0"
     },
     {
       "version": "V2.0",
@@ -4849,10 +4850,11 @@
     {
       "version": "V1.14.1",
       "feature": "Print / PDF event brief",
-      "status": "shipped",
+      "status": "complete",
       "priority": "P3",
       "detail": "\ud83d\udda8 Print Brief button on the Overview tab. Generates a printable HTML document with event timeline, guest summary (with dietary requirements), confirmed vendors with payment status, and open/overdue tasks. Opens in iframe preview modal \u2014 print or save as PDF from browser.",
-      "shippedIn": "V3.1.2"
+      "shippedIn": "V3.1.2",
+      "completedIn": "V1.14.1"
     },
     {
       "version": "V1.11.3",
@@ -4972,15 +4974,17 @@
     },
     {
       "feature": "iCal / Calendar Subscribe",
-      "status": "future",
+      "status": "complete",
       "priority": "P3",
-      "detail": "Download .ics file \u2014 SHIPPING NOW (V2 + V3). Live webcal:// subscribe URL (calendar app polls a URL and stays in sync) tracked separately as roadmap-webcal."
+      "detail": "Download .ics file \u2014 SHIPPING NOW (V2 + V3). Live webcal:// subscribe URL (calendar app polls a URL and stays in sync) tracked separately as roadmap-webcal.",
+      "completedIn": "V3.4.0"
     },
     {
       "feature": "Live Calendar Subscribe (webcal://)",
-      "status": "shipped",
+      "status": "complete",
       "priority": "P3",
-      "detail": "Vercel API endpoint that generates an ICS feed on demand. Users subscribe via webcal:// URL and their calendar app stays in sync automatically. V3 only. Follow-up to the .ics download feature."
+      "detail": "Vercel API endpoint that generates an ICS feed on demand. Users subscribe via webcal:// URL and their calendar app stays in sync automatically. V3 only. Follow-up to the .ics download feature.",
+      "completedIn": "V3.5.0"
     }
   ],
   "priorities": {
