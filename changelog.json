@@ -1,11 +1,21 @@
 {
-  "current": "V3.7.1",
+  "current": "V3.7.2",
   "whatsNew": [
     "Auto-Seat \u2014 automatically assign all unseated guests to tables with one click, keeping households together.",
     "Per-sub-event seating charts \u2014 each sub-event has its own independent set of tables and assignments.",
     "Pill switcher lets you flip between sub-event seating charts instantly."
   ],
   "changelog": [
+    {
+      "version": "V3.7.2",
+      "date": "2026-04-25",
+      "type": "fix",
+      "summary": "SeatingTab V3 \u2014 missing handlePersonClick declaration",
+      "changes": [
+        "Bug: Vite build failed with 'Unexpected }' at line 687. Root cause: str_replace that added handleAutoSeat accidentally consumed the const handlePersonClick = (personId) => { declaration, leaving the function body orphaned.",
+        "Fix: restored the handlePersonClick declaration between handleAutoSeat and handleTableClick."
+      ]
+    },
     {
       "version": "V3.7.1",
       "date": "2026-04-25",

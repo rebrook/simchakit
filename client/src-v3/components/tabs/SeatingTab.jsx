@@ -227,6 +227,8 @@ export function SeatingTab({ eventId, event, adminConfig, showToast, isArchived,
     setShowAutoSeat(false);
     setAutoSeatResult(result);
   };
+
+  const handlePersonClick = (personId) => {
     if (isArchived) return;
     setSelectedPersonId(id => id === personId ? null : personId);
   };
