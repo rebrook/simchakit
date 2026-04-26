@@ -346,7 +346,7 @@ export function SeatingTab({ eventId, event, adminConfig, showToast, isArchived,
                       {timeline.map(entry => {
                         const isEnabled = enabledSections.includes(entry.id);
                         return (
-                          <label key={entry.id} style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer", padding: "8px 10px", borderRadius: "var(--radius-sm)", background: isEnabled ? "var(--accent-light)" : "var(--bg-subtle)", border: `1px solid ${isEnabled ? "var(--accent-primary)" : "var(--border)"}`, transition: "all 0.15s" }}>
+                          <label key={entry.id} style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer", padding: "8px 10px", borderRadius: "var(--radius-sm)", background: isEnabled ? "var(--accent-light)" : "var(--bg-subtle)", border: `1px solid ${isEnabled ? "var(--accent-primary)" : "var(--border)"}`, transition: "all 0.15s", color: "var(--text-primary)" }}>
                             <input type="checkbox" checked={isEnabled}
                               onChange={e => {
                                 const next = e.target.checked

@@ -1,11 +1,31 @@
 {
-  "current": "V3.6.1",
+  "current": "V3.6.3",
   "whatsNew": [
     "Per-sub-event seating charts \u2014 each sub-event now has its own independent set of tables and guest assignments.",
     "Pill switcher lets you flip between sub-event seating charts instantly.",
     "Seating export is scoped to the active sub-event with the sub-event name included in the printable view title."
   ],
   "changelog": [
+    {
+      "version": "V3.6.3",
+      "date": "2026-04-25",
+      "type": "fix",
+      "summary": "SeatingTab \u2014 checklist text invisible in dark mode",
+      "changes": [
+        "Bug: sub-event checklist labels in the Seating Setup panel showed invisible or very dim text in dark mode. Root cause: the label element had no explicit color set, allowing the cascade to override with a muted color.",
+        "Fix: added color: var(--text-primary) directly to the label element in both SeatingTab_v2.jsx and SeatingTab_v3.jsx."
+      ]
+    },
+    {
+      "version": "V3.6.2",
+      "date": "2026-04-25",
+      "type": "fix",
+      "summary": "SeatingTab V3 \u2014 second TDZ crash fix",
+      "changes": [
+        "Bug: SeatingTab V3 crashed on load with ReferenceError: Cannot access 'W' before initialization. Root cause: the setupOpen auto-reopen useEffect (which re-opens the setup panel when hasSeating is disabled or all sections are removed) referenced hasSeating and enabledSections before they were declared, causing a TDZ violation.",
+        "Fix: moved the setupOpen auto-reopen useEffect to after the hasSeating/enabledSections/activeSectionId/sectionId/timeline/activeSection block where all dependencies are in scope. Full TDZ audit confirmed zero violations across all five useEffect blocks in the component."
+      ]
+    },
     {
       "version": "V3.6.1",
       "date": "2026-04-25",
