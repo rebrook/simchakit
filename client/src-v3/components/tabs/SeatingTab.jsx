@@ -84,6 +84,19 @@ export function SeatingTab({ eventId, event, adminConfig, showToast, isArchived,
     return () => window.removeEventListener("resize", onResize);
   }, []);
 
+  // Derive seating config values — must be before migration hook
+  const hasSeating       = !!seatingConfig.hasSeating;
+  const enabledSections  = seatingConfig.enabledSections || (seatingConfig.eventSectionId ? [seatingConfig.eventSectionId] : []);
+  const [activeSectionId, setActiveSectionId] = useState(() => enabledSections[0] || "");
+  useEffect(() => {
+    if (enabledSections.length > 0 && !enabledSections.includes(activeSectionId)) {
+      setActiveSectionId(enabledSections[0]);
+    }
+  }, [enabledSections.join(",")]);
+  const sectionId        = activeSectionId;
+  const timeline    = (adminConfig?.timeline || []).slice().sort((a, b) => (a.startDate||"").localeCompare(b.startDate||""));
+  const activeSection = timeline.find(e => e.id === sectionId) || null;
+
   // One-time migration: strip stale adultTableId / kidsTableId from households
   // and migrate flat tableId → tableAssignments on people
   const migrated = useRef(false);
@@ -129,18 +142,6 @@ export function SeatingTab({ eventId, event, adminConfig, showToast, isArchived,
       saveConfig({ ...seatingConfig, enabledSections: [seatingConfig.eventSectionId], eventSectionId: undefined });
     }
   }, [households]);
-
-  const hasSeating       = !!seatingConfig.hasSeating;
-  const enabledSections  = seatingConfig.enabledSections || (seatingConfig.eventSectionId ? [seatingConfig.eventSectionId] : []);
-  const [activeSectionId, setActiveSectionId] = useState(() => enabledSections[0] || "");
-  useEffect(() => {
-    if (enabledSections.length > 0 && !enabledSections.includes(activeSectionId)) {
-      setActiveSectionId(enabledSections[0]);
-    }
-  }, [enabledSections.join(",")]);
-  const sectionId        = activeSectionId;
-  const timeline    = (adminConfig?.timeline || []).slice().sort((a, b) => (a.startDate||"").localeCompare(b.startDate||""));
-  const activeSection = timeline.find(e => e.id === sectionId) || null;
 
   // Table ordering
   const sortedTables = [...tables].filter(t => t.sectionId === sectionId || !t.sectionId).sort((a, b) => {

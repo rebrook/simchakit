@@ -1,11 +1,21 @@
 {
-  "current": "V3.6.0",
+  "current": "V3.6.1",
   "whatsNew": [
-    "Per-sub-event seating charts \u2014 each sub-event (Kiddush, Evening Party, etc.) now has its own independent set of tables and guest assignments.",
+    "Per-sub-event seating charts \u2014 each sub-event now has its own independent set of tables and guest assignments.",
     "Pill switcher lets you flip between sub-event seating charts instantly.",
     "Seating export is scoped to the active sub-event with the sub-event name included in the printable view title."
   ],
   "changelog": [
+    {
+      "version": "V3.6.1",
+      "date": "2026-04-25",
+      "type": "fix",
+      "summary": "SeatingTab V3 \u2014 TDZ crash fix",
+      "changes": [
+        "Bug: SeatingTab V3 crashed on load with ReferenceError: Cannot access 're' before initialization. Root cause: hasSeating, enabledSections, activeSectionId, sectionId, timeline, and activeSection were declared after the migration useEffect that referenced them, creating a Temporal Dead Zone (TDZ) violation.",
+        "Fix: moved all seating config derivations (hasSeating through activeSection) to before the migration useRef/useEffect block. No behavior change \u2014 order fix only."
+      ]
+    },
     {
       "version": "V3.6.0",
       "date": "2026-04-25",
