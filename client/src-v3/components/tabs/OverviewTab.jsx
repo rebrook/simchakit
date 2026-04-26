@@ -109,15 +109,7 @@ export function OverviewTab({ eventId, event, adminConfig, showToast, setActiveT
   const confirmedCount = people.filter(p => (p.attendingSections || []).length > 0).length;
   const outOfTownCount = households.filter(h => h.outOfTown).length;
 
-  // Seating gap warning
-  const seatingConfig  = (seatingRows[0]) || {};
-  const hasSeat        = !!seatingConfig.hasSeating;
-  const seatSection    = seatingConfig.eventSectionId || "";
-  const totalSeats     = tables.reduce((s, t) => s + (parseInt(t.capacity) || 0), 0);
-  const seatedConfirmed = hasSeat && seatSection
-    ? people.filter(p => (p.attendingSections || []).includes(seatSection)).length
-    : 0;
-  const seatingGap = seatedConfirmed - totalSeats;
+  // seatingRows used inline in seating gap warning below
 
   return (
     <div>
@@ -211,25 +203,44 @@ export function OverviewTab({ eventId, event, adminConfig, showToast, setActiveT
         </button>
       </div>
 
-      {/* Seating gap warning */}
-      {hasSeat && seatSection && tables.length > 0 && seatedConfirmed > 0 && seatingGap > 0 && (
-        <div style={{
-          display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap",
-          background: "var(--red-light)", border: "1px solid var(--red)",
-          borderRadius: "var(--radius-md)", padding: "12px 16px", marginBottom: 20,
-          fontSize: 13, color: "var(--red)",
-        }}>
-          <span style={{ fontSize: 16 }}>⚠</span>
-          <span style={{ flex: 1 }}>
-            <strong>Seating gap —</strong> {totalSeats} seat{totalSeats !== 1 ? "s" : ""} configured
-            for <strong>{seatedConfirmed}</strong> confirmed guest{seatedConfirmed !== 1 ? "s" : ""}. {seatingGap} additional seat{seatingGap !== 1 ? "s" : ""} needed.
-          </span>
-          <button className="btn btn-sm" onClick={() => setActiveTab && setActiveTab("seating")}
-            style={{ background: "var(--red)", color: "white", border: "none", flexShrink: 0, fontSize: 12 }}>
-            → Seating
-          </button>
-        </div>
-      )}
+      {/* Seating gap warning — one per enabled section that has a gap */}
+      {(() => {
+        const seatingCfg = (seatingRows[0]) || {};
+        const hasSeat    = !!seatingCfg.hasSeating;
+        const sections   = seatingCfg.enabledSections || (seatingCfg.eventSectionId ? [seatingCfg.eventSectionId] : []);
+        if (!hasSeat || sections.length === 0 || tables.length === 0) return null;
+
+        const warnings = sections.map(sid => {
+          const sectionTables = tables.filter(t => t.sectionId === sid || !t.sectionId);
+          const totalSeats    = sectionTables.reduce((s, t) => s + (parseInt(t.capacity) || 0), 0);
+          const confirmed     = people.filter(p => (p.attendingSections||[]).includes(sid)).length;
+          const gap           = confirmed - totalSeats;
+          if (sectionTables.length === 0 || confirmed === 0 || gap <= 0) return null;
+          const entry = (config.timeline||[]).find(e => e.id === sid);
+          const label = entry ? `${entry.icon||"📅"} ${entry.title}` : sid;
+          return { label, totalSeats, confirmed, gap };
+        }).filter(Boolean);
+
+        if (warnings.length === 0) return null;
+        return warnings.map((w, i) => (
+          <div key={i} style={{
+            display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap",
+            background: "var(--red-light)", border: "1px solid var(--red)",
+            borderRadius: "var(--radius-md)", padding: "12px 16px", marginBottom: 12,
+            fontSize: 13, color: "var(--red)",
+          }}>
+            <span style={{ fontSize: 16 }}>⚠</span>
+            <span style={{ flex: 1 }}>
+              <strong>Seating gap ({w.label}) —</strong> {w.totalSeats} seat{w.totalSeats !== 1 ? "s" : ""} configured
+              for <strong>{w.confirmed}</strong> confirmed guest{w.confirmed !== 1 ? "s" : ""}. {w.gap} additional seat{w.gap !== 1 ? "s" : ""} needed.
+            </span>
+            <button className="btn btn-sm" onClick={() => setActiveTab && setActiveTab("seating")}
+              style={{ background: "var(--red)", color: "white", border: "none", flexShrink: 0, fontSize: 12 }}>
+              → Seating
+            </button>
+          </div>
+        ));
+      })()}
 
       {/* Two-column: timeline + notes */}
       <div className="two-col">

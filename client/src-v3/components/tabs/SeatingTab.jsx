@@ -23,6 +23,10 @@ export function SeatingTab({ eventId, event, adminConfig, showToast, isArchived,
   const [configLoading,  setConfigLoading]  = useState(true);
 
   const [setupOpen,        setSetupOpen]        = useState(true);
+  // Re-open setup if no sections enabled yet
+  useEffect(() => {
+    if (!seatingConfig.hasSeating || enabledSections.length === 0) setSetupOpen(true);
+  }, [seatingConfig.hasSeating, enabledSections.length]);
   const [selectedPersonId, setSelectedPersonId] = useState(null);
   const [assignModalTable, setAssignModalTable] = useState(null);
   const [showTableModal,   setShowTableModal]   = useState(false);
@@ -81,12 +85,15 @@ export function SeatingTab({ eventId, event, adminConfig, showToast, isArchived,
   }, []);
 
   // One-time migration: strip stale adultTableId / kidsTableId from households
+  // and migrate flat tableId → tableAssignments on people
   const migrated = useRef(false);
   useEffect(() => {
     if (migrated.current || households.length === 0) return;
     migrated.current = true;
-    const needsMigration = households.some(h => "adultTableId" in h || "kidsTableId" in h);
-    if (needsMigration) {
+
+    // Migrate households
+    const needsHHMigration = households.some(h => "adultTableId" in h || "kidsTableId" in h);
+    if (needsHHMigration) {
       const cleaned = households.map(h => {
         const c = { ...h };
         delete c.adultTableId;
@@ -95,15 +102,48 @@ export function SeatingTab({ eventId, event, adminConfig, showToast, isArchived,
       });
       cleaned.forEach(h => saveHousehold(h));
     }
+
+    // Migrate people: flat tableId → tableAssignments
+    const firstSection = enabledSections[0] || seatingConfig.eventSectionId || "";
+    const needsPeopleMigration = people.some(p => p.tableId && !p.tableAssignments);
+    if (needsPeopleMigration && firstSection) {
+      people.forEach(p => {
+        if (p.tableId && !p.tableAssignments) {
+          const c = { ...p, tableAssignments: { [firstSection]: p.tableId } };
+          delete c.tableId;
+          savePerson(c);
+        }
+      });
+    }
+
+    // Migrate tables: add sectionId to tables that don't have one
+    const firstSectionForTables = enabledSections[0] || seatingConfig.eventSectionId || "";
+    if (firstSectionForTables) {
+      tables.forEach(t => {
+        if (!t.sectionId) saveTable({ ...t, sectionId: firstSectionForTables });
+      });
+    }
+
+    // Migrate seatingConfig: eventSectionId → enabledSections
+    if (seatingConfig.eventSectionId && !seatingConfig.enabledSections) {
+      saveConfig({ ...seatingConfig, enabledSections: [seatingConfig.eventSectionId], eventSectionId: undefined });
+    }
   }, [households]);
 
-  const hasSeating  = !!seatingConfig.hasSeating;
-  const sectionId   = seatingConfig.eventSectionId || "";
+  const hasSeating       = !!seatingConfig.hasSeating;
+  const enabledSections  = seatingConfig.enabledSections || (seatingConfig.eventSectionId ? [seatingConfig.eventSectionId] : []);
+  const [activeSectionId, setActiveSectionId] = useState(() => enabledSections[0] || "");
+  useEffect(() => {
+    if (enabledSections.length > 0 && !enabledSections.includes(activeSectionId)) {
+      setActiveSectionId(enabledSections[0]);
+    }
+  }, [enabledSections.join(",")]);
+  const sectionId        = activeSectionId;
   const timeline    = (adminConfig?.timeline || []).slice().sort((a, b) => (a.startDate||"").localeCompare(b.startDate||""));
   const activeSection = timeline.find(e => e.id === sectionId) || null;
 
   // Table ordering
-  const sortedTables = [...tables].sort((a, b) => {
+  const sortedTables = [...tables].filter(t => t.sectionId === sectionId || !t.sectionId).sort((a, b) => {
     const aO = a.order ?? tables.indexOf(a);
     const bO = b.order ?? tables.indexOf(b);
     return aO - bO;
@@ -121,13 +161,22 @@ export function SeatingTab({ eventId, event, adminConfig, showToast, isArchived,
     }
   };
 
-  const handleAddTable    = async (t)  => { if (isArchived) return; await saveTable(t);                          showToast("Table added");   setShowTableModal(false); };
+  const handleAddTable    = async (t)  => { if (isArchived) return; await saveTable({ ...t, sectionId });                          showToast("Table added");   setShowTableModal(false); };
   const handleEditTable   = async (t)  => { if (isArchived) return; await saveTable(t);                          showToast("Table updated"); setEditTable(null);       };
   const handleDeleteTable = async (id) => {
     if (isArchived) return;
-    // Unassign all people from this table
-    const assigned = people.filter(p => p.tableId === id);
-    for (const p of assigned) await savePerson({ ...p, tableId: null });
+    const assigned = people.filter(p =>
+      p.tableAssignments ? Object.values(p.tableAssignments).includes(id) : p.tableId === id
+    );
+    for (const p of assigned) {
+      if (p.tableAssignments) {
+        const ta = { ...p.tableAssignments };
+        Object.keys(ta).forEach(sid => { if (ta[sid] === id) delete ta[sid]; });
+        await savePerson({ ...p, tableAssignments: ta });
+      } else {
+        await savePerson({ ...p, tableId: null });
+      }
+    }
     const table = tables.find(t => t.id === id);
     if (table) await removeTable(table._rowId);
     showToast("Table deleted");
@@ -137,7 +186,12 @@ export function SeatingTab({ eventId, event, adminConfig, showToast, isArchived,
   const assignPerson = async (personId, tableId) => {
     if (isArchived) return;
     const p = people.find(x => x.id === personId);
-    if (p) await savePerson({ ...p, tableId });
+    if (p) {
+      const ta = { ...(p.tableAssignments || {}), [sectionId]: tableId };
+      const c = { ...p, tableAssignments: ta };
+      delete c.tableId;
+      await savePerson(c);
+    }
     showToast("Guest assigned");
     setSelectedPersonId(null);
   };
@@ -145,7 +199,11 @@ export function SeatingTab({ eventId, event, adminConfig, showToast, isArchived,
   const unassignPerson = async (personId) => {
     if (isArchived) return;
     const p = people.find(x => x.id === personId);
-    if (p) await savePerson({ ...p, tableId: null });
+    if (p) {
+      const ta = { ...(p.tableAssignments || {}) };
+      delete ta[sectionId];
+      await savePerson({ ...p, tableAssignments: ta });
+    }
     showToast("Guest unassigned");
   };
 
@@ -178,10 +236,11 @@ export function SeatingTab({ eventId, event, adminConfig, showToast, isArchived,
   const scopedPeople = hasSeating && sectionId
     ? (anyoneHasSections
         ? people.filter(p => (p.attendingSections||[]).includes(sectionId))
-        : people)  // fallback: no sections configured yet, show everyone
+        : people)
     : [];
 
-  const unseated    = scopedPeople.filter(p => !p.tableId);
+  const getPersonTableId = (p) => p.tableAssignments?.[sectionId] || p.tableId || null;
+  const unseated    = scopedPeople.filter(p => !getPersonTableId(p));
   const tbdPeople   = hasSeating && sectionId
     ? people.filter(p => {
         const hh = householdMap[p.householdId];
@@ -202,10 +261,10 @@ export function SeatingTab({ eventId, event, adminConfig, showToast, isArchived,
   });
 
   const groups       = [...new Set(scopedPeople.map(p => getPersonGroup(p)).filter(Boolean))].sort();
-  const totalSeats   = tables.reduce((s, t) => s + (parseInt(t.capacity) || 0), 0);
-  const seated       = scopedPeople.filter(p => p.tableId).length;
+  const totalSeats   = sortedTables.reduce((s, t) => s + (parseInt(t.capacity) || 0), 0);
+  const seated       = scopedPeople.filter(p => getPersonTableId(p)).length;
   const totalPeople  = scopedPeople.length;
-  const tableOccupants = (tableId) => people.filter(p => p.tableId === tableId);
+  const tableOccupants = (tableId) => people.filter(p => getPersonTableId(p) === tableId);
   const selectedPerson = selectedPersonId ? people.find(p => p.id === selectedPersonId) : null;
 
   const TYPE_BADGE = {
@@ -234,7 +293,7 @@ export function SeatingTab({ eventId, event, adminConfig, showToast, isArchived,
         </div>
         <div style={{ display: "flex", gap: 8 }}>
           <button className="btn btn-ghost btn-sm" onClick={() => setSetupOpen(o => !o)} style={{ fontSize: 12 }}>⚙ Setup</button>
-          {hasSeating && sectionId && (tables.length > 0 || scopedPeople.length > 0) && (
+          {hasSeating && sectionId && (sortedTables.length > 0 || scopedPeople.length > 0) && (
             <button className="btn btn-secondary" onClick={() => setShowExportModal(true)}>↓ Export Seating</button>
           )}
           {hasSeating && sectionId && (
@@ -252,8 +311,9 @@ export function SeatingTab({ eventId, event, adminConfig, showToast, isArchived,
               <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)" }}>Seating Setup</div>
               {!setupOpen && (
                 <div style={{ fontSize: 12, color: "var(--text-muted)" }}>
-                  {hasSeating && activeSection ? `${activeSection.icon||"📅"} ${activeSection.title} · Assigned seating on`
-                    : hasSeating && !sectionId ? "Select a sub-event to continue"
+                  {hasSeating && enabledSections.length > 0
+                    ? `${enabledSections.length} sub-event${enabledSections.length !== 1 ? "s" : ""} with seating · Assigned seating on`
+                    : hasSeating ? "Select sub-events to continue"
                     : "Assigned seating off"}
                 </div>
               )}
@@ -265,28 +325,39 @@ export function SeatingTab({ eventId, event, adminConfig, showToast, isArchived,
           <div style={{ padding: 16 }}>
             <label style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer", marginBottom: 16 }}>
               <input type="checkbox" checked={hasSeating}
-                onChange={e => saveConfig({ ...seatingConfig, hasSeating: e.target.checked })}
+                onChange={e => saveConfig({ ...seatingConfig, hasSeating: e.target.checked, enabledSections: seatingConfig.enabledSections || [] })}
                 style={{ width: 16, height: 16, cursor: "pointer", accentColor: "var(--accent-primary)" }} />
               <div>
                 <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text-primary)" }}>This event has assigned seating</div>
-                <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 2 }}>Only people confirmed for the selected sub-event will appear in the unseated panel.</div>
+                <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 2 }}>Enable seating for one or more sub-events below. Each sub-event has its own independent set of tables.</div>
               </div>
             </label>
             {hasSeating && (
               <div style={{ marginBottom: 0 }}>
-                <label className="form-label">Seating for which sub-event?</label>
+                <div className="form-label" style={{ marginBottom: 8 }}>Which sub-events have assigned seating?</div>
                 {timeline.length === 0 ? (
                   <div style={{ fontSize: 12, color: "var(--text-muted)", padding: "8px 0" }}>No timeline entries found. Add sub-events in Admin Mode first.</div>
                 ) : (
                   <>
-                    <select className="form-select" value={sectionId}
-                      onChange={e => saveConfig({ ...seatingConfig, hasSeating: true, eventSectionId: e.target.value })}>
-                      <option value="">— Select a sub-event —</option>
-                      {timeline.map(entry => (
-                        <option key={entry.id} value={entry.id}>{entry.icon||"📅"} {entry.title}</option>
-                      ))}
-                    </select>
-                    <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 4 }}>Only confirmed attendees appear unseated. TBD attendees are excluded until confirmed in the Guests tab.</div>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                      {timeline.map(entry => {
+                        const isEnabled = enabledSections.includes(entry.id);
+                        return (
+                          <label key={entry.id} style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer", padding: "8px 10px", borderRadius: "var(--radius-sm)", background: isEnabled ? "var(--accent-light)" : "var(--bg-subtle)", border: `1px solid ${isEnabled ? "var(--accent-primary)" : "var(--border)"}`, transition: "all 0.15s" }}>
+                            <input type="checkbox" checked={isEnabled}
+                              onChange={e => {
+                                const next = e.target.checked
+                                  ? [...enabledSections, entry.id]
+                                  : enabledSections.filter(id => id !== entry.id);
+                                saveConfig({ ...seatingConfig, hasSeating: true, enabledSections: next });
+                              }}
+                              style={{ width: 15, height: 15, cursor: "pointer", accentColor: "var(--accent-primary)" }} />
+                            <span style={{ fontSize: 13, color: "var(--text-primary)" }}>{entry.icon||"📅"} {entry.title}</span>
+                          </label>
+                        );
+                      })}
+                    </div>
+                    <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 8 }}>Only confirmed attendees appear unseated. TBD attendees are excluded until confirmed in the Guests tab.</div>
                   </>
                 )}
               </div>
@@ -295,16 +366,35 @@ export function SeatingTab({ eventId, event, adminConfig, showToast, isArchived,
         )}
       </div>
 
+      {/* Pill switcher — only shown when 2+ sections enabled */}
+      {hasSeating && enabledSections.length >= 2 && (
+        <div style={{ display: "flex", gap: 8, marginBottom: 20, flexWrap: "wrap" }}>
+          {enabledSections.map(sid => {
+            const entry = timeline.find(e => e.id === sid);
+            if (!entry) return null;
+            const isActive = sid === activeSectionId;
+            return (
+              <button key={sid}
+                className={`btn ${isActive ? "btn-primary" : "btn-ghost"}`}
+                style={{ fontSize: 13 }}
+                onClick={() => setActiveSectionId(sid)}>
+                {entry.icon||"📅"} {entry.title}
+              </button>
+            );
+          })}
+        </div>
+      )}
+
       {/* Gated content */}
-      {(!hasSeating || !sectionId) ? (
+      {(!hasSeating || enabledSections.length === 0) ? (
         <div style={{ textAlign: "center", padding: "48px 24px", color: "var(--text-muted)", background: "var(--bg-surface)", borderRadius: "var(--radius-md)", border: "1px solid var(--border)" }}>
           <div style={{ fontSize: 36, marginBottom: 12 }}>🪑</div>
           <div style={{ fontFamily: "var(--font-display)", fontSize: 18, color: "var(--text-primary)", marginBottom: 8 }}>
-            {!hasSeating ? "Assigned seating is off" : "No sub-event selected"}
+            {!hasSeating ? "Assigned seating is off" : "No sub-events selected"}
           </div>
           <div style={{ fontSize: 14, maxWidth: 360, margin: "0 auto" }}>
             {!hasSeating ? "Turn on assigned seating in the Setup panel above to start building your chart."
-              : "Select a sub-event in the Setup panel above to see who needs to be seated."}
+              : "Select one or more sub-events in the Setup panel above to get started."}
           </div>
         </div>
       ) : (<>
@@ -490,7 +580,9 @@ export function SeatingTab({ eventId, event, adminConfig, showToast, isArchived,
       })()}
 
       {showExportModal && (
-        <SeatingExportModal tables={sortedTables} people={people} households={households} adminConfig={adminConfig || {}}
+        <SeatingExportModal tables={sortedTables} people={scopedPeople} households={households} adminConfig={adminConfig || {}}
+          sectionId={sectionId}
+          sectionTitle={activeSection ? `${activeSection.icon||""} ${activeSection.title}`.trim() : ""}
           onPrint={(html) => { setPrintHTML(html); setShowExportModal(false); }}
           onClose={() => setShowExportModal(false)} />
       )}
@@ -519,8 +611,9 @@ export function AssignModal({ table, tables, people, households, sectionId, getP
   const [groupFilter, setGroupFilter] = useState("All");
 
   const cap      = parseInt(table.capacity) || 0;
-  const assigned = people.filter(p => p.tableId === table.id);
-  const available = people.filter(p => !p.tableId && (sectionId ? (p.attendingSections||[]).includes(sectionId) : true));
+  const getPersonTableId = (p) => sectionId ? (p.tableAssignments?.[sectionId] || null) : p.tableId;
+  const assigned = people.filter(p => getPersonTableId(p) === table.id);
+  const available = people.filter(p => !getPersonTableId(p) && (sectionId ? (p.attendingSections||[]).includes(sectionId) : true));
 
   const filteredAvailable = available.filter(p => {
     if (groupFilter !== "All" && getPersonGroup(p) !== groupFilter) return false;
@@ -644,13 +737,13 @@ export function TableModal({ table, tableCount, onSave, onClose, isArchived }) {
   );
 }
 
-export function SeatingExportModal({ tables, people, households, adminConfig, onPrint, onClose }) {
+export function SeatingExportModal({ tables, people, households, adminConfig, sectionId, sectionTitle, onPrint, onClose }) {
   const [activeExport, setActiveExport] = useState(null);
   const [copied,       setCopied]       = useState(false);
-  const csvContent = activeExport === "byTable" ? exportSeatingByTable(tables, people, households) : activeExport === "byPerson" ? exportSeatingByPerson(tables, people, households) : "";
+  const csvContent = activeExport === "byTable" ? exportSeatingByTable(tables, people, households, sectionId) : activeExport === "byPerson" ? exportSeatingByPerson(tables, people, households, sectionId) : "";
   const handlePrint = () => {
     const mainEvt = (adminConfig?.timeline||[]).find(e => e.isMainEvent);
-    onPrint(generateSeatingPrintHTML(tables, people, households, adminConfig.name || "", mainEvt?.startDate || "", adminConfig.theme || {}));
+    onPrint(generateSeatingPrintHTML(tables, people, households, adminConfig.name || "", mainEvt?.startDate || "", adminConfig.theme || {}, sectionTitle || "", sectionId || ""));
   };
   const OPTION = (active) => ({ flex: 1, padding: "14px 16px", borderRadius: "var(--radius-md)", border: active ? "2px solid var(--accent-primary)" : "2px solid var(--border)", background: active ? "var(--accent-light)" : "var(--bg-surface)", cursor: "pointer", textAlign: "left", transition: "border-color 0.15s" });
   return (

@@ -1,9 +1,30 @@
 {
-  "current": "V3.5.1",
+  "current": "V3.6.0",
   "whatsNew": [
-    "Print Brief button in the Overview tab now works \u2014 opens a full print preview with Print / Save PDF option."
+    "Per-sub-event seating charts \u2014 each sub-event (Kiddush, Evening Party, etc.) now has its own independent set of tables and guest assignments.",
+    "Pill switcher lets you flip between sub-event seating charts instantly.",
+    "Seating export is scoped to the active sub-event with the sub-event name included in the printable view title."
   ],
   "changelog": [
+    {
+      "version": "V3.6.0",
+      "date": "2026-04-25",
+      "type": "feature",
+      "summary": "Per-sub-event seating charts",
+      "changes": [
+        "Feature: Seating charts are now independent per sub-event. Each enabled sub-event has its own set of tables and guest assignments.",
+        "Data model: table records now carry a sectionId field. Person records replace flat tableId with tableAssignments object keyed by sectionId.",
+        "Setup panel: replaced single sub-event dropdown with a checklist \u2014 users can enable seating for any combination of timeline entries.",
+        "Pill switcher: when 2+ sub-events have seating enabled, a pill switcher appears above the stat cards. Switching pills changes the active context for tables, assignments, unseated panel, and export. Pill switcher is hidden when only one sub-event is enabled.",
+        "Export: all three export formats (By Table, By Person, Printable View) are scoped to the active sub-event. Printable View title now includes the sub-event name.",
+        "Overview tab seating gap warning: now shows one warning per enabled sub-event with a gap, rather than a single global warning.",
+        "One-time migration: on first load, flat tableId is migrated to tableAssignments, tables without sectionId are assigned to the first enabled section, and eventSectionId is migrated to enabledSections.",
+        "Demo data (V2 + V3): Bart's Bar Mitzvah now demonstrates both Kiddush Luncheon and Evening Party seating. Kiddush has 2 adult tables (18 seats), Evening Party has 3 adult tables + 1 kids table (46 seats). Adults assigned to both, kids to Evening Party only.",
+        "V3 demo reset-demo.js: seating collection seed added (was previously missing). Tables and people updated to new model.",
+        "Guide (V2 + V3): Seating section updated with new Setup, Switching between sub-events, Creating tables, Assigning guests, Seating gap warning, and Exporting items.",
+        "exports_v2.js and exports_v3.js: all three seating export functions updated to accept sectionId parameter. getTableId helper uses tableAssignments[sectionId] with fallback to legacy tableId."
+      ]
+    },
     {
       "version": "V3.5.1",
       "date": "2026-04-25",
@@ -4978,7 +4999,7 @@
     },
     {
       "feature": "Per-sub-event seating charts",
-      "status": "future",
+      "status": "complete",
       "priority": "P3",
       "effort": "High",
       "detail": "Separate table sets and seat assignments per sub-event. tableId on person becomes tableAssignments: { [sectionId]: tableId }."

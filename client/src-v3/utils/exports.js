@@ -37,7 +37,7 @@ function exportExpensesCSV(expenses) {
   return [headers.map(esc).join(","), ...rows.map(r => r.map(esc).join(","))].join("\n");
 }
 
-function exportSeatingByTable(tables, people, households) {
+function exportSeatingByTable(tables, people, households, sectionId) {
   const hhMap = Object.fromEntries(households.map(h => [h.id, h]));
 
   const getDisplayName = (p) =>
@@ -45,12 +45,14 @@ function exportSeatingByTable(tables, people, households) {
       ? `${p.firstName || ""} ${p.lastName || ""}`.trim()
       : (p.name || "Unnamed");
 
+  const getTableId = (p) => sectionId ? (p.tableAssignments?.[sectionId] || null) : p.tableId;
+
   // Build column arrays — one per table, plus Unassigned
   const cols = tables.map(t => ({
     header: t.name,
-    names:  people.filter(p => p.tableId === t.id).map(getDisplayName),
+    names:  people.filter(p => getTableId(p) === t.id).map(getDisplayName),
   }));
-  const unassigned = people.filter(p => !p.tableId).map(getDisplayName);
+  const unassigned = people.filter(p => !getTableId(p)).map(getDisplayName);
   if (unassigned.length > 0) cols.push({ header: "Unassigned", names: unassigned });
 
   if (cols.length === 0) return "No tables or people found.";
@@ -64,9 +66,11 @@ function exportSeatingByTable(tables, people, households) {
   return rows.join("\n");
 }
 
-function exportSeatingByPerson(tables, people, households) {
+function exportSeatingByPerson(tables, people, households, sectionId) {
   const hhMap    = Object.fromEntries(households.map(h => [h.id, h]));
   const tableMap = Object.fromEntries(tables.map(t => [t.id, t]));
+
+  const getTableId = (p) => sectionId ? (p.tableAssignments?.[sectionId] || null) : p.tableId;
 
   const getDisplayName = (p) =>
     (p.firstName || p.lastName)
@@ -81,7 +85,8 @@ function exportSeatingByPerson(tables, people, households) {
 
   const rows = sorted.map(p => {
     const hh    = hhMap[p.householdId] || {};
-    const table = p.tableId ? tableMap[p.tableId] : null;
+    const tid   = getTableId(p);
+    const table = tid ? tableMap[tid] : null;
     return [
       getLastName(p),
       p.firstName || "",
@@ -98,7 +103,7 @@ function exportSeatingByPerson(tables, people, households) {
   return [headers.map(csvEsc).join(","), ...rows].join("\n");
 }
 
-function generateSeatingPrintHTML(tables, people, households, eventName, eventDate, theme) {
+function generateSeatingPrintHTML(tables, people, households, eventName, eventDate, theme, sectionTitle, sectionId) {
   const pal = PALETTES[theme?.palette] || PALETTES.rose;
   const hhMap = Object.fromEntries(households.map(h => [h.id, h]));
 
@@ -107,10 +112,16 @@ function generateSeatingPrintHTML(tables, people, households, eventName, eventDa
       ? `${p.firstName || ""} ${p.lastName || ""}`.trim()
       : (p.name || "Unnamed");
 
-  const unassigned = people.filter(p => !p.tableId);
+  const getTableId = (p) => sectionId ? (p.tableAssignments?.[sectionId] || null) : p.tableId;
+
+  const titleLine = eventName
+    ? (sectionTitle ? `${eventName} · ${sectionTitle}` : eventName)
+    : "Seating Chart";
+
+  const unassigned = people.filter(p => !getTableId(p));
 
   const tableCards = tables.map(t => {
-    const occupants = people.filter(p => p.tableId === t.id);
+    const occupants = people.filter(p => getTableId(p) === t.id);
     const rows = occupants.map(p => {
       const hh = hhMap[p.householdId] || {};
       const flags = [];
@@ -201,11 +212,11 @@ function generateSeatingPrintHTML(tables, people, households, eventName, eventDa
 
 <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:24px;padding-bottom:16px;border-bottom:2px solid ${pal["accent-medium"]}">
   <div>
-    <div style="font-family:'Cormorant Garamond',Georgia,serif;font-size:28px;font-weight:700;color:#1c1614">${eventName || "Seating Chart"}</div>
+    <div style="font-family:'Cormorant Garamond',Georgia,serif;font-size:28px;font-weight:700;color:#1c1614">${titleLine}</div>
     ${dateStr ? `<div style="font-size:13px;color:#5c5248;margin-top:2px">${dateStr}</div>` : ""}
   </div>
   <div style="text-align:right">
-    <div style="font-size:11px;color:#9c9188">${tables.length} tables · ${people.filter(p=>p.tableId).length} seated · ${unassigned.length} unassigned</div>
+    <div style="font-size:11px;color:#9c9188">${tables.length} tables · ${people.filter(p=>getTableId(p)).length} seated · ${unassigned.length} unassigned</div>
     <div style="font-size:11px;color:#9c9188;margin-top:2px">Generated ${new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</div>
   </div>
 </div>

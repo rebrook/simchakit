@@ -39,7 +39,7 @@ const SEED = {
       "rsvpDate": "2027-06-10",
       "outOfTown": false,
       "accomNotified": false,
-      "notes": "Dietary: Lisa Simpson \u2014 vegetarian. No meat of any kind. Members: Homer Simpson, Marge Simpson, Bart Simpson, Lisa Simpson. Contact: homer@powerplant.example.com, 555-636-0001",
+      "notes": "Dietary: Lisa Simpson — vegetarian. No meat of any kind. Members: Homer Simpson, Marge Simpson, Bart Simpson, Lisa Simpson. Contact: homer@powerplant.example.com, 555-636-0001",
       "inviteDate": "2027-05-01",
       "eventSection": "",
       "invitedSections": [
@@ -71,7 +71,7 @@ const SEED = {
       "rsvpDate": "2027-06-05",
       "outOfTown": false,
       "accomNotified": false,
-      "notes": "Dietary: Ned Flanders \u2014 strictly kosher. Rod and Todd also kosher.",
+      "notes": "Dietary: Ned Flanders — strictly kosher. Rod and Todd also kosher.",
       "inviteDate": "2027-05-01",
       "eventSection": "",
       "invitedSections": [
@@ -170,7 +170,7 @@ const SEED = {
       "rsvpDate": "2027-07-01",
       "outOfTown": true,
       "accomNotified": true,
-      "notes": "Members: Robert Terwilliger Sr., Judith Terwilliger. Out of town \u2014 Shelbyville. Contact: 555-637-0005",
+      "notes": "Members: Robert Terwilliger Sr., Judith Terwilliger. Out of town — Shelbyville. Contact: 555-637-0005",
       "inviteDate": "2027-05-01",
       "accomBooked": true,
       "accomCheckIn": "2027-10-15",
@@ -236,7 +236,7 @@ const SEED = {
       "rsvpDate": "2027-07-10",
       "outOfTown": false,
       "accomNotified": false,
-      "notes": "Dietary: Ralph Wiggum \u2014 severe nut allergy (peanuts and tree nuts). Notify caterer.",
+      "notes": "Dietary: Ralph Wiggum — severe nut allergy (peanuts and tree nuts). Notify caterer.",
       "inviteDate": "2027-05-01",
       "eventSection": "",
       "invitedSections": [
@@ -267,7 +267,7 @@ const SEED = {
       "rsvpDate": "2027-06-15",
       "outOfTown": false,
       "accomNotified": false,
-      "notes": "Dietary: Jules Hibbert \u2014 kosher only. Contact: dr.hibbert@springfieldmed.example.com, 555-636-0008",
+      "notes": "Dietary: Jules Hibbert — kosher only. Contact: dr.hibbert@springfieldmed.example.com, 555-636-0008",
       "inviteDate": "2027-05-01",
       "eventSection": "",
       "invitedSections": [
@@ -328,7 +328,7 @@ const SEED = {
       "rsvpDate": "2027-06-25",
       "outOfTown": false,
       "accomNotified": false,
-      "notes": "Dietary: Helen Lovejoy \u2014 gluten free. Members: Timothy Lovejoy, Helen Lovejoy, Jessica Lovejoy. Contact: rev@springfieldchurch.example.com, 555-636-0010",
+      "notes": "Dietary: Helen Lovejoy — gluten free. Members: Timothy Lovejoy, Helen Lovejoy, Jessica Lovejoy. Contact: rev@springfieldchurch.example.com, 555-636-0010",
       "inviteDate": "2027-05-01",
       "eventSection": "",
       "invitedSections": [
@@ -677,7 +677,7 @@ const SEED = {
       "rsvpDate": "2027-07-22",
       "outOfTown": false,
       "accomNotified": false,
-      "notes": "Dietary: Janey Powell \u2014 kosher preferred, will eat vegetarian if not certified.",
+      "notes": "Dietary: Janey Powell — kosher preferred, will eat vegetarian if not certified.",
       "inviteDate": "2027-05-15",
       "eventSection": "",
       "invitedSections": [
@@ -763,7 +763,7 @@ const SEED = {
       "rsvpDate": null,
       "outOfTown": false,
       "accomNotified": false,
-      "notes": "Family attorney. Invite not yet sent \u2014 confirm address. Contact: lionel.hutz@caseclosed.example.com, 555-636-0025",
+      "notes": "Family attorney. Invite not yet sent — confirm address. Contact: lionel.hutz@caseclosed.example.com, 555-636-0025",
       "inviteDate": "2027-05-01",
       "eventSection": "",
       "invitedSections": [
@@ -783,7 +783,6 @@ const SEED = {
       "title": "Mr.",
       "isChild": false,
       "isAttending": true,
-      "tableId": "3eb35999-5512-4395-887b-1b50203b554a",
       "shirtSize": "XXL | Adult XXL",
       "pantSize": "AL | Adult Large",
       "mealChoice": "Chicken",
@@ -796,7 +795,11 @@ const SEED = {
         "tl_03",
         "tl_04",
         "tl_05"
-      ]
+      ],
+      "tableAssignments": {
+        "tl_04": "a1b2c3d4-0001-4000-8000-000000000001",
+        "tl_05": "3eb35999-5512-4395-887b-1b50203b554a"
+      }
     },
     {
       "id": "378c0bfb-804b-45b6-a49f-cc74339bddec",
@@ -807,7 +810,6 @@ const SEED = {
       "title": "Mrs.",
       "isChild": false,
       "isAttending": true,
-      "tableId": "3eb35999-5512-4395-887b-1b50203b554a",
       "shirtSize": "AS | Adult Small",
       "pantSize": "AS | Adult Small",
       "mealChoice": "Chicken",
@@ -820,7 +822,11 @@ const SEED = {
         "tl_03",
         "tl_04",
         "tl_05"
-      ]
+      ],
+      "tableAssignments": {
+        "tl_04": "a1b2c3d4-0001-4000-8000-000000000001",
+        "tl_05": "3eb35999-5512-4395-887b-1b50203b554a"
+      }
     },
     {
       "id": "0b39efd1-622f-4343-832b-3ad1bb117ae9",
@@ -831,7 +837,6 @@ const SEED = {
       "title": "",
       "isChild": true,
       "isAttending": true,
-      "tableId": "ca392cc5-ca85-42ef-90a5-41cd33cf59b3",
       "shirtSize": "YM | Youth Medium",
       "pantSize": "YM | Youth Medium",
       "mealChoice": "Kids Meal",
@@ -844,7 +849,10 @@ const SEED = {
         "tl_03",
         "tl_04",
         "tl_05"
-      ]
+      ],
+      "tableAssignments": {
+        "tl_05": "ca392cc5-ca85-42ef-90a5-41cd33cf59b3"
+      }
     },
     {
       "id": "4e28973f-ecc7-4c62-917a-30f41427bd07",
@@ -855,12 +863,11 @@ const SEED = {
       "title": "Miss",
       "isChild": true,
       "isAttending": true,
-      "tableId": "ca392cc5-ca85-42ef-90a5-41cd33cf59b3",
       "shirtSize": "YS | Youth Small",
       "pantSize": "YS | Youth Small",
       "mealChoice": "Vegetarian",
       "kosher": false,
-      "dietary": "Vegetarian \u2014 no meat of any kind",
+      "dietary": "Vegetarian — no meat of any kind",
       "notes": "",
       "attendingSections": [
         "tl_01",
@@ -868,7 +875,10 @@ const SEED = {
         "tl_03",
         "tl_04",
         "tl_05"
-      ]
+      ],
+      "tableAssignments": {
+        "tl_05": "ca392cc5-ca85-42ef-90a5-41cd33cf59b3"
+      }
     },
     {
       "id": "d0af9e8d-d9bf-4ea7-8e5e-1070e73455dd",
@@ -879,7 +889,6 @@ const SEED = {
       "title": "Mr.",
       "isChild": false,
       "isAttending": true,
-      "tableId": "3eb35999-5512-4395-887b-1b50203b554a",
       "shirtSize": "AM | Adult Medium",
       "pantSize": "AM | Adult Medium",
       "mealChoice": "Kosher",
@@ -892,7 +901,11 @@ const SEED = {
         "tl_03",
         "tl_04",
         "tl_05"
-      ]
+      ],
+      "tableAssignments": {
+        "tl_04": "a1b2c3d4-0001-4000-8000-000000000001",
+        "tl_05": "3eb35999-5512-4395-887b-1b50203b554a"
+      }
     },
     {
       "id": "01ae1cfc-1dee-42d5-9e58-8c1eaccd46db",
@@ -903,7 +916,6 @@ const SEED = {
       "title": "",
       "isChild": true,
       "isAttending": true,
-      "tableId": "ca392cc5-ca85-42ef-90a5-41cd33cf59b3",
       "shirtSize": "YS | Youth Small",
       "pantSize": "YS | Youth Small",
       "mealChoice": "Kosher",
@@ -916,7 +928,10 @@ const SEED = {
         "tl_03",
         "tl_04",
         "tl_05"
-      ]
+      ],
+      "tableAssignments": {
+        "tl_05": "ca392cc5-ca85-42ef-90a5-41cd33cf59b3"
+      }
     },
     {
       "id": "d1bcc382-95d7-4a9d-aad7-9318c2ed15d7",
@@ -927,7 +942,6 @@ const SEED = {
       "title": "",
       "isChild": true,
       "isAttending": true,
-      "tableId": "ca392cc5-ca85-42ef-90a5-41cd33cf59b3",
       "shirtSize": "YS | Youth Small",
       "pantSize": "YS | Youth Small",
       "mealChoice": "Kosher",
@@ -940,7 +954,10 @@ const SEED = {
         "tl_03",
         "tl_04",
         "tl_05"
-      ]
+      ],
+      "tableAssignments": {
+        "tl_05": "ca392cc5-ca85-42ef-90a5-41cd33cf59b3"
+      }
     },
     {
       "id": "0368e82b-6995-4c3c-bb27-0d15fdb21d89",
@@ -951,7 +968,6 @@ const SEED = {
       "title": "Mrs.",
       "isChild": false,
       "isAttending": true,
-      "tableId": "3eb35999-5512-4395-887b-1b50203b554a",
       "shirtSize": "AS | Adult Small",
       "pantSize": "AS | Adult Small",
       "mealChoice": "Fish",
@@ -964,7 +980,11 @@ const SEED = {
         "tl_03",
         "tl_04",
         "tl_05"
-      ]
+      ],
+      "tableAssignments": {
+        "tl_04": "a1b2c3d4-0001-4000-8000-000000000001",
+        "tl_05": "3eb35999-5512-4395-887b-1b50203b554a"
+      }
     },
     {
       "id": "53c56d19-909a-4614-8d95-fc0debf10a63",
@@ -975,7 +995,6 @@ const SEED = {
       "title": "Ms.",
       "isChild": false,
       "isAttending": true,
-      "tableId": "3eb35999-5512-4395-887b-1b50203b554a",
       "shirtSize": "AS | Adult Small",
       "pantSize": "AS | Adult Small",
       "mealChoice": "Fish",
@@ -988,7 +1007,11 @@ const SEED = {
         "tl_03",
         "tl_04",
         "tl_05"
-      ]
+      ],
+      "tableAssignments": {
+        "tl_04": "a1b2c3d4-0001-4000-8000-000000000001",
+        "tl_05": "3eb35999-5512-4395-887b-1b50203b554a"
+      }
     },
     {
       "id": "ceff2c11-fa63-47cf-950e-7baf439f2b44",
@@ -999,7 +1022,6 @@ const SEED = {
       "title": "Ms.",
       "isChild": false,
       "isAttending": true,
-      "tableId": "3eb35999-5512-4395-887b-1b50203b554a",
       "shirtSize": "AS | Adult Small",
       "pantSize": "AS | Adult Small",
       "mealChoice": "Fish",
@@ -1012,7 +1034,11 @@ const SEED = {
         "tl_03",
         "tl_04",
         "tl_05"
-      ]
+      ],
+      "tableAssignments": {
+        "tl_04": "a1b2c3d4-0001-4000-8000-000000000001",
+        "tl_05": "3eb35999-5512-4395-887b-1b50203b554a"
+      }
     },
     {
       "id": "476d8310-28a9-4a23-af37-78b4d2b651a6",
@@ -1023,7 +1049,6 @@ const SEED = {
       "title": "Mr.",
       "isChild": false,
       "isAttending": true,
-      "tableId": "dd04b944-51d4-4608-8bbe-ea1d40fd4810",
       "shirtSize": "AL | Adult Large",
       "pantSize": "AL | Adult Large",
       "mealChoice": "Chicken",
@@ -1036,7 +1061,10 @@ const SEED = {
         "tl_03",
         "tl_04",
         "tl_05"
-      ]
+      ],
+      "tableAssignments": {
+        "tl_05": "dd04b944-51d4-4608-8bbe-ea1d40fd4810"
+      }
     },
     {
       "id": "318776f3-af00-45e0-ab11-201bcc51bc92",
@@ -1047,7 +1075,6 @@ const SEED = {
       "title": "Mrs.",
       "isChild": false,
       "isAttending": true,
-      "tableId": "dd04b944-51d4-4608-8bbe-ea1d40fd4810",
       "shirtSize": "AS | Adult Small",
       "pantSize": "AS | Adult Small",
       "mealChoice": "Fish",
@@ -1060,7 +1087,10 @@ const SEED = {
         "tl_03",
         "tl_04",
         "tl_05"
-      ]
+      ],
+      "tableAssignments": {
+        "tl_05": "dd04b944-51d4-4608-8bbe-ea1d40fd4810"
+      }
     },
     {
       "id": "dcfc7e3d-ca54-4ac6-be63-09e4fab03c2f",
@@ -1071,7 +1101,6 @@ const SEED = {
       "title": "Mr.",
       "isChild": false,
       "isAttending": true,
-      "tableId": "fe15d484-8778-4cce-8602-6350ada7febd",
       "shirtSize": "AM | Adult Medium",
       "pantSize": "AM | Adult Medium",
       "mealChoice": "Chicken",
@@ -1083,7 +1112,11 @@ const SEED = {
         "tl_03",
         "tl_04",
         "tl_05"
-      ]
+      ],
+      "tableAssignments": {
+        "tl_04": "a1b2c3d4-0002-4000-8000-000000000002",
+        "tl_05": "fe15d484-8778-4cce-8602-6350ada7febd"
+      }
     },
     {
       "id": "4859d6ef-6dfd-411c-8d84-193570ff2231",
@@ -1094,7 +1127,6 @@ const SEED = {
       "title": "Mrs.",
       "isChild": false,
       "isAttending": true,
-      "tableId": "fe15d484-8778-4cce-8602-6350ada7febd",
       "shirtSize": "AS | Adult Small",
       "pantSize": "AS | Adult Small",
       "mealChoice": "Chicken",
@@ -1106,7 +1138,11 @@ const SEED = {
         "tl_03",
         "tl_04",
         "tl_05"
-      ]
+      ],
+      "tableAssignments": {
+        "tl_04": "a1b2c3d4-0002-4000-8000-000000000002",
+        "tl_05": "fe15d484-8778-4cce-8602-6350ada7febd"
+      }
     },
     {
       "id": "794ead35-844a-4a48-be4a-9ad57a89c8ee",
@@ -1117,7 +1153,6 @@ const SEED = {
       "title": "",
       "isChild": true,
       "isAttending": true,
-      "tableId": "ca392cc5-ca85-42ef-90a5-41cd33cf59b3",
       "shirtSize": "YS | Youth Small",
       "pantSize": "YS | Youth Small",
       "mealChoice": "Kids Meal",
@@ -1129,7 +1164,10 @@ const SEED = {
         "tl_03",
         "tl_04",
         "tl_05"
-      ]
+      ],
+      "tableAssignments": {
+        "tl_05": "ca392cc5-ca85-42ef-90a5-41cd33cf59b3"
+      }
     },
     {
       "id": "e64c25b8-9605-47e8-9b14-642050482999",
@@ -1140,7 +1178,6 @@ const SEED = {
       "title": "Mr.",
       "isChild": false,
       "isAttending": true,
-      "tableId": "fe15d484-8778-4cce-8602-6350ada7febd",
       "shirtSize": "XL | Adult XL",
       "pantSize": "XL | Adult XL",
       "mealChoice": "Chicken",
@@ -1152,7 +1189,11 @@ const SEED = {
         "tl_03",
         "tl_04",
         "tl_05"
-      ]
+      ],
+      "tableAssignments": {
+        "tl_04": "a1b2c3d4-0002-4000-8000-000000000002",
+        "tl_05": "fe15d484-8778-4cce-8602-6350ada7febd"
+      }
     },
     {
       "id": "c8d2a1fd-eb69-4c1c-8773-c2e548c07b4c",
@@ -1163,7 +1204,6 @@ const SEED = {
       "title": "Mrs.",
       "isChild": false,
       "isAttending": true,
-      "tableId": "fe15d484-8778-4cce-8602-6350ada7febd",
       "shirtSize": "AS | Adult Small",
       "pantSize": "AS | Adult Small",
       "mealChoice": "Chicken",
@@ -1175,7 +1215,11 @@ const SEED = {
         "tl_03",
         "tl_04",
         "tl_05"
-      ]
+      ],
+      "tableAssignments": {
+        "tl_04": "a1b2c3d4-0002-4000-8000-000000000002",
+        "tl_05": "fe15d484-8778-4cce-8602-6350ada7febd"
+      }
     },
     {
       "id": "736ac8f4-c4ca-4f07-9363-72824ee28716",
@@ -1186,19 +1230,21 @@ const SEED = {
       "title": "",
       "isChild": true,
       "isAttending": true,
-      "tableId": "ca392cc5-ca85-42ef-90a5-41cd33cf59b3",
       "shirtSize": "YL | Youth Large",
       "pantSize": "YL | Youth Large",
       "mealChoice": "Kids Meal",
       "kosher": false,
-      "dietary": "Severe nut allergy \u2014 peanuts and tree nuts. Alert caterer.",
+      "dietary": "Severe nut allergy — peanuts and tree nuts. Alert caterer.",
       "notes": "",
       "attendingSections": [
         "tl_02",
         "tl_03",
         "tl_04",
         "tl_05"
-      ]
+      ],
+      "tableAssignments": {
+        "tl_05": "ca392cc5-ca85-42ef-90a5-41cd33cf59b3"
+      }
     },
     {
       "id": "ad7e5625-1995-4f96-b4ce-565f5e9962f2",
@@ -1209,7 +1255,6 @@ const SEED = {
       "title": "Dr.",
       "isChild": false,
       "isAttending": true,
-      "tableId": "fe15d484-8778-4cce-8602-6350ada7febd",
       "shirtSize": "AL | Adult Large",
       "pantSize": "AL | Adult Large",
       "mealChoice": "Chicken",
@@ -1220,7 +1265,11 @@ const SEED = {
         "tl_03",
         "tl_04",
         "tl_05"
-      ]
+      ],
+      "tableAssignments": {
+        "tl_04": "a1b2c3d4-0002-4000-8000-000000000002",
+        "tl_05": "fe15d484-8778-4cce-8602-6350ada7febd"
+      }
     },
     {
       "id": "85bcda67-5439-451f-932e-ebd3f6a1361d",
@@ -1231,7 +1280,6 @@ const SEED = {
       "title": "Mrs.",
       "isChild": false,
       "isAttending": true,
-      "tableId": "fe15d484-8778-4cce-8602-6350ada7febd",
       "shirtSize": "AS | Adult Small",
       "pantSize": "AS | Adult Small",
       "mealChoice": "Fish",
@@ -1242,7 +1290,11 @@ const SEED = {
         "tl_03",
         "tl_04",
         "tl_05"
-      ]
+      ],
+      "tableAssignments": {
+        "tl_04": "a1b2c3d4-0002-4000-8000-000000000002",
+        "tl_05": "fe15d484-8778-4cce-8602-6350ada7febd"
+      }
     },
     {
       "id": "2b304fc7-88c4-462f-8a93-dceb13b9c2ad",
@@ -1253,7 +1305,6 @@ const SEED = {
       "title": "Miss",
       "isChild": true,
       "isAttending": true,
-      "tableId": "ca392cc5-ca85-42ef-90a5-41cd33cf59b3",
       "shirtSize": "YS | Youth Small",
       "pantSize": "YS | Youth Small",
       "mealChoice": "Kids Meal",
@@ -1264,7 +1315,10 @@ const SEED = {
         "tl_03",
         "tl_04",
         "tl_05"
-      ]
+      ],
+      "tableAssignments": {
+        "tl_05": "ca392cc5-ca85-42ef-90a5-41cd33cf59b3"
+      }
     },
     {
       "id": "29945a01-8aac-4555-a9e2-7031ed8d2f5d",
@@ -1275,7 +1329,6 @@ const SEED = {
       "title": "Mr.",
       "isChild": true,
       "isAttending": true,
-      "tableId": "ca392cc5-ca85-42ef-90a5-41cd33cf59b3",
       "shirtSize": "YM | Youth Medium",
       "pantSize": "YM | Youth Medium",
       "mealChoice": "Kosher",
@@ -1286,7 +1339,10 @@ const SEED = {
         "tl_03",
         "tl_04",
         "tl_05"
-      ]
+      ],
+      "tableAssignments": {
+        "tl_05": "ca392cc5-ca85-42ef-90a5-41cd33cf59b3"
+      }
     },
     {
       "id": "07b4cafa-7f34-489c-8e10-8ba480093032",
@@ -1297,7 +1353,6 @@ const SEED = {
       "title": "Mr.",
       "isChild": false,
       "isAttending": true,
-      "tableId": "dd04b944-51d4-4608-8bbe-ea1d40fd4810",
       "shirtSize": "AL | Adult Large",
       "pantSize": "AL | Adult Large",
       "mealChoice": "Chicken",
@@ -1308,7 +1363,10 @@ const SEED = {
         "tl_03",
         "tl_04",
         "tl_05"
-      ]
+      ],
+      "tableAssignments": {
+        "tl_05": "dd04b944-51d4-4608-8bbe-ea1d40fd4810"
+      }
     },
     {
       "id": "cdeae1b3-7416-435f-a08d-b08104947847",
@@ -1319,7 +1377,6 @@ const SEED = {
       "title": "Ms.",
       "isChild": false,
       "isAttending": true,
-      "tableId": "dd04b944-51d4-4608-8bbe-ea1d40fd4810",
       "shirtSize": "AM | Adult Medium",
       "pantSize": "AM | Adult Medium",
       "mealChoice": "Vegetarian",
@@ -1330,7 +1387,10 @@ const SEED = {
         "tl_03",
         "tl_04",
         "tl_05"
-      ]
+      ],
+      "tableAssignments": {
+        "tl_05": "dd04b944-51d4-4608-8bbe-ea1d40fd4810"
+      }
     },
     {
       "id": "e2d1ede8-3f21-433c-b02c-5048bf1285b5",
@@ -1341,7 +1401,6 @@ const SEED = {
       "title": "Mr.",
       "isChild": false,
       "isAttending": true,
-      "tableId": "dd04b944-51d4-4608-8bbe-ea1d40fd4810",
       "shirtSize": "AM | Adult Medium",
       "pantSize": "AM | Adult Medium",
       "mealChoice": "Chicken",
@@ -1352,7 +1411,10 @@ const SEED = {
         "tl_03",
         "tl_04",
         "tl_05"
-      ]
+      ],
+      "tableAssignments": {
+        "tl_05": "dd04b944-51d4-4608-8bbe-ea1d40fd4810"
+      }
     },
     {
       "id": "629b680f-cd3a-46ae-b1b5-57c5ccdcfdef",
@@ -1363,18 +1425,20 @@ const SEED = {
       "title": "Mrs.",
       "isChild": false,
       "isAttending": true,
-      "tableId": "dd04b944-51d4-4608-8bbe-ea1d40fd4810",
       "shirtSize": "AS | Adult Small",
       "pantSize": "AS | Adult Small",
       "mealChoice": "Fish",
       "kosher": false,
-      "dietary": "Gluten free \u2014 celiac disease. No wheat, barley, or rye.",
+      "dietary": "Gluten free — celiac disease. No wheat, barley, or rye.",
       "notes": "",
       "attendingSections": [
         "tl_03",
         "tl_04",
         "tl_05"
-      ]
+      ],
+      "tableAssignments": {
+        "tl_05": "dd04b944-51d4-4608-8bbe-ea1d40fd4810"
+      }
     },
     {
       "id": "afe0d996-716b-4fcd-a9c8-9258b270355d",
@@ -1385,7 +1449,6 @@ const SEED = {
       "title": "Miss",
       "isChild": true,
       "isAttending": true,
-      "tableId": "ca392cc5-ca85-42ef-90a5-41cd33cf59b3",
       "shirtSize": "YS | Youth Small",
       "pantSize": "YS | Youth Small",
       "mealChoice": "Kids Meal",
@@ -1396,7 +1459,10 @@ const SEED = {
         "tl_03",
         "tl_04",
         "tl_05"
-      ]
+      ],
+      "tableAssignments": {
+        "tl_05": "ca392cc5-ca85-42ef-90a5-41cd33cf59b3"
+      }
     },
     {
       "id": "aecb96b0-da45-4a34-a070-039097f57b13",
@@ -1407,7 +1473,6 @@ const SEED = {
       "title": "Mr.",
       "isChild": false,
       "isAttending": false,
-      "tableId": null,
       "shirtSize": "",
       "pantSize": "",
       "mealChoice": "",
@@ -1425,7 +1490,6 @@ const SEED = {
       "title": "Mrs.",
       "isChild": false,
       "isAttending": false,
-      "tableId": null,
       "shirtSize": "",
       "pantSize": "",
       "mealChoice": "",
@@ -1443,7 +1507,6 @@ const SEED = {
       "title": "Mr.",
       "isChild": false,
       "isAttending": true,
-      "tableId": "dd04b944-51d4-4608-8bbe-ea1d40fd4810",
       "shirtSize": "AM | Adult Medium",
       "pantSize": "AM | Adult Medium",
       "mealChoice": "Chicken",
@@ -1454,7 +1517,10 @@ const SEED = {
         "tl_03",
         "tl_04",
         "tl_05"
-      ]
+      ],
+      "tableAssignments": {
+        "tl_05": "dd04b944-51d4-4608-8bbe-ea1d40fd4810"
+      }
     },
     {
       "id": "620804fe-c010-4c2b-b6b8-910fcd8f6cb0",
@@ -1465,7 +1531,6 @@ const SEED = {
       "title": "Mrs.",
       "isChild": false,
       "isAttending": true,
-      "tableId": "dd04b944-51d4-4608-8bbe-ea1d40fd4810",
       "shirtSize": "AS | Adult Small",
       "pantSize": "AS | Adult Small",
       "mealChoice": "Fish",
@@ -1476,7 +1541,10 @@ const SEED = {
         "tl_03",
         "tl_04",
         "tl_05"
-      ]
+      ],
+      "tableAssignments": {
+        "tl_05": "dd04b944-51d4-4608-8bbe-ea1d40fd4810"
+      }
     },
     {
       "id": "9920bc4c-3557-48ca-9167-ab167d8e93f1",
@@ -1487,7 +1555,6 @@ const SEED = {
       "title": "Mr.",
       "isChild": true,
       "isAttending": true,
-      "tableId": "ca392cc5-ca85-42ef-90a5-41cd33cf59b3",
       "shirtSize": "YS | Youth Small",
       "pantSize": "YS | Youth Small",
       "mealChoice": "Kids Meal",
@@ -1498,7 +1565,10 @@ const SEED = {
         "tl_03",
         "tl_04",
         "tl_05"
-      ]
+      ],
+      "tableAssignments": {
+        "tl_05": "ca392cc5-ca85-42ef-90a5-41cd33cf59b3"
+      }
     },
     {
       "id": "fa46d4c2-bf24-4744-b994-dc4bca9f0e4c",
@@ -1509,7 +1579,6 @@ const SEED = {
       "title": "Mr.",
       "isChild": false,
       "isAttending": true,
-      "tableId": "dd04b944-51d4-4608-8bbe-ea1d40fd4810",
       "shirtSize": "AM | Adult Medium",
       "pantSize": "AM | Adult Medium",
       "mealChoice": "Chicken",
@@ -1520,7 +1589,10 @@ const SEED = {
         "tl_03",
         "tl_04",
         "tl_05"
-      ]
+      ],
+      "tableAssignments": {
+        "tl_05": "dd04b944-51d4-4608-8bbe-ea1d40fd4810"
+      }
     },
     {
       "id": "c176ca9f-ef38-4e3b-9e48-23685a4ef9f0",
@@ -1531,7 +1603,6 @@ const SEED = {
       "title": "Mrs.",
       "isChild": false,
       "isAttending": true,
-      "tableId": "dd04b944-51d4-4608-8bbe-ea1d40fd4810",
       "shirtSize": "AS | Adult Small",
       "pantSize": "AS | Adult Small",
       "mealChoice": "Fish",
@@ -1542,7 +1613,10 @@ const SEED = {
         "tl_03",
         "tl_04",
         "tl_05"
-      ]
+      ],
+      "tableAssignments": {
+        "tl_05": "dd04b944-51d4-4608-8bbe-ea1d40fd4810"
+      }
     },
     {
       "id": "85bd67c0-5159-4be3-9d7b-376b385b68c7",
@@ -1553,7 +1627,6 @@ const SEED = {
       "title": "Mr.",
       "isChild": false,
       "isAttending": null,
-      "tableId": null,
       "shirtSize": "",
       "pantSize": "",
       "mealChoice": "",
@@ -1571,7 +1644,6 @@ const SEED = {
       "title": "Mr.",
       "isChild": false,
       "isAttending": null,
-      "tableId": null,
       "shirtSize": "",
       "pantSize": "",
       "mealChoice": "",
@@ -1589,7 +1661,6 @@ const SEED = {
       "title": "Ms.",
       "isChild": false,
       "isAttending": true,
-      "tableId": "dd04b944-51d4-4608-8bbe-ea1d40fd4810",
       "shirtSize": "AS | Adult Small",
       "pantSize": "AS | Adult Small",
       "mealChoice": "Chicken",
@@ -1600,7 +1671,10 @@ const SEED = {
         "tl_03",
         "tl_04",
         "tl_05"
-      ]
+      ],
+      "tableAssignments": {
+        "tl_05": "dd04b944-51d4-4608-8bbe-ea1d40fd4810"
+      }
     },
     {
       "id": "db221ff5-725a-42b7-857e-6a27dea07cbc",
@@ -1611,7 +1685,6 @@ const SEED = {
       "title": "",
       "isChild": true,
       "isAttending": true,
-      "tableId": "ca392cc5-ca85-42ef-90a5-41cd33cf59b3",
       "shirtSize": "YM | Youth Medium",
       "pantSize": "YM | Youth Medium",
       "mealChoice": "Kids Meal",
@@ -1622,7 +1695,10 @@ const SEED = {
         "tl_03",
         "tl_04",
         "tl_05"
-      ]
+      ],
+      "tableAssignments": {
+        "tl_05": "ca392cc5-ca85-42ef-90a5-41cd33cf59b3"
+      }
     },
     {
       "id": "c933537a-e60a-4179-b436-371d8933a633",
@@ -1633,7 +1709,6 @@ const SEED = {
       "title": "Miss",
       "isChild": true,
       "isAttending": true,
-      "tableId": "ca392cc5-ca85-42ef-90a5-41cd33cf59b3",
       "shirtSize": "YS | Youth Small",
       "pantSize": "YS | Youth Small",
       "mealChoice": "Kids Meal",
@@ -1642,7 +1717,10 @@ const SEED = {
       "notes": "",
       "attendingSections": [
         "tl_05"
-      ]
+      ],
+      "tableAssignments": {
+        "tl_05": "ca392cc5-ca85-42ef-90a5-41cd33cf59b3"
+      }
     },
     {
       "id": "a199e885-89f4-4476-8ede-a925c62dd598",
@@ -1653,7 +1731,6 @@ const SEED = {
       "title": "Miss",
       "isChild": true,
       "isAttending": true,
-      "tableId": "ca392cc5-ca85-42ef-90a5-41cd33cf59b3",
       "shirtSize": "YS | Youth Small",
       "pantSize": "YS | Youth Small",
       "mealChoice": "Kids Meal",
@@ -1662,7 +1739,10 @@ const SEED = {
       "notes": "",
       "attendingSections": [
         "tl_05"
-      ]
+      ],
+      "tableAssignments": {
+        "tl_05": "ca392cc5-ca85-42ef-90a5-41cd33cf59b3"
+      }
     },
     {
       "id": "b6785b14-8fbd-4e48-bb81-9fa31213e677",
@@ -1673,7 +1753,6 @@ const SEED = {
       "title": "Mr.",
       "isChild": true,
       "isAttending": true,
-      "tableId": "ca392cc5-ca85-42ef-90a5-41cd33cf59b3",
       "shirtSize": "YM | Youth Medium",
       "pantSize": "YM | Youth Medium",
       "mealChoice": "Kids Meal",
@@ -1682,7 +1761,10 @@ const SEED = {
       "notes": "",
       "attendingSections": [
         "tl_05"
-      ]
+      ],
+      "tableAssignments": {
+        "tl_05": "ca392cc5-ca85-42ef-90a5-41cd33cf59b3"
+      }
     },
     {
       "id": "5a2bab03-a688-43d3-988a-4cc21339ce20",
@@ -1693,7 +1775,6 @@ const SEED = {
       "title": "Mr.",
       "isChild": true,
       "isAttending": true,
-      "tableId": "ca392cc5-ca85-42ef-90a5-41cd33cf59b3",
       "shirtSize": "YS | Youth Small",
       "pantSize": "YS | Youth Small",
       "mealChoice": "Kids Meal",
@@ -1702,7 +1783,10 @@ const SEED = {
       "notes": "",
       "attendingSections": [
         "tl_05"
-      ]
+      ],
+      "tableAssignments": {
+        "tl_05": "ca392cc5-ca85-42ef-90a5-41cd33cf59b3"
+      }
     },
     {
       "id": "e8e97794-80f6-444f-a047-188d162dd023",
@@ -1713,7 +1797,6 @@ const SEED = {
       "title": "Mr.",
       "isChild": true,
       "isAttending": null,
-      "tableId": null,
       "shirtSize": "",
       "pantSize": "",
       "mealChoice": "",
@@ -1731,7 +1814,6 @@ const SEED = {
       "title": "Mr.",
       "isChild": true,
       "isAttending": false,
-      "tableId": null,
       "shirtSize": "",
       "pantSize": "",
       "mealChoice": "",
@@ -1749,7 +1831,6 @@ const SEED = {
       "title": "Miss",
       "isChild": true,
       "isAttending": true,
-      "tableId": "ca392cc5-ca85-42ef-90a5-41cd33cf59b3",
       "shirtSize": "YS | Youth Small",
       "pantSize": "YS | Youth Small",
       "mealChoice": "Kosher",
@@ -1758,7 +1839,10 @@ const SEED = {
       "notes": "",
       "attendingSections": [
         "tl_05"
-      ]
+      ],
+      "tableAssignments": {
+        "tl_05": "ca392cc5-ca85-42ef-90a5-41cd33cf59b3"
+      }
     },
     {
       "id": "25ecd040-ac64-4754-9ccc-f7dc9139bfc7",
@@ -1769,14 +1853,16 @@ const SEED = {
       "title": "Rabbi",
       "isChild": false,
       "isAttending": true,
-      "tableId": "dd04b944-51d4-4608-8bbe-ea1d40fd4810",
       "shirtSize": "AM | Adult Medium",
       "pantSize": "AM | Adult Medium",
       "mealChoice": "Kosher",
       "kosher": true,
       "dietary": "Strictly kosher",
       "notes": "Officiant",
-      "attendingSections": []
+      "attendingSections": [],
+      "tableAssignments": {
+        "tl_05": "dd04b944-51d4-4608-8bbe-ea1d40fd4810"
+      }
     },
     {
       "id": "27636108-c271-41ec-802c-66cc6fd54e04",
@@ -1787,7 +1873,6 @@ const SEED = {
       "title": "Mr.",
       "isChild": false,
       "isAttending": null,
-      "tableId": null,
       "shirtSize": "",
       "pantSize": "",
       "mealChoice": "",
@@ -1809,7 +1894,6 @@ const SEED = {
       "title": "Dr.",
       "isChild": false,
       "isAttending": null,
-      "tableId": null,
       "shirtSize": "",
       "pantSize": "",
       "mealChoice": "",
@@ -1822,7 +1906,7 @@ const SEED = {
   "expenses": [
     {
       "id": "e1e51d97-a714-4265-b535-f609ab5e8de3",
-      "description": "Springfield Country Club \u2014 Room Fee",
+      "description": "Springfield Country Club — Room Fee",
       "category": "Venue",
       "vendor": "Springfield Country Club",
       "vendorId": "ca3e22ab-8d5e-44ef-8fd2-75886684c13a",
@@ -1836,7 +1920,7 @@ const SEED = {
     },
     {
       "id": "b84e3388-f62c-4df5-a3fe-889c9280a59e",
-      "description": "Temple Beth Springfield \u2014 Tuition Deposit",
+      "description": "Temple Beth Springfield — Tuition Deposit",
       "category": "Venue",
       "vendor": "Temple Beth Springfield",
       "vendorId": "87e37e59-ea1b-4e7a-9543-f4fae0e10971",
@@ -1850,7 +1934,7 @@ const SEED = {
     },
     {
       "id": "a5ee829f-d539-4a7c-94b0-e7c9a8b9b1ae",
-      "description": "Temple Beth Springfield \u2014 Tuition Balance",
+      "description": "Temple Beth Springfield — Tuition Balance",
       "category": "Venue",
       "vendor": "Temple Beth Springfield",
       "vendorId": "87e37e59-ea1b-4e7a-9543-f4fae0e10971",
@@ -1864,7 +1948,7 @@ const SEED = {
     },
     {
       "id": "bc948f12-17a9-45e1-a57b-db5461a3649b",
-      "description": "Temple Beth Springfield \u2014 Kiddush Sponsorship",
+      "description": "Temple Beth Springfield — Kiddush Sponsorship",
       "category": "Catering & Bar",
       "vendor": "Temple Beth Springfield",
       "vendorId": "87e37e59-ea1b-4e7a-9543-f4fae0e10971",
@@ -1878,7 +1962,7 @@ const SEED = {
     },
     {
       "id": "a8c653a7-0128-4e78-8ae3-d48a04df6b37",
-      "description": "Shelbyville Snapshots \u2014 Retainer",
+      "description": "Shelbyville Snapshots — Retainer",
       "category": "Photography",
       "vendor": "Shelbyville Snapshots",
       "vendorId": "d89fbb73-3235-4505-988c-1877de831779",
@@ -1892,7 +1976,7 @@ const SEED = {
     },
     {
       "id": "ec518b0b-85be-4ecb-844e-97382e5ab954",
-      "description": "Shelbyville Snapshots \u2014 Second Payment",
+      "description": "Shelbyville Snapshots — Second Payment",
       "category": "Photography",
       "vendor": "Shelbyville Snapshots",
       "vendorId": "d89fbb73-3235-4505-988c-1877de831779",
@@ -1906,7 +1990,7 @@ const SEED = {
     },
     {
       "id": "6c4e481a-6029-4cd6-8fe0-d62277e3074c",
-      "description": "Shelbyville Snapshots \u2014 Final Payment",
+      "description": "Shelbyville Snapshots — Final Payment",
       "category": "Photography",
       "vendor": "Shelbyville Snapshots",
       "vendorId": "d89fbb73-3235-4505-988c-1877de831779",
@@ -1920,7 +2004,7 @@ const SEED = {
     },
     {
       "id": "8542d710-ea50-4f51-94bc-ee8660cb3a10",
-      "description": "DJ Krusty Spins \u2014 Retainer",
+      "description": "DJ Krusty Spins — Retainer",
       "category": "DJ / Band / Entertainment",
       "vendor": "DJ Krusty Spins",
       "vendorId": "6f27dc7c-94b7-4b62-b260-cafd1315a8bd",
@@ -1934,7 +2018,7 @@ const SEED = {
     },
     {
       "id": "527528b2-e820-4e56-ac8d-9e41ee720617",
-      "description": "DJ Krusty Spins \u2014 Balance",
+      "description": "DJ Krusty Spins — Balance",
       "category": "DJ / Band / Entertainment",
       "vendor": "DJ Krusty Spins",
       "vendorId": "6f27dc7c-94b7-4b62-b260-cafd1315a8bd",
@@ -1948,7 +2032,7 @@ const SEED = {
     },
     {
       "id": "5a8b8eac-dc80-43cd-ab8f-69d1350b458e",
-      "description": "Bouvier Event Design \u2014 Retainer",
+      "description": "Bouvier Event Design — Retainer",
       "category": "Florals & Decor",
       "vendor": "Bouvier Event Design",
       "vendorId": "0a3772fe-257e-4d7c-9b46-46a514e3fa51",
@@ -1962,7 +2046,7 @@ const SEED = {
     },
     {
       "id": "ebd3c214-4e40-475d-8707-fba8e6fcd56e",
-      "description": "Bouvier Event Design \u2014 Balance",
+      "description": "Bouvier Event Design — Balance",
       "category": "Florals & Decor",
       "vendor": "Bouvier Event Design",
       "vendorId": "0a3772fe-257e-4d7c-9b46-46a514e3fa51",
@@ -1976,7 +2060,7 @@ const SEED = {
     },
     {
       "id": "e7ed1290-0e1a-4af2-8825-88394afdb6ce",
-      "description": "Springfield Country Club \u2014 Catering",
+      "description": "Springfield Country Club — Catering",
       "category": "Catering & Bar",
       "vendor": "Springfield Country Club",
       "vendorId": "ca3e22ab-8d5e-44ef-8fd2-75886684c13a",
@@ -1990,7 +2074,7 @@ const SEED = {
     },
     {
       "id": "3dbec222-9e97-4267-acc4-8114916c8e8b",
-      "description": "Party Favors \u2014 Donut-themed sweatshirts",
+      "description": "Party Favors — Donut-themed sweatshirts",
       "category": "Party Favors",
       "vendor": "",
       "vendorId": "",
@@ -2018,7 +2102,7 @@ const SEED = {
     },
     {
       "id": "35cab954-1eb7-4a8e-954a-4cd9bceabdbd",
-      "description": "Kippot \u2014 Temple Sisterhood",
+      "description": "Kippot — Temple Sisterhood",
       "category": "Miscellaneous",
       "vendor": "Temple Beth Springfield",
       "vendorId": "87e37e59-ea1b-4e7a-9543-f4fae0e10971",
@@ -2032,7 +2116,7 @@ const SEED = {
     },
     {
       "id": "482af73b-d9c6-4e8c-9f0e-6d0c5fb2e640",
-      "description": "Hair and Makeup \u2014 Marge Simpson",
+      "description": "Hair and Makeup — Marge Simpson",
       "category": "Hair & Makeup",
       "vendor": "",
       "vendorId": "",
@@ -2046,7 +2130,7 @@ const SEED = {
     },
     {
       "id": "b9cc46c6-8fd1-40f8-9e2a-51160da660e5",
-      "description": "Springfield Florist \u2014 Centerpieces Quote",
+      "description": "Springfield Florist — Centerpieces Quote",
       "category": "Florals & Decor",
       "vendor": "Springfield Florist",
       "vendorId": "0749dc45-fb72-413c-9cda-654e8bbe860f",
@@ -2055,12 +2139,12 @@ const SEED = {
       "date": "",
       "dueDate": "2027-09-01",
       "paid": false,
-      "notes": "Quote received, over budget \u2014 negotiating.",
+      "notes": "Quote received, over budget — negotiating.",
       "eventSection": "Evening Party"
     },
     {
       "id": "28de7e63-e0a8-4a5d-8e14-7a56e170427a",
-      "description": "Gratuity \u2014 Shelbyville Snapshots",
+      "description": "Gratuity — Shelbyville Snapshots",
       "category": "Gratuities & Tips",
       "vendor": "Shelbyville Snapshots",
       "vendorId": "d89fbb73-3235-4505-988c-1877de831779",
@@ -2074,7 +2158,7 @@ const SEED = {
     },
     {
       "id": "f9019ce0-fec5-4bc0-b2e0-84979305a7a6",
-      "description": "Gratuity \u2014 DJ Krusty Spins",
+      "description": "Gratuity — DJ Krusty Spins",
       "category": "Gratuities & Tips",
       "vendor": "DJ Krusty Spins",
       "vendorId": "6f27dc7c-94b7-4b62-b260-cafd1315a8bd",
@@ -2088,7 +2172,7 @@ const SEED = {
     },
     {
       "id": "4077e93a-9112-44d0-bae9-68072810c142",
-      "description": "Gratuity \u2014 Springfield Country Club catering staff",
+      "description": "Gratuity — Springfield Country Club catering staff",
       "category": "Gratuities & Tips",
       "vendor": "Springfield Country Club",
       "vendorId": "ca3e22ab-8d5e-44ef-8fd2-75886684c13a",
@@ -2353,7 +2437,7 @@ const SEED = {
     },
     {
       "id": "882fbb8e-c23b-4231-8a8f-25fa6fb46fe9",
-      "task": "Family meeting with Rabbi Krustofsky \u2014 service planning and Torah readers",
+      "task": "Family meeting with Rabbi Krustofsky — service planning and Torah readers",
       "category": "Planning",
       "priority": "High",
       "due": "2027-04-16",
@@ -2362,7 +2446,7 @@ const SEED = {
     },
     {
       "id": "ed8b3948-3c7e-46dc-aa06-0e583c114615",
-      "task": "Cantor session \u2014 4-month review",
+      "task": "Cantor session — 4-month review",
       "category": "Planning",
       "priority": "Medium",
       "due": "2027-06-16",
@@ -2371,7 +2455,7 @@ const SEED = {
     },
     {
       "id": "f991fea8-1a9d-4e40-b0cb-0927c2d10da0",
-      "task": "Cantor session \u2014 2-month check-in, bring d'var Torah draft",
+      "task": "Cantor session — 2-month check-in, bring d'var Torah draft",
       "category": "Planning",
       "priority": "Medium",
       "due": "2027-08-16",
@@ -2498,7 +2582,7 @@ const SEED = {
     },
     {
       "id": "af94d865-7a1f-4fb2-9ba9-fc4d0dcf0408",
-      "task": "Order party favors \u2014 donut sweatshirts",
+      "task": "Order party favors — donut sweatshirts",
       "category": "Theme",
       "priority": "Medium",
       "due": "2027-09-01",
@@ -2509,7 +2593,7 @@ const SEED = {
     },
     {
       "id": "459f729b-01f8-45e2-bc5f-ff2c8898bf34",
-      "task": "Plan Friday night dinner \u2014 venue, menu, guest list",
+      "task": "Plan Friday night dinner — venue, menu, guest list",
       "category": "Planning",
       "priority": "Medium",
       "due": "2027-06-01",
@@ -2563,7 +2647,7 @@ const SEED = {
     },
     {
       "id": "c67ce88f-a950-4dd3-92e3-474f5d27b982",
-      "task": "Notify family members of service roles \u2014 Torah readers, blessings",
+      "task": "Notify family members of service roles — Torah readers, blessings",
       "category": "Planning",
       "priority": "Medium",
       "due": "2027-09-15",
@@ -2572,7 +2656,7 @@ const SEED = {
     },
     {
       "id": "705c7310-581a-46b4-b643-46c52ea049f9",
-      "task": "Negotiate florist quote \u2014 over budget by $200",
+      "task": "Negotiate florist quote — over budget by $200",
       "category": "Vendor",
       "priority": "Low",
       "due": "2027-08-01",
@@ -2581,7 +2665,7 @@ const SEED = {
     },
     {
       "id": "e8b1f043-771c-4b84-ac59-7d5977e399ef",
-      "task": "Hair and makeup trial appointment \u2014 Marge",
+      "task": "Hair and makeup trial appointment — Marge",
       "category": "Attire",
       "priority": "Low",
       "due": "2027-09-01",
@@ -2592,7 +2676,7 @@ const SEED = {
     },
     {
       "id": "f8ffd286-5e85-4db4-a1c9-2b283e6a13a6",
-      "task": "Follow up on missing RSVPs \u2014 Burns, Smithers, Jimbo, Richard",
+      "task": "Follow up on missing RSVPs — Burns, Smithers, Jimbo, Richard",
       "category": "Planning",
       "priority": "High",
       "due": "2027-09-15",
@@ -2653,7 +2737,7 @@ const SEED = {
     },
     {
       "id": "0c31cebe-012e-4d50-a713-044815257f06",
-      "title": "Mitzvah Project \u2014 Acts of Hesed",
+      "title": "Mitzvah Project — Acts of Hesed",
       "status": "In Progress",
       "progress": 15,
       "targetDate": "2027-08-01",
@@ -2670,35 +2754,63 @@ const SEED = {
   ],
   "tables": [
     {
-      "id": "3eb35999-5512-4395-887b-1b50203b554a",
-      "name": "Table 1 \u2014 Evergreen",
+      "id": "a1b2c3d4-0001-4000-8000-000000000001",
+      "name": "Table 1 — Evergreen",
       "capacity": 8,
       "type": "adult",
       "color": "#b8962e",
-      "notes": "Head table \u2014 immediate family and officiant"
+      "sectionId": "tl_04",
+      "order": 0,
+      "notes": "Head table — immediate family and officiant"
     },
     {
-      "id": "fe15d484-8778-4cce-8602-6350ada7febd",
-      "name": "Table 2 \u2014 Springfield",
+      "id": "a1b2c3d4-0002-4000-8000-000000000002",
+      "name": "Table 2 — Springfield",
       "capacity": 10,
       "type": "adult",
       "color": "#3d5a80",
+      "sectionId": "tl_04",
+      "order": 1,
+      "notes": "Family friends"
+    },
+    {
+      "id": "3eb35999-5512-4395-887b-1b50203b554a",
+      "name": "Table A — Evergreen",
+      "capacity": 8,
+      "type": "adult",
+      "color": "#b8962e",
+      "sectionId": "tl_05",
+      "order": 0,
+      "notes": "Head table — immediate family and officiant"
+    },
+    {
+      "id": "fe15d484-8778-4cce-8602-6350ada7febd",
+      "name": "Table B — Springfield",
+      "capacity": 10,
+      "type": "adult",
+      "color": "#3d5a80",
+      "sectionId": "tl_05",
+      "order": 1,
       "notes": "Family friends"
     },
     {
       "id": "dd04b944-51d4-4608-8bbe-ea1d40fd4810",
-      "name": "Table 3 \u2014 Shelbyville",
+      "name": "Table C — Shelbyville",
       "capacity": 12,
       "type": "adult",
       "color": "#3d7a5e",
+      "sectionId": "tl_05",
+      "order": 2,
       "notes": "Friends and coworkers"
     },
     {
       "id": "ca392cc5-ca85-42ef-90a5-41cd33cf59b3",
-      "name": "Kids Table \u2014 Elementary",
+      "name": "Kids Table — Elementary",
       "capacity": 16,
       "type": "kids",
       "color": "#b06030",
+      "sectionId": "tl_05",
+      "order": 3,
       "notes": "Springfield Elementary crew"
     }
   ],
@@ -2771,7 +2883,7 @@ const SEED = {
       "postalCode": "",
       "country": "",
       "giftType": "Physical Gift",
-      "description": "Custom police badge plaque \u2014 'Bart Simpson, Son of the Commandment'",
+      "description": "Custom police badge plaque — 'Bart Simpson, Son of the Commandment'",
       "amount": null,
       "dateReceived": "2027-10-16",
       "attended": true,
@@ -2828,7 +2940,7 @@ const SEED = {
       "postalCode": "",
       "country": "",
       "giftType": "Physical Gift",
-      "description": "Framed family photo collage \u2014 15 photos across the years",
+      "description": "Framed family photo collage — 15 photos across the years",
       "amount": null,
       "dateReceived": "2027-10-16",
       "attended": true,
@@ -2866,7 +2978,7 @@ const SEED = {
       "postalCode": "",
       "country": "",
       "giftType": "Physical Gift",
-      "description": "Complete Encyclopedia Britannica set \u2014 24 volumes",
+      "description": "Complete Encyclopedia Britannica set — 24 volumes",
       "amount": null,
       "dateReceived": "2027-10-16",
       "attended": true,
@@ -2967,7 +3079,7 @@ const SEED = {
       "attended": null,
       "thankYouWritten": false,
       "thankYouMailed": false,
-      "notes": "Second gift \u2014 mailed after the event."
+      "notes": "Second gift — mailed after the event."
     },
     {
       "id": "e014b6c9-9421-4c37-a3ce-fdf98a01c100",
@@ -3030,16 +3142,16 @@ const SEED = {
   "ceremonyRoles": [
     {
       "section": "Torah Service",
-      "role": "Aliyah 1 \u2014 Kohen",
+      "role": "Aliyah 1 — Kohen",
       "assignee": "Jacqueline Bouvier",
       "hebrewName": "Yocheved bat Avraham v'Sarah",
-      "notes": "Marge's mother \u2014 grandmother of Bar Mitzvah",
+      "notes": "Marge's mother — grandmother of Bar Mitzvah",
       "id": "6fc82695-9b28-4b3e-8f05-1a8f54368976",
       "sortOrder": 0
     },
     {
       "section": "Torah Service",
-      "role": "Aliyah 2 \u2014 Levi",
+      "role": "Aliyah 2 — Levi",
       "assignee": "Robert Terwilliger Sr.",
       "hebrewName": "Reuven ben Moshe v'Rivka",
       "notes": "Family friend",
@@ -3048,7 +3160,7 @@ const SEED = {
     },
     {
       "section": "Torah Service",
-      "role": "Aliyah 3 \u2014 Parents",
+      "role": "Aliyah 3 — Parents",
       "assignee": "Homer and Marge Simpson",
       "hebrewName": "Chaim ben Avraham v'Sarah",
       "notes": "Parents of Bar Mitzvah",
@@ -3057,7 +3169,7 @@ const SEED = {
     },
     {
       "section": "Torah Service",
-      "role": "Aliyah 4 \u2014 Maftir",
+      "role": "Aliyah 4 — Maftir",
       "assignee": "Bart Simpson",
       "hebrewName": "Baruch ben Chaim v'Miriam",
       "notes": "Bar Mitzvah",
@@ -3069,7 +3181,7 @@ const SEED = {
       "role": "Hagbah (Lifting Torah)",
       "assignee": "Chief Clancy Wiggum",
       "hebrewName": "",
-      "notes": "Has done it before \u2014 strong enough",
+      "notes": "Has done it before — strong enough",
       "id": "feb0a027-db72-471a-93a9-a29cf78022d7",
       "sortOrder": 4
     },
@@ -3123,7 +3235,7 @@ const SEED = {
       "role": "Prayer for Peace",
       "assignee": "Reverend Timothy Lovejoy",
       "hebrewName": "",
-      "notes": "Interfaith \u2014 appropriate for non-Jewish family",
+      "notes": "Interfaith — appropriate for non-Jewish family",
       "id": "84712e90-60d8-4d0f-8104-8e0fd0fb5204",
       "sortOrder": 10
     },
@@ -3150,7 +3262,7 @@ const SEED = {
       "role": "Friday Evening Service",
       "assignee": "",
       "hebrewName": "",
-      "notes": "Yes \u2014 Homer, Marge, Lisa, and Maggie attending",
+      "notes": "Yes — Homer, Marge, Lisa, and Maggie attending",
       "id": "9b2294e7-25b8-4f5f-86e4-c43427087dae",
       "sortOrder": 13
     },
@@ -3159,7 +3271,7 @@ const SEED = {
       "role": "Morning Minyan",
       "assignee": "",
       "hebrewName": "",
-      "notes": "Thursday \u2014 Homer confirmed",
+      "notes": "Thursday — Homer confirmed",
       "id": "4b14ba59-d8a6-411e-9f84-5f6b157b0e95",
       "sortOrder": 14
     }
@@ -3401,7 +3513,7 @@ const SEED = {
     "timeline": [
       {
         "id": "tl_01",
-        "icon": "\ud83d\udcf8",
+        "icon": "📸",
         "title": "Photo Session",
         "startDate": "2027-10-15",
         "startTime": "12:00",
@@ -3413,7 +3525,7 @@ const SEED = {
       },
       {
         "id": "tl_02",
-        "icon": "\ud83c\udf7d\ufe0f",
+        "icon": "🍽️",
         "title": "Friday Night Dinner",
         "startDate": "2027-10-15",
         "startTime": "19:00",
@@ -3425,7 +3537,7 @@ const SEED = {
       },
       {
         "id": "tl_03",
-        "icon": "\ud83d\udd4d",
+        "icon": "🕍",
         "title": "Bar Mitzvah Service",
         "startDate": "2027-10-16",
         "startTime": "09:30",
@@ -3437,7 +3549,7 @@ const SEED = {
       },
       {
         "id": "tl_04",
-        "icon": "\ud83c\udf55",
+        "icon": "🍕",
         "title": "Kiddush Luncheon",
         "startDate": "2027-10-16",
         "startTime": "12:00",
@@ -3449,7 +3561,7 @@ const SEED = {
       },
       {
         "id": "tl_05",
-        "icon": "\ud83c\udf89",
+        "icon": "🎉",
         "title": "Evening Party",
         "startDate": "2027-10-16",
         "startTime": "19:00",
@@ -3515,7 +3627,21 @@ const SEED = {
       "email": "dcohen@hebrewtutors.example.com"
     }
   },
-  "quickNotes": "Demo event \u2014 Bart Simpson's Bar Mitzvah. All data is fictional. Simpsons characters throughout.\n\nKey dietary notes:\n- Ralph Wiggum: SEVERE peanut allergy \u2014 alert caterer\n- Lisa Simpson: vegetarian\n- Wendell Borton: gluten free\n- Ned, Rod, Todd Flanders: kosher\n- Rabbi Krustofsky: strictly kosher\n- Agnes Skinner: low sodium\n- Selma Bouvier: shellfish allergy",
+  "quickNotes": "Demo event — Bart Simpson's Bar Mitzvah. All data is fictional. Simpsons characters throughout.\n\nKey dietary notes:\n- Ralph Wiggum: SEVERE peanut allergy — alert caterer\n- Lisa Simpson: vegetarian\n- Wendell Borton: gluten free\n- Ned, Rod, Todd Flanders: kosher\n- Rabbi Krustofsky: strictly kosher\n- Agnes Skinner: low sodium\n- Selma Bouvier: shellfish allergy",
+  "seating": [
+    {
+      "id": "b5e6f7a8-0001-4000-8000-000000000010",
+      "data": {
+        "config": {
+          "hasSeating": true,
+          "enabledSections": [
+            "tl_04",
+            "tl_05"
+          ]
+        }
+      }
+    }
+  ],
   "dayOf": {
     "checklist": [
       {
