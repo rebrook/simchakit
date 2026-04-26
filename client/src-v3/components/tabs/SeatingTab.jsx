@@ -23,10 +23,6 @@ export function SeatingTab({ eventId, event, adminConfig, showToast, isArchived,
   const [configLoading,  setConfigLoading]  = useState(true);
 
   const [setupOpen,        setSetupOpen]        = useState(true);
-  // Re-open setup if no sections enabled yet
-  useEffect(() => {
-    if (!seatingConfig.hasSeating || enabledSections.length === 0) setSetupOpen(true);
-  }, [seatingConfig.hasSeating, enabledSections.length]);
   const [selectedPersonId, setSelectedPersonId] = useState(null);
   const [assignModalTable, setAssignModalTable] = useState(null);
   const [showTableModal,   setShowTableModal]   = useState(false);
@@ -96,6 +92,12 @@ export function SeatingTab({ eventId, event, adminConfig, showToast, isArchived,
   const sectionId        = activeSectionId;
   const timeline    = (adminConfig?.timeline || []).slice().sort((a, b) => (a.startDate||"").localeCompare(b.startDate||""));
   const activeSection = timeline.find(e => e.id === sectionId) || null;
+
+  // Re-open setup if no sections enabled yet — placed here so hasSeating and
+  // enabledSections are already declared (avoids TDZ)
+  useEffect(() => {
+    if (!seatingConfig.hasSeating || enabledSections.length === 0) setSetupOpen(true);
+  }, [seatingConfig.hasSeating, enabledSections.length]);
 
   // One-time migration: strip stale adultTableId / kidsTableId from households
   // and migrate flat tableId → tableAssignments on people
