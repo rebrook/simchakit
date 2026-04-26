@@ -6,7 +6,7 @@
 // preprint ("TBD"/"Yes"/"No"), attending ("TBD"/"Yes"/"No"), size, category, notes.
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { useState, useMemo, useEffect, useCallback } from "react";
+import { useState, useMemo, useEffect, useCallback, useRef } from "react";
 import { useEventData }       from "@/hooks/useEventData.js";
 import { useSearchHighlight } from "@/hooks/useSearchHighlight.js";
 import { SHIRT_SIZES }        from "@/constants/theme.js";
@@ -15,10 +15,15 @@ import { exportFavorsCSV, generateFavorPrintHTML } from "@/utils/exports.js";
 import { ArchivedNotice }     from "@/components/shared/ArchivedNotice.jsx";
 import { supabase }           from "@/lib/supabase.js";
 
+// ── Favor type ID helper ───────────────────────────────────────────────────────
+const newFavorTypeId = () => "ft-" + newFavorId();
+
 const STATUS_STYLE = { "Yes": "var(--green)", "No": "var(--red)", "TBD": "var(--text-muted)" };
 
 const DEFAULT_CONFIG = {
   givingFavors:    false,
+  favorTypes:      [],
+  // Legacy fields kept for migration compatibility
   favorDescription: "",
   whoGets:         "all",
   needsSizing:     false,
@@ -40,6 +45,7 @@ export function FavorsTab({
   const [localConfig,   setLocalConfig]   = useState(() => ({ ...DEFAULT_CONFIG, ...(adminConfig?.favorConfig || {}) }));
   const [configSaving,  setConfigSaving]  = useState(false);
   const [setupOpen,     setSetupOpen]     = useState(!localConfig.givingFavors);
+  const [activeFavorTypeId, setActiveFavorTypeId] = useState(null);
 
   // Sync if adminConfig changes from outside (e.g. AdminPanel save)
   useEffect(() => {
@@ -48,6 +54,35 @@ export function FavorsTab({
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // intentionally only on mount — local edits take precedence
+
+  // ── One-time migration: flat config → favorTypes array ─────────────────────
+  const migrated = useRef(false);
+  useEffect(() => {
+    if (migrated.current) return;
+    migrated.current = true;
+    const cfg = adminConfig?.favorConfig || {};
+    if (cfg.givingFavors && !cfg.favorTypes) {
+      const typeId = newFavorTypeId();
+      const newType = {
+        id:             typeId,
+        description:    cfg.favorDescription || "Favors",
+        whoGets:        cfg.whoGets          || "all",
+        needsSizing:    !!cfg.needsSizing,
+        isPersonalized: !!cfg.isPersonalized,
+        sizeSource:     cfg.sizeSource       || "shirt",
+        eventSectionId: cfg.eventSectionId   || "",
+      };
+      const newCfg = { ...cfg, favorTypes: [newType] };
+      setLocalConfig(newCfg);
+      // Persist migration
+      const newAdminConfig = { ...(adminConfig || {}), favorConfig: newCfg };
+      supabase.from("events").update({ admin_config: newAdminConfig }).eq("id", eventId)
+        .then(() => onConfigSaved?.(newAdminConfig));
+      // Tag existing favor records with typeId
+      favors.forEach(f => { if (!f.favorTypeId) save({ ...f, favorTypeId: typeId }); });
+      setActiveFavorTypeId(typeId);
+    }
+  }, []);
 
   // ── Mobile detection ──────────────────────────────────────────────────────
   const [isMobile,    setIsMobile]    = useState(() => typeof window !== "undefined" && window.innerWidth < 768);
@@ -104,14 +139,29 @@ export function FavorsTab({
   );
 
   // ── Available pool ────────────────────────────────────────────────────────
-  const assignedPersonIds = useMemo(() => new Set(favors.map(f => f.personId).filter(Boolean)), [favors]);
+  // Derived favor types
+  const favorTypes = localConfig.favorTypes || [];
+  const activeType = favorTypes.find(t => t.id === activeFavorTypeId) || favorTypes[0] || null;
+  const sectionId  = activeType?.eventSectionId || "";
+
+  // Keep activeFavorTypeId in sync
+  useEffect(() => {
+    if (favorTypes.length > 0 && (!activeFavorTypeId || !favorTypes.find(t => t.id === activeFavorTypeId))) {
+      setActiveFavorTypeId(favorTypes[0].id);
+    }
+  }, [favorTypes.map(t => t.id).join(",")]);
+
+  const assignedPersonIds = useMemo(() =>
+    new Set(favors.filter(f => f.favorTypeId === activeType?.id).map(f => f.personId).filter(Boolean)),
+    [favors, activeType?.id]
+  );
 
   const getAvailablePool = useCallback(() => {
     let pool = people.filter(p => !assignedPersonIds.has(p.id));
-    if (localConfig.whoGets === "kids")   pool = pool.filter(p => p.isChild);
-    if (localConfig.whoGets === "adults") pool = pool.filter(p => !p.isChild);
+    if (activeType?.whoGets === "kids")   pool = pool.filter(p => p.isChild);
+    if (activeType?.whoGets === "adults") pool = pool.filter(p => !p.isChild);
     return pool;
-  }, [people, assignedPersonIds, localConfig.whoGets]);
+  }, [people, assignedPersonIds, activeType?.whoGets]);
 
   const availPool = getAvailablePool();
 
@@ -125,17 +175,18 @@ export function FavorsTab({
     return getPersonDisplayName(a).localeCompare(getPersonDisplayName(b));
   });
 
-  // ── Filtered favor list ───────────────────────────────────────────────────
+  // ── Filtered favor list — scoped to active type ───────────────────────────
   const getLastName = (name) => (name || "").trim().split(" ").pop();
 
-  const filtered = favors.filter(f => {
+  const typeFavors = activeType ? favors.filter(f => f.favorTypeId === activeType.id) : [];
+
+  const filtered = typeFavors.filter(f => {
     if (filterSize !== "all" && f.size !== filterSize) return false;
     if (filterPre  !== "all" && (f.preprint  || "TBD") !== filterPre)  return false;
     if (filterAtt  !== "all") {
       const person = people.find(p => p.id === f.personId);
-      const secId  = localConfig.eventSectionId;
-      if (secId) {
-        const confirmed = person && (person.attendingSections || []).includes(secId);
+      if (sectionId) {
+        const confirmed = person && (person.attendingSections || []).includes(sectionId);
         const tbd = !person || (person.attendingSections || []).length === 0;
         if (filterAtt === "Yes" && !confirmed) return false;
         else if (filterAtt === "No"  && (confirmed || tbd)) return false;
@@ -148,50 +199,79 @@ export function FavorsTab({
   }).sort((a, b) => getLastName(a.personName).localeCompare(getLastName(b.personName)));
 
   const usedCategories = useMemo(() =>
-    [...new Set(favors.map(f => f.category || "").filter(Boolean))].sort(),
-    [favors]
+    [...new Set(typeFavors.map(f => f.category || "").filter(Boolean))].sort(),
+    [typeFavors]
   );
 
   // ── Stats ─────────────────────────────────────────────────────────────────
-  const totalFavors  = favors.length;
-  const preprintYes  = favors.filter(f => f.preprint === "Yes").length;
-  const preprintTBD  = favors.filter(f => (f.preprint || "TBD") === "TBD").length;
-  const sectionId    = localConfig.eventSectionId;
-  const attendingYes = sectionId ? favors.filter(f => {
+  const totalFavors  = typeFavors.length;
+  const preprintYes  = typeFavors.filter(f => f.preprint === "Yes").length;
+  const preprintTBD  = typeFavors.filter(f => (f.preprint || "TBD") === "TBD").length;
+  const attendingYes = sectionId ? typeFavors.filter(f => {
     const person = people.find(p => p.id === f.personId);
     return person && (person.attendingSections || []).includes(sectionId);
   }).length : 0;
-  const attendingTBD = sectionId ? favors.filter(f => {
+  const attendingTBD = sectionId ? typeFavors.filter(f => {
     const person = people.find(p => p.id === f.personId);
     return !person || (person.attendingSections || []).length === 0;
   }).length : 0;
 
   const sizeCounts = useMemo(() => {
     const c = {};
-    favors.forEach(f => { const s = f.size || ""; if (s) c[s] = (c[s] || 0) + 1; });
+    typeFavors.forEach(f => { const s = f.size || ""; if (s) c[s] = (c[s] || 0) + 1; });
     return c;
-  }, [favors]);
+  }, [typeFavors]);
 
-  const usedSizes = [...new Set(favors.map(f => f.size).filter(Boolean))];
+  const usedSizes = [...new Set(typeFavors.map(f => f.size).filter(Boolean))];
 
   // ── Config save ───────────────────────────────────────────────────────────
-  const saveConfig = async () => {
+  const saveConfig = async (cfg) => {
     if (isArchived) return;
+    const cfgToSave = cfg || localConfig;
     setConfigSaving(true);
-    const newAdminConfig = { ...(adminConfig || {}), favorConfig: localConfig };
+    const newAdminConfig = { ...(adminConfig || {}), favorConfig: cfgToSave };
     const { error } = await supabase.from("events").update({ admin_config: newAdminConfig }).eq("id", eventId);
     setConfigSaving(false);
     if (error) { showToast("Failed to save favor settings"); return; }
     onConfigSaved?.(newAdminConfig);
     showToast("Favor settings saved");
-    if (localConfig.givingFavors) setSetupOpen(false);
+    if (cfgToSave.givingFavors) setSetupOpen(false);
   };
 
   const setFC = (key, val) => setLocalConfig(prev => ({ ...prev, [key]: val }));
 
+  const updateFavorType = (typeId, patch) => {
+    setLocalConfig(prev => ({
+      ...prev,
+      favorTypes: (prev.favorTypes || []).map(t => t.id === typeId ? { ...t, ...patch } : t),
+    }));
+  };
+
+  const addFavorType = () => {
+    const newType = {
+      id: newFavorTypeId(), description: "", whoGets: "all",
+      needsSizing: false, isPersonalized: false,
+      sizeSource: "shirt", eventSectionId: "",
+    };
+    const next = { ...localConfig, favorTypes: [...(localConfig.favorTypes || []), newType] };
+    setLocalConfig(next);
+    setActiveFavorTypeId(newType.id);
+  };
+
+  const deleteFavorType = async (typeId) => {
+    if (isArchived) return;
+    const toDelete = favors.filter(f => f.favorTypeId === typeId);
+    for (const f of toDelete) await remove(f._rowId);
+    const next = { ...localConfig, favorTypes: (localConfig.favorTypes || []).filter(t => t.id !== typeId) };
+    setLocalConfig(next);
+    await saveConfig(next);
+    if (activeFavorTypeId === typeId) setActiveFavorTypeId(next.favorTypes[0]?.id || null);
+    showToast("Favor type deleted");
+  };
+
   // ── CRUD ──────────────────────────────────────────────────────────────────
-  const handleAdd    = async (f)  => { if (isArchived) return; await save(f);                         showToast("Favor added");   setShowModal(false); };
-  const handleEdit   = async (f)  => { if (isArchived) return; await save(f);                         showToast("Favor updated"); setEditFavor(null);  };
+  const handleAdd    = async (f)  => { if (isArchived) return; await save({ ...f, favorTypeId: activeType?.id }); showToast("Favor added");   setShowModal(false); };
+  const handleEdit   = async (f)  => { if (isArchived) return; await save(f);                                      showToast("Favor updated"); setEditFavor(null);  };
   const handleDelete = async (id) => {
     if (isArchived) return;
     const f = favors.find(x => x.id === id);
@@ -210,13 +290,14 @@ export function FavorsTab({
 
   // ── Add person from available panel ───────────────────────────────────────
   const addFromPanel = async (p) => {
-    if (isArchived) return;
+    if (isArchived || !activeType) return;
     const name    = getPersonDisplayName(p);
-    const sizeVal = localConfig.sizeSource === "pant"   ? p.pantSize  || ""
-                  : localConfig.sizeSource === "manual" ? ""
+    const sizeVal = activeType.sizeSource === "pant"   ? p.pantSize  || ""
+                  : activeType.sizeSource === "manual" ? ""
                   : p.shirtSize || "";
     await save({
       id: newFavorId(), personId: p.id, personName: name,
+      favorTypeId: activeType.id,
       size: sizeVal, printName: "", preprint: "TBD",
       notes: "", category: "",
     });
@@ -237,25 +318,25 @@ export function FavorsTab({
 
   if (fLoading || pLoading || hLoading) return <div style={loadingStyle}>Loading favors…</div>;
 
-  const { givingFavors, needsSizing, isPersonalized } = localConfig;
+  const { givingFavors } = localConfig;
 
   return (
     <div className="tab-content">
       {isArchived && <ArchivedNotice />}
 
-      {/* Section header */}
+      {/* ── Section header — always visible ── */}
       <div className="section-header">
         <div>
-          <div className="section-title">{localConfig.favorDescription || "Favors"}</div>
+          <div className="section-title">{activeType?.description || "Favors"}</div>
           <div className="section-subtitle">
-            {givingFavors
+            {givingFavors && favorTypes.length > 0
               ? `${totalFavors} favor${totalFavors !== 1 ? "s" : ""} tracked`
               : "Set up your favor tracker below"}
           </div>
         </div>
-        {givingFavors && (
-          <div style={{ display: "flex", gap: 8 }}>
-            {favors.length > 0 && (
+        {givingFavors && activeType && (
+          <div style={{ display:"flex", gap:8 }}>
+            {typeFavors.length > 0 && (
               <button className="btn btn-secondary" onClick={() => setShowExport(true)}>↓ Export</button>
             )}
             <button className="btn btn-primary" disabled={isArchived} onClick={() => setShowModal(true)}>+ Add Manually</button>
@@ -271,19 +352,8 @@ export function FavorsTab({
             <div className="card-title" style={{ marginBottom: 0 }}>⚙ Favor Setup</div>
             {!setupOpen && (
               <div className="card-subtitle" style={{ marginBottom: 0, marginTop: 4 }}>
-                {givingFavors
-                  ? [
-                      localConfig.favorDescription || "Favors",
-                      localConfig.whoGets === "kids"   ? "Kids only"
-                        : localConfig.whoGets === "adults" ? "Adults only"
-                        : localConfig.whoGets === "manual" ? "Manual selection"
-                        : "All guests",
-                      localConfig.needsSizing    ? "Sizing on"    : null,
-                      localConfig.isPersonalized ? "Personalized" : null,
-                      localConfig.eventSectionId
-                        ? `🎫 ${(timeline.find(e => e.id === localConfig.eventSectionId) || {}).title || "Sub-event linked"}`
-                        : null,
-                    ].filter(Boolean).join(" · ")
+                {givingFavors && favorTypes.length > 0
+                  ? `${favorTypes.length} favor type${favorTypes.length !== 1 ? "s" : ""} configured`
                   : "Not configured · click to set up"}
               </div>
             )}
@@ -296,9 +366,26 @@ export function FavorsTab({
         {setupOpen && (
           <div style={{ marginTop: 16 }}>
             {/* Giving favors toggle */}
-            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: givingFavors ? 14 : 0 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: givingFavors ? 16 : 0 }}>
               <input type="checkbox" id="cfg-giving" checked={!!givingFavors}
-                onChange={e => { setFC("givingFavors", e.target.checked); if (e.target.checked) setSetupOpen(false); }}
+                onChange={e => {
+                  const on = e.target.checked;
+                  if (on && favorTypes.length === 0) {
+                    const typeId = newFavorTypeId();
+                    const newCfg = { ...localConfig, givingFavors: true, favorTypes: [{
+                      id: typeId, description: "", whoGets: "all",
+                      needsSizing: false, isPersonalized: false,
+                      sizeSource: "shirt", eventSectionId: "",
+                    }]};
+                    setLocalConfig(newCfg);
+                    setActiveFavorTypeId(typeId);
+                    setSetupOpen(false);
+                    saveConfig(newCfg);
+                  } else {
+                    setFC("givingFavors", on);
+                    if (on) setSetupOpen(false);
+                  }
+                }}
                 style={{ width: 16, height: 16, cursor: "pointer", accentColor: "var(--accent-primary)" }} />
               <label htmlFor="cfg-giving" style={{ fontSize: 13, fontWeight: 600, color: "var(--text-primary)", cursor: "pointer" }}>
                 Are you giving out favors?
@@ -306,73 +393,91 @@ export function FavorsTab({
             </div>
 
             {givingFavors && (<>
-              {/* What is the favor */}
-              <div className="form-row" style={{ marginBottom: 12 }}>
-                <label className="form-label">What is the favor?</label>
-                <input className="form-input" value={localConfig.favorDescription || ""}
-                  onChange={e => setFC("favorDescription", e.target.value)}
-                  placeholder="e.g., Sweatshirts, Tote bags, Candles…" />
-              </div>
+              {favorTypes.map((ft, idx) => (
+                <div key={ft.id} style={{ border: "1px solid var(--border)", borderRadius: "var(--radius-md)", padding: 14, marginBottom: 12, background: "var(--bg-subtle)" }}>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)" }}>
+                      Favor Type {favorTypes.length > 1 ? idx + 1 : ""}
+                    </div>
+                    {favorTypes.length > 1 && !isArchived && (
+                      <button className="btn btn-ghost btn-sm" style={{ fontSize: 11, color: "var(--red)" }}
+                        onClick={() => deleteFavorType(ft.id)}>
+                        Remove
+                      </button>
+                    )}
+                  </div>
 
-              {/* Who gets one */}
-              <div className="form-row" style={{ marginBottom: 12 }}>
-                <label className="form-label">Who receives a favor?</label>
-                <select className="form-input" value={localConfig.whoGets || "all"}
-                  onChange={e => setFC("whoGets", e.target.value)}>
-                  <option value="all">All guests</option>
-                  <option value="kids">All kids</option>
-                  <option value="adults">All adults</option>
-                  <option value="manual">Select manually</option>
-                </select>
-              </div>
+                  <div className="form-row" style={{ marginBottom: 10 }}>
+                    <label className="form-label">What is the favor?</label>
+                    <input className="form-input" value={ft.description || ""}
+                      onChange={e => updateFavorType(ft.id, { description: e.target.value })}
+                      placeholder="e.g., Sweatshirts, Tote bags, Candles…" />
+                  </div>
 
-              {/* Toggles row */}
-              <div style={{ display: "flex", gap: 24, flexWrap: "wrap" }}>
-                {[
-                  { key: "needsSizing",    label: "Do favors require sizing?" },
-                  { key: "isPersonalized", label: "Will favors be personalized?" },
-                ].map(({ key, label }) => (
-                  <label key={key} style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer", fontSize: 13, color: "var(--text-primary)" }}>
-                    <input type="checkbox" checked={!!localConfig[key]}
-                      onChange={e => setFC(key, e.target.checked)}
-                      style={{ width: 15, height: 15, cursor: "pointer", accentColor: "var(--accent-primary)" }} />
-                    {label}
-                  </label>
-                ))}
-              </div>
+                  <div className="form-row" style={{ marginBottom: 10 }}>
+                    <label className="form-label">Who receives a favor?</label>
+                    <select className="form-input" value={ft.whoGets || "all"}
+                      onChange={e => updateFavorType(ft.id, { whoGets: e.target.value })}>
+                      <option value="all">All guests</option>
+                      <option value="kids">All kids</option>
+                      <option value="adults">All adults</option>
+                      <option value="manual">Select manually</option>
+                    </select>
+                  </div>
 
-              {/* Size source */}
-              {localConfig.needsSizing && (
-                <div className="form-row" style={{ marginTop: 12 }}>
-                  <label className="form-label">Which size to pre-fill from the guest list?</label>
-                  <select className="form-input" value={localConfig.sizeSource || "shirt"}
-                    onChange={e => setFC("sizeSource", e.target.value)}>
-                    <option value="shirt">Shirt size</option>
-                    <option value="pant">Pant size</option>
-                    <option value="manual">Don't pre-fill — enter manually</option>
-                  </select>
+                  <div style={{ display: "flex", gap: 24, flexWrap: "wrap", marginBottom: 10 }}>
+                    {[
+                      { key: "activeType?.needsSizing",    label: "Requires sizing?" },
+                      { key: "activeType?.isPersonalized", label: "Personalized?" },
+                    ].map(({ key, label }) => (
+                      <label key={key} style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer", fontSize: 13, color: "var(--text-primary)" }}>
+                        <input type="checkbox" checked={!!ft[key]}
+                          onChange={e => updateFavorType(ft.id, { [key]: e.target.checked })}
+                          style={{ width: 15, height: 15, cursor: "pointer", accentColor: "var(--accent-primary)" }} />
+                        {label}
+                      </label>
+                    ))}
+                  </div>
+
+                  {ft.activeType?.needsSizing && (
+                    <div className="form-row" style={{ marginBottom: 10 }}>
+                      <label className="form-label">Size to pre-fill from guest list?</label>
+                      <select className="form-input" value={ft.sizeSource || "shirt"}
+                        onChange={e => updateFavorType(ft.id, { sizeSource: e.target.value })}>
+                        <option value="shirt">Shirt size</option>
+                        <option value="pant">Pant size</option>
+                        <option value="manual">Don't pre-fill — enter manually</option>
+                      </select>
+                    </div>
+                  )}
+
+                  <div className="form-row" style={{ marginBottom: 0 }}>
+                    <label className="form-label">Distributed at which sub-event?</label>
+                    <select className="form-input" value={ft.eventSectionId || ""}
+                      onChange={e => updateFavorType(ft.id, { eventSectionId: e.target.value })}>
+                      <option value="">Not linked to a sub-event</option>
+                      {timeline.map(entry => (
+                        <option key={entry.id} value={entry.id}>{entry.icon || "📅"} {entry.title}</option>
+                      ))}
+                    </select>
+                    <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 4 }}>
+                      Attendance is automatically derived from each person's confirmed sub-event attendance.
+                    </div>
+                  </div>
                 </div>
+              ))}
+
+              {!isArchived && (
+                <button className="btn btn-ghost btn-sm" onClick={addFavorType}
+                  style={{ width: "100%", justifyContent: "center", marginBottom: 8 }}>
+                  + Add Another Favor Type
+                </button>
               )}
-
-              {/* Sub-event distribution */}
-              <div className="form-row" style={{ marginTop: 12 }}>
-                <label className="form-label">Distributed at which sub-event?</label>
-                <select className="form-input" value={localConfig.eventSectionId || ""}
-                  onChange={e => setFC("eventSectionId", e.target.value)}>
-                  <option value="">Not linked to a sub-event</option>
-                  {timeline.map(entry => (
-                    <option key={entry.id} value={entry.id}>{entry.icon || "📅"} {entry.title}</option>
-                  ))}
-                </select>
-                <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 4 }}>
-                  When set, attendance is automatically derived from each person's confirmed sub-event attendance — no manual entry needed.
-                </div>
-              </div>
             </>)}
 
-            {!isArchived && (
+            {!isArchived && givingFavors && (
               <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 12, paddingTop: 12, borderTop: "1px solid var(--border)" }}>
-                <button className="btn btn-primary btn-sm" onClick={saveConfig} disabled={configSaving}>
+                <button className="btn btn-primary btn-sm" onClick={() => saveConfig()} disabled={configSaving}>
                   {configSaving ? "Saving…" : "Save Settings"}
                 </button>
               </div>
@@ -381,8 +486,26 @@ export function FavorsTab({
         )}
       </div>
 
+      {/* Pill switcher — only when 2+ favor types */}
+      {givingFavors && favorTypes.length >= 2 && (
+        <div style={{ display: "flex", gap: 8, marginBottom: 20, flexWrap: "wrap" }}>
+          {favorTypes.map(ft => (
+            <button key={ft.id}
+              className={`btn ${ft.id === activeFavorTypeId ? "btn-primary" : "btn-ghost"}`}
+              style={{ fontSize: 13 }}
+              onClick={() => setActiveFavorTypeId(ft.id)}>
+              {ft.description || "Unnamed favor"}
+              {ft.eventSectionId && (() => {
+                const entry = timeline.find(e => e.id === ft.eventSectionId);
+                return entry ? ` · ${entry.icon || "📅"} ${entry.title}` : "";
+              })()}
+            </button>
+          ))}
+        </div>
+      )}
+
       {/* Content — only when favors are enabled */}
-      {givingFavors && (<>
+      {givingFavors && activeType && (<>
 
         {/* Stat cards */}
         <div className="stat-grid" style={{ marginBottom: 16 }}>
@@ -390,14 +513,14 @@ export function FavorsTab({
             <div className="stat-label">Total Favors</div>
             <div className="stat-value">{totalFavors}</div>
           </div>
-          {isPersonalized && (
+          {activeType?.isPersonalized && (
             <div className="stat-card">
               <div className="stat-label">Pre-Printed</div>
               <div className="stat-value" style={{ color: "var(--green)" }}>{preprintYes}</div>
-              <div className="stat-sub">{preprintTBD} TBD · {favors.length - preprintYes - preprintTBD} No</div>
+              <div className="stat-sub">{preprintTBD} TBD · {typeFavors.length - preprintYes - preprintTBD} No</div>
             </div>
           )}
-          {localConfig.eventSectionId && (
+          {activeType.eventSectionId && (
             <div className="stat-card">
               <div className="stat-label">Attending</div>
               <div className="stat-value" style={{ color: "var(--green)" }}>{attendingYes}</div>
@@ -407,7 +530,7 @@ export function FavorsTab({
         </div>
 
         {/* Size summary card */}
-        {needsSizing && totalFavors > 0 && (
+        {activeType?.needsSizing && totalFavors > 0 && (
           <div className="stat-card" style={{ marginBottom: 16 }}>
             <div className="stat-label" style={{ marginBottom: 8 }}>Size Summary</div>
             <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
@@ -473,13 +596,13 @@ export function FavorsTab({
             <div className="filter-bar">
               <input className="form-input" placeholder="Search by name…"
                 value={search} onChange={e => setSearch(e.target.value)} />
-              {needsSizing && (
+              {activeType?.needsSizing && (
                 <select className="form-select" value={filterSize} onChange={e => setFilterSize(e.target.value)}>
                   <option value="all">All Sizes</option>
                   {usedSizes.map(s => <option key={s} value={s}>{s}</option>)}
                 </select>
               )}
-              {isPersonalized && (
+              {activeType?.isPersonalized && (
                 <select className="form-select" value={filterPre} onChange={e => setFilterPre(e.target.value)}>
                   <option value="all">All Preprint</option>
                   <option value="Yes">Yes</option>
@@ -487,7 +610,7 @@ export function FavorsTab({
                   <option value="No">No</option>
                 </select>
               )}
-              {localConfig.eventSectionId && (
+              {activeType?.eventSectionId && (
                 <select className="form-select" value={filterAtt} onChange={e => setFilterAtt(e.target.value)}>
                   <option value="all">All Attending</option>
                   <option value="Yes">Yes</option>
@@ -522,8 +645,8 @@ export function FavorsTab({
                       <tr style={{ borderBottom: "1px solid var(--border)" }}>
                         <th style={TH}>Name</th>
                         <th style={TH}>Category</th>
-                        {needsSizing && <th style={TH}>Size</th>}
-                        {isPersonalized && (
+                        {activeType?.needsSizing && <th style={TH}>Size</th>}
+                        {activeType?.isPersonalized && (
                           <th style={{ ...TH, position: "relative" }}>
                             Name on Favor
                             <button onClick={e => { e.stopPropagation(); setOpenTip(t => t === "printName" ? null : "printName"); }}
@@ -536,7 +659,7 @@ export function FavorsTab({
                             )}
                           </th>
                         )}
-                        {isPersonalized && (
+                        {activeType?.isPersonalized && (
                           <th style={{ ...TH, textAlign: "center", position: "relative" }}>
                             Pre-Printed?
                             <button onClick={e => { e.stopPropagation(); setOpenTip(t => t === "preprint" ? null : "preprint"); }}
@@ -549,7 +672,7 @@ export function FavorsTab({
                             )}
                           </th>
                         )}
-                        {localConfig.eventSectionId && (
+                        {activeType?.eventSectionId && (
                           <th style={{ ...TH, textAlign: "center" }}>Attending</th>
                         )}
                         <th style={TH}>Notes</th>
@@ -575,21 +698,21 @@ export function FavorsTab({
                                 <span style={{ fontSize: 11, color: "var(--text-muted)" }}>—</span>
                               )}
                             </td>
-                            {needsSizing && (
+                            {activeType?.needsSizing && (
                               <td style={{ ...TD, color: "var(--text-secondary)" }}>{f.size || "—"}</td>
                             )}
-                            {isPersonalized && (
+                            {activeType?.isPersonalized && (
                               <td style={{ ...TD, color: "var(--text-secondary)" }}>{f.printName || "—"}</td>
                             )}
-                            {isPersonalized && (
+                            {activeType?.isPersonalized && (
                               <td style={{ ...TD, textAlign: "center", cursor: "pointer", fontWeight: 600, color: STATUS_STYLE[f.preprint || "TBD"] }}
                                 onClick={() => cyclePre(f.id)} title="Click to cycle">
                                 {f.preprint || "TBD"}
                               </td>
                             )}
-                            {localConfig.eventSectionId && (() => {
+                            {activeType?.eventSectionId && (() => {
                               const person = people.find(p => p.id === f.personId);
-                              const confirmed = person && (person.attendingSections || []).includes(localConfig.eventSectionId);
+                              const confirmed = person && (person.attendingSections || []).includes(activeType?.eventSectionId);
                               const tbd = !person || (person.attendingSections || []).length === 0;
                               const label = confirmed ? "Yes" : tbd ? "TBD" : "No";
                               return (
@@ -683,13 +806,13 @@ export function FavorsTab({
 
       {/* Add modal */}
       {showModal && (
-        <FavorModal favorConfig={localConfig} people={people} personNames={personNames} sizes={sizes} favors={favors}
+        <FavorModal favorConfig={activeType || localConfig} people={people} personNames={personNames} sizes={sizes} favors={typeFavors}
           timeline={timeline} onSave={handleAdd} onClose={() => setShowModal(false)} isArchived={isArchived} />
       )}
 
       {/* Edit modal */}
       {editFavor && (
-        <FavorModal favor={editFavor} favorConfig={localConfig} people={people} personNames={personNames} sizes={sizes} favors={favors}
+        <FavorModal favor={editFavor} favorConfig={activeType || localConfig} people={people} personNames={personNames} sizes={sizes} favors={typeFavors}
           timeline={timeline} onSave={handleEdit} onClose={() => setEditFavor(null)} isArchived={isArchived} />
       )}
 
@@ -718,7 +841,7 @@ export function FavorsTab({
       {/* Export modal */}
       {showExport && (
         <FavorExportModal
-          favors={favors} favorConfig={localConfig}
+          favors={typeFavors} favorConfig={localConfig} favorType={activeType}
           adminConfig={adminConfig || {}}
           onPrint={html => { setPrintHTML(html); setShowExport(false); }}
           onClose={() => setShowExport(false)}
@@ -810,7 +933,7 @@ export function FavorModal({ favor, favorConfig, people, personNames, sizes, fav
             <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 4 }}>Optional — used for grouping and filtering</div>
           </div>
 
-          {favorConfig.needsSizing && (
+          {favorConfig.activeType?.needsSizing && (
             <div className="form-row">
               <label className="form-label">Size</label>
               <select className="form-input" value={form.size || ""} onChange={e => setF("size", e.target.value)}>
@@ -819,7 +942,7 @@ export function FavorModal({ favor, favorConfig, people, personNames, sizes, fav
             </div>
           )}
 
-          {favorConfig.isPersonalized && (<>
+          {favorConfig.activeType?.isPersonalized && (<>
             <div className="form-row">
               <label className="form-label">Name on Favor</label>
               <input className="form-input" value={form.printName || ""}
@@ -880,11 +1003,11 @@ export function FavorModal({ favor, favorConfig, people, personNames, sizes, fav
 }
 
 // ── FavorExportModal ──────────────────────────────────────────────────────────
-export function FavorExportModal({ favors, favorConfig, adminConfig, onPrint, onClose }) {
+export function FavorExportModal({ favors, favorConfig, favorType, adminConfig, onPrint, onClose }) {
   const [showCSV, setShowCSV] = useState(false);
   const [copied,  setCopied]  = useState(false);
 
-  const csvContent = showCSV ? exportFavorsCSV(favors, favorConfig) : "";
+  const csvContent = showCSV ? exportFavorsCSV(favors, favorConfig, favorType) : "";
 
   const handleCopy = () => {
     navigator.clipboard.writeText(csvContent).then(() => { setCopied(true); setTimeout(() => setCopied(false), 2000); }).catch(() => {});
@@ -892,7 +1015,7 @@ export function FavorExportModal({ favors, favorConfig, adminConfig, onPrint, on
 
   const handlePrint = () => {
     const mainEvt = (adminConfig?.timeline || []).find(e => e.isMainEvent);
-    onPrint(generateFavorPrintHTML(favors, favorConfig, adminConfig.name || "", mainEvt?.startDate || "", adminConfig.theme || {}));
+    onPrint(generateFavorPrintHTML(favors, favorConfig, adminConfig.name || "", mainEvt?.startDate || "", adminConfig.theme || {}, favorType));
   };
 
   const OPT = (active) => ({
@@ -920,7 +1043,7 @@ export function FavorExportModal({ favors, favorConfig, adminConfig, onPrint, on
               <div style={{ fontSize: 20, marginBottom: 6 }}>🖨</div>
               <div style={{ fontWeight: 700, fontSize: 13, color: "var(--text-primary)", marginBottom: 4 }}>Printable View</div>
               <div style={{ fontSize: 11, color: "var(--text-muted)", lineHeight: 1.5 }}>
-                {favorConfig.needsSizing ? "Grouped by size with totals. " : "Alphabetical list. "}
+                {favorConfig.activeType?.needsSizing ? "Grouped by size with totals. " : "Alphabetical list. "}
                 Day-of distribution checklist.
               </div>
             </button>

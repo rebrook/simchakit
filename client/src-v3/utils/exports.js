@@ -359,27 +359,31 @@ ${donorBlocks || '<p style="color:#9c9188;font-style:italic">No gifts recorded y
 </body></html>`;
 }
 
-function exportFavorsCSV(favors, favorConfig) {
+function exportFavorsCSV(favors, favorConfig, favorType) {
+  // favorType takes precedence over favorConfig for multi-type support
+  const cfg = favorType || favorConfig;
   const getLastName = (name) => (name||"").trim().split(" ").pop();
   const sorted = [...favors].sort((a,b) => getLastName(a.personName).localeCompare(getLastName(b.personName)));
   const headers = [
-    ...(favorConfig.needsSizing     ? ["Size"]      : []),
+    ...(cfg.needsSizing     ? ["Size"]      : []),
     "Guest Name",
-    ...(favorConfig.isPersonalized  ? ["Name on Favor","Pre-Printed?"] : []),
-    ...(favorConfig.trackAttendance ? ["Attending"]  : []),
+    ...(cfg.isPersonalized  ? ["Name on Favor","Pre-Printed?"] : []),
+    ...(cfg.trackAttendance ? ["Attending"]  : []),
     "Notes",
   ];
   const rows = sorted.map(f => [
-    ...(favorConfig.needsSizing     ? [f.size || ""]           : []),
+    ...(cfg.needsSizing     ? [f.size || ""]           : []),
     f.personName || "",
-    ...(favorConfig.isPersonalized  ? [f.printName||"", f.preprint||"TBD"] : []),
-    ...(favorConfig.trackAttendance ? [f.attending||"TBD"]      : []),
+    ...(cfg.isPersonalized  ? [f.printName||"", f.preprint||"TBD"] : []),
+    ...(cfg.trackAttendance ? [f.attending||"TBD"]      : []),
     f.notes || "",
   ].map(csvEsc).join(","));
   return [headers.map(csvEsc).join(","), ...rows].join("\n");
 }
 
-function generateFavorPrintHTML(favors, favorConfig, eventName, eventDate, theme) {
+function generateFavorPrintHTML(favors, favorConfig, eventName, eventDate, theme, favorType) {
+  // favorType takes precedence over favorConfig for multi-type support
+  const cfg = favorType || favorConfig;
   const pal = PALETTES[theme?.palette] || PALETTES.rose;
   const getLastName = (name) => (name||"").trim().split(" ").pop();
   const sorted = [...favors].sort((a,b) => getLastName(a.personName).localeCompare(getLastName(b.personName)));
@@ -390,7 +394,7 @@ function generateFavorPrintHTML(favors, favorConfig, eventName, eventDate, theme
 
   // Size summary
   let sizeSummaryHTML = "";
-  if (favorConfig.needsSizing) {
+  if (cfg.needsSizing) {
     const sizeCounts = {};
     sorted.forEach(f => { sizeCounts[f.size||"TBD"] = (sizeCounts[f.size||"TBD"]||0) + 1; });
     const badges = Object.entries(sizeCounts)
@@ -407,7 +411,7 @@ function generateFavorPrintHTML(favors, favorConfig, eventName, eventDate, theme
 
   // Group by size if sizing on, otherwise flat
   let bodyHTML = "";
-  if (favorConfig.needsSizing) {
+  if (cfg.needsSizing) {
     const bySize = {};
     sorted.forEach(f => {
       const s = f.size || "TBD";
@@ -422,14 +426,14 @@ function generateFavorPrintHTML(favors, favorConfig, eventName, eventDate, theme
         <table style="width:100%;border-collapse:collapse;border:1px solid ${pal["accent-medium"]};border-radius:0 0 6px 6px;overflow:hidden;font-size:12px">
           <thead><tr style="background:${pal["accent-light"]}">
             <th style="padding:5px 8px;text-align:left;font-weight:700;color:#9c9188;font-size:11px;text-transform:uppercase;border-bottom:1px solid ${pal["accent-medium"]}">Name</th>
-            ${favorConfig.isPersonalized ? `<th style="padding:5px 8px;text-align:left;font-weight:700;color:#9c9188;font-size:11px;text-transform:uppercase;border-bottom:1px solid ${pal["accent-medium"]}">Name on Favor</th><th style="padding:5px 8px;text-align:center;font-weight:700;color:#9c9188;font-size:11px;text-transform:uppercase;border-bottom:1px solid ${pal["accent-medium"]}">Pre-Printed?</th>` : ""}
-            ${favorConfig.trackAttendance ? `<th style="padding:5px 8px;text-align:center;font-weight:700;color:#9c9188;font-size:11px;text-transform:uppercase;border-bottom:1px solid ${pal["accent-medium"]}">Attending</th>` : ""}
+            ${cfg.isPersonalized ? `<th style="padding:5px 8px;text-align:left;font-weight:700;color:#9c9188;font-size:11px;text-transform:uppercase;border-bottom:1px solid ${pal["accent-medium"]}">Name on Favor</th><th style="padding:5px 8px;text-align:center;font-weight:700;color:#9c9188;font-size:11px;text-transform:uppercase;border-bottom:1px solid ${pal["accent-medium"]}">Pre-Printed?</th>` : ""}
+            ${cfg.trackAttendance ? `<th style="padding:5px 8px;text-align:center;font-weight:700;color:#9c9188;font-size:11px;text-transform:uppercase;border-bottom:1px solid ${pal["accent-medium"]}">Attending</th>` : ""}
           </tr></thead>
           <tbody>
             ${items.map(f => `<tr style="border-bottom:1px solid #f0ece6">
               <td style="padding:5px 8px;font-weight:500">${f.personName||""}</td>
-              ${favorConfig.isPersonalized ? `<td style="padding:5px 8px;color:#5c5248">${f.printName||""}</td><td style="padding:5px 8px;text-align:center;color:#5c5248">${f.preprint||"TBD"}</td>` : ""}
-              ${favorConfig.trackAttendance ? `<td style="padding:5px 8px;text-align:center;color:#5c5248">${f.attending||"TBD"}</td>` : ""}
+              ${cfg.isPersonalized ? `<td style="padding:5px 8px;color:#5c5248">${f.printName||""}</td><td style="padding:5px 8px;text-align:center;color:#5c5248">${f.preprint||"TBD"}</td>` : ""}
+              ${cfg.trackAttendance ? `<td style="padding:5px 8px;text-align:center;color:#5c5248">${f.attending||"TBD"}</td>` : ""}
             </tr>`).join("")}
           </tbody>
         </table>
@@ -439,14 +443,14 @@ function generateFavorPrintHTML(favors, favorConfig, eventName, eventDate, theme
       <table style="width:100%;border-collapse:collapse;border:1px solid ${pal["accent-medium"]};border-radius:6px;overflow:hidden;font-size:12px">
         <thead><tr style="background:${pal["accent-light"]}">
           <th style="padding:5px 8px;text-align:left;font-weight:700;color:#9c9188;font-size:11px;text-transform:uppercase;border-bottom:1px solid ${pal["accent-medium"]}">Name</th>
-          ${favorConfig.isPersonalized ? `<th style="padding:5px 8px;text-align:left;font-weight:700;color:#9c9188;font-size:11px;text-transform:uppercase;border-bottom:1px solid ${pal["accent-medium"]}">Name on Favor</th><th style="padding:5px 8px;text-align:center;font-weight:700;color:#9c9188;font-size:11px;text-transform:uppercase;border-bottom:1px solid ${pal["accent-medium"]}">Pre-Printed?</th>` : ""}
-          ${favorConfig.trackAttendance ? `<th style="padding:5px 8px;text-align:center;font-weight:700;color:#9c9188;font-size:11px;text-transform:uppercase;border-bottom:1px solid ${pal["accent-medium"]}">Attending</th>` : ""}
+          ${cfg.isPersonalized ? `<th style="padding:5px 8px;text-align:left;font-weight:700;color:#9c9188;font-size:11px;text-transform:uppercase;border-bottom:1px solid ${pal["accent-medium"]}">Name on Favor</th><th style="padding:5px 8px;text-align:center;font-weight:700;color:#9c9188;font-size:11px;text-transform:uppercase;border-bottom:1px solid ${pal["accent-medium"]}">Pre-Printed?</th>` : ""}
+          ${cfg.trackAttendance ? `<th style="padding:5px 8px;text-align:center;font-weight:700;color:#9c9188;font-size:11px;text-transform:uppercase;border-bottom:1px solid ${pal["accent-medium"]}">Attending</th>` : ""}
         </tr></thead>
         <tbody>
           ${sorted.map(f => `<tr style="border-bottom:1px solid #f0ece6">
             <td style="padding:5px 8px;font-weight:500">${f.personName||""}</td>
-            ${favorConfig.isPersonalized ? `<td style="padding:5px 8px;color:#5c5248">${f.printName||""}</td><td style="padding:5px 8px;text-align:center;color:#5c5248">${f.preprint||"TBD"}</td>` : ""}
-            ${favorConfig.trackAttendance ? `<td style="padding:5px 8px;text-align:center;color:#5c5248">${f.attending||"TBD"}</td>` : ""}
+            ${cfg.isPersonalized ? `<td style="padding:5px 8px;color:#5c5248">${f.printName||""}</td><td style="padding:5px 8px;text-align:center;color:#5c5248">${f.preprint||"TBD"}</td>` : ""}
+            ${cfg.trackAttendance ? `<td style="padding:5px 8px;text-align:center;color:#5c5248">${f.attending||"TBD"}</td>` : ""}
           </tr>`).join("")}
         </tbody>
       </table>`;
@@ -464,7 +468,7 @@ function generateFavorPrintHTML(favors, favorConfig, eventName, eventDate, theme
 </head><body>
 <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:24px;padding-bottom:16px;border-bottom:2px solid ${pal["accent-medium"]}">
   <div>
-    <div style="font-family:'Cormorant Garamond',Georgia,serif;font-size:28px;font-weight:700">${eventName ? eventName + " — " : ""}${favorConfig.favorDescription || "Favor List"}</div>
+    <div style="font-family:'Cormorant Garamond',Georgia,serif;font-size:28px;font-weight:700">${eventName ? eventName + " — " : ""}${cfg.description || cfg.favorDescription || "Favor List"}</div>
     ${dateStr ? `<div style="font-size:13px;color:#5c5248;margin-top:2px">${dateStr}</div>` : ""}
   </div>
   <div style="text-align:right">

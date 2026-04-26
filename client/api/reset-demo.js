@@ -3286,7 +3286,8 @@ const SEED = {
       "preprint": "Yes",
       "attending": "Yes",
       "notes": "",
-      "category": ""
+      "category": "",
+      "favorTypeId": "ft-demo-0001"
     },
     {
       "id": "08184760-d824-4ecf-9655-7047de8d5a9b",
@@ -3297,7 +3298,8 @@ const SEED = {
       "preprint": "Yes",
       "attending": "Yes",
       "notes": "",
-      "category": ""
+      "category": "",
+      "favorTypeId": "ft-demo-0001"
     },
     {
       "id": "88297f08-092e-4987-922c-0abd002f7e52",
@@ -3308,7 +3310,8 @@ const SEED = {
       "preprint": "Yes",
       "attending": "Yes",
       "notes": "",
-      "category": ""
+      "category": "",
+      "favorTypeId": "ft-demo-0001"
     },
     {
       "id": "1032fe26-1c82-426b-b541-5e44199c2046",
@@ -3319,7 +3322,8 @@ const SEED = {
       "preprint": "Yes",
       "attending": "Yes",
       "notes": "",
-      "category": ""
+      "category": "",
+      "favorTypeId": "ft-demo-0001"
     },
     {
       "id": "abf6f2f0-713a-4c05-93f4-07e74a4828d9",
@@ -3330,7 +3334,8 @@ const SEED = {
       "preprint": "Yes",
       "attending": "Yes",
       "notes": "",
-      "category": ""
+      "category": "",
+      "favorTypeId": "ft-demo-0001"
     },
     {
       "id": "f18578ef-067d-4934-8203-c272ffefe52b",
@@ -3341,7 +3346,8 @@ const SEED = {
       "preprint": "Yes",
       "attending": "Yes",
       "notes": "",
-      "category": ""
+      "category": "",
+      "favorTypeId": "ft-demo-0001"
     },
     {
       "id": "52f1e6e6-3dbc-499e-913b-8eb6b2ee3068",
@@ -3352,7 +3358,8 @@ const SEED = {
       "preprint": "Yes",
       "attending": "Yes",
       "notes": "",
-      "category": ""
+      "category": "",
+      "favorTypeId": "ft-demo-0001"
     },
     {
       "id": "9781b4b1-2f5a-4f39-bb7e-4cf02cba1fc1",
@@ -3363,7 +3370,8 @@ const SEED = {
       "preprint": "Yes",
       "attending": "Yes",
       "notes": "",
-      "category": ""
+      "category": "",
+      "favorTypeId": "ft-demo-0001"
     },
     {
       "id": "b563c6ef-3d8a-4e05-aff5-4a175216a28e",
@@ -3374,7 +3382,8 @@ const SEED = {
       "preprint": "Yes",
       "attending": "Yes",
       "notes": "",
-      "category": ""
+      "category": "",
+      "favorTypeId": "ft-demo-0001"
     },
     {
       "id": "396c928c-765a-49b4-84c1-02b6fe844390",
@@ -3385,7 +3394,8 @@ const SEED = {
       "preprint": "Yes",
       "attending": "Yes",
       "notes": "",
-      "category": ""
+      "category": "",
+      "favorTypeId": "ft-demo-0001"
     },
     {
       "id": "312bb767-a5cd-442b-94b5-89978ea6ae97",
@@ -3396,7 +3406,8 @@ const SEED = {
       "preprint": "Yes",
       "attending": "Yes",
       "notes": "",
-      "category": ""
+      "category": "",
+      "favorTypeId": "ft-demo-0001"
     },
     {
       "id": "ab109beb-e22e-4480-86e2-62a318401d1a",
@@ -3407,7 +3418,8 @@ const SEED = {
       "preprint": "Yes",
       "attending": "Yes",
       "notes": "",
-      "category": ""
+      "category": "",
+      "favorTypeId": "ft-demo-0001"
     },
     {
       "id": "13a55e70-5ae1-4a8d-a52a-7285309aac65",
@@ -3418,7 +3430,8 @@ const SEED = {
       "preprint": "Yes",
       "attending": "Yes",
       "notes": "",
-      "category": ""
+      "category": "",
+      "favorTypeId": "ft-demo-0001"
     },
     {
       "id": "e1ec071c-bf65-4467-8c4c-9e25c6239946",
@@ -3429,7 +3442,8 @@ const SEED = {
       "preprint": "TBD",
       "attending": "TBD",
       "notes": "",
-      "category": ""
+      "category": "",
+      "favorTypeId": "ft-demo-0001"
     },
     {
       "id": "6be5a305-7a8d-4834-96e9-c5df948667d5",
@@ -3440,7 +3454,8 @@ const SEED = {
       "preprint": "Yes",
       "attending": "Yes",
       "notes": "",
-      "category": ""
+      "category": "",
+      "favorTypeId": "ft-demo-0001"
     },
     {
       "id": "66f5cf94-aec3-45c0-a2aa-2e2b8a7788ca",
@@ -3451,7 +3466,8 @@ const SEED = {
       "preprint": "Yes",
       "attending": "Yes",
       "notes": "",
-      "category": ""
+      "category": "",
+      "favorTypeId": "ft-demo-0001"
     },
     {
       "id": "650959a6-f3b6-4a12-96cf-0b83e12319cf",
@@ -3462,7 +3478,8 @@ const SEED = {
       "preprint": "Yes",
       "attending": "Yes",
       "notes": "",
-      "category": ""
+      "category": "",
+      "favorTypeId": "ft-demo-0001"
     },
     {
       "id": "8d43d3bd-6c7d-40c6-8166-2b4b7a7956c3",
@@ -3473,7 +3490,8 @@ const SEED = {
       "preprint": "Yes",
       "attending": "Yes",
       "notes": "",
-      "category": ""
+      "category": "",
+      "favorTypeId": "ft-demo-0001"
     },
     {
       "id": "bca5e10a-a73c-4aa7-9cc8-d7e9dea90514",
@@ -3484,7 +3502,8 @@ const SEED = {
       "preprint": "Yes",
       "attending": "Yes",
       "notes": "",
-      "category": ""
+      "category": "",
+      "favorTypeId": "ft-demo-0001"
     },
     {
       "id": "40b39165-cb73-4b79-847b-8053f6464d6f",
@@ -3495,7 +3514,8 @@ const SEED = {
       "preprint": "TBD",
       "attending": "TBD",
       "notes": "",
-      "category": ""
+      "category": "",
+      "favorTypeId": "ft-demo-0001"
     }
   ],
   "adminConfig": {
@@ -3625,6 +3645,20 @@ const SEED = {
       "name": "David Cohen",
       "phone": "555-636-7880",
       "email": "dcohen@hebrewtutors.example.com"
+    },
+    "favorConfig": {
+      "givingFavors": true,
+      "favorTypes": [
+        {
+          "id": "ft-demo-0001",
+          "description": "Sweatshirts",
+          "whoGets": "all",
+          "needsSizing": true,
+          "isPersonalized": true,
+          "sizeSource": "shirt",
+          "eventSectionId": "tl_05"
+        }
+      ]
     }
   },
   "quickNotes": "Demo event — Bart Simpson's Bar Mitzvah. All data is fictional. Simpsons characters throughout.\n\nKey dietary notes:\n- Ralph Wiggum: SEVERE peanut allergy — alert caterer\n- Lisa Simpson: vegetarian\n- Wendell Borton: gluten free\n- Ned, Rod, Todd Flanders: kosher\n- Rabbi Krustofsky: strictly kosher\n- Agnes Skinner: low sodium\n- Selma Bouvier: shellfish allergy",

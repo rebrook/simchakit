@@ -1,11 +1,29 @@
 {
-  "current": "V3.7.2",
+  "current": "V3.8.0",
   "whatsNew": [
+    "Multiple favor types \u2014 track different favors for different sub-events (e.g. sweatshirts at the party, water bottles at the luncheon).",
     "Auto-Seat \u2014 automatically assign all unseated guests to tables with one click, keeping households together.",
-    "Per-sub-event seating charts \u2014 each sub-event has its own independent set of tables and assignments.",
-    "Pill switcher lets you flip between sub-event seating charts instantly."
+    "Per-sub-event seating charts \u2014 each sub-event has its own independent set of tables and assignments."
   ],
   "changelog": [
+    {
+      "version": "V3.8.0",
+      "date": "2026-04-26",
+      "type": "feature",
+      "summary": "Multiple favors per sub-event",
+      "changes": [
+        "Feature: FavorsTab now supports multiple independent favor types, each linked to a different sub-event. Example: sweatshirts at the Evening Party and water bottles at the Kiddush Luncheon.",
+        "Data model: favorConfig now stores a favorTypes[] array. Each favor type has its own description, whoGets, needsSizing, isPersonalized, sizeSource, and eventSectionId. Each favor record gets a favorTypeId field linking it to a type.",
+        "Setup card: replaced single config block with a per-type config block for each favor type. + Add Another Favor Type button adds a new independent type. Remove button deletes a type and all its records.",
+        "Pill switcher: when 2+ favor types exist, a pill switcher appears above the stat cards. Switching pills scopes all content (stats, size summary, favor list, available panel, export) to the active type. Hidden when only 1 type.",
+        "Migration: on first load, existing single-type config is automatically converted to a favorTypes[0] entry and all existing records are stamped with the new typeId. No data loss, no user action required.",
+        "Export: scoped to the active favor type. CSV and printable view use the active type's description as the title.",
+        "exports.js (V2 + V3): exportFavorsCSV and generateFavorPrintHTML accept optional favorType param. cfg = favorType || favorConfig for backward compatibility.",
+        "Demo data updated: V2 simcha-demo.json and V3 reset-demo.js both seeded with favorTypes array and favorTypeId on all favor records.",
+        "Guide updated in V2 and V3: Favor Setup entry revised to describe multi-type workflow.",
+        "Roadmap item 'Multiple favors distributed at different sub-events' marked complete."
+      ]
+    },
     {
       "version": "V3.7.2",
       "date": "2026-04-25",
@@ -5080,7 +5098,7 @@
     },
     {
       "feature": "Multiple favors distributed at different sub-events",
-      "status": "future",
+      "status": "complete",
       "priority": "P4",
       "effort": "Low",
       "detail": "Currently each favor setup is linked to a single sub-event. Future enhancement: allow multiple favor types each linked to a different sub-event (e.g. water bottles at the party, kippot at the service)."
