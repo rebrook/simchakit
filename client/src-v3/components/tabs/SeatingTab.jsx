@@ -346,7 +346,7 @@ export function SeatingTab({ eventId, event, adminConfig, showToast, isArchived,
                       {timeline.map(entry => {
                         const isEnabled = enabledSections.includes(entry.id);
                         return (
-                          <label key={entry.id} style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer", padding: "8px 10px", borderRadius: "var(--radius-sm)", background: isEnabled ? "var(--accent-light)" : "var(--bg-subtle)", border: `1px solid ${isEnabled ? "var(--accent-primary)" : "var(--border)"}`, transition: "all 0.15s", color: isEnabled ? "var(--accent-primary)" : "var(--text-primary)" }}>
+                          <label key={entry.id} style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer", padding: "8px 10px", borderRadius: "var(--radius-sm)", background: "transparent", border: `2px solid ${isEnabled ? "var(--accent-primary)" : "var(--border)"}`, transition: "all 0.15s", color: isEnabled ? "var(--accent-primary)" : "var(--text-primary)" }}>
                             <input type="checkbox" checked={isEnabled}
                               onChange={e => {
                                 const next = e.target.checked
@@ -355,7 +355,7 @@ export function SeatingTab({ eventId, event, adminConfig, showToast, isArchived,
                                 saveConfig({ ...seatingConfig, hasSeating: true, enabledSections: next });
                               }}
                               style={{ width: 15, height: 15, cursor: "pointer", accentColor: "var(--accent-primary)" }} />
-                            <span style={{ fontSize: 13, color: "var(--text-primary)" }}>{entry.icon||"📅"} {entry.title}</span>
+                            <span style={{ fontSize: 13 }}>{entry.icon||"📅"} {entry.title}</span>
                           </label>
                         );
                       })}

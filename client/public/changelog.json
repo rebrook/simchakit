@@ -1,11 +1,22 @@
 {
-  "current": "V3.6.4",
+  "current": "V3.6.5",
   "whatsNew": [
     "Per-sub-event seating charts \u2014 each sub-event now has its own independent set of tables and guest assignments.",
     "Pill switcher lets you flip between sub-event seating charts instantly.",
     "Seating export is scoped to the active sub-event with the sub-event name included in the printable view title."
   ],
   "changelog": [
+    {
+      "version": "V3.6.5",
+      "date": "2026-04-25",
+      "type": "fix",
+      "summary": "SeatingTab \u2014 checklist text invisible in dark mode (root cause fix)",
+      "changes": [
+        "Root cause identified: --accent-light resolves to #eef2f8 (near-white) on the demo event's palette, making checked row text invisible against the background regardless of theme. Previous fixes attempted to adjust text color but left the broken background dependency in place.",
+        "Fix: changed checked row background from var(--accent-light) to transparent. Selection state is now indicated by a 2px accent-colored border and accent-colored text only \u2014 no background change. Works correctly across all palettes in both light and dark mode.",
+        "Also removed hardcoded color: var(--text-primary) from the inner span so text color correctly inherits from the label's conditional color. Applied to both V2 and V3."
+      ]
+    },
     {
       "version": "V3.6.4",
       "date": "2026-04-25",
