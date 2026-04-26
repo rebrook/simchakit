@@ -1,9 +1,20 @@
 {
-  "current": "V3.5.0",
+  "current": "V3.5.1",
   "whatsNew": [
-    "Calendar: Live subscription via webcal:// \u2014 subscribe in Google Calendar, Apple Calendar, or Outlook and stay in sync automatically"
+    "Print Brief button in the Overview tab now works \u2014 opens a full print preview with Print / Save PDF option."
   ],
   "changelog": [
+    {
+      "version": "V3.5.1",
+      "date": "2026-04-25",
+      "type": "fix",
+      "summary": "OverviewTab V3 \u2014 Print Brief self-contained and working",
+      "changes": [
+        "Bug: Print Brief button in OverviewTab V3 did nothing \u2014 onPrintBrief was missing from AppShell tabProps and AppShell has no collection data to generate the brief.",
+        "Fix: OverviewTab_v3.jsx is now self-contained for Print Brief. Imports generateEventBriefHTML from exports.js. Adds ceremonyRoles load via Supabase query matching DayOfOverlay pattern. Adds briefHTML state, printFrameRef, and handlePrintBrief. Button calls handlePrintBrief directly rather than the onPrintBrief prop.",
+        "Print preview iframe modal added to OverviewTab with Print / Save PDF and Close buttons \u2014 matches V2 behavior exactly."
+      ]
+    },
     {
       "version": "V3.5.0",
       "date": "2026-04-23",

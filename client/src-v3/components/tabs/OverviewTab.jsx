@@ -10,6 +10,7 @@ import { useEventData }       from "@/hooks/useEventData.js";
 import { EVENT_TYPE_ICONS }   from "@/constants/events.js";
 import { getCountdown, formatDate, formatEntryMeta, sortTimeline } from "@/utils/dates.js";
 import { GetStartedCard }     from "@/components/shared/GetStartedCard.jsx";
+import { generateEventBriefHTML } from "@/utils/exports.js";
 
 export function OverviewTab({ eventId, event, adminConfig, showToast, setActiveTab, onOpenAdmin, onOpenAdminTo, onOpenGuide, onPrintBrief }) {
   const config    = adminConfig || {};
@@ -55,6 +56,30 @@ export function OverviewTab({ eventId, event, adminConfig, showToast, setActiveT
   const { items: vendors }     = useEventData(eventId, "vendors");
   const { items: tables }      = useEventData(eventId, "tables");
   const { items: seatingRows } = useEventData(eventId, "seating");
+
+  // Ceremony roles — single document, needed for Print Brief
+  const [ceremonyRoles, setCeremonyRoles] = useState([]);
+  useEffect(() => {
+    if (!eventId) return;
+    supabase.from("ceremony_roles").select("data").eq("event_id", eventId)
+      .order("updated_at", { ascending: false })
+      .then(({ data: rows }) => {
+        if (rows && rows.length > 0) {
+          const arrayRow = rows.find(r => Array.isArray(r.data?.roles));
+          const row = arrayRow || rows[0];
+          setCeremonyRoles(row.data?.roles || []);
+        }
+      });
+  }, [eventId]);
+
+  // Print Brief
+  const [briefHTML,    setBriefHTML]    = useState(null);
+  const printFrameRef = useRef(null);
+
+  const handlePrintBrief = () => {
+    const state = { people, households, expenses, vendors, tasks, ceremonyRoles };
+    setBriefHTML(generateEventBriefHTML(state, adminConfig));
+  };
 
   const timelineEntries = sortTimeline(config.timeline || []);
 
@@ -102,7 +127,7 @@ export function OverviewTab({ eventId, event, adminConfig, showToast, setActiveT
           <div className="section-title">Overview</div>
           <div className="section-subtitle">Event summary and countdown</div>
         </div>
-        <button className="btn btn-secondary btn-sm" onClick={onPrintBrief}
+        <button className="btn btn-secondary btn-sm" onClick={handlePrintBrief}
           style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0 }}>
           🖨 Print Brief
         </button>
@@ -289,6 +314,33 @@ export function OverviewTab({ eventId, event, adminConfig, showToast, setActiveT
           )}
         </div>
       </div>
+
+      {/* Print Brief preview modal */}
+      {briefHTML && (
+        <div className="modal-backdrop" style={{ zIndex: 1100 }} onMouseDown={e => { if (e.target === e.currentTarget) setBriefHTML(null); }}>
+          <div onClick={e => e.stopPropagation()} style={{
+            background: "var(--bg-surface)", borderRadius: "var(--radius-lg)",
+            width: "95%", maxWidth: 960, height: "90vh",
+            display: "flex", flexDirection: "column", boxShadow: "var(--shadow-lg)",
+          }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "14px 20px", borderBottom: "1px solid var(--border)", flexShrink: 0 }}>
+              <div style={{ fontFamily: "var(--font-display)", fontSize: 17, fontWeight: 700, color: "var(--text-primary)" }}>
+                Print Preview — Event Brief
+              </div>
+              <div style={{ display: "flex", gap: 8 }}>
+                <button className="btn btn-primary" style={{ fontSize: 12 }}
+                  onClick={() => { if (printFrameRef.current?.contentWindow) printFrameRef.current.contentWindow.print(); }}>
+                  🖨 Print / Save PDF
+                </button>
+                <button className="icon-btn" title="Close" onClick={() => setBriefHTML(null)}>✕</button>
+              </div>
+            </div>
+            <iframe ref={printFrameRef} srcDoc={briefHTML}
+              style={{ flex: 1, border: "none", borderRadius: "0 0 var(--radius-lg) var(--radius-lg)" }}
+              title="Event Brief Print Preview" />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
