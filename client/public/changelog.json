@@ -1,11 +1,28 @@
 {
-  "current": "V3.6.5",
+  "current": "V3.7.0",
   "whatsNew": [
-    "Per-sub-event seating charts \u2014 each sub-event now has its own independent set of tables and guest assignments.",
-    "Pill switcher lets you flip between sub-event seating charts instantly.",
-    "Seating export is scoped to the active sub-event with the sub-event name included in the printable view title."
+    "Auto-Seat \u2014 automatically assign all unseated guests to tables with one click, keeping households together.",
+    "Per-sub-event seating charts \u2014 each sub-event has its own independent set of tables and assignments.",
+    "Pill switcher lets you flip between sub-event seating charts instantly."
   ],
   "changelog": [
+    {
+      "version": "V3.7.0",
+      "date": "2026-04-25",
+      "type": "feature",
+      "summary": "Auto-Seat by household",
+      "changes": [
+        "Feature: New \u2728 Auto-Seat button in the Seating tab header assigns all unseated guests to tables automatically.",
+        "Algorithm: First Fit Decreasing greedy bin-packing keeps households together where possible. Largest households are placed first to minimize fragmentation.",
+        "Kids routing: if any kids tables exist for the active section, kids are automatically routed to kids/mixed tables and adults to adult/mixed tables. If no kids tables exist, everyone is placed at adult/mixed tables.",
+        "Household attending overrides respected: if attendingAdults or attendingKids is set on a household, the algorithm caps placement to those counts rather than using all people records.",
+        "Non-destructive: guests already assigned to tables are never moved. Auto-seat only places unseated guests.",
+        "Confirmation modal shown before running. Result modal shows seated count, any households split across tables, and any guests who could not be placed due to insufficient capacity.",
+        "New shared utility: client/src/utils/seating.js (V2) and client/src-v3/utils/seating.js (V3) \u2014 pure functions, no side effects, verified against full Bart's Bar Mitzvah demo dataset (40/40 seated, 0 splits, 0 unplaced).",
+        "Guide updated in V2 and V3 with Auto-Seat entry in the Seating section.",
+        "Roadmap item audit-f6 (auto-seat by household assist) marked complete."
+      ]
+    },
     {
       "version": "V3.6.5",
       "date": "2026-04-25",
@@ -5741,7 +5758,7 @@
       "priority": "P4",
       "effort": "High",
       "title": "FUTURE: Auto-seat by household assist",
-      "status": "future",
+      "status": "complete",
       "source": "UX audit \u2014 Claude in Chrome, April 2026",
       "description": "A one-click 'Suggest seating' helper that groups unseated guests by household and fills tables in household-sized chunks. This won't replace manual seating but gives users a useful starting point.",
       "acceptance_criteria": "A 'Suggest Seating' button appears in the Seating tab. Clicking it runs an algorithm that assigns households to tables respecting capacity constraints. The result is applied as a draft that can be manually adjusted. A 'Clear suggestions' option reverts to unseated.",

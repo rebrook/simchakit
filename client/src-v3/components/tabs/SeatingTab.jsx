@@ -10,6 +10,7 @@ import { useEventData, peoplePromoteColumns } from "@/hooks/useEventData.js";
 import { useSearchHighlight } from "@/hooks/useSearchHighlight.js";
 import { newTableId }         from "@/utils/ids.js";
 import { exportSeatingByTable, exportSeatingByPerson, generateSeatingPrintHTML } from "@/utils/exports.js";
+import { autoSeatByHousehold } from "@/utils/seating.js";
 import { ArchivedNotice }     from "@/components/shared/ArchivedNotice.jsx";
 
 export function SeatingTab({ eventId, event, adminConfig, showToast, isArchived, setActiveTab, searchHighlight, clearSearchHighlight }) {
@@ -34,6 +35,8 @@ export function SeatingTab({ eventId, event, adminConfig, showToast, isArchived,
   const [isMobile,         setIsMobile]         = useState(() => window.innerWidth < 768);
   const [showExportModal,  setShowExportModal]  = useState(false);
   const [printHTML,        setPrintHTML]        = useState(null);
+  const [showAutoSeat,     setShowAutoSeat]     = useState(false);
+  const [autoSeatResult,   setAutoSeatResult]   = useState(null);
 
   useSearchHighlight(searchHighlight, clearSearchHighlight, "seating");
 
@@ -210,7 +213,20 @@ export function SeatingTab({ eventId, event, adminConfig, showToast, isArchived,
     showToast("Guest unassigned");
   };
 
-  const handlePersonClick = (personId) => {
+  const handleAutoSeat = async () => {
+    const result = autoSeatByHousehold(scopedPeople, sortedTables, households, sectionId);
+    for (const { personId, tableId } of result.assignments) {
+      const p = people.find(x => x.id === personId);
+      if (p) {
+        const ta = { ...(p.tableAssignments || {}), [sectionId]: tableId };
+        const c = { ...p, tableAssignments: ta };
+        delete c.tableId;
+        await savePerson(c);
+      }
+    }
+    setShowAutoSeat(false);
+    setAutoSeatResult(result);
+  };
     if (isArchived) return;
     setSelectedPersonId(id => id === personId ? null : personId);
   };
@@ -298,6 +314,9 @@ export function SeatingTab({ eventId, event, adminConfig, showToast, isArchived,
           <button className="btn btn-ghost btn-sm" onClick={() => setSetupOpen(o => !o)} style={{ fontSize: 12 }}>⚙ Setup</button>
           {hasSeating && sectionId && (sortedTables.length > 0 || scopedPeople.length > 0) && (
             <button className="btn btn-secondary" onClick={() => setShowExportModal(true)}>↓ Export Seating</button>
+          )}
+          {hasSeating && sectionId && unseated.length > 0 && sortedTables.length > 0 && !isArchived && (
+            <button className="btn btn-secondary" onClick={() => setShowAutoSeat(true)}>✨ Auto-Seat</button>
           )}
           {hasSeating && sectionId && (
             <button className="btn btn-primary" disabled={isArchived} onClick={() => setShowTableModal(true)}>+ Add Table</button>
@@ -601,6 +620,65 @@ export function SeatingTab({ eventId, event, adminConfig, showToast, isArchived,
               </div>
             </div>
             <iframe id="seating-print-frame" srcDoc={printHTML} style={{ flex: 1, border: "none", borderRadius: "0 0 var(--radius-lg) var(--radius-lg)" }} title="Seating Chart Print Preview" />
+          </div>
+        </div>
+      )}
+
+      {/* Auto-Seat confirmation modal */}
+      {showAutoSeat && (
+        <div className="modal-backdrop" onMouseDown={e => { if (e.target === e.currentTarget) setShowAutoSeat(false); }}>
+          <div onClick={e => e.stopPropagation()} style={{ background: "var(--bg-surface)", borderRadius: "var(--radius-lg)", width: "90%", maxWidth: 480, padding: "28px", boxShadow: "var(--shadow-lg)" }}>
+            <div style={{ fontFamily: "var(--font-display)", fontSize: 18, fontWeight: 700, color: "var(--text-primary)", marginBottom: 12 }}>✨ Auto-Seat Guests</div>
+            <p style={{ fontSize: 14, color: "var(--text-secondary)", lineHeight: 1.6, marginBottom: 8 }}>
+              SimchaKit will assign all <strong>{unseated.length} unseated guest{unseated.length !== 1 ? "s" : ""}</strong> to available tables, keeping households together where possible. Guests already assigned to tables will not be moved.
+            </p>
+            {sortedTables.some(t => t.type === "kids") && (
+              <p style={{ fontSize: 13, color: "var(--text-muted)", marginBottom: 8 }}>
+                👧 Kids will be assigned to kids tables, adults to adult tables.
+              </p>
+            )}
+            <p style={{ fontSize: 13, color: "var(--text-muted)", marginBottom: 20 }}>
+              You can manually adjust any assignment after auto-seat runs.
+            </p>
+            <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
+              <button className="btn btn-ghost" onClick={() => setShowAutoSeat(false)}>Cancel</button>
+              <button className="btn btn-primary" onClick={handleAutoSeat}>Run Auto-Seat</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Auto-Seat result modal */}
+      {autoSeatResult && (
+        <div className="modal-backdrop" onMouseDown={e => { if (e.target === e.currentTarget) setAutoSeatResult(null); }}>
+          <div onClick={e => e.stopPropagation()} style={{ background: "var(--bg-surface)", borderRadius: "var(--radius-lg)", width: "90%", maxWidth: 480, padding: "28px", boxShadow: "var(--shadow-lg)" }}>
+            <div style={{ fontFamily: "var(--font-display)", fontSize: 18, fontWeight: 700, color: "var(--text-primary)", marginBottom: 16 }}>✨ Auto-Seat Complete</div>
+            <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 14px", background: "var(--green-light)", border: "1px solid var(--green)", borderRadius: "var(--radius-md)", marginBottom: 12 }}>
+              <span style={{ fontSize: 18 }}>✓</span>
+              <span style={{ fontSize: 14, color: "var(--green)", fontWeight: 600 }}>{autoSeatResult.seatedCount} guest{autoSeatResult.seatedCount !== 1 ? "s" : ""} seated automatically</span>
+            </div>
+            {autoSeatResult.splits.length > 0 && (
+              <div style={{ padding: "10px 14px", background: "var(--gold-light)", border: "1px solid var(--gold)", borderRadius: "var(--radius-md)", marginBottom: 12 }}>
+                <div style={{ fontSize: 13, fontWeight: 600, color: "var(--gold)", marginBottom: 4 }}>⚠ {autoSeatResult.splits.length} household{autoSeatResult.splits.length !== 1 ? "s" : ""} split across tables</div>
+                {autoSeatResult.splits.map((s, i) => (
+                  <div key={i} style={{ fontSize: 12, color: "var(--text-secondary)" }}>{s.householdName}</div>
+                ))}
+              </div>
+            )}
+            {autoSeatResult.unplaced.length > 0 && (
+              <div style={{ padding: "10px 14px", background: "var(--red-light)", border: "1px solid var(--red)", borderRadius: "var(--radius-md)", marginBottom: 12 }}>
+                <div style={{ fontSize: 13, fontWeight: 600, color: "var(--red)", marginBottom: 4 }}>⚠ {autoSeatResult.unplaced.length} guest{autoSeatResult.unplaced.length !== 1 ? "s" : ""} could not be placed — not enough remaining seat capacity</div>
+                {autoSeatResult.unplaced.map((u, i) => (
+                  <div key={i} style={{ fontSize: 12, color: "var(--text-secondary)" }}>{u.personName}</div>
+                ))}
+              </div>
+            )}
+            {autoSeatResult.splits.length === 0 && autoSeatResult.unplaced.length === 0 && (
+              <div style={{ fontSize: 13, color: "var(--text-muted)" }}>✓ All households seated together with no splits.</div>
+            )}
+            <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 20 }}>
+              <button className="btn btn-primary" onClick={() => setAutoSeatResult(null)}>Done</button>
+            </div>
           </div>
         </div>
       )}
