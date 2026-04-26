@@ -1,11 +1,21 @@
 {
-  "current": "V3.6.3",
+  "current": "V3.6.4",
   "whatsNew": [
     "Per-sub-event seating charts \u2014 each sub-event now has its own independent set of tables and guest assignments.",
     "Pill switcher lets you flip between sub-event seating charts instantly.",
     "Seating export is scoped to the active sub-event with the sub-event name included in the printable view title."
   ],
   "changelog": [
+    {
+      "version": "V3.6.4",
+      "date": "2026-04-25",
+      "type": "fix",
+      "summary": "SeatingTab \u2014 checked checklist rows text still invisible in dark mode",
+      "changes": [
+        "Bug: V3.6.3 fix used color: var(--text-primary) unconditionally on checklist labels. This did not fix checked rows \u2014 the established CSS pattern for --accent-light backgrounds throughout the codebase is color: var(--accent-primary), not --text-primary.",
+        "Fix: checklist label now uses color: var(--accent-primary) when enabled (matching all other --accent-light usages in the codebase) and color: var(--text-primary) when disabled. Applied to both V2 and V3."
+      ]
+    },
     {
       "version": "V3.6.3",
       "date": "2026-04-25",
