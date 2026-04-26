@@ -1,11 +1,21 @@
 {
-  "current": "V3.7.0",
+  "current": "V3.7.1",
   "whatsNew": [
     "Auto-Seat \u2014 automatically assign all unseated guests to tables with one click, keeping households together.",
     "Per-sub-event seating charts \u2014 each sub-event has its own independent set of tables and assignments.",
     "Pill switcher lets you flip between sub-event seating charts instantly."
   ],
   "changelog": [
+    {
+      "version": "V3.7.1",
+      "date": "2026-04-25",
+      "type": "fix",
+      "summary": "ui.js \u2014 Auto-Seat guide entry build error fix",
+      "changes": [
+        "Bug: Vite build failed with invalid JS syntax in ui.js. The str_replace that added the Auto-Seat guide entry accidentally merged the Auto-Seat body string with the tail of the Seating Setup entry, producing invalid JS on line 99.",
+        "Fix: separated the two entries correctly in both V2 and V3 ui.js. Auto-Seat entry now precedes Seating Setup as a clean, independent item."
+      ]
+    },
     {
       "version": "V3.7.0",
       "date": "2026-04-25",
