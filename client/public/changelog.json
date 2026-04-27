@@ -1,11 +1,39 @@
 {
-  "current": "V3.8.0",
+  "current": "V3.9.1",
   "whatsNew": [
-    "Multiple favor types \u2014 track different favors for different sub-events (e.g. sweatshirts at the party, water bottles at the luncheon).",
-    "Auto-Seat \u2014 automatically assign all unseated guests to tables with one click, keeping households together.",
-    "Per-sub-event seating charts \u2014 each sub-event has its own independent set of tables and assignments."
+    "Smart Tasks \u2014 generate a full set of date-calculated planning milestones with one click, tailored to your event type.",
+    "Multiple favor types \u2014 track different favors for different sub-events.",
+    "Auto-Seat \u2014 automatically assign all unseated guests to tables, keeping households together."
   ],
   "changelog": [
+    {
+      "version": "V3.9.1",
+      "date": "2026-04-27",
+      "type": "fix",
+      "summary": "TasksTab V2 \u2014 adminConfig not defined crash",
+      "changes": [
+        "Bug: V2 TasksTab crashed on load with 'adminConfig is not defined'. Root cause: the Smart Tasks button and modal render referenced adminConfig as a direct variable, but V2 TasksTab receives adminConfig inside the state prop (state.adminConfig), not as a separate prop like V3.",
+        "Fix: updated the Smart Tasks button to derive config from state?.adminConfig and the modal render call to pass state?.adminConfig || {}."
+      ]
+    },
+    {
+      "version": "V3.9.0",
+      "date": "2026-04-27",
+      "type": "feature",
+      "summary": "Smart Tasks \u2014 date-calculated planning milestones",
+      "changes": [
+        "Feature: New \u2728 Smart Tasks button in the Tasks tab header generates a personalized list of planning milestones with due dates calculated from the main event date.",
+        "Algorithm: getSmartTaskTemplates() in tasks.js takes eventDate, eventType, and existingTasks. Returns 31 templates for bar/bat mitzvahs (16 universal + 15 mitzvah-specific), 21 for weddings (16 universal + 5 wedding-specific), or 16 for other event types. All include 5 optional Tier 3 items.",
+        "Due dates calculated as offsets from the main event date: save-the-dates at -365 days, invitations mailed at -70 days, final guest count at -14 days, etc. Full list covers all major planning milestones.",
+        "Deduplication: any template whose keywords match an existing non-done task is marked alreadyCovered and shown grayed out with a checkmark. Running Smart Tasks again is always safe.",
+        "Past milestones: templates whose calculated due date is before today are shown dimmed with a 'past' label rather than hidden, so users can see what may have been missed.",
+        "Pre-check behavior: Tier 1 (universal) and Tier 2 (event-specific) templates are pre-checked. Tier 3 (optional) templates are unchecked with an 'optional' label.",
+        "Modal UI: tasks grouped by time bucket (12+ months before, 6-12 months, 3-6 months, Final 3 months, Final 2 weeks). Each group has Select all / Deselect all. Footer shows selected count. Add button inserts all selected tasks at once.",
+        "SmartTasksModal exported from both TasksTab files for potential reuse.",
+        "Guide updated in V2 and V3 with Smart Tasks entry in the Tasks section.",
+        "Applied to both V2 and V3."
+      ]
+    },
     {
       "version": "V3.8.0",
       "date": "2026-04-26",

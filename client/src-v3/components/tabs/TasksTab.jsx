@@ -12,7 +12,7 @@ import { useEventData }       from "@/hooks/useEventData.js";
 import { useSearchHighlight } from "@/hooks/useSearchHighlight.js";
 import { TASK_CATEGORIES, TASK_PRIORITIES, TASK_PRIORITY_STYLES } from "@/constants/task-constants.js";
 import { newTaskId }          from "@/utils/ids.js";
-import { getTaskDueStatus, computeSuggestions } from "@/utils/tasks.js";
+import { getTaskDueStatus, computeSuggestions, getSmartTaskTemplates } from "@/utils/tasks.js";
 import { ArchivedNotice }     from "@/components/shared/ArchivedNotice.jsx";
 import { SuggestionsPanel }   from "@/components/shared/SuggestionsPanel.jsx";
 
@@ -355,6 +355,7 @@ export function TasksTab({ eventId, event, adminConfig, showToast, isArchived, s
   const [expandedNotes, setExpandedNotes] = useState({});
   const [prefilledTask, setPrefilledTask] = useState(null);
   const [linkConfirm,   setLinkConfirm]   = useState(null);
+  const [showSmartTasks, setShowSmartTasks] = useState(false);
 
   const handleAdd = async (t) => {
     if (isArchived) return;
@@ -599,9 +600,19 @@ export function TasksTab({ eventId, event, adminConfig, showToast, isArchived, s
             {overdue > 0 && ` · ${overdue} overdue`}
           </div>
         </div>
-        <button className="btn btn-primary btn-sm" disabled={isArchived} onClick={() => setShowModal(true)}>
-          + Add Task
-        </button>
+        <div style={{ display: "flex", gap: 8 }}>
+          {(() => {
+            const mainEvt = (adminConfig?.timeline || []).find(e => e.isMainEvent);
+            return mainEvt?.startDate && !isArchived ? (
+              <button className="btn btn-secondary btn-sm" onClick={() => setShowSmartTasks(true)}>
+                ✨ Smart Tasks
+              </button>
+            ) : null;
+          })()}
+          <button className="btn btn-primary btn-sm" disabled={isArchived} onClick={() => setShowModal(true)}>
+            + Add Task
+          </button>
+        </div>
       </div>
 
       {/* Stat cards */}
@@ -780,6 +791,161 @@ export function TasksTab({ eventId, event, adminConfig, showToast, isArchived, s
           </div>
         </div>
       )}
+
+      {/* Smart Tasks modal */}
+      {showSmartTasks && (
+        <SmartTasksModal
+          adminConfig={adminConfig}
+          tasks={tasks}
+          onAdd={handleAdd}
+          onClose={() => setShowSmartTasks(false)}
+          newTaskId={newTaskId}
+        />
+      )}
+    </div>
+  );
+}
+
+// ── SmartTasksModal ────────────────────────────────────────────────────────────
+export function SmartTasksModal({ adminConfig, tasks, onAdd, onClose, newTaskId: mkId }) {
+  const mainEvt   = (adminConfig?.timeline || []).find(e => e.isMainEvent);
+  const eventDate = mainEvt?.startDate || "";
+  const eventType = adminConfig?.type   || "";
+  const eventName = adminConfig?.name   || "your event";
+
+  const templates = getSmartTaskTemplates(eventDate, eventType, tasks);
+
+  const bucket = (offset) => {
+    if (offset <= -365) return "12+ months before";
+    if (offset <= -180) return "6–12 months before";
+    if (offset <= -90)  return "3–6 months before";
+    if (offset <= -14)  return "Final 3 months";
+    return "Final 2 weeks";
+  };
+  const BUCKET_ORDER = ["12+ months before","6–12 months before","3–6 months before","Final 3 months","Final 2 weeks"];
+
+  const [checked, setChecked] = useState(() => {
+    const init = {};
+    templates.forEach(t => { init[t.id] = t.preChecked; });
+    return init;
+  });
+
+  const toggle = (id) => setChecked(prev => ({ ...prev, [id]: !prev[id] }));
+
+  const toggleGroup = (bkt) => {
+    const groupIds = templates.filter(t => bucket(t.daysOffset) === bkt && !t.alreadyCovered).map(t => t.id);
+    const allOn = groupIds.every(id => checked[id]);
+    setChecked(prev => { const n = { ...prev }; groupIds.forEach(id => { n[id] = !allOn; }); return n; });
+  };
+
+  const handleAdd = () => {
+    templates.filter(t => checked[t.id] && !t.alreadyCovered).forEach(t => {
+      onAdd({
+        id:       mkId(),
+        task:     t.text,
+        category: t.category,
+        priority: t.priority,
+        due:      t.due,
+        done:     false,
+        notes:    "",
+      });
+    });
+    onClose();
+  };
+
+  const grouped = BUCKET_ORDER.map(bkt => ({
+    label:     bkt,
+    templates: templates.filter(t => bucket(t.daysOffset) === bkt),
+  })).filter(g => g.templates.length > 0);
+
+  const selectedCount = templates.filter(t => checked[t.id] && !t.alreadyCovered).length;
+  const fmt = (d) => new Date(d + "T00:00:00").toLocaleDateString("en-US", { month:"short", day:"numeric", year:"numeric" });
+
+  return (
+    <div className="modal-backdrop" onMouseDown={e => { if (e.target === e.currentTarget) onClose(); }}>
+      <div onClick={e => e.stopPropagation()} style={{
+        background:"var(--bg-surface)", borderRadius:"var(--radius-lg)",
+        width:"90%", maxWidth:640, maxHeight:"90vh",
+        display:"flex", flexDirection:"column", boxShadow:"var(--shadow-lg)",
+      }}>
+        {/* Header */}
+        <div style={{ padding:"20px 24px 16px", borderBottom:"1px solid var(--border)", flexShrink:0 }}>
+          <div style={{ fontFamily:"var(--font-display)", fontSize:18, fontWeight:700, color:"var(--text-primary)", marginBottom:4 }}>
+            ✨ Smart Tasks
+          </div>
+          <div style={{ fontSize:13, color:"var(--text-secondary)" }}>
+            Suggested planning milestones for <strong>{eventName}</strong> on <strong>{fmt(eventDate)}</strong>. Select the tasks you'd like to add.
+          </div>
+        </div>
+
+        {/* Body */}
+        <div style={{ overflowY:"auto", flex:1, padding:"16px 24px" }}>
+          {grouped.map(g => {
+            const available = g.templates.filter(t => !t.alreadyCovered);
+            const allOn     = available.length > 0 && available.every(t => checked[t.id]);
+            return (
+              <div key={g.label} style={{ marginBottom:20 }}>
+                <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:8 }}>
+                  <div style={{ fontSize:11, fontWeight:700, color:"var(--text-muted)", textTransform:"uppercase", letterSpacing:"0.05em" }}>
+                    {g.label}
+                  </div>
+                  {available.length > 0 && (
+                    <button style={{ background:"none", border:"none", cursor:"pointer", fontSize:11, color:"var(--accent-primary)", padding:0 }}
+                      onClick={() => toggleGroup(g.label)}>
+                      {allOn ? "Deselect all" : "Select all"}
+                    </button>
+                  )}
+                </div>
+                {g.templates.map(t => (
+                  <div key={t.id} style={{
+                    display:"flex", alignItems:"flex-start", gap:10,
+                    padding:"8px 10px", marginBottom:4,
+                    borderRadius:"var(--radius-sm)",
+                    background: t.alreadyCovered ? "var(--bg-subtle)" : "var(--bg-surface)",
+                    border:"1px solid var(--border)",
+                    opacity: t.alreadyCovered ? 0.6 : 1,
+                  }}>
+                    {t.alreadyCovered ? (
+                      <span style={{ fontSize:12, color:"var(--green)", fontWeight:600, marginTop:2, flexShrink:0 }}>✓</span>
+                    ) : (
+                      <input type="checkbox" checked={!!checked[t.id]} onChange={() => toggle(t.id)}
+                        style={{ marginTop:3, cursor:"pointer", accentColor:"var(--accent-primary)", flexShrink:0 }} />
+                    )}
+                    <span style={{ fontSize:13, marginTop:1, flexShrink:0 }}>{t.icon}</span>
+                    <div style={{ flex:1, minWidth:0 }}>
+                      <div style={{ fontSize:13, color: t.alreadyCovered ? "var(--text-muted)" : "var(--text-primary)", fontWeight:500 }}>
+                        {t.text}
+                        {t.tier === 3 && !t.alreadyCovered && (
+                          <span style={{ marginLeft:6, fontSize:10, color:"var(--text-muted)", fontWeight:400 }}>optional</span>
+                        )}
+                      </div>
+                      <div style={{ fontSize:11, color: t.isPast ? "var(--text-muted)" : "var(--text-secondary)", marginTop:2 }}>
+                        {t.alreadyCovered ? "Already have a task for this"
+                          : t.isPast ? `${fmt(t.due)} — past`
+                          : fmt(t.due)}
+                        {" · "}{t.category}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Footer */}
+        <div style={{ padding:"14px 24px", borderTop:"1px solid var(--border)", display:"flex", alignItems:"center", justifyContent:"space-between", flexShrink:0, gap:12 }}>
+          <div style={{ fontSize:13, color:"var(--text-muted)" }}>
+            {selectedCount > 0 ? `${selectedCount} task${selectedCount !== 1 ? "s" : ""} selected` : "No tasks selected"}
+          </div>
+          <div style={{ display:"flex", gap:8 }}>
+            <button className="btn btn-ghost" onClick={onClose}>Cancel</button>
+            <button className="btn btn-primary" disabled={selectedCount === 0} onClick={handleAdd}>
+              Add {selectedCount > 0 ? `${selectedCount} ` : ""}Task{selectedCount !== 1 ? "s" : ""}
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
