@@ -1,11 +1,21 @@
 {
-  "current": "V3.9.1",
+  "current": "V3.9.2",
   "whatsNew": [
     "Smart Tasks \u2014 generate a full set of date-calculated planning milestones with one click, tailored to your event type.",
     "Multiple favor types \u2014 track different favors for different sub-events.",
     "Auto-Seat \u2014 automatically assign all unseated guests to tables, keeping households together."
   ],
   "changelog": [
+    {
+      "version": "V3.9.2",
+      "date": "2026-04-29",
+      "type": "fix",
+      "summary": "BudgetTab V3 \u2014 payment date prompt not showing + vendor name missing",
+      "changes": [
+        "Bug 1: Clicking the paid checkmark on expenses with no date or datePaid set did nothing \u2014 the payment date prompt never appeared. Root cause: togglePaid(expense, eIdx) was called as togglePaid(e) at all three render sites (list, vendor, section views), so eIdx was undefined when stored in pendingPaidIdx. The prompt condition pendingPaidIdx === eIdx was always false. Fix: pass eIdx at all three call sites.",
+        "Bug 2: Expenses linked to a vendor via the dropdown showed no vendor name in the list and section views. Root cause: V3-native expenses only store vendorId (the relational link) \u2014 the legacy vendor text field is not set by the ExpenseModal. The render condition checked e.vendor (text field) rather than resolving the linked vendor by ID. Fix: changed condition to e.vendor || linkedVendor, display linkedVendor.name when a linked vendor exists, fall back to e.vendor for legacy records. Applied to list view and section view. Fixes all existing and future V3-native expenses \u2014 no data migration needed."
+      ]
+    },
     {
       "version": "V3.9.1",
       "date": "2026-04-27",

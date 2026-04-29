@@ -708,7 +708,7 @@ export function BudgetTab({ eventId, event, adminConfig, showToast, isArchived, 
                   <div className="expense-row-check">
                     <div
                       className={`paid-check ${e.paid ? "checked" : ""}`}
-                      onClick={() => togglePaid(e)}
+                      onClick={() => togglePaid(e, eIdx)}
                       title={e.paid ? "Mark as unpaid" : "Mark as paid"}
                     >
                       {e.paid && (
@@ -722,14 +722,14 @@ export function BudgetTab({ eventId, event, adminConfig, showToast, isArchived, 
                     <div className="expense-row-desc">{e.description}</div>
                     <div className="expense-row-meta">
                       {preMeta.join(" · ")}
-                      {e.vendor && (
+                      {(e.vendor || linkedVendor) && (
                         <>
                           {preMeta.length > 0 && " · "}
                           {linkedVendor ? (
                             <button className="vendor-name-link"
                               style={{fontSize:11,fontWeight:600,color:"var(--accent-primary)"}}
                               onClick={() => setVendorQuick(linkedVendor)}>
-                              {e.vendor}
+                              {linkedVendor.name}
                             </button>
                           ) : (
                             <span>{e.vendor}</span>
@@ -868,7 +868,7 @@ export function BudgetTab({ eventId, event, adminConfig, showToast, isArchived, 
                         <div className="expense-row-check">
                           <div
                             className={`paid-check ${e.paid ? "checked" : ""}`}
-                            onClick={() => togglePaid(e)}
+                            onClick={() => togglePaid(e, eIdx)}
                             title={e.paid ? "Mark as unpaid" : "Mark as paid"}
                           >
                             {e.paid && (
@@ -994,7 +994,7 @@ export function BudgetTab({ eventId, event, adminConfig, showToast, isArchived, 
                             style={{opacity: e.paid ? 0.7 : 1}}>
                             <div className="expense-row-check">
                               <div className={`paid-check ${e.paid ? "checked" : ""}`}
-                                onClick={() => togglePaid(e)}
+                                onClick={() => togglePaid(e, eIdx)}
                                 title={e.paid ? "Mark as unpaid" : "Mark as paid"}>
                                 {e.paid && (
                                   <svg width="11" height="9" viewBox="0 0 11 9" fill="none">
@@ -1006,7 +1006,7 @@ export function BudgetTab({ eventId, event, adminConfig, showToast, isArchived, 
                             <div className="expense-row-body">
                               <div className="expense-row-desc">{e.description}</div>
                               <div className="expense-row-meta">
-                                {[e.category, e.vendor].filter(Boolean).join(" · ")}
+                                {[e.category, (vendors.find(v => v.id === e.vendorId)?.name || e.vendor)].filter(Boolean).join(" · ")}
                                 {dueStatus && <span className={dueStatus.cls} style={{marginLeft:4}}>{dueStatus.label}</span>}
                               </div>
                             </div>
