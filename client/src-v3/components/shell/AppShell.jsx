@@ -363,7 +363,7 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false }) {
 
           {/* Brand */}
           <div className="header-brand">
-            <img src="/apple-touch-icon.png" alt="SimchaKit" className="header-star" style={{ width: 28, height: 28, borderRadius: 6, display: "block" }} />
+            <img src="/apple-touch-icon.png" alt="SimchaKit" className="header-star" style={{ width: 40, height: 40, borderRadius: 8, display: "block" }} />
             <div>
               <div className="header-title">SimchaKit</div>
             </div>

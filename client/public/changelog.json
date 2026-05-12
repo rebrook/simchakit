@@ -1,9 +1,20 @@
 {
-  "current": "V3.9.5",
+  "current": "V3.9.6",
   "whatsNew": [
     "New SimchaKit logo \u2014 updated branding now appears across the app: nav bar, sign-in page, event picker header, and loading screens."
   ],
   "changelog": [
+    {
+      "version": "V3.9.6",
+      "date": "2026-05-12",
+      "type": "fix",
+      "summary": "Logo size increased to 40\u00d740px across all nav bar headers",
+      "changes": [
+        "Increased SimchaKit logo from 28\u00d728px to 40\u00d740px in App.v3.jsx (event picker header), AppShell.jsx (app shell nav bar), App.jsx (V2 nav bar), and public/index.html (V2 static picker).",
+        "Border-radius updated from 6px to 8px to match the larger size.",
+        "Transparent logo assets deployed \u2014 logo now sits cleanly on any background."
+      ]
+    },
     {
       "version": "V3.9.5",
       "date": "2026-05-12",
