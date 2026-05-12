@@ -250,7 +250,7 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false }) {
       <div className="app-shell">
         <ThemeProvider palette="rose" customColor="" />
         <div style={{ display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", minHeight:"100vh", gap:16 }}>
-          <div style={{ fontSize:40 }}>✡</div>
+          <img src="/apple-touch-icon.png" alt="SimchaKit" style={{ width: 48, height: 48, borderRadius: 10 }} />
           <div style={{ fontFamily:"var(--font-display)", fontSize:20, color:"var(--text-primary)" }}>Loading…</div>
           <div style={{ fontSize:13, color:"var(--text-muted)" }}>Connecting to SimchaKit</div>
         </div>
@@ -363,7 +363,7 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false }) {
 
           {/* Brand */}
           <div className="header-brand">
-            <span className="header-star">{EVENT_TYPE_ICONS[adminConfig?.type] || "✡"}</span>
+            <img src="/apple-touch-icon.png" alt="SimchaKit" className="header-star" style={{ width: 28, height: 28, borderRadius: 6, display: "block" }} />
             <div>
               <div className="header-title">SimchaKit</div>
             </div>

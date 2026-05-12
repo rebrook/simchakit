@@ -53,7 +53,7 @@ export function AuthPage() {
 
         {/* Logo + wordmark */}
         <div style={{ textAlign: "center" }}>
-          <div style={{ fontSize: 48, marginBottom: 12, lineHeight: 1 }}>✡</div>
+          <img src="/apple-touch-icon.png" alt="SimchaKit" style={{ width: 72, height: 72, borderRadius: 16, marginBottom: 12 }} />
           <div style={{
             fontFamily:  "var(--font-display)",
             fontSize:    32,

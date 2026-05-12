@@ -1,9 +1,22 @@
 {
-  "current": "V3.9.3",
+  "current": "V3.9.4",
   "whatsNew": [
-    "New SimchaKit logo \u2014 updated branding now appears in browser tabs, bookmarks, and on iOS/Android home screens."
+    "New SimchaKit logo \u2014 updated branding now appears across the app: nav bar, sign-in page, event picker, and loading screens."
   ],
   "changelog": [
+    {
+      "version": "V3.9.4",
+      "date": "2026-05-12",
+      "type": "fix",
+      "summary": "In-app branding \u2014 SimchaKit logo replaces Star of David glyph across all surfaces",
+      "changes": [
+        "Nav bar (V2 App.jsx + V3 AppShell.jsx): replaced header-star glyph with SimchaKit logo icon (28\u00d728px).",
+        "Loading screens (V2 + V3): replaced \u2721 connecting/loading state with SimchaKit logo (48\u00d748px).",
+        "Sign-in page (V3 AuthPage.jsx): replaced \u2721 hero glyph with SimchaKit logo (72\u00d772px).",
+        "Event picker (V3 EventPicker.jsx): added centered SimchaKit logo and wordmark above the Your Events header.",
+        "Event-type icons (\u2721 for Bat/Bar/B'nei Mitzvah events) and empty-state decorations are intentionally unchanged."
+      ]
+    },
     {
       "version": "V3.9.3",
       "date": "2026-05-12",
