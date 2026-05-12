@@ -6,14 +6,15 @@
       "has": [{ "type": "host", "value": "demo.simcha-kit.com" }],
       "destination": "https://demo.simcha-kit.com/demo",
       "permanent": false
-    }
-  ],
-  "rewrites": [
+    },
     {
       "source": "/",
       "has": [{ "type": "host", "value": "about.simcha-kit.com" }],
-      "destination": "/about/index.html"
-    },
+      "destination": "https://app.simcha-kit.com/about/",
+      "permanent": false
+    }
+  ],
+  "rewrites": [
     {
       "source": "/api/:path*",
       "destination": "/api/:path*"
