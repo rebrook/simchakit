@@ -14,7 +14,9 @@
         "Loading screens (V2 + V3): replaced \u2721 connecting/loading state with SimchaKit logo (48\u00d748px).",
         "Sign-in page (V3 AuthPage.jsx): replaced \u2721 hero glyph with SimchaKit logo (72\u00d772px).",
         "Event picker (V3 EventPicker.jsx): added centered SimchaKit logo and wordmark above the Your Events header.",
-        "Event-type icons (\u2721 for Bat/Bar/B'nei Mitzvah events) and empty-state decorations are intentionally unchanged."
+        "Event-type icons (\u2721 for Bat/Bar/B'nei Mitzvah events) and empty-state decorations are intentionally unchanged.",
+        "deploy.sh: added step 3.5 to copy PWA icon assets (favicon.ico, favicon-32x32.png, apple-touch-icon.png, icon-192.png, icon-512.png, manifest.json) from dist/ to public/ on every build.",
+        "App.jsx: corrected asset path from /apple-touch-icon.png to /simcha/apple-touch-icon.png to match Vite base: /simcha/ build config."
       ]
     },
     {

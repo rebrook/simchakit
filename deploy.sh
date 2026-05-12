@@ -4,20 +4,16 @@
 # No editing required — the script locates itself automatically.
 # Usage: bash deploy.sh  (from inside the simchakit folder)
 # Or from anywhere: bash /path/to/simchakit/deploy.sh
-
 set -e  # Stop immediately if any command fails
-
 SIMCHAKIT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CLIENT_DIR="$SIMCHAKIT_DIR/client"
 PUBLIC_DIR="$SIMCHAKIT_DIR/public"
 DIST_DIR="$CLIENT_DIR/dist"
-
 echo ""
 echo "================================================"
 echo "  SimchaKit Deploy"
 echo "================================================"
 echo "  Root: $SIMCHAKIT_DIR"
-
 # ── 0. Sync changelog to V3 public ───────────────
 echo ""
 echo "▶ Syncing changelog..."
@@ -29,13 +25,11 @@ if [ -f "$CHANGELOG_SRC" ]; then
 else
     echo "  ⚠ changelog.json not found at $CHANGELOG_SRC — skipping"
 fi
-
 # ── 1. Build ──────────────────────────────────────
 echo ""
 echo "▶ Building..."
 cd "$CLIENT_DIR"
 npm run build
-
 # ── 2. Deploy shared assets ───────────────────────
 echo ""
 echo "▶ Deploying assets..."
@@ -43,7 +37,6 @@ rm -rf "$PUBLIC_DIR/assets"
 cp -r "$DIST_DIR/assets/" "$PUBLIC_DIR/assets/"
 echo "  ✓ $(ls "$PUBLIC_DIR/assets/" | wc -l | tr -d ' ') file(s) in public/assets/"
 ls "$PUBLIC_DIR/assets/" | sed 's/^/    /'
-
 # ── 3. Deploy favicon ─────────────────────────────
 echo ""
 echo "▶ Deploying favicon..."
@@ -53,7 +46,18 @@ if [ -f "$DIST_DIR/favicon.svg" ]; then
 else
     echo "  ⚠ No favicon.svg in dist/ — skipping"
 fi
-
+# ── 3.5. Deploy PWA icons and manifest ────────────
+echo ""
+echo "▶ Deploying PWA icons..."
+PWA_FILES=("favicon.ico" "favicon-32x32.png" "apple-touch-icon.png" "icon-192.png" "icon-512.png" "manifest.json")
+for FILE in "${PWA_FILES[@]}"; do
+    if [ -f "$DIST_DIR/$FILE" ]; then
+        cp "$DIST_DIR/$FILE" "$PUBLIC_DIR/$FILE"
+        echo "  ✓ $FILE"
+    else
+        echo "  ⚠ $FILE not found in dist/ — skipping"
+    fi
+done
 # ── 4. Deploy index.html to all event folders ─────
 echo ""
 echo "▶ Deploying to event folders..."
@@ -66,13 +70,11 @@ for EVENT_DIR in "$PUBLIC_DIR"/*/; do
         DEPLOYED=$((DEPLOYED + 1))
     fi
 done
-
 if [ $DEPLOYED -eq 0 ]; then
     echo "  ⚠ No event folders found. Create one first:"
     echo "    mkdir -p $PUBLIC_DIR/your-event-id"
     echo "    cp $DIST_DIR/index.html $PUBLIC_DIR/your-event-id/index.html"
 fi
-
 echo ""
 echo "================================================"
 echo "  Done — $DEPLOYED event(s) updated"

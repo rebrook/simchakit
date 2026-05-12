@@ -337,7 +337,7 @@ export default function App() {
           display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
           minHeight: "100vh", padding: 24, textAlign: "center",
         }}>
-          <div style={{ fontSize: 40, marginBottom: 16 }}>✡</div>
+          <img src="/simcha/apple-touch-icon.png" alt="SimchaKit" style={{ width: 48, height: 48, borderRadius: 10, marginBottom: 16 }} />
           <div style={{ fontFamily: "var(--font-display)", fontSize: 20, color: "var(--text-primary)", marginBottom: 8 }}>
             Loading...
           </div>
@@ -439,7 +439,7 @@ export default function App() {
             onMouseLeave={e => { e.currentTarget.style.color="var(--text-muted)"; e.currentTarget.style.borderColor="var(--border)"; }}
           >← Events</a>
           <div className="header-brand">
-            <span className="header-star">{EVENT_TYPE_ICONS[adminConfig?.type] || "✡"}</span>
+            <img src="/simcha/apple-touch-icon.png" alt="SimchaKit" className="header-star" style={{ width: 28, height: 28, borderRadius: 6, display: "block" }} />
             <div>
               <div className="header-title">SimchaKit</div>
             </div>
@@ -658,7 +658,7 @@ export default function App() {
         )}
         {activeTab==="overview" && !displayState && (
           <div style={{textAlign:"center",padding:"80px 24px",color:"var(--text-muted)"}}>
-            <div style={{fontSize:32,marginBottom:12}}>✡</div>
+            <img src="/simcha/apple-touch-icon.png" alt="SimchaKit" style={{ width: 48, height: 48, borderRadius: 10, marginBottom: 12 }} />
             <div style={{fontFamily:"var(--font-display)",fontSize:20,marginBottom:8}}>Connecting to server...</div>
             <div style={{fontSize:13}}>Please wait while we load your event data.</div>
           </div>
@@ -732,7 +732,7 @@ export default function App() {
 
       <footer className="app-footer">
         <span style={{ fontSize:11, color:"var(--text-muted)" }}>
-          Designed & Built by <a href="mailto:ryan@brook-creative.com" className="footer-link">Ryan Brook</a>
+          Designed & Built by <a href="mailto:support@brook-creative.com" className="footer-link">Ryan Brook</a>
         </span>
         <span>·</span>
         <span style={{ fontSize:11, color:"var(--text-muted)" }}>Powered by Claude</span>
