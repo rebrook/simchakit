@@ -561,10 +561,12 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false }) {
       <footer className="app-footer">
         <span style={{ fontSize:11, color:"var(--text-muted)" }}>
           Designed &amp; Built by{" "}
-          <a href="mailto:support@brook-creative.com" className="footer-link">Ryan Brook</a>
+          <a href="mailto:hello@simcha-kit.com" className="footer-link">Brook Creative LLC</a>
         </span>
         <span>·</span>
         <span style={{ fontSize:11, color:"var(--text-muted)" }}>Powered by Claude</span>
+        <span>·</span>
+        <a href="https://about.simcha-kit.com" target="_blank" rel="noopener" className="footer-link" style={{ fontSize:11 }}>about.simcha-kit.com</a>
         <span>·</span>
         <span className="footer-event-id" style={{ fontSize:11, color:"var(--text-muted)", fontFamily:"monospace" }}>
           {eventId}

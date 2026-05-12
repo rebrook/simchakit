@@ -12,7 +12,9 @@
         "App.jsx (V2): footer credit updated from Ryan Brook to Brook Creative LLC, email updated to hello@simcha-kit.com, about.simcha-kit.com link added",
         "EventPicker.jsx (V3): footer credit updated from Ryan Brook to Brook Creative LLC, email updated to hello@simcha-kit.com, about.simcha-kit.com link added",
         "AuthPage.jsx (V3): about.simcha-kit.com link added to sign-in page footer",
-        "README.md: version badge bumped to V3.9.7, V3 Quick Start URL updated to app.simcha-kit.com, about.simcha-kit.com marketing site link added"
+        "README.md: version badge bumped to V3.9.7, V3 Quick Start URL updated to app.simcha-kit.com, about.simcha-kit.com marketing site link added",
+        "AppShell.jsx (V3): footer credit updated to Brook Creative LLC, email updated to hello@simcha-kit.com, about.simcha-kit.com link added",
+        "public/index.html (V2 event picker): footer credit updated to Brook Creative LLC, email updated to hello@simcha-kit.com, about.simcha-kit.com link added"
       ]
     },
     {
