@@ -1,22 +1,18 @@
 {
   "current": "V3.9.3",
   "whatsNew": [
-    "Smart Tasks \u2014 generate a full set of date-calculated planning milestones with one click, tailored to your event type.",
-    "Multiple favor types \u2014 track different favors for different sub-events.",
-    "Auto-Seat \u2014 automatically assign all unseated guests to tables, keeping households together."
+    "New SimchaKit logo \u2014 updated branding now appears in browser tabs, bookmarks, and on iOS/Android home screens."
   ],
   "changelog": [
     {
       "version": "V3.9.3",
       "date": "2026-05-12",
       "type": "fix",
-      "summary": "Branding \u2014 updated favicon and PWA icons to new SimchaKit logo",
+      "summary": "Updated favicon and PWA icons to new SimchaKit logo",
       "changes": [
-        "Replaced favicon.svg reference with favicon.ico (multi-size: 16x16, 32x32, 48x48) across all three HTML entry points (index.html V2, index.v3.html V3, index.admin.html).",
-        "Added favicon-32x32.png as PNG fallback for modern browsers.",
-        "Added apple-touch-icon.png (180x180) for iOS home screen and bookmark icon.",
-        "Added manifest.json with PWA icon entries (192x192 and 512x512) and navy theme-color (#0d1b2e).",
-        "Applied to both V2 (NAS) and V3 (Vercel) builds."
+        "New SimchaKit logo now appears in browser tabs, bookmarks, and on iOS/Android home screen.",
+        "Added PWA manifest with 192x192 and 512x512 icons and navy theme-color.",
+        "Applied to V2 (NAS) and V3 (Vercel) across all three entry points: app, admin, and event picker."
       ]
     },
     {
