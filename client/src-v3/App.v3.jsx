@@ -135,10 +135,10 @@ function AppContent({ session, isCallback }) {
       {/* SimchaKit header — matches V2 index.html exactly */}
       <header style={headerStyles.header}>
         <div style={headerStyles.inner}>
-          <span style={{ fontSize: 22, lineHeight: 1 }}>✡</span>
+          <img src="/apple-touch-icon.png" alt="SimchaKit" style={{ width: 28, height: 28, borderRadius: 6, display: "block", flexShrink: 0 }} />
           <div>
             <div style={headerStyles.title}>SimchaKit</div>
-            <div style={headerStyles.sub}>Event Planning</div>
+            <div style={headerStyles.sub}>Jewish lifecycle event planning</div>
           </div>
         </div>
       </header>

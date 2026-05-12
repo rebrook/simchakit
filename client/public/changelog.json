@@ -13,7 +13,8 @@
         "public/index.html (V2 picker): replaced \u2721 glyph in header with SimchaKit logo (28\u00d728px); updated subtitle from 'Event Planning' to 'Jewish lifecycle event planning'.",
         "public/index.html (V2 picker): updated favicon links from favicon.svg to favicon.ico, added PWA icon links and manifest reference.",
         "EventPicker.jsx (V3): removed centered logo hero block added in V3.9.4 \u2014 logo now appears only in AppShell header, matching V2 picker layout.",
-        "V2 and V3 event picker pages now have identical header treatment."
+        "V2 and V3 event picker pages now have identical header treatment.",
+        "App.v3.jsx: replaced \u2721 glyph and 'Event Planning' subtitle in event picker header with SimchaKit logo (28\u00d728px) and 'Jewish lifecycle event planning' \u2014 this was the actual component rendering the picker header, not AppShell.jsx."
       ]
     },
     {
