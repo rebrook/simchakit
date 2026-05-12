@@ -1,0 +1,1009 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SimchaKit — Plan Every Moment. Celebrate Everything.</title>
+  <meta name="description" content="The all-in-one planning hub for Jewish lifecycle celebrations. Manage guests, budgets, vendors, seating, and more.">
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="SimchaKit-logo.png">
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="SimchaKit — Event Planning for Jewish Celebrations">
+  <meta property="og:description" content="The all-in-one planning hub for B'nei Mitzvot, weddings, and lifecycle events.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://about.simcha-kit.com">
+  <meta property="og:image" content="https://simcha-kit.com/overview.png">
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --color-primary: #1e3a5f;
+      --color-primary-light: #2d5a8a;
+      --color-accent: #c9a227;
+      --color-accent-light: #e3c565;
+      --color-bg: #fafbfc;
+      --color-bg-alt: #f0f4f8;
+      --color-text: #1a2b3c;
+      --color-text-muted: #5a6978;
+      --color-border: #e1e6eb;
+      --color-white: #ffffff;
+      --font-display: 'Playfair Display', Georgia, serif;
+      --font-body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      --radius: 12px;
+      --radius-lg: 20px;
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.08);
+      --shadow-md: 0 4px 12px rgba(0,0,0,0.1);
+      --shadow-lg: 0 8px 30px rgba(0,0,0,0.12);
+      --max-width: 1140px;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: var(--font-body);
+      font-size: 16px;
+      line-height: 1.6;
+      color: var(--color-text);
+      background: var(--color-bg);
+    }
+
+    /* Typography */
+    h1, h2, h3 {
+      font-family: var(--font-display);
+      font-weight: 700;
+      line-height: 1.2;
+    }
+
+    h1 { font-size: clamp(2.25rem, 5vw, 3.25rem); }
+    h2 { font-size: clamp(1.75rem, 4vw, 2.5rem); }
+    h3 { font-size: 1.25rem; font-weight: 600; }
+
+    p { max-width: 65ch; }
+
+    a {
+      color: var(--color-primary);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+
+    a:hover {
+      color: var(--color-primary-light);
+    }
+
+    /* Layout */
+    .container {
+      width: 100%;
+      max-width: var(--max-width);
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    section {
+      padding: 80px 0;
+    }
+
+    /* Header */
+    header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      background: rgba(255,255,255,0.95);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--color-border);
+      z-index: 100;
+    }
+
+    .header-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 70px;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-family: var(--font-display);
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--color-primary);
+      text-decoration: none;
+    }
+
+    .logo img {
+      width: 52px;
+      height: 52px;
+      border-radius: 11px;
+      display: block;
+    }
+
+    nav {
+      display: flex;
+      align-items: center;
+      gap: 32px;
+    }
+
+    nav a {
+      font-size: 15px;
+      font-weight: 500;
+      color: var(--color-text-muted);
+    }
+
+    nav a:hover {
+      color: var(--color-primary);
+    }
+
+    .nav-mobile-toggle {
+      display: none;
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 8px;
+    }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 12px 24px;
+      border-radius: var(--radius);
+      font-family: var(--font-body);
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      border: none;
+      text-decoration: none;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-light) 100%);
+      color: white;
+      box-shadow: var(--shadow-md);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-lg);
+      color: white;
+    }
+
+    .btn-secondary {
+      background: var(--color-white);
+      color: var(--color-primary);
+      border: 2px solid var(--color-border);
+    }
+
+    .btn-secondary:hover {
+      border-color: var(--color-primary);
+      background: var(--color-bg-alt);
+      color: var(--color-primary);
+    }
+
+    .btn-accent {
+      background: linear-gradient(135deg, var(--color-accent) 0%, var(--color-accent-light) 100%);
+      color: var(--color-primary);
+    }
+
+    .btn-accent:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-lg);
+      color: var(--color-primary);
+    }
+
+    .btn-lg {
+      padding: 16px 32px;
+      font-size: 16px;
+    }
+
+    /* Hero */
+    .hero {
+      padding: 140px 0 100px;
+      background: linear-gradient(180deg, var(--color-white) 0%, var(--color-bg-alt) 100%);
+    }
+
+    .hero-inner {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 60px;
+      align-items: center;
+    }
+
+    .hero-content {
+      max-width: 540px;
+    }
+
+    .hero h1 {
+      color: var(--color-primary);
+      margin-bottom: 20px;
+    }
+
+    .hero h1 span {
+      color: var(--color-accent);
+    }
+
+    .hero-subtitle {
+      font-size: 1.2rem;
+      color: var(--color-text-muted);
+      margin-bottom: 32px;
+    }
+
+    .hero-buttons {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-bottom: 32px;
+    }
+
+    .hero-visual {
+      position: relative;
+    }
+
+    .hero-image {
+      width: 100%;
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-lg);
+      border: 1px solid var(--color-border);
+    }
+
+    .hero-float {
+      position: absolute;
+      background: var(--color-white);
+      border-radius: var(--radius);
+      padding: 14px 18px;
+      box-shadow: var(--shadow-md);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .hero-float-1 {
+      top: -20px;
+      right: -20px;
+    }
+
+    .hero-float-2 {
+      bottom: 40px;
+      left: -30px;
+    }
+
+    .hero-float-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+    }
+
+    .hero-float-icon.green { background: #e8f5e9; }
+    .hero-float-icon.blue { background: #e3f2fd; }
+
+    .hero-float-text {
+      font-size: 13px;
+    }
+
+    .hero-float-text strong {
+      display: block;
+      font-size: 15px;
+      color: var(--color-text);
+    }
+
+    .hero-float-text span {
+      color: var(--color-text-muted);
+    }
+
+    /* Features */
+    .features {
+      background: var(--color-white);
+    }
+
+    .section-header {
+      text-align: center;
+      max-width: 640px;
+      margin: 0 auto 60px;
+    }
+
+    .section-header h2 {
+      color: var(--color-primary);
+      margin-bottom: 16px;
+    }
+
+    .section-header p {
+      color: var(--color-text-muted);
+      font-size: 1.1rem;
+      margin: 0 auto;
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+    }
+
+    .feature-card {
+      background: var(--color-bg);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      padding: 32px;
+      transition: all 0.3s;
+    }
+
+    .feature-card:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-md);
+      border-color: var(--color-primary);
+    }
+
+    .feature-icon {
+      width: 56px;
+      height: 56px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      margin-bottom: 20px;
+    }
+
+    .feature-icon.navy { background: linear-gradient(135deg, #e8eef5 0%, #d4e0ed 100%); }
+    .feature-icon.gold { background: linear-gradient(135deg, #fef9e7 0%, #fcefc7 100%); }
+    .feature-icon.green { background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%); }
+    .feature-icon.blue { background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%); }
+    .feature-icon.purple { background: linear-gradient(135deg, #f3e5f5 0%, #e1bee7 100%); }
+    .feature-icon.rose { background: linear-gradient(135deg, #fce4ec 0%, #f8bbd9 100%); }
+
+    .feature-card h3 {
+      color: var(--color-primary);
+      margin-bottom: 10px;
+    }
+
+    .feature-card p {
+      color: var(--color-text-muted);
+      font-size: 15px;
+      line-height: 1.6;
+    }
+
+    /* Screenshot Gallery */
+    .gallery {
+      background: var(--color-bg-alt);
+    }
+
+    .gallery-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+    }
+
+    .gallery-item {
+      background: var(--color-white);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      box-shadow: var(--shadow-md);
+      border: 1px solid var(--color-border);
+      transition: all 0.3s;
+    }
+
+    .gallery-item:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .gallery-item img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    .gallery-item-caption {
+      padding: 16px 20px;
+    }
+
+    .gallery-item-caption h3 {
+      color: var(--color-primary);
+      margin-bottom: 4px;
+      font-size: 1.1rem;
+    }
+
+    .gallery-item-caption p {
+      color: var(--color-text-muted);
+      font-size: 14px;
+      margin: 0;
+    }
+
+    /* How It Works */
+    .how-it-works {
+      background: var(--color-white);
+    }
+
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 32px;
+    }
+
+    .step {
+      text-align: center;
+      position: relative;
+    }
+
+    .step:not(:last-child)::after {
+      content: '';
+      position: absolute;
+      top: 32px;
+      left: calc(50% + 40px);
+      width: calc(100% - 80px);
+      height: 2px;
+      background: var(--color-border);
+    }
+
+    .step-number {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      background: var(--color-white);
+      border: 2px solid var(--color-primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-display);
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--color-primary);
+      margin: 0 auto 20px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .step h3 {
+      color: var(--color-primary);
+      margin-bottom: 8px;
+    }
+
+    .step p {
+      color: var(--color-text-muted);
+      font-size: 14px;
+      margin: 0 auto;
+    }
+
+    /* Pricing */
+    .pricing {
+      background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-light) 100%);
+      color: white;
+    }
+
+    .pricing-inner {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 60px;
+      align-items: center;
+    }
+
+    .pricing h2 {
+      color: white;
+      margin-bottom: 16px;
+    }
+
+    .pricing .pricing-desc {
+      opacity: 0.9;
+      font-size: 1.1rem;
+      margin-bottom: 24px;
+      max-width: 100%;
+    }
+
+    .pricing-features {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 32px;
+    }
+
+    .pricing-features li {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 15px;
+      list-style: none;
+    }
+
+    .pricing-features li::before {
+      content: '✓';
+      width: 24px;
+      height: 24px;
+      min-width: 24px;
+      background: rgba(255,255,255,0.2);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: bold;
+    }
+
+    .pricing-card {
+      background: rgba(255,255,255,0.1);
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: var(--radius-lg);
+      padding: 40px;
+      text-align: center;
+      backdrop-filter: blur(10px);
+    }
+
+    .pricing-card .price-label {
+      font-size: 13px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      opacity: 0.7;
+      margin-bottom: 12px;
+    }
+
+    .pricing-card .price-amount {
+      font-family: var(--font-display);
+      font-size: 3.5rem;
+      font-weight: 700;
+      color: var(--color-accent-light);
+      line-height: 1;
+      margin-bottom: 4px;
+    }
+
+    .pricing-card .price-period {
+      font-size: 14px;
+      opacity: 0.7;
+      margin-bottom: 24px;
+    }
+
+    .pricing-card .price-note {
+      font-size: 13px;
+      opacity: 0.75;
+      margin-bottom: 28px;
+      max-width: 100%;
+    }
+
+    /* Contact */
+    .contact {
+      background: var(--color-white);
+    }
+
+    .contact-inner {
+      max-width: 600px;
+      margin: 0 auto;
+      text-align: center;
+    }
+
+    .contact h2 {
+      color: var(--color-primary);
+      margin-bottom: 16px;
+    }
+
+    .contact-card {
+      background: var(--color-bg);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      padding: 40px;
+      text-align: center;
+    }
+
+    .contact-card p {
+      margin: 0 auto 24px;
+      color: var(--color-text-muted);
+    }
+
+    .contact-email {
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: var(--color-primary);
+    }
+
+    .contact-links {
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+      margin-top: 24px;
+      flex-wrap: wrap;
+    }
+
+    /* Footer */
+    footer {
+      background: var(--color-primary);
+      color: white;
+      padding: 48px 0 32px;
+    }
+
+    .footer-inner {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 24px;
+    }
+
+    .footer-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-family: var(--font-display);
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: white;
+    }
+
+    .footer-logo img {
+      width: 40px;
+      height: 40px;
+      border-radius: 9px;
+    }
+
+    .footer-links {
+      display: flex;
+      gap: 32px;
+    }
+
+    .footer-links a {
+      color: rgba(255,255,255,0.8);
+      font-size: 14px;
+    }
+
+    .footer-links a:hover {
+      color: white;
+    }
+
+    .footer-copyright {
+      width: 100%;
+      text-align: center;
+      padding-top: 32px;
+      margin-top: 32px;
+      border-top: 1px solid rgba(255,255,255,0.1);
+      font-size: 14px;
+      opacity: 0.7;
+    }
+
+    /* Responsive */
+    @media (max-width: 1024px) {
+      .hero-inner {
+        grid-template-columns: 1fr;
+        text-align: center;
+      }
+
+      .hero-content {
+        max-width: 100%;
+      }
+
+      .hero-buttons {
+        justify-content: center;
+      }
+
+      .hero-visual {
+        max-width: 500px;
+        margin: 0 auto;
+      }
+
+      .hero-float-1 {
+        right: 0;
+      }
+
+      .hero-float-2 {
+        left: 0;
+      }
+
+      .features-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .steps {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .step:not(:last-child)::after {
+        display: none;
+      }
+
+      .pricing-inner {
+        grid-template-columns: 1fr;
+      }
+
+      .gallery-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (max-width: 768px) {
+      section {
+        padding: 60px 0;
+      }
+
+      .header-inner {
+        height: 60px;
+      }
+
+      nav {
+        display: none;
+      }
+
+      .nav-mobile-toggle {
+        display: block;
+      }
+
+      .hero {
+        padding: 100px 0 60px;
+      }
+
+      .features-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .steps {
+        grid-template-columns: 1fr;
+        gap: 40px;
+      }
+
+      .gallery-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .footer-inner {
+        flex-direction: column;
+        text-align: center;
+      }
+
+      .footer-links {
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header>
+    <div class="container">
+      <div class="header-inner">
+        <a href="#" class="logo">
+          <img src="SimchaKit-logo.png" alt="SimchaKit logo">
+          SimchaKit
+        </a>
+        <nav>
+          <a href="#features">Features</a>
+          <a href="#how-it-works">How It Works</a>
+          <a href="#pricing">Pricing</a>
+          <a href="#contact">Contact</a>
+          <a href="https://demo.simcha-kit.com" target="_blank" class="btn btn-secondary" style="padding: 8px 16px;">Try Demo</a>
+          <a href="https://app.simcha-kit.com" target="_blank" class="btn btn-primary" style="padding: 8px 20px;">Start Planning</a>
+        </nav>
+        <button class="nav-mobile-toggle" aria-label="Menu">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="container">
+      <div class="hero-inner">
+        <div class="hero-content">
+          <h1>Plan Every Moment.<br><span>Celebrate Everything.</span></h1>
+          <p class="hero-subtitle">The all-in-one planning hub for bar and bat mitzvahs, weddings, and every Jewish lifecycle celebration. Guests, budgets, vendors, seating, and tasks: all in one place.</p>
+          <div class="hero-buttons">
+            <a href="https://app.simcha-kit.com" target="_blank" class="btn btn-primary btn-lg">Start Planning</a>
+            <a href="https://demo.simcha-kit.com" target="_blank" class="btn btn-secondary btn-lg">Try the Demo</a>
+          </div>
+        </div>
+        <div class="hero-visual">
+          <img src="overview.png" alt="SimchaKit dashboard showing event overview with countdown, guest stats, budget tracking, and timeline" class="hero-image">
+          <div class="hero-float hero-float-1">
+            <div class="hero-float-icon green">✓</div>
+            <div class="hero-float-text">
+              <strong>48 Guests</strong>
+              <span>RSVPs tracked</span>
+            </div>
+          </div>
+          <div class="hero-float hero-float-2">
+            <div class="hero-float-icon blue">📊</div>
+            <div class="hero-float-text">
+              <strong>Real-time Sync</strong>
+              <span>All devices updated</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section class="features" id="features">
+    <div class="container">
+      <div class="section-header">
+        <h2>Everything You Need to Plan Your Simcha</h2>
+        <p>From first save-the-date to final thank-you note, SimchaKit keeps every detail organized and accessible.</p>
+      </div>
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon navy">👥</div>
+          <h3>Guest Management</h3>
+          <p>Track households, individuals, RSVPs, dietary needs, and addresses. Export ready-to-print invitation lists with formal names.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon gold">💰</div>
+          <h3>Budget Tracking</h3>
+          <p>Monitor expenses by category and vendor. Track deposits, balances, and due dates. Built-in gratuity calculator for service staff.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon green">🏪</div>
+          <h3>Vendor Management</h3>
+          <p>Store contacts, contracts, and costs. Log every interaction with timestamps. Never miss a follow-up or payment deadline.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon blue">🪑</div>
+          <h3>Seating Charts</h3>
+          <p>Create tables, assign guests, and track capacity. Split households across adult and kids tables. Auto-seat fills open seats in seconds.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon purple">📋</div>
+          <h3>Tasks &amp; Timeline</h3>
+          <p>Manage your to-do list with due dates, categories, and completion tracking. Never miss a milestone on the road to your simcha.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon rose">🎁</div>
+          <h3>Gifts &amp; Thank Yous</h3>
+          <p>Log gifts as they arrive, track amounts, and manage thank-you notes. Know exactly who you have thanked and who is still waiting.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Screenshot Gallery -->
+  <section class="gallery" id="gallery">
+    <div class="container">
+      <div class="section-header">
+        <h2>See SimchaKit in Action</h2>
+        <p>A quick tour of the dashboard features that keep your planning on track.</p>
+      </div>
+      <div class="gallery-grid">
+        <div class="gallery-item">
+          <img src="screenshot-guests.png" alt="Guest management tab showing household list with RSVP status">
+          <div class="gallery-item-caption">
+            <h3>Guest Management</h3>
+            <p>Track households, RSVPs, dietary needs, and export for invitations.</p>
+          </div>
+        </div>
+        <div class="gallery-item">
+          <img src="screenshot-budget.png" alt="Budget tab showing expenses and payment tracking">
+          <div class="gallery-item-caption">
+            <h3>Budget Tracking</h3>
+            <p>Monitor expenses by vendor and category with payment status.</p>
+          </div>
+        </div>
+        <div class="gallery-item">
+          <img src="screenshot-seating.png" alt="Seating chart with table assignments">
+          <div class="gallery-item-caption">
+            <h3>Seating Charts</h3>
+            <p>Assign guests to tables and track capacity at a glance.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- How It Works -->
+  <section class="how-it-works" id="how-it-works">
+    <div class="container">
+      <div class="section-header">
+        <h2>Simple to Set Up, Powerful to Use</h2>
+        <p>Get your event dashboard running in minutes, not hours.</p>
+      </div>
+      <div class="steps">
+        <div class="step">
+          <div class="step-number">1</div>
+          <h3>Create an Account</h3>
+          <p>Sign up at app.simcha-kit.com with just your email. No password required.</p>
+        </div>
+        <div class="step">
+          <div class="step-number">2</div>
+          <h3>Set Up Your Event</h3>
+          <p>Name your simcha, set the date, choose your theme colors, and configure sub-events like the ceremony and reception.</p>
+        </div>
+        <div class="step">
+          <div class="step-number">3</div>
+          <h3>Import Your Guests</h3>
+          <p>Bulk import from CSV, or add guests one by one. Supports imports from common RSVP platforms.</p>
+        </div>
+        <div class="step">
+          <div class="step-number">4</div>
+          <h3>Plan &amp; Celebrate</h3>
+          <p>Track everything in one place. Access from any device, any time. Enjoy your simcha.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Pricing -->
+  <section class="pricing" id="pricing">
+    <div class="container">
+      <div class="pricing-inner">
+        <div>
+          <h2>Simple, One-Time Pricing.</h2>
+          <p class="pricing-desc">Pay once per event. No subscription, no recurring fees. Every feature is included from day one — guests, budget, vendors, seating, tasks, and more.</p>
+          <ul class="pricing-features">
+            <li>Unlimited guests, vendors, and tasks</li>
+            <li>All tabs included: seating, budget, gifts, ceremony roles, and more</li>
+            <li>Real-time sync across all your devices</li>
+            <li>CSV import from popular RSVP platforms</li>
+            <li>Calendar export and webcal subscription</li>
+            <li>Day-of mode for the big day</li>
+          </ul>
+          <a href="https://app.simcha-kit.com" target="_blank" class="btn btn-accent btn-lg">Start Planning</a>
+        </div>
+        <div class="pricing-card">
+          <p class="price-label">One-Time Fee</p>
+          <div class="price-amount">$29</div>
+          <p class="price-period">introductory pricing through August 31, 2026</p>
+          <p class="price-note">Regular price $49 after August 31. No subscription, no recurring charges.</p>
+          <a href="https://app.simcha-kit.com" target="_blank" class="btn btn-accent" style="width: 100%; justify-content: center; margin-top: 8px;">Start Planning</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Contact -->
+  <section class="contact" id="contact">
+    <div class="container">
+      <div class="section-header">
+        <h2>Questions? Get in Touch</h2>
+        <p>SimchaKit is built by Brook Creative LLC. We would love to hear how you are using it for your simcha.</p>
+      </div>
+      <div class="contact-card" style="max-width: 500px; margin: 0 auto;">
+        <p>For questions, feature requests, or just to say mazel tov:</p>
+        <a href="mailto:hello@simcha-kit.com" class="contact-email">hello@simcha-kit.com</a>
+        <div class="contact-links">
+          <a href="mailto:hello@simcha-kit.com?subject=SimchaKit%20Inquiry" class="btn btn-primary">Send an Email</a>
+          <a href="https://www.facebook.com/SimchaKit/" target="_blank" class="btn btn-secondary">Follow on Facebook</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <div class="container">
+      <div class="footer-inner">
+        <div class="footer-logo">
+          <img src="SimchaKit-logo.png" alt="SimchaKit logo">
+          SimchaKit
+        </div>
+        <div class="footer-links">
+          <a href="#features">Features</a>
+          <a href="#pricing">Pricing</a>
+          <a href="https://demo.simcha-kit.com" target="_blank">Demo</a>
+          <a href="https://www.facebook.com/SimchaKit/" target="_blank">Facebook</a>
+          <a href="mailto:hello@simcha-kit.com">Contact</a>
+        </div>
+        <div class="footer-copyright">
+          &copy; 2026 Brook Creative LLC. Built with care for every simcha.
+        </div>
+      </div>
+    </div>
+  </footer>
+
+</body>
+</html>

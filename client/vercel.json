@@ -10,6 +10,11 @@
   ],
   "rewrites": [
     {
+      "source": "/:path*",
+      "has": [{ "type": "host", "value": "about.simcha-kit.com" }],
+      "destination": "/about/:path*"
+    },
+    {
       "source": "/api/:path*",
       "destination": "/api/:path*"
     },
