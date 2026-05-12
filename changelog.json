@@ -1,9 +1,20 @@
 {
-  "current": "V3.9.6",
+  "current": "V3.9.7",
   "whatsNew": [
-    "New SimchaKit logo \u2014 updated branding now appears across the app: nav bar, sign-in page, event picker header, and loading screens."
+    "Footer branding updated to Brook Creative LLC across the app and sign-in page."
   ],
   "changelog": [
+    {
+      "version": "V3.9.7",
+      "date": "2026-05-12",
+      "summary": "Footer branding updated to Brook Creative LLC across V2 and V3",
+      "changes": [
+        "App.jsx (V2): footer credit updated from Ryan Brook to Brook Creative LLC, email updated to hello@simcha-kit.com, about.simcha-kit.com link added",
+        "EventPicker.jsx (V3): footer credit updated from Ryan Brook to Brook Creative LLC, email updated to hello@simcha-kit.com, about.simcha-kit.com link added",
+        "AuthPage.jsx (V3): about.simcha-kit.com link added to sign-in page footer",
+        "README.md: version badge bumped to V3.9.7, V3 Quick Start URL updated to app.simcha-kit.com, about.simcha-kit.com marketing site link added"
+      ]
+    },
     {
       "version": "V3.9.6",
       "date": "2026-05-12",

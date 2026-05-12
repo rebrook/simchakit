@@ -2,7 +2,7 @@
 
 A real-time event planning web app for celebrations — B'nei Mitzvot, weddings, and other simchas.
 
-![Version](https://img.shields.io/badge/version-3.9.6-blue)
+![Version](https://img.shields.io/badge/version-3.9.7-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
 ## Screenshots
@@ -38,7 +38,7 @@ A real-time event planning web app for celebrations — B'nei Mitzvot, weddings,
 
 ## Tech Stack
 
-### V3 — SimchaKit Platform (SaaS, hosted at simchakit.vercel.app)
+### V3 — SimchaKit Platform (SaaS, hosted at app.simcha-kit.com)
 
 - **Frontend**: Vite + React 18
 - **Auth**: Supabase magic link (passwordless email)
@@ -58,7 +58,7 @@ A real-time event planning web app for celebrations — B'nei Mitzvot, weddings,
 
 ### V3 — SimchaKit Platform
 
-Visit [simchakit.vercel.app](https://simchakit.vercel.app), sign in with your email, and create your first event.
+Visit [app.simcha-kit.com](https://app.simcha-kit.com), sign in with your email, and create your first event. Learn more at [about.simcha-kit.com](https://about.simcha-kit.com).
 
 ### V2 — Self-Hosted
 

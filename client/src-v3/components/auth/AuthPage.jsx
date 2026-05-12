@@ -213,6 +213,15 @@ export function AuthPage() {
           <a href="/privacy" style={{ color: "var(--text-muted)" }}>Privacy Policy</a>.
         </div>
 
+        <div style={{
+          textAlign:  "center",
+          fontSize:   12,
+          color:      "var(--text-muted)",
+          lineHeight: 1.5,
+        }}>
+          <a href="https://about.simcha-kit.com" target="_blank" rel="noopener" style={{ color: "var(--text-muted)" }}>Learn more about SimchaKit</a>
+        </div>
+
       </div>
     </div>
   );
