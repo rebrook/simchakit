@@ -292,13 +292,6 @@ export function EventPicker({ session, onSelectEvent }) {
 
       <div style={styles.page}>
 
-        {/* ── Brand hero ── */}
-        <div style={{ textAlign: "center", marginBottom: 32 }}>
-          <img src="/apple-touch-icon.png" alt="SimchaKit" style={{ width: 72, height: 72, borderRadius: 16, marginBottom: 12 }} />
-          <div style={{ fontFamily: "var(--font-display)", fontSize: 28, fontWeight: 600, color: "var(--text-primary)", lineHeight: 1 }}>SimchaKit</div>
-          <div style={{ fontSize: 13, color: "var(--text-muted)", marginTop: 6 }}>Jewish lifecycle event planning</div>
-        </div>
-
         {/* ── Page header ── */}
         <div style={styles.pageHeader}>
           <div>

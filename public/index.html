@@ -4,7 +4,11 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>SimchaKit</title>
-  <link rel="icon" type="image/svg+xml" href="/simcha/favicon.svg" />
+  <link rel="icon" type="image/x-icon" href="/simcha/favicon.ico" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/simcha/favicon-32x32.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="/simcha/apple-touch-icon.png" />
+  <link rel="manifest" href="/simcha/manifest.json" />
+  <meta name="theme-color" content="#0d1b2e" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
@@ -63,7 +67,7 @@
       gap: 10px;
       height: 60px;
     }
-    .header-star { font-size: 22px; line-height: 1; }
+    .header-star { width: 28px; height: 28px; border-radius: 6px; display: block; flex-shrink: 0; }
     .header-title {
       font-family: var(--font-display);
       font-size: 22px;
@@ -646,10 +650,10 @@
 
   <header class="header">
     <div class="header-inner">
-      <span class="header-star">✡</span>
+      <img src="/simcha/apple-touch-icon.png" alt="SimchaKit" class="header-star" />
       <div>
         <div class="header-title">SimchaKit</div>
-        <div class="header-sub">Event Planning</div>
+        <div class="header-sub">Jewish lifecycle event planning</div>
       </div>
     </div>
   </header>
@@ -706,8 +710,9 @@
   </main>
 
   <footer id="main-footer" class="footer" style="display:none">
-    Designed &amp; Built by <a href="mailto:ryan@brook-creative.com" style="color:inherit">Ryan Brook</a>
+    Designed &amp; Built by <a href="mailto:support@brook-creative.com" style="color:inherit">Ryan Brook</a>
     &nbsp;·&nbsp; Powered by Claude
+    &nbsp;·&nbsp; <a href="mailto:support@brook-creative.com" style="color:inherit">support@brook-creative.com</a>
     &nbsp;·&nbsp; <a href="https://github.com/rebrook/simchakit" target="_blank" rel="noopener" style="color:inherit">GitHub</a>
     &nbsp;·&nbsp;
     <button class="settings-trigger" id="settings-trigger" onclick="toggleSettings()">⚙ Picker Settings</button>

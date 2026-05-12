@@ -1,9 +1,21 @@
 {
-  "current": "V3.9.4",
+  "current": "V3.9.5",
   "whatsNew": [
-    "New SimchaKit logo \u2014 updated branding now appears across the app: nav bar, sign-in page, event picker, and loading screens."
+    "New SimchaKit logo \u2014 updated branding now appears across the app: nav bar, sign-in page, event picker header, and loading screens."
   ],
   "changelog": [
+    {
+      "version": "V3.9.5",
+      "date": "2026-05-12",
+      "type": "fix",
+      "summary": "Event picker branding parity \u2014 logo in header, updated subtitle, V2/V3 aligned",
+      "changes": [
+        "public/index.html (V2 picker): replaced \u2721 glyph in header with SimchaKit logo (28\u00d728px); updated subtitle from 'Event Planning' to 'Jewish lifecycle event planning'.",
+        "public/index.html (V2 picker): updated favicon links from favicon.svg to favicon.ico, added PWA icon links and manifest reference.",
+        "EventPicker.jsx (V3): removed centered logo hero block added in V3.9.4 \u2014 logo now appears only in AppShell header, matching V2 picker layout.",
+        "V2 and V3 event picker pages now have identical header treatment."
+      ]
+    },
     {
       "version": "V3.9.4",
       "date": "2026-05-12",
