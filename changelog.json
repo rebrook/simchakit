@@ -1,9 +1,18 @@
 {
-  "current": "V3.9.11",
+  "current": "V3.9.12",
   "whatsNew": [
-    "FAQ section added to the about page covering common questions about pricing, guests, and data security."
+    "Sign-in page now explains magic links and includes a privacy reassurance for new users."
   ],
   "changelog": [
+    {
+      "version": "V3.9.12",
+      "date": "2026-05-13",
+      "summary": "AuthPage \u2014 magic link explainer and security microcopy added",
+      "changes": [
+        "AuthPage.jsx: magic link explainer added below email input field",
+        "AuthPage.jsx: security microcopy added below submit button"
+      ]
+    },
     {
       "version": "V3.9.11",
       "date": "2026-05-13",

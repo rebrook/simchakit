@@ -155,6 +155,14 @@ export function AuthPage() {
                     disabled={status === "loading"}
                     required
                   />
+                  <div style={{
+                    fontSize:    12,
+                    color:       "var(--text-muted)",
+                    marginTop:   8,
+                    lineHeight:  1.5,
+                  }}>
+                    A magic link is a one-time sign-in link we email to you. Click it and you're in — no password needed. Check your spam folder if it doesn't arrive within a minute.
+                  </div>
                 </div>
 
                 {status === "error" && (
@@ -194,6 +202,14 @@ export function AuthPage() {
                     "Send Magic Link →"
                   )}
                 </button>
+                <div style={{
+                  fontSize:    12,
+                  color:       "var(--text-muted)",
+                  textAlign:   "center",
+                  lineHeight:  1.5,
+                }}>
+                  🔒 Your data is private, secure, and never shared.
+                </div>
               </form>
             </>
           )}
