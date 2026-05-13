@@ -1,9 +1,19 @@
 {
-  "current": "V3.9.9",
+  "current": "V3.9.10",
   "whatsNew": [
-    "Consistent product description now appears across all app surfaces including the event picker header."
+    "About page updated with clearer feature groupings, stronger competitive positioning, and warmer copy throughout."
   ],
   "changelog": [
+    {
+      "version": "V3.9.10",
+      "date": "2026-05-13",
+      "summary": "About page \u2014 feature pillars, voice consistency, and competitive differentiation",
+      "changes": [
+        "about/index.html: 6 feature cards regrouped into 4 buckets (Guest Management, Vendors and Budget, Event Planning and Tasks, Day-of Coordination)",
+        "about/index.html: competitive differentiation line added to hero \u2014 Not a generic event app, built specifically for simchas",
+        "about/index.html: voice consistency pass \u2014 technical language softened across How It Works and Getting Started sections"
+      ]
+    },
     {
       "version": "V3.9.9",
       "date": "2026-05-13",
