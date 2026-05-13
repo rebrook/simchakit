@@ -138,7 +138,7 @@ function AppContent({ session, isCallback }) {
           <img src="/apple-touch-icon.png" alt="SimchaKit" style={{ width: 40, height: 40, borderRadius: 8, display: "block", flexShrink: 0 }} />
           <div>
             <div style={headerStyles.title}>SimchaKit</div>
-            <div style={headerStyles.sub}>Jewish lifecycle event planning</div>
+            <div style={headerStyles.sub}>SimchaKit is the all-in-one planning hub for B&apos;nei Mitzvot, weddings, and every Jewish lifecycle celebration.</div>
           </div>
         </div>
       </header>

@@ -1,9 +1,17 @@
 {
-  "current": "V3.9.8",
+  "current": "V3.9.9",
   "whatsNew": [
-    "Consistent product description now appears across the app, sign-in page, and marketing site."
+    "Consistent product description now appears across all app surfaces including the event picker header."
   ],
   "changelog": [
+    {
+      "version": "V3.9.9",
+      "date": "2026-05-13",
+      "summary": "App.v3.jsx event picker header subtitle updated to unified one-liner",
+      "changes": [
+        "App.v3.jsx: event picker header subtitle updated to unified one-liner"
+      ]
+    },
     {
       "version": "V3.9.8",
       "date": "2026-05-13",
