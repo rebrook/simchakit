@@ -1,9 +1,19 @@
 {
-  "current": "V3.9.7",
+  "current": "V3.9.8",
   "whatsNew": [
-    "Footer branding updated to Brook Creative LLC across the app and sign-in page."
+    "Consistent product description now appears across the app, sign-in page, and marketing site."
   ],
   "changelog": [
+    {
+      "version": "V3.9.8",
+      "date": "2026-05-13",
+      "summary": "Unified one-liner applied across all surfaces",
+      "changes": [
+        "about/index.html: meta description, OG description, and hero subtitle updated to unified one-liner",
+        "AuthPage.jsx (V3): subtitle updated to unified one-liner",
+        "public/index.html (V2 event picker): header subtitle updated to unified one-liner"
+      ]
+    },
     {
       "version": "V3.9.7",
       "date": "2026-05-12",

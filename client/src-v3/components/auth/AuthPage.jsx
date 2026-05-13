@@ -69,7 +69,7 @@ export function AuthPage() {
             color:       "var(--text-muted)",
             marginTop:   8,
           }}>
-            Jewish lifecycle event planning
+            SimchaKit is the all-in-one planning hub for B'nei Mitzvot, weddings, and every Jewish lifecycle celebration.
           </div>
         </div>
 
