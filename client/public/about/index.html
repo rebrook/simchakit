@@ -657,6 +657,39 @@
       margin-bottom: 16px;
     }
 
+    /* FAQ */
+    .faq {
+      background: var(--color-bg-alt);
+    }
+
+    .faq-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 24px;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .faq-item {
+      background: var(--color-white);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      padding: 28px 32px;
+    }
+
+    .faq-item h3 {
+      color: var(--color-primary);
+      margin-bottom: 10px;
+      font-size: 1.1rem;
+    }
+
+    .faq-item p {
+      color: var(--color-text-muted);
+      font-size: 15px;
+      line-height: 1.6;
+      margin: 0;
+    }
+
     /* Contact */
     .contact {
       background: var(--color-white);
@@ -838,6 +871,10 @@
         grid-template-columns: 1fr;
       }
 
+      .faq-grid {
+        grid-template-columns: 1fr;
+      }
+
       .getting-started-steps {
         flex-direction: column;
         align-items: center;
@@ -876,6 +913,7 @@
           <a href="#features">Features</a>
           <a href="#how-it-works">How It Works</a>
           <a href="#pricing">Pricing</a>
+          <a href="#faq">FAQ</a>
           <a href="#contact">Contact</a>
           <a href="https://demo.simcha-kit.com" target="_blank" class="btn btn-secondary" style="padding: 8px 16px;">Try Demo</a>
           <a href="https://app.simcha-kit.com" target="_blank" class="btn btn-primary" style="padding: 8px 20px;">Start Planning</a>
@@ -1081,6 +1119,42 @@
           <div class="pricing-deadline">⏳ Introductory price ends August 31, 2026</div>
           <p class="price-note">Regular price $49 after August 31. No subscription, no recurring charges.</p>
           <a href="https://app.simcha-kit.com" target="_blank" class="btn btn-accent" style="width: 100%; justify-content: center; margin-top: 8px;">Start Planning</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section class="faq" id="faq">
+    <div class="container">
+      <div class="section-header">
+        <h2>Frequently Asked Questions</h2>
+        <p>Everything you need to know before getting started.</p>
+      </div>
+      <div class="faq-grid">
+        <div class="faq-item">
+          <h3>Is it free?</h3>
+          <p>SimchaKit is a one-time fee of $29 per event, with introductory pricing through August 31, 2026 (regular price $49 after that). No subscription, no recurring charges — pay once and plan your entire simcha.</p>
+        </div>
+        <div class="faq-item">
+          <h3>Who is it for?</h3>
+          <p>SimchaKit is built for families planning bar and bat mitzvahs, weddings, and Jewish lifecycle celebrations of any kind. If you are coordinating guests, vendors, budgets, and logistics for a simcha, SimchaKit is for you.</p>
+        </div>
+        <div class="faq-item">
+          <h3>Do my guests need accounts?</h3>
+          <p>No. SimchaKit is for the event organizer only. Your guests never need to log in, download anything, or create an account. You manage everything on their behalf.</p>
+        </div>
+        <div class="faq-item">
+          <h3>Can multiple family members manage a simcha?</h3>
+          <p>Not yet. SimchaKit currently supports one account per event. Shared access for co-planners is on the roadmap and coming in a future update.</p>
+        </div>
+        <div class="faq-item">
+          <h3>Is it mobile-friendly?</h3>
+          <p>Yes. SimchaKit works on any device — desktop, tablet, or phone. The Day-of Mode is designed specifically for mobile use on the day of your event.</p>
+        </div>
+        <div class="faq-item">
+          <h3>Is my data secure?</h3>
+          <p>Yes. SimchaKit is built on Supabase, which uses industry-standard encryption and security practices. Your guest list, vendor contacts, and event details are stored securely and never shared with third parties.</p>
         </div>
       </div>
     </div>

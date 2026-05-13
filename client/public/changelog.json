@@ -1,9 +1,18 @@
 {
-  "current": "V3.9.10",
+  "current": "V3.9.11",
   "whatsNew": [
-    "About page updated with clearer feature groupings, stronger competitive positioning, and warmer copy throughout."
+    "FAQ section added to the about page covering common questions about pricing, guests, and data security."
   ],
   "changelog": [
+    {
+      "version": "V3.9.11",
+      "date": "2026-05-13",
+      "summary": "About page \u2014 FAQ section added",
+      "changes": [
+        "about/index.html: FAQ section added with 6 questions covering pricing, audience, guest accounts, shared access, mobile support, and data security",
+        "about/index.html: FAQ link added to nav"
+      ]
+    },
     {
       "version": "V3.9.10",
       "date": "2026-05-13",
