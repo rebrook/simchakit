@@ -211,12 +211,12 @@ export function EventPicker({ session, onSelectEvent }) {
   }
 
   // ── Paywall check ─────────────────────────────────────────────────────────
-  // User needs to pay if they have at least one active event AND no unused
-  // completed purchases (purchases where payment was made but event not yet created)
-  const hasUsedFreeEvent = eventCount >= 1;
+  // Every event requires payment or a valid free coupon.
+  // paymentCleared is true only when the user has a completed purchase with no
+  // event_id yet (i.e. paid via Stripe or redeemed a free coupon).
   const hasUnusedPurchase = unusedPurchaseCount > 0;
-  // After a Stripe payment return, pendingPurchaseId is set — always show CreateEventForm
-  const paymentCleared = !!pendingPurchaseId || hasUnusedPurchase;
+  const paymentCleared    = !!pendingPurchaseId || hasUnusedPurchase;
+  const needsPayment      = !paymentCleared;
 
   // ── Render ─────────────────────────────────────────────────────────────────
   return (
@@ -330,7 +330,7 @@ export function EventPicker({ session, onSelectEvent }) {
 
         {/* ── Create event form / paywall ── */}
         {showCreateForm && (
-          hasUsedFreeEvent && !paymentCleared ? (
+          needsPayment ? (
             <PaywallGate
               session={session}
               onFreeEventGranted={handleFreeEventGranted}
