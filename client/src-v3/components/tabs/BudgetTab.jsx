@@ -684,13 +684,14 @@ export function BudgetTab({ eventId, event, adminConfig, showToast, isArchived, 
         {expenses.length === 0 && (
           <div style={{ textAlign:"center", padding:"48px 24px", color:"var(--text-muted)" }}>
             <div style={{ fontSize:36, marginBottom:12, opacity:0.4 }}>💰</div>
-            <div style={{ fontFamily:"var(--font-display)", fontSize:18, marginBottom:6, color:"var(--text-primary)" }}>No expenses yet — add your first expense.</div>
+            <div style={{ fontFamily:"var(--font-display)", fontSize:18, marginBottom:6, color:"var(--text-primary)" }}>Let's track your deposits and expenses.</div>
+            <div style={{ fontSize:13, marginBottom:20 }}>Add your first expense to start building a clear picture of your budget.</div>
             {!isArchived && <button className="btn btn-primary" style={{ marginTop:12 }} onClick={() => { setEditing(null); setShowAdd(true); }}>+ Add Expense</button>}
           </div>
         )}
         {expenses.length > 0 && filtered.length === 0 && (
           <div style={{ textAlign:"center", padding:"32px 16px", color:"var(--text-muted)", fontSize:13 }}>
-            No expenses match your filters.
+            No expenses match your current filters — try adjusting your search or category.
           </div>
         )}
         {/* Expense rows — list view */}

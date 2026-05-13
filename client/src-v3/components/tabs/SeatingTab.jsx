@@ -442,6 +442,13 @@ export function SeatingTab({ eventId, event, adminConfig, showToast, isArchived,
           );
         })()}
 
+        {/* Mobile desktop recommendation */}
+        {isMobile && (
+          <div style={{ background: "var(--bg-surface)", border: "1px solid var(--border)", borderRadius: "var(--radius-md)", padding: "10px 14px", marginBottom: 12, fontSize: 13, color: "var(--text-muted)", display: "flex", alignItems: "center", gap: 8 }}>
+            💡 For the best experience, seating charts are easiest to manage on a desktop or tablet.
+          </div>
+        )}
+
         {/* Mobile tab switcher */}
         {isMobile && (
           <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>

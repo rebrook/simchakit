@@ -1,9 +1,19 @@
 {
-  "current": "V3.9.12",
+  "current": "V3.9.13",
   "whatsNew": [
-    "Sign-in page now explains magic links and includes a privacy reassurance for new users."
+    "Seating chart now shows a helpful desktop recommendation on mobile. Budget tab empty states updated with warmer, more helpful copy."
   ],
   "changelog": [
+    {
+      "version": "V3.9.13",
+      "date": "2026-05-13",
+      "summary": "SeatingTab and BudgetTab UX improvements across V2 and V3",
+      "changes": [
+        "SeatingTab.jsx (V2 + V3): mobile banner added recommending desktop for seating chart management",
+        "BudgetTab.jsx (V2 + V3): empty state copy updated to warmer, outcome-oriented language",
+        "BudgetTab.jsx (V2 + V3): filter empty state copy updated to be more helpful"
+      ]
+    },
     {
       "version": "V3.9.12",
       "date": "2026-05-13",
