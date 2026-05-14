@@ -1,9 +1,26 @@
 {
-  "current": "V3.9.13",
+  "current": "V3.9.15",
   "whatsNew": [
-    "Seating chart now shows a helpful desktop recommendation on mobile. Budget tab empty states updated with warmer, more helpful copy."
+    "Minor bug fix in admin panel Access Denied screen."
   ],
   "changelog": [
+    {
+      "version": "V3.9.15",
+      "date": "2026-05-14",
+      "summary": "App.admin.jsx \u2014 duplicate style attribute bug fix",
+      "changes": [
+        "App.admin.jsx: duplicate style attribute on Access Denied div merged into single style object"
+      ]
+    },
+    {
+      "version": "V3.9.14",
+      "date": "2026-05-13",
+      "summary": "Admin panel \u2014 mobile responsive layout",
+      "changes": [
+        "AdminShell.jsx: mobile layout added with sticky top bar, hamburger menu, and full-width content area",
+        "AdminShell.jsx: desktop layout unchanged"
+      ]
+    },
     {
       "version": "V3.9.13",
       "date": "2026-05-13",

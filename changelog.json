@@ -1,9 +1,17 @@
 {
-  "current": "V3.9.14",
+  "current": "V3.9.15",
   "whatsNew": [
-    "Admin panel is now mobile-friendly with a collapsible top navigation menu."
+    "Minor bug fix in admin panel Access Denied screen."
   ],
   "changelog": [
+    {
+      "version": "V3.9.15",
+      "date": "2026-05-14",
+      "summary": "App.admin.jsx \u2014 duplicate style attribute bug fix",
+      "changes": [
+        "App.admin.jsx: duplicate style attribute on Access Denied div merged into single style object"
+      ]
+    },
     {
       "version": "V3.9.14",
       "date": "2026-05-13",

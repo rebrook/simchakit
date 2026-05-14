@@ -115,7 +115,7 @@ export default function AppAdmin() {
       <Centered>
         <div style={styles.loginCard}>
           <div style={styles.loginTitle}>Access Denied</div>
-          <div style={styles.loginSub} style={{ marginTop: 8 }}>
+            <div style={{ ...styles.loginSub, marginTop: 8 }}>
             {session.user.email} is not authorized to access this dashboard.
           </div>
           <button style={{ ...styles.loginBtn, marginTop: 20 }} onClick={() => supabase.auth.signOut()}>
