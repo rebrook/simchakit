@@ -1,9 +1,19 @@
 {
-  "current": "V3.9.15",
+  "current": "V3.9.16",
   "whatsNew": [
-    "Minor bug fix in admin panel Access Denied screen."
+    "About page FAQ updated with clearer shared access framing and new questions covering data export and guest list import."
   ],
   "changelog": [
+    {
+      "version": "V3.9.16",
+      "date": "2026-05-14",
+      "summary": "About page FAQ \u2014 three updates based on reviewer feedback",
+      "changes": [
+        "about/index.html: shared access FAQ answer reframed to remove negative framing",
+        "about/index.html: data export FAQ question added",
+        "about/index.html: CSV import FAQ question added"
+      ]
+    },
     {
       "version": "V3.9.15",
       "date": "2026-05-14",
