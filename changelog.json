@@ -1,9 +1,18 @@
 {
-  "current": "V3.9.13",
+  "current": "V3.9.14",
   "whatsNew": [
-    "Seating chart now shows a helpful desktop recommendation on mobile. Budget tab empty states updated with warmer, more helpful copy."
+    "Admin panel is now mobile-friendly with a collapsible top navigation menu."
   ],
   "changelog": [
+    {
+      "version": "V3.9.14",
+      "date": "2026-05-13",
+      "summary": "Admin panel \u2014 mobile responsive layout",
+      "changes": [
+        "AdminShell.jsx: mobile layout added with sticky top bar, hamburger menu, and full-width content area",
+        "AdminShell.jsx: desktop layout unchanged"
+      ]
+    },
     {
       "version": "V3.9.13",
       "date": "2026-05-13",
