@@ -117,6 +117,20 @@ export function PaywallGate({ session, onFreeEventGranted, onCancel }) {
         Each event requires a one-time purchase. Your planning data is stored securely and never expires.
       </div>
 
+      {/* Value bullets */}
+      <div style={{ marginBottom: 18 }}>
+        {[
+          "Complete guest list, RSVPs, and seating charts",
+          "Budget tracking, vendor management, and payment schedules",
+          "Day-of Mode with a printable brief for your coordinator",
+        ].map((item, i) => (
+          <div key={i} style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8, fontSize: 13, color: "var(--text-secondary)" }}>
+            <span style={{ color: "var(--green)", fontWeight: 700, fontSize: 14, flexShrink: 0 }}>✓</span>
+            {item}
+          </div>
+        ))}
+      </div>
+
       {/* Pricing card */}
       <div style={styles.priceCard}>
         <div style={styles.priceRow}>

@@ -211,12 +211,12 @@ export function EventPicker({ session, onSelectEvent }) {
   }
 
   // ── Paywall check ─────────────────────────────────────────────────────────
-  // Every event requires payment or a valid free coupon.
-  // paymentCleared is true only when the user has a completed purchase with no
-  // event_id yet (i.e. paid via Stripe or redeemed a free coupon).
+  // User needs to pay if they have at least one active event AND no unused
+  // completed purchases (purchases where payment was made but event not yet created)
+  const hasUsedFreeEvent = eventCount >= 1;
   const hasUnusedPurchase = unusedPurchaseCount > 0;
-  const paymentCleared    = !!pendingPurchaseId || hasUnusedPurchase;
-  const needsPayment      = !paymentCleared;
+  // After a Stripe payment return, pendingPurchaseId is set — always show CreateEventForm
+  const paymentCleared = !!pendingPurchaseId || hasUnusedPurchase;
 
   // ── Render ─────────────────────────────────────────────────────────────────
   return (
@@ -330,7 +330,7 @@ export function EventPicker({ session, onSelectEvent }) {
 
         {/* ── Create event form / paywall ── */}
         {showCreateForm && (
-          needsPayment ? (
+          hasUsedFreeEvent && !paymentCleared ? (
             <PaywallGate
               session={session}
               onFreeEventGranted={handleFreeEventGranted}
@@ -365,9 +365,9 @@ export function EventPicker({ session, onSelectEvent }) {
         {loadStatus === "ready" && events.length === 0 && (
           <div style={styles.stateBox}>
             <div style={styles.stateIcon}>✡</div>
-            <div style={styles.stateTitle}>No events yet</div>
+            <div style={styles.stateTitle}>Welcome to SimchaKit</div>
             <div style={styles.stateDesc}>
-              Click <strong>＋ New Event</strong> above to create your first event.
+              You're one step away from having everything in one place. Click <strong>+ New Event</strong> above to get started.
             </div>
           </div>
         )}

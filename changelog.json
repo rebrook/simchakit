@@ -1,9 +1,18 @@
 {
-  "current": "V3.9.20",
+  "current": "V3.9.21",
   "whatsNew": [
-    "The default access code reminder on the Create New Event form is now displayed as a prominent callout so new users do not miss it."
+    "Paywall now shows what you get before asking you to pay. Empty event picker now welcomes new users with warmer copy."
   ],
   "changelog": [
+    {
+      "version": "V3.9.21",
+      "date": "2026-05-14",
+      "summary": "PaywallGate value bullets and EventPicker empty state warmup",
+      "changes": [
+        "PaywallGate.jsx: three value bullet points added before pricing card",
+        "EventPicker.jsx: empty state updated from No events yet to Welcome to SimchaKit with warmer guiding copy"
+      ]
+    },
     {
       "version": "V3.9.20",
       "date": "2026-05-14",
