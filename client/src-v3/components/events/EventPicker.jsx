@@ -223,8 +223,9 @@ export function EventPicker({ session, onSelectEvent }) {
 
   // ── Free coupon granted — reload events and show create form ─────────────
   function handleFreeEventGranted() {
-    setShowCreateForm(false);
-    loadEvents();
+    setTotalPurchaseCount(prev => prev + 1); // optimistic — canCreate becomes true immediately
+    loadEvents(); // sync from DB in background
+    // showCreateForm stays true — PaywallGate replaced by CreateEventForm immediately
   }
 
   // ── Paywall check ─────────────────────────────────────────────────────────

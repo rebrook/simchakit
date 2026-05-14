@@ -1,9 +1,17 @@
 {
-  "current": "V3.9.23",
+  "current": "V3.9.24",
   "whatsNew": [
-    "Paywall gate now correctly requires payment for every event including the first. Purchase slots persist through event deletion."
+    "After redeeming a coupon code, the Create New Event form now opens automatically without requiring a second click."
   ],
   "changelog": [
+    {
+      "version": "V3.9.24",
+      "date": "2026-05-14",
+      "summary": "EventPicker \u2014 fix CreateEventForm not opening after free coupon redemption",
+      "changes": [
+        "EventPicker.jsx: handleFreeEventGranted now uses optimistic totalPurchaseCount increment so CreateEventForm opens immediately after coupon redemption without requiring a second click"
+      ]
+    },
     {
       "version": "V3.9.23",
       "date": "2026-05-14",
