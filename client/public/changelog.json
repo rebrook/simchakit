@@ -1,9 +1,17 @@
 {
-  "current": "V3.9.19",
+  "current": "V3.9.20",
   "whatsNew": [
-    "Setup checklist state now persists correctly when navigating between events. The restore button appears reliably after dismissing the checklist."
+    "The default access code reminder on the Create New Event form is now displayed as a prominent callout so new users do not miss it."
   ],
   "changelog": [
+    {
+      "version": "V3.9.20",
+      "date": "2026-05-14",
+      "summary": "CreateEventForm \u2014 admin access code callout improved",
+      "changes": [
+        "CreateEventForm.jsx (V3): admin password note rewritten as a visible gold callout box with clearer copy and security framing"
+      ]
+    },
     {
       "version": "V3.9.19",
       "date": "2026-05-14",
