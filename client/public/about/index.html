@@ -657,6 +657,62 @@
       margin-bottom: 16px;
     }
 
+    /* Problem */
+    .problem {
+      background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-light) 100%);
+      color: white;
+    }
+
+    .problem-inner {
+      max-width: 740px;
+      margin: 0 auto;
+      text-align: center;
+    }
+
+    .problem-inner h2 {
+      color: white;
+      margin-bottom: 24px;
+    }
+
+    .problem-inner p {
+      font-size: 1.1rem;
+      opacity: 0.9;
+      line-height: 1.7;
+      margin: 0 auto 20px;
+      max-width: 100%;
+    }
+
+    .problem-cta {
+      font-size: 1.3rem !important;
+      font-weight: 700;
+      color: var(--color-accent-light) !important;
+      opacity: 1 !important;
+      margin-top: 12px !important;
+    }
+
+    /* Founder */
+    .founder {
+      background: var(--color-bg-alt);
+    }
+
+    .founder-inner {
+      max-width: 740px;
+      margin: 0 auto;
+    }
+
+    .founder-content h2 {
+      color: var(--color-primary);
+      margin-bottom: 20px;
+    }
+
+    .founder-content p {
+      color: var(--color-text-muted);
+      font-size: 1rem;
+      line-height: 1.7;
+      margin: 0 auto 16px;
+      max-width: 100%;
+    }
+
     /* FAQ */
     .faq {
       background: var(--color-bg-alt);
@@ -959,6 +1015,18 @@
     </div>
   </section>
 
+  <!-- The Problem -->
+  <section class="problem" id="problem">
+    <div class="container">
+      <div class="problem-inner">
+        <h2>Sound familiar?</h2>
+        <p>You're planning one of the most meaningful events of your family's life. And somehow you're managing it across three spreadsheets, a stack of sticky notes, a group text that won't stop, and a folder full of vendor emails you can't find when you need them.</p>
+        <p>You're tracking who got an invitation and who still hasn't RSVPed. You're trying to build a seating chart that keeps the right people together and the wrong people apart. You're chasing down sweatshirt sizes and kippah counts. You're juggling deposits, contracts, and payment deadlines across a dozen vendors.</p>
+        <p class="problem-cta">There's a better way.</p>
+      </div>
+    </div>
+  </section>
+
   <!-- Features -->
   <section class="features" id="features">
     <div class="container">
@@ -1163,6 +1231,20 @@
         <div class="faq-item">
           <h3>Is my data secure?</h3>
           <p>Yes. SimchaKit is built on Supabase, which uses industry-standard encryption and security practices. Your guest list, vendor contacts, and event details are stored securely and never shared with third parties.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Founder -->
+  <section class="founder" id="founder">
+    <div class="container">
+      <div class="founder-inner">
+        <div class="founder-content">
+          <h2>About the Developer</h2>
+          <p>SimchaKit was built by Ryan Brook of Brook Creative LLC. While planning his own family's bat mitzvah, Ryan found himself managing guests, vendors, budgets, and seating charts across six spreadsheets, a dedicated email folder, and too many sticky notes. He built SimchaKit to replace the chaos with one organized system, and kept building because every Jewish family planning a simcha potentially faces the same problem.</p>
+          <p>SimchaKit is actively used to plan a real bat mitzvah. Every feature exists because it was needed.</p>
+          <p>Questions or feedback? Reach out at <a href="mailto:hello@simcha-kit.com" style="color: var(--color-accent-light);">hello@simcha-kit.com</a>.</p>
         </div>
       </div>
     </div>

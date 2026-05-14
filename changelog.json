@@ -1,9 +1,18 @@
 {
-  "current": "V3.9.16",
+  "current": "V3.9.17",
   "whatsNew": [
-    "About page FAQ updated with clearer shared access framing and new questions covering data export and guest list import."
+    "About page now includes a founder story and an emotional problem statement to help visitors connect with the product."
   ],
   "changelog": [
+    {
+      "version": "V3.9.17",
+      "date": "2026-05-14",
+      "summary": "About page \u2014 Problem section and Founder section added",
+      "changes": [
+        "about/index.html: Problem section added before Features \u2014 emotional hook highlighting pain points SimchaKit solves",
+        "about/index.html: Founder section added before Contact \u2014 humanizes the product with the origin story"
+      ]
+    },
     {
       "version": "V3.9.16",
       "date": "2026-05-14",
