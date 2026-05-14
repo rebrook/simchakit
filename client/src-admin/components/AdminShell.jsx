@@ -3,7 +3,7 @@
 // Sidebar nav + page routing for the admin dashboard.
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { useState }          from "react";
+import { useState, useEffect }   from "react";
 import { supabase }          from "@/lib/supabase.js";
 import { DashboardPage }     from "@/components/pages/DashboardPage.jsx";
 import { UsersPage }         from "@/components/pages/UsersPage.jsx";
@@ -20,10 +20,91 @@ const NAV = [
 ];
 
 export function AdminShell({ session }) {
-  const [page, setPage] = useState("dashboard");
+  const [page,      setPage]      = useState("dashboard");
+  const [isMobile,  setIsMobile]  = useState(() => window.innerWidth < 768);
+  const [menuOpen,  setMenuOpen]  = useState(false);
 
-  // Pass the session token to all pages for admin-query API calls
+  useEffect(() => {
+    const onResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
+
   const token = session?.access_token;
+
+  const handleNav = (id) => {
+    setPage(id);
+    setMenuOpen(false);
+  };
+
+  const currentLabel = NAV.find(n => n.id === page)?.label ?? "Dashboard";
+
+  if (isMobile) {
+    return (
+      <div style={{ minHeight: "100vh", background: "#f8f9fa", fontFamily: "system-ui, -apple-system, sans-serif" }}>
+
+        {/* ── Mobile top bar ── */}
+        <div style={{ position: "sticky", top: 0, zIndex: 100, background: "#111", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 16px", height: 52 }}>
+          <div>
+            <span style={{ fontSize: 16, fontWeight: 700, color: "white" }}>SimchaKit</span>
+            <span style={{ fontSize: 11, color: "#888", marginLeft: 8, textTransform: "uppercase", letterSpacing: "0.08em" }}>Admin</span>
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <span style={{ fontSize: 13, color: "#aaa" }}>{currentLabel}</span>
+            <button
+              onClick={() => setMenuOpen(o => !o)}
+              style={{ background: "none", border: "none", color: "white", fontSize: 22, cursor: "pointer", padding: "4px 6px", lineHeight: 1 }}
+            >
+              {menuOpen ? "✕" : "☰"}
+            </button>
+          </div>
+        </div>
+
+        {/* ── Mobile dropdown menu ── */}
+        {menuOpen && (
+          <div style={{ position: "fixed", top: 52, left: 0, right: 0, zIndex: 99, background: "#111", borderBottom: "1px solid rgba(255,255,255,0.1)", padding: "8px" }}>
+            {NAV.map(item => (
+              <button
+                key={item.id}
+                style={{
+                  display: "flex", alignItems: "center", gap: 12,
+                  width: "100%", padding: "12px 16px", border: "none",
+                  background: page === item.id ? "rgba(255,255,255,0.1)" : "none",
+                  color: page === item.id ? "white" : "#aaa",
+                  fontSize: 15, fontWeight: 500, cursor: "pointer",
+                  borderRadius: 8, textAlign: "left",
+                }}
+                onClick={() => handleNav(item.id)}
+              >
+                <span style={{ fontSize: 18, width: 24, textAlign: "center" }}>{item.icon}</span>
+                {item.label}
+              </button>
+            ))}
+            <div style={{ borderTop: "1px solid rgba(255,255,255,0.08)", margin: "8px 0", padding: "12px 16px 4px" }}>
+              <div style={{ fontSize: 12, color: "#666", marginBottom: 10, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{session.user.email}</div>
+              <button
+                style={{ background: "none", border: "1px solid rgba(255,255,255,0.15)", color: "#888", fontSize: 13, padding: "7px 14px", borderRadius: 6, cursor: "pointer", width: "100%" }}
+                onClick={() => supabase.auth.signOut()}
+              >
+                Sign out
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* ── Mobile main content ── */}
+        <main style={{ padding: "20px 16px" }}>
+          {page === "dashboard" && <DashboardPage token={token} />}
+          {page === "users"     && <UsersPage     token={token} />}
+          {page === "events"    && <EventsPage    token={token} />}
+          {page === "purchases" && <PurchasesPage token={token} />}
+          {page === "coupons"   && <CouponsPage   token={token} />}
+        </main>
+
+        <style>{`@keyframes spin { to { transform: rotate(360deg); } } * { box-sizing: border-box; } body { margin: 0; }`}</style>
+      </div>
+    );
+  }
 
   return (
     <div style={styles.shell}>
