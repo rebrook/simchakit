@@ -58,14 +58,14 @@ function formatDate(d) {
 
 // ─────────────────────────────────────────────────────────────────────────────
 export function EventPicker({ session, onSelectEvent }) {
-  const [events,         setEvents]         = useState([]);
-  const [loadStatus,     setLoadStatus]     = useState("loading"); // loading | ready | error
-  const [loadError,      setLoadError]      = useState("");
-  const [showCreateForm, setShowCreateForm] = useState(false);
-  const [deleteTarget,   setDeleteTarget]   = useState(null);  // { event, anchorRect }
-  const [eventCount,     setEventCount]     = useState(0);     // for paywall gate
-  const [pendingPurchaseId, setPendingPurchaseId] = useState(null); // set after Stripe return
-  const [unusedPurchaseCount, setUnusedPurchaseCount] = useState(0); // completed purchases with no event_id
+  const [events,            setEvents]            = useState([]);
+  const [loadStatus,        setLoadStatus]        = useState("loading"); // loading | ready | error
+  const [loadError,         setLoadError]         = useState("");
+  const [showCreateForm,    setShowCreateForm]    = useState(false);
+  const [deleteTarget,      setDeleteTarget]      = useState(null);
+  const [eventCount,        setEventCount]        = useState(0);
+  const [pendingPurchaseId, setPendingPurchaseId] = useState(null);
+  const [totalPurchaseCount, setTotalPurchaseCount] = useState(0); // all completed purchases including archived events
 
   const userId = session.user.id;
 
@@ -143,8 +143,7 @@ export function EventPicker({ session, onSelectEvent }) {
         .from("purchases")
         .select("id")
         .eq("owner_id", userId)
-        .eq("status", "completed")
-        .is("event_id", null),
+        .eq("status", "completed"),
     ]);
 
     if (eventsResult.error) {
@@ -160,8 +159,8 @@ export function EventPicker({ session, onSelectEvent }) {
     });
 
     setEvents(sorted);
-    setEventCount(sorted.filter(e => !e.archived).length);
-    setUnusedPurchaseCount((purchasesResult.data || []).length);
+    setEventCount(sorted.length); // count ALL events including archived — archived does not free up a purchase slot
+    setTotalPurchaseCount((purchasesResult.data || []).length);
     setLoadStatus("ready");
   }, [userId]);
 
@@ -184,12 +183,12 @@ export function EventPicker({ session, onSelectEvent }) {
     setEvents(prev => [...prev, newEvent]);
     setEventCount(prev => prev + 1);
 
-    // If this event was created after a Stripe payment, stamp the purchase row
-    // Use pendingPurchaseId if set (just returned from Stripe), otherwise
-    // query for the most recent unused completed purchase
+    // Stamp the purchase row with event_id for audit/traceability
+    // Use pendingPurchaseId if set (just returned from Stripe),
+    // otherwise find the most recent completed purchase not yet linked to an event
     async function stampPurchase() {
       let purchaseId = pendingPurchaseId;
-      if (!purchaseId && hasUnusedPurchase) {
+      if (!purchaseId) {
         const { data } = await supabase
           .from("purchases")
           .select("id")
@@ -207,7 +206,6 @@ export function EventPicker({ session, onSelectEvent }) {
           .update({ event_id: newEvent.id, updated_at: new Date().toISOString() })
           .eq("id", purchaseId);
         setPendingPurchaseId(null);
-        setUnusedPurchaseCount(prev => Math.max(0, prev - 1));
       }
     }
     stampPurchase();
@@ -230,12 +228,10 @@ export function EventPicker({ session, onSelectEvent }) {
   }
 
   // ── Paywall check ─────────────────────────────────────────────────────────
-  // User needs to pay if they have at least one active event AND no unused
-  // completed purchases (purchases where payment was made but event not yet created)
-  const hasUsedFreeEvent = eventCount >= 1;
-  const hasUnusedPurchase = unusedPurchaseCount > 0;
-  // After a Stripe payment return, pendingPurchaseId is set — always show CreateEventForm
-  const paymentCleared = !!pendingPurchaseId || hasUnusedPurchase;
+  // canCreate is true when the user has more completed purchases than existing events
+  // (including archived events — archiving does not free up a purchase slot).
+  // pendingPurchaseId is set immediately after Stripe return before webhook processes.
+  const canCreate = totalPurchaseCount > eventCount || !!pendingPurchaseId;
 
   // ── Render ─────────────────────────────────────────────────────────────────
   return (
@@ -355,7 +351,7 @@ export function EventPicker({ session, onSelectEvent }) {
 
         {/* ── Create event form / paywall ── */}
         {showCreateForm && (
-          hasUsedFreeEvent && !paymentCleared ? (
+          !canCreate ? (
             <PaywallGate
               session={session}
               onFreeEventGranted={handleFreeEventGranted}

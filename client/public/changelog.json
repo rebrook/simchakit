@@ -1,9 +1,22 @@
 {
-  "current": "V3.9.22",
+  "current": "V3.9.23",
   "whatsNew": [
-    "After paying, SimchaKit now automatically opens the Create New Event form once your payment is confirmed. No second click required."
+    "Paywall gate now correctly requires payment for every event including the first. Purchase slots persist through event deletion."
   ],
   "changelog": [
+    {
+      "version": "V3.9.23",
+      "date": "2026-05-14",
+      "summary": "EventPicker \u2014 paywall gate logic rewritten to correctly require payment for every event",
+      "changes": [
+        "EventPicker.jsx: paywall now correctly triggers for all users including first-time users with zero events",
+        "EventPicker.jsx: paywall logic changed from event-count-based to purchase-vs-event comparison (totalPurchaseCount > eventCount)",
+        "EventPicker.jsx: archived events now count against purchase total \u2014 archiving does not free up a purchase slot",
+        "EventPicker.jsx: deleted events correctly free up a purchase slot since they are removed from the database",
+        "EventPicker.jsx: stampPurchase kept for audit/traceability but removed from paywall logic entirely",
+        "EventPicker.jsx: stale hasUsedFreeEvent, hasUnusedPurchase, paymentCleared variables removed and replaced with single canCreate variable"
+      ]
+    },
     {
       "version": "V3.9.22",
       "date": "2026-05-14",
