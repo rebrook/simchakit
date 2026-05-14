@@ -110,7 +110,10 @@ export function OverviewTab({ eventId, event, adminConfig, showToast, setActiveT
   const outOfTownCount = households.filter(h => h.outOfTown).length;
 
   // seatingRows used inline in seating gap warning below
-  const [showChecklist, setShowChecklist] = useState(true);
+  const STORAGE_KEY = `simchakit-getstarted-dismissed-${eventId || "default"}`;
+  const [showChecklist, setShowChecklist] = useState(() => {
+    try { return localStorage.getItem(STORAGE_KEY) !== "1"; } catch { return true; }
+  });
 
   return (
     <div>
@@ -146,7 +149,7 @@ export function OverviewTab({ eventId, event, adminConfig, showToast, setActiveT
           onOpenAdmin={onOpenAdmin}
           onOpenGuide={onOpenGuide}
           eventId={eventId}
-          onRestore={(visible) => setShowChecklist(visible)}
+          onDismissedChange={(isDismissed) => setShowChecklist(!isDismissed)}
         />
       )}
 

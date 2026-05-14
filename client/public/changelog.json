@@ -1,9 +1,20 @@
 {
-  "current": "V3.9.18",
+  "current": "V3.9.19",
   "whatsNew": [
-    "Setup checklist can now be restored after dismissing it. Checklist state is tracked per event. PaywallGate updated with clearer title and correct support email."
+    "Setup checklist state now persists correctly when navigating between events. The restore button appears reliably after dismissing the checklist."
   ],
   "changelog": [
+    {
+      "version": "V3.9.19",
+      "date": "2026-05-14",
+      "summary": "GetStartedCard \u2014 fix dismissed state persistence across navigation",
+      "changes": [
+        "GetStartedCard.jsx (V2 + V3): useEffect reports dismissed state to parent on mount so OverviewTab initializes correctly on every navigation",
+        "GetStartedCard.jsx (V2 + V3): onRestore prop renamed to onDismissedChange for clarity",
+        "OverviewTab.jsx (V2 + V3): showChecklist now initializes from localStorage directly so state is correct on mount without waiting for useEffect",
+        "OverviewTab.jsx (V2 + V3): Setup checklist button correctly appears on re-entry when card was previously dismissed"
+      ]
+    },
     {
       "version": "V3.9.18",
       "date": "2026-05-14",
