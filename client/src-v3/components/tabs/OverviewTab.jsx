@@ -110,6 +110,7 @@ export function OverviewTab({ eventId, event, adminConfig, showToast, setActiveT
   const outOfTownCount = households.filter(h => h.outOfTown).length;
 
   // seatingRows used inline in seating gap warning below
+  const [showChecklist, setShowChecklist] = useState(true);
 
   return (
     <div>
@@ -119,20 +120,32 @@ export function OverviewTab({ eventId, event, adminConfig, showToast, setActiveT
           <div className="section-title">Overview</div>
           <div className="section-subtitle">Event summary and countdown</div>
         </div>
-        <button className="btn btn-secondary btn-sm" onClick={handlePrintBrief}
-          style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0 }}>
-          🖨 Print Brief
-        </button>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          {!showChecklist && (
+            <button className="btn btn-ghost btn-sm" onClick={() => setShowChecklist(true)}
+              style={{ fontSize: 12 }}>
+              👋 Setup checklist
+            </button>
+          )}
+          <button className="btn btn-secondary btn-sm" onClick={handlePrintBrief}
+            style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0 }}>
+            🖨 Print Brief
+          </button>
+        </div>
       </div>
 
       {/* Get Started card */}
-      <GetStartedCard
-        state={{ households, people }}
-        adminConfig={config}
-        setActiveTab={setActiveTab}
-        onOpenAdmin={onOpenAdmin}
-        onOpenGuide={onOpenGuide}
-      />
+      {showChecklist && (
+        <GetStartedCard
+          state={{ households, people }}
+          adminConfig={config}
+          setActiveTab={setActiveTab}
+          onOpenAdmin={onOpenAdmin}
+          onOpenGuide={onOpenGuide}
+          eventId={eventId}
+          onRestore={(visible) => setShowChecklist(visible)}
+        />
+      )}
 
       {/* Countdown */}
       {eventDate && countdown ? (

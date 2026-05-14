@@ -112,7 +112,7 @@ export function PaywallGate({ session, onFreeEventGranted, onCancel }) {
     <div style={styles.wrap}>
 
       {/* Header */}
-      <div style={styles.title}>Create Additional Event</div>
+      <div style={styles.title}>Create Your Event</div>
       <div style={styles.subtitle}>
         Each event requires a one-time purchase. Your planning data is stored securely and never expires.
       </div>
@@ -233,7 +233,7 @@ export function PaywallGate({ session, onFreeEventGranted, onCancel }) {
 
       {/* Support contact */}
       <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 8, lineHeight: 1.5 }}>
-        Having trouble? Email <a href="mailto:support@brook-creative.com" style={{ color: "var(--text-muted)" }}>support@brook-creative.com</a> and we'll sort it out.
+        Having trouble? Email <a href="mailto:hello@simcha-kit.com" style={{ color: "var(--text-muted)" }}>hello@simcha-kit.com</a> and we'll sort it out.
       </div>
     </div>
   );

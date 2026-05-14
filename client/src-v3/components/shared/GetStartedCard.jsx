@@ -2,8 +2,8 @@ import { useState } from "react";
 import { EVENT_TYPE_LABELS_MAP, EVENT_TYPE_ICONS } from "@/constants/events.js";
 import { formatDate } from "@/utils/dates.js";
 
-export function GetStartedCard({ state, adminConfig, setActiveTab, onOpenAdmin, onOpenGuide }) {
-  const STORAGE_KEY = "simchakit-getstarted-dismissed";
+export function GetStartedCard({ state, adminConfig, setActiveTab, onOpenAdmin, onOpenGuide, eventId, onRestore }) {
+  const STORAGE_KEY = `simchakit-getstarted-dismissed-${eventId || "default"}`;
   const [dismissed, setDismissed] = useState(() => {
     try { return localStorage.getItem(STORAGE_KEY) === "1"; } catch { return false; }
   });
@@ -11,6 +11,13 @@ export function GetStartedCard({ state, adminConfig, setActiveTab, onOpenAdmin, 
   const dismiss = () => {
     try { localStorage.setItem(STORAGE_KEY, "1"); } catch {}
     setDismissed(true);
+    if (onRestore) onRestore(false);
+  };
+
+  const restore = () => {
+    try { localStorage.removeItem(STORAGE_KEY); } catch {}
+    setDismissed(false);
+    if (onRestore) onRestore(true);
   };
 
   // Step completion conditions
@@ -21,7 +28,7 @@ export function GetStartedCard({ state, adminConfig, setActiveTab, onOpenAdmin, 
   const allDone   = step1Done && step2Done && step3Done && step4Done;
 
   // Only show if not dismissed and at least one step is incomplete
-  if (dismissed || allDone && dismissed) return null;
+  if (dismissed || (allDone && dismissed)) return null;
 
   const steps = [
     {

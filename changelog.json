@@ -1,9 +1,22 @@
 {
-  "current": "V3.9.17",
+  "current": "V3.9.18",
   "whatsNew": [
-    "About page now includes a founder story and an emotional problem statement to help visitors connect with the product."
+    "Setup checklist can now be restored after dismissing it. Checklist state is tracked per event. PaywallGate updated with clearer title and correct support email."
   ],
   "changelog": [
+    {
+      "version": "V3.9.18",
+      "date": "2026-05-14",
+      "summary": "PaywallGate copy fixes, GetStartedCard per-event localStorage, and setup checklist restore button",
+      "changes": [
+        "PaywallGate.jsx: title changed from Create Additional Event to Create Your Event",
+        "PaywallGate.jsx: support email updated to hello@simcha-kit.com",
+        "GetStartedCard.jsx (V2 + V3): localStorage key now scoped per event ID to prevent cross-event dismissal bleed",
+        "GetStartedCard.jsx (V2 + V3): onRestore callback added to notify parent when card is dismissed or restored",
+        "OverviewTab.jsx (V2 + V3): Setup checklist restore button added to section header \u2014 appears when card is dismissed and setup is incomplete",
+        "ui.js: Setup checklist guide entry added"
+      ]
+    },
     {
       "version": "V3.9.17",
       "date": "2026-05-14",
