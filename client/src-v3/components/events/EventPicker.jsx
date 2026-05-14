@@ -78,6 +78,8 @@ export function EventPicker({ session, onSelectEvent }) {
     return null;
   });
 
+  const [paymentPolling, setPaymentPolling] = useState(false);
+
   // Clean ?payment= param from URL without triggering a reload
   useEffect(() => {
     if (paymentNotice) {
@@ -88,11 +90,16 @@ export function EventPicker({ session, onSelectEvent }) {
     }
   }, [paymentNotice]);
 
-  // On successful payment return, find the completed purchase with no event_id
-  // and open CreateEventForm directly — user has already paid
+  // On successful payment return, poll for completed purchase then open CreateEventForm
   useEffect(() => {
     if (paymentNotice !== "success") return;
-    async function checkPendingPurchase() {
+    let attempts = 0;
+    const MAX_ATTEMPTS = 10;
+    const INTERVAL_MS  = 1500;
+
+    setPaymentPolling(true);
+
+    async function poll() {
       const { data } = await supabase
         .from("purchases")
         .select("id")
@@ -102,12 +109,24 @@ export function EventPicker({ session, onSelectEvent }) {
         .order("created_at", { ascending: false })
         .limit(1)
         .single();
+
       if (data?.id) {
         setPendingPurchaseId(data.id);
         setShowCreateForm(true);
+        setPaymentPolling(false);
+        return;
+      }
+
+      attempts++;
+      if (attempts < MAX_ATTEMPTS) {
+        setTimeout(poll, INTERVAL_MS);
+      } else {
+        // Give up polling — user can manually click New Event
+        setPaymentPolling(false);
       }
     }
-    checkPendingPurchase();
+
+    poll();
   }, [paymentNotice, userId]);
 
   // ── Load events ────────────────────────────────────────────────────────────
@@ -321,7 +340,13 @@ export function EventPicker({ session, onSelectEvent }) {
             <button style={styles.noticeDismiss} onClick={() => setPaymentNotice(null)}>✕</button>
           </div>
         )}
-        {paymentNotice === "success" && (
+        {paymentNotice === "success" && paymentPolling && (
+          <div style={styles.noticeSuccess}>
+            <div style={{ width: 14, height: 14, border: "2px solid rgba(255,255,255,0.4)", borderTopColor: "white", borderRadius: "50%", animation: "spin 0.8s linear infinite", flexShrink: 0 }} />
+            Processing your payment — setting up your event...
+          </div>
+        )}
+        {paymentNotice === "success" && !paymentPolling && (
           <div style={styles.noticeSuccess}>
             ✓ Payment confirmed — you can now create your event below.
             <button style={styles.noticeDismiss} onClick={() => setPaymentNotice(null)}>✕</button>

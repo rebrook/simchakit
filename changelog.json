@@ -1,9 +1,19 @@
 {
-  "current": "V3.9.21",
+  "current": "V3.9.22",
   "whatsNew": [
-    "Paywall now shows what you get before asking you to pay. Empty event picker now welcomes new users with warmer copy."
+    "After paying, SimchaKit now automatically opens the Create New Event form once your payment is confirmed. No second click required."
   ],
   "changelog": [
+    {
+      "version": "V3.9.22",
+      "date": "2026-05-14",
+      "summary": "EventPicker \u2014 post-payment polling to auto-open Create Event form",
+      "changes": [
+        "EventPicker.jsx: replaced one-shot purchase check with polling (10 attempts, 1.5s interval) after Stripe payment return",
+        "EventPicker.jsx: processing spinner shown while polling for webhook confirmation",
+        "EventPicker.jsx: Create New Event form opens automatically once payment is confirmed without requiring a second click"
+      ]
+    },
     {
       "version": "V3.9.21",
       "date": "2026-05-14",
