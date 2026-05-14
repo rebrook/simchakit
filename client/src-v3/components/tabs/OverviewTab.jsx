@@ -122,7 +122,10 @@ export function OverviewTab({ eventId, event, adminConfig, showToast, setActiveT
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           {!showChecklist && (
-            <button className="btn btn-ghost btn-sm" onClick={() => setShowChecklist(true)}
+            <button className="btn btn-ghost btn-sm" onClick={() => {
+              try { localStorage.removeItem(`simchakit-getstarted-dismissed-${eventId || "default"}`); } catch {}
+              setShowChecklist(true);
+            }}
               style={{ fontSize: 12 }}>
               👋 Setup checklist
             </button>
