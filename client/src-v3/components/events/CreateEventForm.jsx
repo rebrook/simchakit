@@ -164,7 +164,7 @@ export function CreateEventForm({ userId, onCreated, onCancel }) {
         marginTop:    12,
         lineHeight:   1.6,
       }}>
-        🔒 Your default access code is <strong>admin</strong>. Change it in Admin Mode once you're in your dashboard to keep your event secure.
+        🔒 Once inside your dashboard, use the ⚙ gear icon to configure your event. Your default access code is <strong>admin</strong> and you can change it anytime.
       </div>
     </div>
   );
