@@ -1,9 +1,22 @@
 {
-  "current": "V3.10.0",
+  "current": "V3.10.1",
   "whatsNew": [
-    "Email notifications are now sent when a new user signs up or creates an event."
+    "About page is now fully optimized for search engines and AI crawlers with structured data, canonical URL, Twitter cards, and corrected Open Graph image."
   ],
   "changelog": [
+    {
+      "version": "V3.10.1",
+      "date": "2026-05-15",
+      "summary": "About page SEO and AI crawler optimization",
+      "changes": [
+        "about/index.html: og:image URL fixed to correct path",
+        "about/index.html: canonical URL tag added",
+        "about/index.html: Twitter card meta tags added",
+        "about/index.html: keywords meta tag added with target search phrases",
+        "about/index.html: SoftwareApplication JSON-LD structured data added",
+        "about/index.html: FAQPage JSON-LD structured data added for all 8 FAQ items"
+      ]
+    },
     {
       "version": "V3.10.0",
       "date": "2026-05-14",
