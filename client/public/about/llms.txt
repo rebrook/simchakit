@@ -1,0 +1,37 @@
+# SimchaKit
+
+> SimchaKit is the all-in-one planning hub for B'nei Mitzvot, weddings, and every Jewish lifecycle celebration. Built by Brook Creative LLC.
+
+SimchaKit is a paid SaaS web application for Jewish lifecycle event planning. It is used exclusively by the event organizer — guests never interact with the app. It helps families plan bar and bat mitzvahs, weddings, baby namings, and other simchas by organizing guests, budgets, vendors, seating charts, tasks, gifts, ceremony roles, and day-of logistics in one place.
+
+## Key pages
+
+- [About SimchaKit](https://about.simcha-kit.com): Marketing site with full feature descriptions, pricing, FAQ, and founder story
+- [Live Demo](https://demo.simcha-kit.com): Fully populated interactive demo using fictional data, resets nightly, no account required
+- [Sign up / Sign in](https://app.simcha-kit.com): The live application
+
+## Features
+
+- Guest management: households, individuals, RSVPs, dietary needs, formal names for invitations, CSV import and export
+- Budget tracking: expenses by vendor and category, deposits, balances, payment schedules, gratuity calculator
+- Vendor management: contacts, contracts, payment deadlines, interaction log
+- Seating charts: table management, guest assignment, Auto-Seat feature, ceremony roles
+- Task management: to-do list with due dates, categories, and completion tracking
+- Gift tracking: log gifts as they arrive, track thank-you note status
+- Day-of Mode: mobile-optimized view with vendor contacts and hot sheet
+- Calendar sync: webcal subscription and .ics download
+- CSV import: compatible with Evite, Google Contacts, and most RSVP platforms
+
+## Pricing
+
+One-time fee of $29 per event (introductory pricing through August 31, 2026, then $49). No subscription, no recurring charges. Every feature included from day one.
+
+## Technical
+
+- Auth: magic link (passwordless email, no password required)
+- Platform: web application, works on desktop, tablet, and phone
+- Built on: Vercel, Supabase, React
+
+## Contact
+
+hello@simcha-kit.com

@@ -26,6 +26,11 @@
       "destination": "/about/robots.txt"
     },
     {
+      "source": "/llms.txt",
+      "has": [{ "type": "host", "value": "about.simcha-kit.com" }],
+      "destination": "/about/llms.txt"
+    },
+    {
       "source": "/api/:path*",
       "destination": "/api/:path*"
     },

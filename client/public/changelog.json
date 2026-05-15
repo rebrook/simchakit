@@ -1,9 +1,19 @@
 {
-  "current": "V3.10.1",
+  "current": "V3.10.2",
   "whatsNew": [
-    "About page is now fully optimized for search engines and AI crawlers with structured data, canonical URL, Twitter cards, and corrected Open Graph image."
+    "llms.txt added to help AI assistants understand and accurately describe SimchaKit."
   ],
   "changelog": [
+    {
+      "version": "V3.10.2",
+      "date": "2026-05-15",
+      "summary": "About page llms.txt added for AI crawler optimization",
+      "changes": [
+        "client/public/about/llms.txt: added for AI language model crawlers",
+        "client/vercel.json: routing rule added for llms.txt",
+        "client/public/about/robots.txt: llms.txt reference added"
+      ]
+    },
     {
       "version": "V3.10.1",
       "date": "2026-05-15",
