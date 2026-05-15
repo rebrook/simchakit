@@ -59,8 +59,25 @@ export default function AppV3() {
               { id, email, updated_at: new Date().toISOString() },
               { onConflict: "id", ignoreDuplicates: false }
             )
-            .then(({ error }) => {
+            .then(({ error, data }) => {
               if (error) console.warn("[SimchaKit] user_profiles upsert failed:", error.message);
+              // Notify on first sign-in (new user) — ignoreDuplicates: false means
+              // the upsert always runs, but we check if this is a brand new profile
+              // by querying event_count = 0 as a proxy for new user
+              supabase
+                .from("user_profiles")
+                .select("event_count")
+                .eq("id", id)
+                .single()
+                .then(({ data: profile }) => {
+                  if (profile?.event_count === 0) {
+                    fetch("/api/notify", {
+                      method:  "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body:    JSON.stringify({ type: "new_user", data: { email, userId: id } }),
+                    }).catch(() => {});
+                  }
+                });
             });
         }
       }

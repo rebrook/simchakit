@@ -69,6 +69,21 @@ export function CreateEventForm({ userId, onCreated, onCancel }) {
       return;
     }
 
+    // Send notification (best-effort, non-blocking)
+    fetch("/api/notify", {
+      method:  "POST",
+      headers: { "Content-Type": "application/json" },
+      body:    JSON.stringify({
+        type: "new_event",
+        data: {
+          eventName: name.trim(),
+          eventType: type,
+          eventId:   event.id,
+          userId,
+        },
+      }),
+    }).catch(() => {});
+
     // Increment event_count on user_profiles (best-effort, non-blocking)
     supabase.rpc("increment_event_count", { user_id: userId }).then(({ error }) => {
       if (error) console.warn("[SimchaKit] Could not increment event_count:", error.message);

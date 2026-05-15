@@ -1,9 +1,23 @@
 {
-  "current": "V3.9.24",
+  "current": "V3.10.0",
   "whatsNew": [
-    "After redeeming a coupon code, the Create New Event form now opens automatically without requiring a second click."
+    "Email notifications are now sent when a new user signs up or creates an event."
   ],
   "changelog": [
+    {
+      "version": "V3.10.0",
+      "date": "2026-05-14",
+      "summary": "Email notifications for new user signups and event creation",
+      "changes": [
+        "api/notify.js: new Vercel serverless function that sends email notifications for new user signups and new event creation",
+        "App.v3.jsx: calls /api/notify on first sign-in (new user)",
+        "CreateEventForm.jsx: calls /api/notify after successful event creation",
+        "client/package.json: nodemailer added to dependencies"
+      ],
+      "whatsNew": [
+        "Email notifications are now sent when a new user signs up or creates an event."
+      ]
+    },
     {
       "version": "V3.9.24",
       "date": "2026-05-14",
