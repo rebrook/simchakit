@@ -1,9 +1,19 @@
 {
-  "current": "V3.10.2",
+  "current": "V3.10.3",
   "whatsNew": [
-    "llms.txt added to help AI assistants understand and accurately describe SimchaKit."
+    "App page now has proper social sharing preview when shared on social media."
   ],
   "changelog": [
+    {
+      "version": "V3.10.3",
+      "date": "2026-05-15",
+      "summary": "index.v3.html \u2014 Open Graph and Twitter card meta tags added",
+      "changes": [
+        "index.v3.html: meta description added",
+        "index.v3.html: Open Graph tags added (title, description, url, image)",
+        "index.v3.html: Twitter card tags added"
+      ]
+    },
     {
       "version": "V3.10.2",
       "date": "2026-05-15",
