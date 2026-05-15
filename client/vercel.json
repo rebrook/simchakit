@@ -16,6 +16,16 @@
   ],
   "rewrites": [
     {
+      "source": "/sitemap.xml",
+      "has": [{ "type": "host", "value": "about.simcha-kit.com" }],
+      "destination": "/about/sitemap.xml"
+    },
+    {
+      "source": "/robots.txt",
+      "has": [{ "type": "host", "value": "about.simcha-kit.com" }],
+      "destination": "/about/robots.txt"
+    },
+    {
       "source": "/api/:path*",
       "destination": "/api/:path*"
     },
