@@ -1,9 +1,20 @@
 {
-  "current": "V3.10.3",
+  "current": "V3.10.4",
   "whatsNew": [
-    "App page now has proper social sharing preview when shared on social media."
+    "About page title and headings updated with broader keyword strategy covering all Jewish lifecycle celebrations, not just B'nei Mitzvot."
   ],
   "changelog": [
+    {
+      "version": "V3.10.4",
+      "date": "2026-05-15",
+      "summary": "About page SEO keyword strategy \u2014 title, H2, and image alt text",
+      "changes": [
+        "about/index.html: title tag updated to broader lifecycle-focused keyword strategy",
+        "about/index.html: og:title and twitter:title updated to match",
+        "about/index.html: keyword-rich H2 added below hero H1",
+        "about/index.html: gallery image alt text updated to feature-focused descriptions"
+      ]
+    },
     {
       "version": "V3.10.3",
       "date": "2026-05-15",
