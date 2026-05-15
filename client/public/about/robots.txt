@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://about.simcha-kit.com/sitemap.xml
