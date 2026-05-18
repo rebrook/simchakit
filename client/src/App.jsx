@@ -37,6 +37,11 @@ import { ThemeProvider } from "@/components/shared/ThemeProvider.jsx";
 import { PlaceholderTab } from "@/components/shared/PlaceholderTab.jsx";
 
 // ─────────────────────────────────────────────────────────────────────────────
+// ANALYTICS
+// ─────────────────────────────────────────────────────────────────────────────
+import { Analytics } from "@vercel/analytics/react";
+
+// ─────────────────────────────────────────────────────────────────────────────
 // TAB COMPONENTS
 // ─────────────────────────────────────────────────────────────────────────────
 import { SearchOverlay } from "@/components/tabs/SearchOverlay.jsx";
@@ -865,6 +870,7 @@ export default function App() {
       }}>
         ✓ {toastMsg}
       </div>
+      <Analytics />
     </div>
   );
 }
