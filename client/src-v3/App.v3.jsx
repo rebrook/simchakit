@@ -71,10 +71,38 @@ export default function AppV3() {
                 .single()
                 .then(({ data: profile }) => {
                   if (profile?.event_count === 0) {
+                    // Admin notification
                     fetch("/api/notify", {
                       method:  "POST",
                       headers: { "Content-Type": "application/json" },
                       body:    JSON.stringify({ type: "new_user", data: { email, userId: id } }),
+                    }).catch(() => {});
+
+                    // Brevo contact sync — new user (includes SIGNUP_DATE)
+                    fetch("/api/brevo-sync", {
+                      method:  "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body:    JSON.stringify({
+                        email,
+                        isNewUser: true,
+                        attributes: {
+                          SIGNUP_DATE: new Date().toISOString().slice(0, 10),
+                          LAST_LOGIN:  new Date().toISOString().slice(0, 10),
+                        },
+                      }),
+                    }).catch(() => {});
+                  } else {
+                    // Returning user — update LAST_LOGIN only
+                    fetch("/api/brevo-sync", {
+                      method:  "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body:    JSON.stringify({
+                        email,
+                        isNewUser: false,
+                        attributes: {
+                          LAST_LOGIN: new Date().toISOString().slice(0, 10),
+                        },
+                      }),
                     }).catch(() => {});
                   }
                 });

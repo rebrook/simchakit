@@ -1,9 +1,21 @@
 {
-  "current": "V3.10.4",
+  "current": "V3.11.0",
   "whatsNew": [
-    "About page title and headings updated with broader keyword strategy covering all Jewish lifecycle celebrations, not just B'nei Mitzvot."
+    "Brevo email marketing integration \u2014 user activity now syncs to Brevo to power lifecycle and re-engagement emails."
   ],
   "changelog": [
+    {
+      "version": "V3.11.0",
+      "date": "2026-05-18",
+      "changes": [
+        "Added Brevo contact sync (brevo-sync.js Vercel serverless function)",
+        "New users synced to Brevo on first sign-in with SIGNUP_DATE and LAST_LOGIN attributes",
+        "Returning users update LAST_LOGIN attribute on every sign-in",
+        "Event creation syncs EVENT_NAME, EVENT_TYPE, EVENT_DATE, and HAS_PURCHASED to Brevo",
+        "All Brevo sync calls are best-effort and non-blocking \u2014 failures do not affect app behavior",
+        "CreateEventForm accepts new optional userEmail prop for Brevo sync"
+      ]
+    },
     {
       "version": "V3.10.4",
       "date": "2026-05-15",

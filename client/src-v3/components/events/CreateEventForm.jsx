@@ -19,7 +19,7 @@ const EVENT_TYPES = [
   { value: "other",        label: "Other Celebration" },
 ];
 
-export function CreateEventForm({ userId, onCreated, onCancel }) {
+export function CreateEventForm({ userId, userEmail, onCreated, onCancel }) {
   const [name,    setName]    = useState("");
   const [type,    setType]    = useState("bat-mitzvah");
   const [date,    setDate]    = useState("");
@@ -69,7 +69,7 @@ export function CreateEventForm({ userId, onCreated, onCancel }) {
       return;
     }
 
-    // Send notification (best-effort, non-blocking)
+    // Send admin notification (best-effort, non-blocking)
     fetch("/api/notify", {
       method:  "POST",
       headers: { "Content-Type": "application/json" },
@@ -83,6 +83,25 @@ export function CreateEventForm({ userId, onCreated, onCancel }) {
         },
       }),
     }).catch(() => {});
+
+    // Brevo contact sync — update with event details and mark as purchaser (best-effort, non-blocking)
+    // userEmail prop required — if missing, skip sync gracefully
+    if (userEmail) {
+      fetch("/api/brevo-sync", {
+        method:  "POST",
+        headers: { "Content-Type": "application/json" },
+        body:    JSON.stringify({
+          email:     userEmail,
+          isNewUser: false,
+          attributes: {
+            EVENT_NAME:    name.trim(),
+            EVENT_TYPE:    type,
+            EVENT_DATE:    date || "",
+            HAS_PURCHASED: true,
+          },
+        }),
+      }).catch(() => {});
+    }
 
     // Increment event_count on user_profiles (best-effort, non-blocking)
     supabase.rpc("increment_event_count", { user_id: userId }).then(({ error }) => {

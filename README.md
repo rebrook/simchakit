@@ -2,7 +2,7 @@
 
 A real-time event planning web app for celebrations — B'nei Mitzvot, weddings, and other simchas.
 
-![Version](https://img.shields.io/badge/version-3.10.4-blue)
+![Version](https://img.shields.io/badge/version-3.11.0-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
 ## Screenshots
@@ -120,6 +120,8 @@ simchakit/
 │   ├── vite.config.js       # V2 build config (base: /simcha/, src/ alias)
 │   ├── vite.config.v3.js    # V3 build config (base: /, src-v3/ alias)
 │   ├── api/                 # Vercel serverless functions (V3 only)
+│   │   ├── notify.js
+│   │   ├── brevo-sync.js
 │   │   ├── validate-coupon.js
 │   │   ├── create-checkout-session.js
 │   │   └── stripe-webhook.js
