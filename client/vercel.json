@@ -10,11 +10,6 @@
   ],
   "rewrites": [
     {
-      "source": "/",
-      "has": [{ "type": "host", "value": "about.simcha-kit.com" }],
-      "destination": "/about/index.html"
-    },
-    {
       "source": "/sitemap.xml",
       "has": [{ "type": "host", "value": "about.simcha-kit.com" }],
       "destination": "/about/sitemap.xml"
@@ -30,9 +25,9 @@
       "destination": "/about/llms.txt"
     },
     {
-      "source": "/:path*",
+      "source": "/(.*)",
       "has": [{ "type": "host", "value": "about.simcha-kit.com" }],
-      "destination": "/about/:path*"
+      "destination": "/about/index.html"
     },
     {
       "source": "/api/:path*",
