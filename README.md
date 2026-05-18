@@ -5,6 +5,10 @@ A real-time event planning web app for celebrations — B'nei Mitzvot, weddings,
 ![Version](https://img.shields.io/badge/version-3.11.1-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
+## Hosted Version
+
+> **Looking for something more?** The hosted version of SimchaKit is always running the latest features and accessible from anywhere -- no server required. Visit [app.simcha-kit.com](https://app.simcha-kit.com) to learn more.
+
 ## Screenshots
 
 ### Overview Dashboard
