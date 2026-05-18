@@ -6,15 +6,14 @@
       "has": [{ "type": "host", "value": "demo.simcha-kit.com" }],
       "destination": "https://demo.simcha-kit.com/demo",
       "permanent": false
-    },
-    {
-      "source": "/",
-      "has": [{ "type": "host", "value": "about.simcha-kit.com" }],
-      "destination": "https://app.simcha-kit.com/about/",
-      "permanent": false
     }
   ],
   "rewrites": [
+    {
+      "source": "/",
+      "has": [{ "type": "host", "value": "about.simcha-kit.com" }],
+      "destination": "/about/index.html"
+    },
     {
       "source": "/sitemap.xml",
       "has": [{ "type": "host", "value": "about.simcha-kit.com" }],
@@ -29,6 +28,11 @@
       "source": "/llms.txt",
       "has": [{ "type": "host", "value": "about.simcha-kit.com" }],
       "destination": "/about/llms.txt"
+    },
+    {
+      "source": "/:path*",
+      "has": [{ "type": "host", "value": "about.simcha-kit.com" }],
+      "destination": "/about/:path*"
     },
     {
       "source": "/api/:path*",
