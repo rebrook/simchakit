@@ -361,6 +361,7 @@ export function EventPicker({ session, onSelectEvent }) {
           ) : (
             <CreateEventForm
               userId={userId}
+              userEmail={session.user.email}
               onCreated={handleCreated}
               onCancel={() => setShowCreateForm(false)}
             />

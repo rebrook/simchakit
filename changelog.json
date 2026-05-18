@@ -1,9 +1,16 @@
 {
-  "current": "V3.11.0",
+  "current": "V3.11.1",
   "whatsNew": [
-    "Brevo email marketing integration \u2014 user activity now syncs to Brevo to power lifecycle and re-engagement emails."
+    "Brevo email marketing integration is now fully wired -- contact sync fires on signup and event creation."
   ],
   "changelog": [
+    {
+      "version": "V3.11.1",
+      "date": "2026-05-18",
+      "changes": [
+        "EventPicker passes userEmail prop to CreateEventForm, completing Brevo contact sync on event creation"
+      ]
+    },
     {
       "version": "V3.11.0",
       "date": "2026-05-18",
