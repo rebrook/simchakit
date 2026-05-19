@@ -23,13 +23,13 @@ import { createClient } from "@supabase/supabase-js";
 const BREVO_TRANSACTIONAL_URL = "https://api.brevo.com/v3/smtp/email";
 
 const LIFECYCLE_TEMPLATES = [
-  { offsetDays: -90, templateId: 5,  label: "90-Day Checkpoint" },
-  { offsetDays: -60, templateId: 6,  label: "60-Day Checkpoint" },
-  { offsetDays: -30, templateId: 7,  label: "30-Day Countdown"  },
-  { offsetDays:  -7, templateId: 8,  label: "One Week Away"     },
-  { offsetDays:   1, templateId: 9,  label: "Mazel Tov"         },
-  { offsetDays:  14, templateId: 10, label: "Thank-You Nudge"   },
-  { offsetDays:  30, templateId: 11, label: "See You Next Simcha" },
+  { offsetDays:  90, templateId: 5,  label: "90-Day Checkpoint" },
+  { offsetDays:  60, templateId: 6,  label: "60-Day Checkpoint" },
+  { offsetDays:  30, templateId: 7,  label: "30-Day Countdown"  },
+  { offsetDays:   7, templateId: 8,  label: "One Week Away"     },
+  { offsetDays:  -1, templateId: 9,  label: "Mazel Tov"         },
+  { offsetDays: -14, templateId: 10, label: "Thank-You Nudge"   },
+  { offsetDays: -30, templateId: 11, label: "See You Next Simcha" },
 ];
 
 export default async function handler(req, res) {

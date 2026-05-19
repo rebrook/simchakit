@@ -1,9 +1,16 @@
 {
-  "current": "V3.12.0",
+  "current": "V3.12.1",
   "whatsNew": [
-    "Lifecycle email sequence is now live -- SimchaKit sends 7 date-aware planning emails keyed to each event date, from a 90-day checklist through a post-event follow-up."
+    "Lifecycle email timing corrected -- all seven emails now fire on the correct day relative to the event date."
   ],
   "changelog": [
+    {
+      "version": "V3.12.1",
+      "date": "2026-05-19",
+      "changes": [
+        "Fixed lifecycle email day offset signs: pre-event emails use positive offsets (today + N days), post-event emails use negative offsets (today - N days)"
+      ]
+    },
     {
       "version": "V3.12.0",
       "date": "2026-05-19",
