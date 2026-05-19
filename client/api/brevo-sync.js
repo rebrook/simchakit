@@ -3,19 +3,26 @@
 // Vercel serverless function.
 // POST { email, isNewUser, attributes }
 // Creates or updates a Brevo contact with SimchaKit lifecycle attributes.
+// For new users, adds contact to SimchaKit - New Users list (triggers welcome automation).
+// For event creation, sends Event Confirmed transactional email directly.
 //
 // Attributes synced:
-//   SIGNUP_DATE  — set only when isNewUser = true
-//   LAST_LOGIN   — set on every sign-in
-//   EVENT_NAME   — set on event creation
-//   EVENT_TYPE   — set on event creation
-//   EVENT_DATE   — set on event creation (ISO date string or empty string)
+//   SIGNUP_DATE   — set only when isNewUser = true
+//   LAST_LOGIN    — set on every sign-in
+//   EVENT_NAME    — set on event creation
+//   EVENT_TYPE    — set on event creation
+//   EVENT_DATE    — set on event creation (ISO date string or empty string)
 //   HAS_PURCHASED — set to true on event creation (never reset to false)
 //
-// Brevo API: POST https://api.brevo.com/v3/contacts (createContact with updateEnabled)
+// Brevo contact API:       POST https://api.brevo.com/v3/contacts
+// Brevo transactional API: POST https://api.brevo.com/v3/smtp/email
+// Event Confirmed template ID: 4
+// SimchaKit - New Users list ID: 3
 // ─────────────────────────────────────────────────────────────────────────────
 
-const BREVO_API_URL = "https://api.brevo.com/v3/contacts";
+const BREVO_CONTACTS_URL     = "https://api.brevo.com/v3/contacts";
+const BREVO_TRANSACTIONAL_URL = "https://api.brevo.com/v3/smtp/email";
+const EVENT_CONFIRMED_TEMPLATE_ID = 4;
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {
@@ -34,50 +41,75 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: "Missing or invalid email." });
   }
 
-  // Build the attributes payload.
-  // SIGNUP_DATE is only included when this is a confirmed new user.
-  // LAST_LOGIN is always included on sign-in calls.
-  // Event attributes (EVENT_NAME, EVENT_TYPE, EVENT_DATE, HAS_PURCHASED) are
-  // included only when provided — omitting them leaves existing values untouched.
+  const headers = {
+    "accept":       "application/json",
+    "content-type": "application/json",
+    "api-key":      BREVO_API_KEY,
+  };
+
+  // ── Step 1: Upsert contact with updated attributes ──────────────────────────
   const contactAttributes = {};
 
   if (attributes?.LAST_LOGIN)    contactAttributes.LAST_LOGIN    = attributes.LAST_LOGIN;
-  if (isNewUser)                  contactAttributes.SIGNUP_DATE   = attributes?.SIGNUP_DATE || new Date().toISOString().slice(0, 10);
-  if (attributes?.EVENT_NAME)    contactAttributes.EVENT_NAME    = attributes.EVENT_NAME;
-  if (attributes?.EVENT_TYPE)    contactAttributes.EVENT_TYPE    = attributes.EVENT_TYPE;
-  if (attributes?.EVENT_DATE)    contactAttributes.EVENT_DATE    = attributes.EVENT_DATE;
+  if (isNewUser)                 contactAttributes.SIGNUP_DATE   = attributes?.SIGNUP_DATE || new Date().toISOString().slice(0, 10);
+  if (attributes?.EVENT_NAME)   contactAttributes.EVENT_NAME    = attributes.EVENT_NAME;
+  if (attributes?.EVENT_TYPE)   contactAttributes.EVENT_TYPE    = attributes.EVENT_TYPE;
+  if (attributes?.EVENT_DATE)   contactAttributes.EVENT_DATE    = attributes.EVENT_DATE;
   if (attributes?.HAS_PURCHASED) contactAttributes.HAS_PURCHASED = true;
 
-  const payload = {
+  const contactPayload = {
     email,
-    updateEnabled: true,       // upsert: create if new, update if exists
+    updateEnabled: true,
     attributes: contactAttributes,
     ...(isNewUser && { listIds: [3] }), // add to SimchaKit - New Users list (triggers welcome automation)
   };
 
   try {
-    const response = await fetch(BREVO_API_URL, {
+    const contactResponse = await fetch(BREVO_CONTACTS_URL, {
       method:  "POST",
-      headers: {
-        "accept":       "application/json",
-        "content-type": "application/json",
-        "api-key":      BREVO_API_KEY,
-      },
-      body: JSON.stringify(payload),
+      headers,
+      body: JSON.stringify(contactPayload),
     });
 
     // Brevo returns 201 on create, 204 on update — both are success
-    if (response.status === 201 || response.status === 204) {
-      return res.status(200).json({ synced: true });
+    if (contactResponse.status !== 201 && contactResponse.status !== 204) {
+      const errorBody = await contactResponse.text();
+      console.error(`[SimchaKit] Brevo contact sync failed (${contactResponse.status}):`, errorBody);
+      return res.status(200).json({ synced: false, brevoStatus: contactResponse.status });
     }
-
-    // Any other status is an error — log it but don't crash the caller
-    const errorBody = await response.text();
-    console.error(`[SimchaKit] Brevo sync failed (${response.status}):`, errorBody);
-    return res.status(200).json({ synced: false, brevoStatus: response.status });
-
   } catch (err) {
-    console.error("[SimchaKit] Brevo sync error:", err.message);
+    console.error("[SimchaKit] Brevo contact sync error:", err.message);
     return res.status(200).json({ synced: false, error: err.message });
   }
+
+  // ── Step 2: Send Event Confirmed transactional email on event creation ──────
+  // Fired on every event creation so the email correctly reflects the specific
+  // event that was just created, passed as params at send time.
+  if (attributes?.HAS_PURCHASED && attributes?.EVENT_NAME) {
+    try {
+      const transactionalPayload = {
+        to: [{ email }],
+        templateId: EVENT_CONFIRMED_TEMPLATE_ID,
+        params: {
+          EVENT_NAME: attributes.EVENT_NAME,
+          EVENT_TYPE: attributes.EVENT_TYPE || "",
+        },
+      };
+
+      const transactionalResponse = await fetch(BREVO_TRANSACTIONAL_URL, {
+        method:  "POST",
+        headers,
+        body: JSON.stringify(transactionalPayload),
+      });
+
+      if (transactionalResponse.status !== 201) {
+        const errorBody = await transactionalResponse.text();
+        console.error(`[SimchaKit] Brevo transactional email failed (${transactionalResponse.status}):`, errorBody);
+      }
+    } catch (err) {
+      console.error("[SimchaKit] Brevo transactional email error:", err.message);
+    }
+  }
+
+  return res.status(200).json({ synced: true });
 }
