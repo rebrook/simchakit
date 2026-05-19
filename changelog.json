@@ -1,9 +1,32 @@
 {
-  "current": "V3.11.2",
+  "current": "V3.12.0",
   "whatsNew": [
-    "Welcome email automation is now fully wired -- new users receive a welcome email immediately upon signup."
+    "Lifecycle email sequence is now live -- SimchaKit sends 7 date-aware planning emails keyed to each event date, from a 90-day checklist through a post-event follow-up."
   ],
   "changelog": [
+    {
+      "version": "V3.12.0",
+      "date": "2026-05-19",
+      "changes": [
+        "Added lifecycle email cron job at client/api/cron/lifecycle-emails.js",
+        "Cron runs daily at 15:00 UTC (10am EST / 11am EDT), skips Saturdays (Shabbat)",
+        "Sends 7 lifecycle transactional emails keyed to event date offsets: -90, -60, -30, -7, +1, +14, +30 days",
+        "Uses Supabase RPC get_events_by_main_date() for efficient JSONB timeline queries",
+        "Each email passes EVENT_NAME and EVENT_TYPE as Brevo template params at send time",
+        "Handles multiple events per user correctly -- each event triggers independently",
+        "Added cron schedule to vercel.json",
+        "Requires CRON_SECRET Vercel environment variable for security"
+      ]
+    },
+    {
+      "version": "V3.11.3",
+      "date": "2026-05-19",
+      "changes": [
+        "Event Confirmed email now sent as a Brevo transactional email directly from brevo-sync.js on every event creation",
+        "Event name and type passed as template params at send time -- accurate for every event regardless of how many events a user creates",
+        "Removed reliance on contact attribute for event name in email subject and body"
+      ]
+    },
     {
       "version": "V3.11.2",
       "date": "2026-05-19",
