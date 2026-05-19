@@ -1,9 +1,16 @@
 {
-  "current": "V3.11.1",
+  "current": "V3.11.2",
   "whatsNew": [
-    "Brevo email marketing integration is now fully wired -- contact sync fires on signup and event creation."
+    "Welcome email automation is now fully wired -- new users receive a welcome email immediately upon signup."
   ],
   "changelog": [
+    {
+      "version": "V3.11.2",
+      "date": "2026-05-19",
+      "changes": [
+        "brevo-sync.js now adds new users to Brevo list ID 3 (SimchaKit - New Users) to trigger the Welcome Email automation in real time"
+      ]
+    },
     {
       "version": "V3.11.1",
       "date": "2026-05-18",

@@ -52,6 +52,7 @@ export default async function handler(req, res) {
     email,
     updateEnabled: true,       // upsert: create if new, update if exists
     attributes: contactAttributes,
+    ...(isNewUser && { listIds: [3] }), // add to SimchaKit - New Users list (triggers welcome automation)
   };
 
   try {
