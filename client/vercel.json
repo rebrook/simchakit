@@ -1,15 +1,26 @@
 {
+  "$schema": "https://openapi.vercel.sh/vercel.json",
   "cleanUrls": false,
   "redirects": [
     {
       "source": "/",
-      "has": [{ "type": "host", "value": "demo.simcha-kit.com" }],
+      "has": [
+        {
+          "type": "host",
+          "value": "demo.simcha-kit.com"
+        }
+      ],
       "destination": "https://demo.simcha-kit.com/demo",
       "permanent": false
     },
     {
       "source": "/(.*)",
-      "has": [{ "type": "host", "value": "about.simcha-kit.com" }],
+      "has": [
+        {
+          "type": "host",
+          "value": "about.simcha-kit.com"
+        }
+      ],
       "destination": "https://app.simcha-kit.com/about/index.html",
       "permanent": false
     }
@@ -17,17 +28,32 @@
   "rewrites": [
     {
       "source": "/sitemap.xml",
-      "has": [{ "type": "host", "value": "about.simcha-kit.com" }],
+      "has": [
+        {
+          "type": "host",
+          "value": "about.simcha-kit.com"
+        }
+      ],
       "destination": "/about/sitemap.xml"
     },
     {
       "source": "/robots.txt",
-      "has": [{ "type": "host", "value": "about.simcha-kit.com" }],
+      "has": [
+        {
+          "type": "host",
+          "value": "about.simcha-kit.com"
+        }
+      ],
       "destination": "/about/robots.txt"
     },
     {
       "source": "/llms.txt",
-      "has": [{ "type": "host", "value": "about.simcha-kit.com" }],
+      "has": [
+        {
+          "type": "host",
+          "value": "about.simcha-kit.com"
+        }
+      ],
       "destination": "/about/llms.txt"
     },
     {
@@ -37,6 +63,12 @@
     {
       "source": "/:path*",
       "destination": "/index.v3.html"
+    }
+  ],
+  "crons": [
+    {
+      "path": "/api/cron/lifecycle-emails",
+      "schedule": "0 15 * * *"
     }
   ]
 }
