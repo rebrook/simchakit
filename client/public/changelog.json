@@ -1,9 +1,17 @@
 {
-  "current": "V3.12.1",
+  "current": "V3.12.2",
   "whatsNew": [
-    "Lifecycle email timing corrected -- all seven emails now fire on the correct day relative to the event date."
+    "Re-engagement email sequence is now wired -- new users who do not purchase will receive three check-in emails at 30, 60, and 90 days."
   ],
   "changelog": [
+    {
+      "version": "V3.12.2",
+      "date": "2026-05-20",
+      "changes": [
+        "brevo-sync.js now adds new users to Brevo list 6 (SimchaKit - Prospects) alongside list 3 (New Users) to trigger re-engagement automation",
+        "Added $schema declaration to vercel.json enabling Vercel cron job registration"
+      ]
+    },
     {
       "version": "V3.12.1",
       "date": "2026-05-19",

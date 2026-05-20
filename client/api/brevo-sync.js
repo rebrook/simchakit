@@ -61,7 +61,7 @@ export default async function handler(req, res) {
     email,
     updateEnabled: true,
     attributes: contactAttributes,
-    ...(isNewUser && { listIds: [3] }), // add to SimchaKit - New Users list (triggers welcome automation)
+    ...(isNewUser && { listIds: [3, 6] }), // list 3: New Users (welcome automation), list 6: Prospects (re-engagement automation)
   };
 
   try {
