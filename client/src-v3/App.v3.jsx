@@ -13,8 +13,17 @@ import { AppShell }            from "@/components/shell/AppShell.jsx";
 import { useDarkMode }         from "@/hooks/useDarkMode.js";
 import { ThemeProvider }       from "@/components/shared/ThemeProvider.jsx";
 
-const DEMO_EVENT_ID = "440a8b9e-e92e-4ad6-b352-41965bd8383b"; // Bart's Bar Mitzvah demo event
-const IS_DEMO      = window.location.pathname === "/demo";
+const DEMO_EVENT_ID       = "440a8b9e-e92e-4ad6-b352-41965bd8383b"; // Bart's Bar Mitzvah demo event
+const IS_DEMO             = window.location.pathname === "/demo";
+const PENDING_INVITE_KEY  = "simchakit-pending-invite";
+
+// Detect /invite/{token} path and store token for post-auth acceptance
+const inviteMatch = window.location.pathname.match(/^\/invite\/([0-9a-f-]{36})$/i);
+if (inviteMatch) {
+  localStorage.setItem(PENDING_INVITE_KEY, inviteMatch[1]);
+  // Redirect to root so the auth flow can proceed cleanly
+  window.history.replaceState({}, "", "/");
+}
 
 export default function AppV3() {
   const [session, setSession] = useState(undefined); // undefined = loading
@@ -49,6 +58,21 @@ export default function AppV3() {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         setSession(session);
+
+        // On sign-in, accept any pending invite token stored before auth
+        if (event === "SIGNED_IN" && session?.user) {
+          const pendingToken = localStorage.getItem(PENDING_INVITE_KEY);
+          if (pendingToken) {
+            localStorage.removeItem(PENDING_INVITE_KEY);
+            fetch("/api/accept-invite", {
+              method:  "POST",
+              headers: { "Content-Type": "application/json" },
+              body:    JSON.stringify({ token: pendingToken, userId: session.user.id }),
+            }).catch(() => {});
+            // No error handling shown to user here — if it fails they can try the link again.
+            // The event will appear in their picker on next load if accepted successfully.
+          }
+        }
 
         // On sign-in, upsert user_profiles row (safe no-op if row already exists)
         if (event === "SIGNED_IN" && session?.user) {

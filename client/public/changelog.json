@@ -1,9 +1,21 @@
 {
-  "current": "V3.13.1",
+  "current": "V3.13.2",
   "whatsNew": [
-    "Multiple people can now plan a single event together. Invite a co-planner as an Editor for full access, or a Viewer so family can follow along. Collaborator access is covered by the event owner's purchase at no extra cost. (UI coming soon)"
+    "Multiple people can now plan a single event together. Invite a co-planner as an Editor for full access, or a Viewer so family can follow along. Open Admin Mode and go to Collaborators to get started. Collaborator access is covered by the event owner's purchase at no extra cost."
   ],
   "changelog": [
+    {
+      "version": "V3.13.2",
+      "date": "2026-05-22",
+      "changes": [
+        "App.v3.jsx: detects /invite/{token} path on load, stores token in localStorage (simchakit-pending-invite), and calls /api/accept-invite after SIGNED_IN fires so unauthenticated invite recipients are handled correctly",
+        "EventPicker.jsx: loads collaborated events from event_collaborators alongside owned events; displays them under a Shared With Me section with Editor/Viewer role badge; collaborated events suppress the delete button and do not affect purchase/paywall logic",
+        "AppShell.jsx: added owner_id to events select; removed owner_id filter from event load query (RLS handles access control, filter was blocking collaborator access); added useCollaboratorRole hook to resolve current user role; role badge (Editor/Viewer) shown in header for non-owners; openAdmin blocked for non-owners with toast message; collaboratorRole and isViewer passed through tabProps",
+        "AdminPanel.jsx: added Collaborators section (between Tabs and Calendar) with collaborator list, pending invitation list, invite-by-email form, copy-invite-link button, and remove/rescind actions; backed by /api/send-invite and direct Supabase queries",
+        "Added hooks/useCollaboratorRole.js: returns owner/editor/viewer for current user on active event by comparing event.owner_id then querying event_collaborators",
+        "ui.js (Guide): added Collaborators entry to Admin Mode section explaining Editor/Viewer roles, invite flow, 7-day expiry, and 5-collaborator cap; fixed Accessing Admin Mode entry to remove stale V2 server config language and note owner-only restriction; updated Getting Started Admin Mode entry to note owner-only access"
+      ]
+    },
     {
       "version": "V3.13.1",
       "date": "2026-05-22",

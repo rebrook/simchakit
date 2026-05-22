@@ -59,6 +59,7 @@ function formatDate(d) {
 // ─────────────────────────────────────────────────────────────────────────────
 export function EventPicker({ session, onSelectEvent }) {
   const [events,            setEvents]            = useState([]);
+  const [collaboratedEvents, setCollaboratedEvents] = useState([]); // events user is a collaborator on
   const [loadStatus,        setLoadStatus]        = useState("loading"); // loading | ready | error
   const [loadError,         setLoadError]         = useState("");
   const [showCreateForm,    setShowCreateForm]    = useState(false);
@@ -133,7 +134,7 @@ export function EventPicker({ session, onSelectEvent }) {
   const loadEvents = useCallback(async () => {
     setLoadStatus("loading");
 
-    const [eventsResult, purchasesResult] = await Promise.all([
+    const [eventsResult, purchasesResult, collabResult] = await Promise.all([
       supabase
         .from("events")
         .select("id, name, type, archived, admin_config, created_at, updated_at")
@@ -144,6 +145,11 @@ export function EventPicker({ session, onSelectEvent }) {
         .select("id")
         .eq("owner_id", userId)
         .eq("status", "completed"),
+      supabase
+        .from("event_collaborators")
+        .select("role, event_id, events(id, name, type, archived, admin_config, created_at, updated_at)")
+        .eq("user_id", userId)
+        .not("accepted_at", "is", null),
     ]);
 
     if (eventsResult.error) {
@@ -152,14 +158,22 @@ export function EventPicker({ session, onSelectEvent }) {
       return;
     }
 
-    // Sort: active events first, archived last
+    // Sort owned: active events first, archived last
     const sorted = [...(eventsResult.data || [])].sort((a, b) => {
       if (a.archived !== b.archived) return a.archived ? 1 : -1;
       return new Date(a.created_at) - new Date(b.created_at);
     });
 
+    // Build collaborated events list -- attach role for badge display
+    const collabRows = (collabResult.data || []).filter(r => r.events);
+    const collabEventsData = collabRows.map(r => ({
+      ...r.events,
+      _collaboratorRole: r.role,
+    }));
+
     setEvents(sorted);
-    setEventCount(sorted.length); // count ALL events including archived — archived does not free up a purchase slot
+    setCollaboratedEvents(collabEventsData);
+    setEventCount(sorted.length); // count owned events only -- collaborated events do not affect purchase logic
     setTotalPurchaseCount((purchasesResult.data || []).length);
     setLoadStatus("ready");
   }, [userId]);
@@ -409,6 +423,27 @@ export function EventPicker({ session, onSelectEvent }) {
           </div>
         )}
 
+        {/* ── Collaborated events ── */}
+        {loadStatus === "ready" && collaboratedEvents.length > 0 && (
+          <>
+            <div style={styles.sectionDivider}>
+              <span style={styles.sectionDividerLabel}>Shared With Me</span>
+            </div>
+            <div style={styles.eventGrid}>
+              {collaboratedEvents.map(ev => (
+                <EventCard
+                  key={ev.id}
+                  event={ev}
+                  meta={getEventMeta(ev)}
+                  onSelect={() => onSelectEvent(ev.id)}
+                  onDeleteClick={null}
+                  collaboratorRole={ev._collaboratorRole}
+                />
+              ))}
+            </div>
+          </>
+        )}
+
         {/* ── Footer ── */}
         <div style={styles.footer}>
           Designed &amp; Built by Brook Creative LLC &nbsp;·&nbsp; Powered by Claude &nbsp;·&nbsp; <a href="mailto:hello@simcha-kit.com" style={{ color: "var(--text-muted)" }}>hello@simcha-kit.com</a> &nbsp;·&nbsp; <a href="https://about.simcha-kit.com" target="_blank" rel="noopener" style={{ color: "var(--text-muted)" }}>about.simcha-kit.com</a>
@@ -430,11 +465,12 @@ export function EventPicker({ session, onSelectEvent }) {
 }
 
 // ── EventCard ─────────────────────────────────────────────────────────────────
-function EventCard({ event, meta, onSelect, onDeleteClick }) {
+function EventCard({ event, meta, onSelect, onDeleteClick, collaboratorRole = null }) {
   const { palette, typeIcon, dateStr, themeName } = meta;
   const typeLabel = EVENT_TYPE_LABELS[event.type] || "Celebration";
   const isDark  = document.documentElement.getAttribute("data-theme") === "dark";
   const cardBg  = isDark ? "var(--bg-subtle)" : palette.light;
+  const isCollaborator = !!collaboratorRole;
 
   function handleDeleteClick(e) {
     e.preventDefault();
@@ -476,17 +512,24 @@ function EventCard({ event, meta, onSelect, onDeleteClick }) {
               🔒 Archived
             </span>
           )}
+          {isCollaborator && (
+            <span className="sk-tag" style={{ background: "var(--accent-light)", color: "var(--accent-primary)", border: "1px solid var(--accent-primary)", textTransform: "capitalize" }}>
+              {collaboratorRole === "editor" ? "✏ Editor" : "👁 Viewer"}
+            </span>
+          )}
         </div>
 
-        {/* Delete button */}
-        <button
-          className="sk-delete-btn"
-          title="Delete event"
-          onClick={handleDeleteClick}
-          aria-label="Delete event"
-        >
-          ✕
-        </button>
+        {/* Delete button -- owners only */}
+        {!isCollaborator && onDeleteClick && (
+          <button
+            className="sk-delete-btn"
+            title="Delete event"
+            onClick={handleDeleteClick}
+            aria-label="Delete event"
+          >
+            ✕
+          </button>
+        )}
       </div>
 
       {/* Card body */}
@@ -681,5 +724,19 @@ const styles = {
     gap:        6,
     fontSize:   12,
     color:      "var(--text-secondary)",
+  },
+  sectionDivider: {
+    display:    "flex",
+    alignItems: "center",
+    gap:        12,
+    margin:     "32px 0 20px",
+  },
+  sectionDividerLabel: {
+    fontSize:    12,
+    fontWeight:  600,
+    color:       "var(--text-muted)",
+    letterSpacing: "0.05em",
+    textTransform: "uppercase",
+    whiteSpace:  "nowrap",
   },
 };

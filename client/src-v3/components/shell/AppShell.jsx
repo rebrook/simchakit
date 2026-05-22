@@ -8,6 +8,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { supabase }        from "@/lib/supabase.js";
 import { useDarkMode }     from "@/hooks/useDarkMode.js";
+import { useCollaboratorRole } from "@/hooks/useCollaboratorRole.js";
 import { ThemeProvider }   from "@/components/shared/ThemeProvider.jsx";
 import { PlaceholderTab }  from "@/components/shared/PlaceholderTab.jsx";
 import { AdminLogin, AdminPanel } from "@/components/AdminPanel.jsx";
@@ -61,6 +62,13 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false }) {
   const [toastVisible,    setToastVisible]    = useState(false);
   const [darkMode,        setDarkMode]        = useDarkMode();
 
+  // ── Collaborator role (null until event loads; 'owner' | 'editor' | 'viewer') ──
+  const collaboratorRole = useCollaboratorRole(
+    event?.owner_id ?? null,
+    eventId,
+    session?.user?.id ?? null
+  );
+
   // ── Admin state ───────────────────────────────────────────────────────────
   const [showAdminLogin,  setShowAdminLogin]  = useState(false);
   const [showAdminPanel,  setShowAdminPanel]  = useState(false);
@@ -98,13 +106,12 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false }) {
     async function load() {
       let query = supabase
         .from("events")
-        .select("id, name, type, archived, admin_config, quick_notes, calendar_token")
+        .select("id, name, type, archived, admin_config, quick_notes, calendar_token, owner_id")
         .eq("id", eventId);
 
-      // Demo mode: no session, skip owner_id filter
-      if (session?.user?.id) {
-        query = query.eq("owner_id", session.user.id);
-      }
+      // RLS handles access control — no owner_id filter needed here.
+      // Collaborators have access via the "Collaborator can read event" SELECT policy.
+      // Demo mode uses the anon key which has its own scoped policy.
 
       const { data, error } = await query.single();
 
@@ -274,6 +281,11 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false }) {
 
   // ── Open admin (from gear button or tab callbacks) ────────────────────────
   const openAdmin = (section = "event") => {
+    // Only the event owner can access Admin Mode
+    if (collaboratorRole !== null && collaboratorRole !== "owner") {
+      showToast("Admin Mode is only available to the event owner");
+      return;
+    }
     setAdminSection(section);
     if (adminPassword) { setShowAdminPanel(true); }
     else               { setShowAdminLogin(true); }
@@ -299,6 +311,8 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false }) {
     adminConfig,
     showToast,
     isArchived:    !!(event?.archived),
+    collaboratorRole,
+    isViewer:      collaboratorRole === "viewer",
     setActiveTab:  navigateTo,
     onOpenAdmin:   () => openAdmin("event"),
     onOpenAdminTo: openAdmin,
@@ -383,6 +397,26 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false }) {
           </>)}
 
           <div className="header-spacer" />
+
+          {/* Collaborator role badge -- visible to editors and viewers only */}
+          {collaboratorRole && collaboratorRole !== "owner" && (
+            <div style={{
+              display:      "inline-flex",
+              alignItems:   "center",
+              gap:          4,
+              padding:      "3px 10px",
+              borderRadius: "var(--radius-pill, 999px)",
+              background:   "var(--accent-light)",
+              border:       "1px solid var(--accent-primary)",
+              fontSize:     11,
+              fontWeight:   600,
+              color:        "var(--accent-primary)",
+              flexShrink:   0,
+              whiteSpace:   "nowrap",
+            }}>
+              {collaboratorRole === "editor" ? "✏ Editor" : "👁 Viewer"}
+            </div>
+          )}
 
           {/* Header actions */}
           <div className="header-actions">
