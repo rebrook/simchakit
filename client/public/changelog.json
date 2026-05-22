@@ -1,9 +1,16 @@
 {
-  "current": "V3.13.3",
+  "current": "V3.13.4",
   "whatsNew": [
     "Multiple people can now plan a single event together. Invite a co-planner as an Editor for full access, or a Viewer so family can follow along. Open Admin Mode and go to Collaborators to get started. Collaborator access is covered by the event owner's purchase at no extra cost."
   ],
   "changelog": [
+    {
+      "version": "V3.13.4",
+      "date": "2026-05-22",
+      "changes": [
+        "AdminPanel.jsx: fixed CollaboratorsSection not receiving userId prop -- send-invite calls were resolving userId via supabase.auth.getUser() which returned empty string, causing 400 validation errors; userId is now passed as a prop from AdminPanel down to CollaboratorsSection and used directly in both handleSendInvite and handleCopyLink"
+      ]
+    },
     {
       "version": "V3.13.3",
       "date": "2026-05-22",

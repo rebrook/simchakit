@@ -922,7 +922,7 @@ export function AdminPanel({ eventId, userId, calendarToken: initialCalendarToke
 
           {/* ── Collaborators ── */}
           {section === "collaborators" && (
-            <CollaboratorsSection eventId={eventId} />
+            <CollaboratorsSection eventId={eventId} userId={userId} />
           )}
 
           {/* ── Calendar ── */}
@@ -1347,7 +1347,7 @@ function ContactBlock({ label, icon, value, onChange, alwaysShow, show }) {
 // Renders inside AdminPanel (owner-only). Manages invite flow and collaborator list.
 // ─────────────────────────────────────────────────────────────────────────────
 
-function CollaboratorsSection({ eventId }) {
+function CollaboratorsSection({ eventId, userId }) {
   const [collaborators,  setCollaborators]  = useState([]);
   const [invitations,    setInvitations]    = useState([]); // pending (not yet accepted)
   const [loadStatus,     setLoadStatus]     = useState("loading");
@@ -1403,7 +1403,7 @@ function CollaboratorsSection({ eventId }) {
           role:         inviteRole,
           inviterName:  "the event owner",
           eventName:    "",
-          userId:       supabase.auth.getUser ? (await supabase.auth.getUser()).data?.user?.id : "",
+          userId:       userId,
           message:      inviteMessage.trim(),
         }),
       });
@@ -1442,7 +1442,7 @@ function CollaboratorsSection({ eventId }) {
           role:        inviteRole,
           inviterName: "the event owner",
           eventName:   "",
-          userId:      supabase.auth.getUser ? (await supabase.auth.getUser()).data?.user?.id : "",
+          userId:      userId,
         }),
       });
       const data = await res.json();
