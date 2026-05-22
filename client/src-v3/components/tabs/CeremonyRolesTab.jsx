@@ -56,7 +56,7 @@ const ROLE_TEMPLATES = {
 };
 
 // ── CeremonyRolesTab ──────────────────────────────────────────────────────────
-export function CeremonyRolesTab({ eventId, event, adminConfig, showToast, isArchived }) {
+export function CeremonyRolesTab({ eventId, event, adminConfig, showToast, isArchived, isViewer }) {
   const [roles,         setRoles]         = useState([]);
   const [rowId,         setRowId]         = useState(null); // Supabase row UUID
   const [loading,       setLoading]       = useState(true);
@@ -124,7 +124,7 @@ export function CeremonyRolesTab({ eventId, event, adminConfig, showToast, isArc
   };
 
   const handleAdd = (r) => {
-    if (isArchived) return;
+    if (isArchived || isViewer) return;
     const maxOrder = roles.reduce((m, x) => Math.max(m, x.sortOrder ?? 0), -1);
     saveRoles([...roles, { ...r, sortOrder: maxOrder + 1 }]);
     showToast("Role added");
@@ -132,21 +132,21 @@ export function CeremonyRolesTab({ eventId, event, adminConfig, showToast, isArc
   };
 
   const handleEdit = (r) => {
-    if (isArchived) return;
+    if (isArchived || isViewer) return;
     saveRoles(roles.map(x => x.id === r.id ? r : x));
     showToast("Role updated");
     setEditRole(null);
   };
 
   const handleDelete = (id) => {
-    if (isArchived) return;
+    if (isArchived || isViewer) return;
     saveRoles(roles.filter(r => r.id !== id));
     showToast("Role removed");
     setDeleteConfirm(null);
   };
 
   const moveRole = (id, dir) => {
-    if (isArchived) return;
+    if (isArchived || isViewer) return;
     const idx = roles.findIndex(r => r.id === id);
     if (idx < 0) return;
     const next = [...roles];
@@ -193,11 +193,11 @@ export function CeremonyRolesTab({ eventId, event, adminConfig, showToast, isArc
         </div>
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap", justifyContent: "flex-end" }}>
           {roles.length === 0 && hasTemplate && (
-            <button className="btn btn-secondary" disabled={isArchived} onClick={loadTemplate}>
+            <button className="btn btn-secondary" disabled={isArchived || isViewer} onClick={loadTemplate}>
               ✦ Load Template
             </button>
           )}
-          <button className="btn btn-primary" disabled={isArchived} onClick={() => setShowModal(true)}>
+          <button className="btn btn-primary" disabled={isArchived || isViewer} onClick={() => setShowModal(true)}>
             + Add Role
           </button>
         </div>
@@ -220,8 +220,8 @@ export function CeremonyRolesTab({ eventId, event, adminConfig, showToast, isArc
             {hasTemplate ? "Load the pre-built template for your event type, or add roles manually." : "Add roles manually to track who will participate."}
           </div>
           <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap" }}>
-            {hasTemplate && <button className="btn btn-secondary" disabled={isArchived} onClick={loadTemplate}>✦ Load Template</button>}
-            <button className="btn btn-primary" disabled={isArchived} onClick={() => setShowModal(true)}>+ Add First Role</button>
+            {hasTemplate && <button className="btn btn-secondary" disabled={isArchived || isViewer} onClick={loadTemplate}>✦ Load Template</button>}
+            <button className="btn btn-primary" disabled={isArchived || isViewer} onClick={() => setShowModal(true)}>+ Add First Role</button>
           </div>
         </div>
       )}
@@ -262,10 +262,10 @@ export function CeremonyRolesTab({ eventId, event, adminConfig, showToast, isArc
                           {role.notes && <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 3, lineHeight: 1.4 }}>{role.notes}</div>}
                         </div>
                         <div style={{ display: "flex", gap: 4, flexShrink: 0 }}>
-                          <button className="icon-btn" onClick={() => moveRole(role.id, "up")} disabled={isArchived || idx === 0}>↑</button>
-                          <button className="icon-btn" onClick={() => moveRole(role.id, "down")} disabled={isArchived || idx === sectionRoles.length - 1}>↓</button>
-                          <button className="icon-btn" onClick={() => setEditRole(role)}>✎</button>
-                          <button className="icon-btn" onClick={() => setDeleteConfirm(role.id)}>✕</button>
+                          <button className="icon-btn" onClick={() => moveRole(role.id, "up")} disabled={isArchived || isViewer || idx === 0}>↑</button>
+                          <button className="icon-btn" onClick={() => moveRole(role.id, "down")} disabled={isArchived || isViewer || idx === sectionRoles.length - 1}>↓</button>
+                          <button className="icon-btn" disabled={isViewer} onClick={() => !isViewer && setEditRole(role)}>✎</button>
+                          <button className="icon-btn" disabled={isViewer} onClick={() => !isViewer && setDeleteConfirm(role.id)}>✕</button>
                         </div>
                       </div>
                     </div>
@@ -291,10 +291,10 @@ export function CeremonyRolesTab({ eventId, event, adminConfig, showToast, isArc
                         <td style={{ padding: "10px 14px", color: "var(--text-muted)", fontSize: 12, maxWidth: 240, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{role.notes || ""}</td>
                         <td style={{ padding: "10px 14px", textAlign: "right" }}>
                           <div style={{ display: "flex", gap: 4, justifyContent: "flex-end" }}>
-                            <button className="icon-btn" style={{ fontSize: 11 }} onClick={() => moveRole(role.id, "up")} disabled={isArchived || idx === 0}>↑</button>
-                            <button className="icon-btn" style={{ fontSize: 11 }} onClick={() => moveRole(role.id, "down")} disabled={isArchived || idx === sectionRoles.length - 1}>↓</button>
-                            <button className="icon-btn" onClick={() => setEditRole(role)}>✎</button>
-                            <button className="icon-btn" onClick={() => setDeleteConfirm(role.id)}>✕</button>
+                            <button className="icon-btn" style={{ fontSize: 11 }} onClick={() => moveRole(role.id, "up")} disabled={isArchived || isViewer || idx === 0}>↑</button>
+                            <button className="icon-btn" style={{ fontSize: 11 }} onClick={() => moveRole(role.id, "down")} disabled={isArchived || isViewer || idx === sectionRoles.length - 1}>↓</button>
+                            <button className="icon-btn" disabled={isViewer} onClick={() => !isViewer && setEditRole(role)}>✎</button>
+                            <button className="icon-btn" disabled={isViewer} onClick={() => !isViewer && setDeleteConfirm(role.id)}>✕</button>
                           </div>
                         </td>
                       </tr>

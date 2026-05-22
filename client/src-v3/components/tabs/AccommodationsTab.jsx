@@ -10,7 +10,7 @@ import { useSearchHighlight } from "@/hooks/useSearchHighlight.js";
 import { formatAddress, migrateCityStateZip, formatPhone } from "@/utils/guests.js";
 import { ArchivedNotice }     from "@/components/shared/ArchivedNotice.jsx";
 
-export function AccommodationsTab({ eventId, event, adminConfig, showToast, isArchived, setActiveTab, searchHighlight, clearSearchHighlight }) {
+export function AccommodationsTab({ eventId, event, adminConfig, showToast, isArchived, isViewer, setActiveTab, searchHighlight, clearSearchHighlight }) {
   const { items: households, loading: hLoading, save: saveHousehold } = useEventData(eventId, "households");
   const { items: people,     loading: pLoading }                       = useEventData(eventId, "people");
 
@@ -78,13 +78,13 @@ export function AccommodationsTab({ eventId, event, adminConfig, showToast, isAr
   };
 
   const toggleNotified = async (hh) => {
-    if (isArchived) return;
+    if (isArchived || isViewer) return;
     await saveHousehold({ ...hh, accomNotified: !hh.accomNotified });
     showToast(hh.accomNotified ? "Marked not notified" : "Marked notified ✓");
   };
 
   const toggleBooked = async (hh) => {
-    if (isArchived) return;
+    if (isArchived || isViewer) return;
     await saveHousehold({ ...hh, accomBooked: !hh.accomBooked });
     showToast(hh.accomBooked ? "Marked not booked" : "Marked booked ✓");
   };
@@ -208,12 +208,12 @@ export function AccommodationsTab({ eventId, event, adminConfig, showToast, isAr
                         </td>
                         <td style={{ padding: "10px 12px", color: "var(--text-muted)", fontSize: 12 }}>{location || <span style={{ fontStyle: "italic" }}>No address</span>}</td>
                         <td style={{ padding: "10px 12px", textAlign: "center" }}>
-                          <button onClick={() => toggleNotified(hh)} style={{ width: 26, height: 26, borderRadius: 6, border: hh.accomNotified ? "none" : "1.5px solid var(--border-strong)", background: hh.accomNotified ? "var(--green)" : "var(--bg-surface)", color: "white", cursor: "pointer", fontSize: 13, display: "inline-flex", alignItems: "center", justifyContent: "center", transition: "all var(--transition)" }}>
+                          <button onClick={() => !isViewer && toggleNotified(hh)} style={{ width: 26, height: 26, borderRadius: 6, border: hh.accomNotified ? "none" : "1.5px solid var(--border-strong)", background: hh.accomNotified ? "var(--green)" : "var(--bg-surface)", color: "white", cursor: "pointer", fontSize: 13, display: "inline-flex", alignItems: "center", justifyContent: "center", transition: "all var(--transition)" }}>
                             {hh.accomNotified ? "✓" : ""}
                           </button>
                         </td>
                         <td style={{ padding: "10px 12px", textAlign: "center" }}>
-                          <button onClick={() => toggleBooked(hh)} style={{ width: 26, height: 26, borderRadius: 6, border: hh.accomBooked ? "none" : "1.5px solid var(--border-strong)", background: hh.accomBooked ? "var(--green)" : "var(--bg-surface)", color: "white", cursor: "pointer", fontSize: 13, display: "inline-flex", alignItems: "center", justifyContent: "center", transition: "all var(--transition)" }}>
+                          <button onClick={() => !isViewer && toggleBooked(hh)} style={{ width: 26, height: 26, borderRadius: 6, border: hh.accomBooked ? "none" : "1.5px solid var(--border-strong)", background: hh.accomBooked ? "var(--green)" : "var(--bg-surface)", color: "white", cursor: "pointer", fontSize: 13, display: "inline-flex", alignItems: "center", justifyContent: "center", transition: "all var(--transition)" }}>
                             {hh.accomBooked ? "✓" : ""}
                           </button>
                         </td>
@@ -221,7 +221,7 @@ export function AccommodationsTab({ eventId, event, adminConfig, showToast, isAr
                         <td style={{ padding: "10px 12px", fontSize: 12, color: checkOut ? "var(--text-primary)" : "var(--text-muted)" }}>{checkOut || <span style={{ fontStyle: "italic" }}>—</span>}</td>
                         <td style={{ padding: "10px 12px", fontSize: 12, color: "var(--text-muted)", maxWidth: 180, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{hh.accomNotes || ""}</td>
                         <td style={{ padding: "10px 12px", textAlign: "right" }}>
-                          <button className="icon-btn" style={{ width: 28, height: 28 }} title="Edit accommodation details" onClick={() => setEditingHH(hh)}>✎</button>
+                          <button className="icon-btn" style={{ width: 28, height: 28 }} title="Edit accommodation details" disabled={isViewer} onClick={() => !isViewer && setEditingHH(hh)}>✎</button>
                         </td>
                       </tr>
                     );

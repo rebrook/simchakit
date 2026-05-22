@@ -12,7 +12,7 @@ import { getCountdown, formatDate, formatEntryMeta, sortTimeline } from "@/utils
 import { GetStartedCard }     from "@/components/shared/GetStartedCard.jsx";
 import { generateEventBriefHTML } from "@/utils/exports.js";
 
-export function OverviewTab({ eventId, event, adminConfig, showToast, setActiveTab, onOpenAdmin, onOpenAdminTo, onOpenGuide, onPrintBrief }) {
+export function OverviewTab({ eventId, event, adminConfig, showToast, setActiveTab, onOpenAdmin, onOpenAdminTo, onOpenGuide, onPrintBrief, isViewer }) {
   const config    = adminConfig || {};
   const mainEvent = (config.timeline || []).find(e => e.isMainEvent) || null;
   const eventDate = mainEvent?.startDate || null;
@@ -328,10 +328,11 @@ export function OverviewTab({ eventId, event, adminConfig, showToast, setActiveT
           <div className="card-subtitle">Your private planning notes — saved automatically</div>
           <textarea
             className="notes-area"
-            style={{ minHeight: 240 }}
+            style={{ minHeight: 240, opacity: isViewer ? 0.6 : 1 }}
             value={localNotes}
             placeholder="Jot down ideas, reminders, open questions, things to follow up on, or anything you want to remember…"
-            onChange={e => handleNotes(e.target.value)}
+            onChange={e => !isViewer && handleNotes(e.target.value)}
+            readOnly={isViewer}
           />
           {config.notes && (
             <>

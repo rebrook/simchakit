@@ -1,9 +1,21 @@
 {
-  "current": "V3.13.6",
+  "current": "V3.13.7",
   "whatsNew": [
     "Multiple people can now plan a single event together. Invite a co-planner as an Editor for full access, or a Viewer so family can follow along. Open Admin Mode and go to Collaborators to get started. Collaborator access is covered by the event owner's purchase at no extra cost."
   ],
   "changelog": [
+    {
+      "version": "V3.13.7",
+      "date": "2026-05-22",
+      "changes": [
+        "SeatingTab.jsx: added isViewer prop; suppressed Auto-Seat button, disabled Add Table button, disabled seating setup config controls, guarded all handler functions for Viewers",
+        "GiftsTab.jsx: added isViewer prop; suppressed Add Gift buttons (x2), disabled toggleWritten/toggleMailed inline clicks, disabled edit/delete row buttons for Viewers",
+        "FavorsTab.jsx: added isViewer prop; suppressed Add Manually button, disabled save config button, suppressed delete favor type button, disabled favor type input fields, guarded all handler functions for Viewers",
+        "AccommodationsTab.jsx: added isViewer prop; disabled toggleNotified/toggleBooked inline buttons, disabled edit button for Viewers",
+        "CeremonyRolesTab.jsx: added isViewer prop; disabled Add Role and Load Template buttons, disabled move/edit/delete row controls for Viewers",
+        "OverviewTab.jsx: added isViewer prop; quick notes textarea set to readOnly for Viewers"
+      ]
+    },
     {
       "version": "V3.13.6",
       "date": "2026-05-22",

@@ -15,7 +15,7 @@ import { exportGiftsCSV, generateGiftPrintHTML } from "@/utils/exports.js";
 import { getAddressFields, formatAddress, migrateCityStateZip, COUNTRIES } from "@/utils/guests.js";
 import { ArchivedNotice }      from "@/components/shared/ArchivedNotice.jsx";
 
-export function GiftsTab({ eventId, event, adminConfig, showToast, isArchived, searchHighlight, clearSearchHighlight }) {
+export function GiftsTab({ eventId, event, adminConfig, showToast, isArchived, isViewer, searchHighlight, clearSearchHighlight }) {
   const { items: gifts,      loading: gLoading, save, remove } = useEventData(eventId, "gifts");
   const { items: households, loading: hLoading }                = useEventData(eventId, "households");
 
@@ -46,10 +46,10 @@ export function GiftsTab({ eventId, event, adminConfig, showToast, isArchived, s
     return next;
   });
 
-  const handleAdd    = async (g) => { if (isArchived) return; await save(g); showToast("Gift added");   setShowModal(false); };
-  const handleEdit   = async (g) => { if (isArchived) return; await save(g); showToast("Gift updated"); setEditGift(null);   };
+  const handleAdd    = async (g) => { if (isArchived || isViewer) return; await save(g); showToast("Gift added");   setShowModal(false); };
+  const handleEdit   = async (g) => { if (isArchived || isViewer) return; await save(g); showToast("Gift updated"); setEditGift(null);   };
   const handleDelete = async (id) => {
-    if (isArchived) return;
+    if (isArchived || isViewer) return;
     const g = gifts.find(x => x.id === id);
     if (g) await remove(g._rowId);
     showToast("Gift deleted");
@@ -57,14 +57,14 @@ export function GiftsTab({ eventId, event, adminConfig, showToast, isArchived, s
   };
 
   const toggleWritten = async (id) => {
-    if (isArchived) return;
+    if (isArchived || isViewer) return;
     const g = gifts.find(x => x.id === id);
     if (g) await save({ ...g, thankYouWritten: !g.thankYouWritten });
     showToast("Thank-you note updated");
   };
 
   const toggleMailed = async (id) => {
-    if (isArchived) return;
+    if (isArchived || isViewer) return;
     const g = gifts.find(x => x.id === id);
     if (g) await save({ ...g, thankYouMailed: !g.thankYouMailed });
     showToast("Thank-you mailed updated");
@@ -136,7 +136,7 @@ export function GiftsTab({ eventId, event, adminConfig, showToast, isArchived, s
           {gifts.length > 0 && (
             <button className="btn btn-secondary" onClick={() => setShowExport(true)}>↓ Export</button>
           )}
-          <button className="btn btn-primary" disabled={isArchived} onClick={() => setShowModal(true)}>+ Add Gift</button>
+          {!isViewer && <button className="btn btn-primary" disabled={isArchived} onClick={() => setShowModal(true)}>+ Add Gift</button>}
         </div>
       </div>
 
@@ -198,7 +198,7 @@ export function GiftsTab({ eventId, event, adminConfig, showToast, isArchived, s
           <div style={{ fontSize: 36, marginBottom: 12 }}>🎁</div>
           <div style={{ fontFamily: "var(--font-display)", fontSize: 20, color: "var(--text-primary)", marginBottom: 8 }}>No gifts recorded yet</div>
           <div style={{ fontSize: 14, marginBottom: 24 }}>Add gifts as they arrive to track thank-you letters and totals.</div>
-          <button className="btn btn-primary" onClick={() => setShowModal(true)}>+ Add First Gift</button>
+          {!isViewer && <button className="btn btn-primary" onClick={() => setShowModal(true)}>+ Add First Gift</button>}
         </div>
       )}
 
@@ -256,21 +256,21 @@ export function GiftsTab({ eventId, event, adminConfig, showToast, isArchived, s
                         </div>
                       </td>
                       <td style={{ ...TD, textAlign: "center" }}>
-                        <div onClick={() => toggleWritten(g.id)}
+                        <div onClick={() => !isViewer && toggleWritten(g.id)}
                           style={{ width: 22, height: 22, borderRadius: 6, border: `2px solid ${g.thankYouWritten ? "var(--green)" : "var(--border)"}`, background: g.thankYouWritten ? "var(--green)" : "transparent", display: "inline-flex", alignItems: "center", justifyContent: "center", cursor: "pointer", transition: "all 0.15s" }}>
                           {g.thankYouWritten && <span style={{ color: "white", fontSize: 13, fontWeight: 700 }}>✓</span>}
                         </div>
                       </td>
                       <td style={{ ...TD, textAlign: "center" }}>
-                        <div onClick={() => toggleMailed(g.id)}
+                        <div onClick={() => !isViewer && toggleMailed(g.id)}
                           style={{ width: 22, height: 22, borderRadius: 6, border: `2px solid ${g.thankYouMailed ? "var(--blue)" : "var(--border)"}`, background: g.thankYouMailed ? "var(--blue)" : "transparent", display: "inline-flex", alignItems: "center", justifyContent: "center", cursor: "pointer", transition: "all 0.15s" }}>
                           {g.thankYouMailed && <span style={{ color: "white", fontSize: 13, fontWeight: 700 }}>✓</span>}
                         </div>
                       </td>
                       <td style={{ ...TD, textAlign: "center" }}>
                         <div style={{ display: "flex", gap: 4, justifyContent: "center" }}>
-                          <button className="icon-btn" title="Edit"   disabled={isArchived} onClick={() => setEditGift(g)}>✎</button>
-                          <button className="icon-btn icon-btn-danger" title="Delete" disabled={isArchived} onClick={() => setDeleteConfirm(g)}>✕</button>
+                          <button className="icon-btn" title="Edit"   disabled={isArchived || isViewer} onClick={() => setEditGift(g)}>✎</button>
+                          <button className="icon-btn icon-btn-danger" title="Delete" disabled={isArchived || isViewer} onClick={() => setDeleteConfirm(g)}>✕</button>
                         </div>
                       </td>
                     </tr>
@@ -319,19 +319,19 @@ export function GiftsTab({ eventId, event, adminConfig, showToast, isArchived, s
                     <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4, flexShrink: 0 }}>
                       <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
                         <span style={{ fontSize: 10, color: "var(--text-muted)", fontWeight: 600 }}>W</span>
-                        <div onClick={() => toggleWritten(g.id)} style={{ width: 24, height: 24, borderRadius: 6, border: `2px solid ${g.thankYouWritten ? "var(--green)" : "var(--border)"}`, background: g.thankYouWritten ? "var(--green)" : "transparent", display: "inline-flex", alignItems: "center", justifyContent: "center", cursor: "pointer", transition: "all 0.15s" }}>
+                        <div onClick={() => !isViewer && toggleWritten(g.id)} style={{ width: 24, height: 24, borderRadius: 6, border: `2px solid ${g.thankYouWritten ? "var(--green)" : "var(--border)"}`, background: g.thankYouWritten ? "var(--green)" : "transparent", display: "inline-flex", alignItems: "center", justifyContent: "center", cursor: "pointer", transition: "all 0.15s" }}>
                           {g.thankYouWritten && <span style={{ color: "white", fontSize: 13, fontWeight: 700 }}>✓</span>}
                         </div>
                         <span style={{ fontSize: 10, color: "var(--text-muted)", fontWeight: 600 }}>M</span>
-                        <div onClick={() => toggleMailed(g.id)} style={{ width: 24, height: 24, borderRadius: 6, border: `2px solid ${g.thankYouMailed ? "var(--blue)" : "var(--border)"}`, background: g.thankYouMailed ? "var(--blue)" : "transparent", display: "inline-flex", alignItems: "center", justifyContent: "center", cursor: "pointer", transition: "all 0.15s" }}>
+                        <div onClick={() => !isViewer && toggleMailed(g.id)} style={{ width: 24, height: 24, borderRadius: 6, border: `2px solid ${g.thankYouMailed ? "var(--blue)" : "var(--border)"}`, background: g.thankYouMailed ? "var(--blue)" : "transparent", display: "inline-flex", alignItems: "center", justifyContent: "center", cursor: "pointer", transition: "all 0.15s" }}>
                           {g.thankYouMailed && <span style={{ color: "white", fontSize: 13, fontWeight: 700 }}>✓</span>}
                         </div>
                       </div>
                     </div>
                     {/* Actions */}
                     <div style={{ display: "flex", flexDirection: "column", gap: 4, flexShrink: 0 }}>
-                      <button className="icon-btn" title="Edit"   disabled={isArchived} onClick={() => setEditGift(g)}>✎</button>
-                      <button className="icon-btn icon-btn-danger" title="Delete" disabled={isArchived} onClick={() => setDeleteConfirm(g)}>✕</button>
+                      <button className="icon-btn" title="Edit"   disabled={isArchived || isViewer} onClick={() => setEditGift(g)}>✎</button>
+                      <button className="icon-btn icon-btn-danger" title="Delete" disabled={isArchived || isViewer} onClick={() => setDeleteConfirm(g)}>✕</button>
                     </div>
                     {/* Expand chevron */}
                     <div onClick={() => toggleExpand(g.id)} style={{ cursor: "pointer", color: "var(--text-muted)", fontSize: 16, flexShrink: 0, padding: "0 2px", transform: isExpanded ? "rotate(90deg)" : "none", transition: "transform 0.2s ease" }}>›</div>

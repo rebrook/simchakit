@@ -34,7 +34,7 @@ const DEFAULT_CONFIG = {
 
 export function FavorsTab({
   eventId, event, adminConfig, showToast,
-  isArchived, searchHighlight, clearSearchHighlight,
+  isArchived, isViewer, searchHighlight, clearSearchHighlight,
   setActiveTab, onConfigSaved,
 }) {
   const { items: favors,     loading: fLoading, save, remove } = useEventData(eventId, "favors");
@@ -226,7 +226,7 @@ export function FavorsTab({
 
   // ── Config save ───────────────────────────────────────────────────────────
   const saveConfig = async (cfg) => {
-    if (isArchived) return;
+    if (isArchived || isViewer) return;
     const cfgToSave = cfg || localConfig;
     setConfigSaving(true);
     const newAdminConfig = { ...(adminConfig || {}), favorConfig: cfgToSave };
@@ -259,7 +259,7 @@ export function FavorsTab({
   };
 
   const deleteFavorType = async (typeId) => {
-    if (isArchived) return;
+    if (isArchived || isViewer) return;
     const toDelete = favors.filter(f => f.favorTypeId === typeId);
     for (const f of toDelete) await remove(f._rowId);
     const next = { ...localConfig, favorTypes: (localConfig.favorTypes || []).filter(t => t.id !== typeId) };
@@ -270,10 +270,10 @@ export function FavorsTab({
   };
 
   // ── CRUD ──────────────────────────────────────────────────────────────────
-  const handleAdd    = async (f)  => { if (isArchived) return; await save({ ...f, favorTypeId: activeType?.id }); showToast("Favor added");   setShowModal(false); };
-  const handleEdit   = async (f)  => { if (isArchived) return; await save(f);                                      showToast("Favor updated"); setEditFavor(null);  };
+  const handleAdd    = async (f)  => { if (isArchived || isViewer) return; await save({ ...f, favorTypeId: activeType?.id }); showToast("Favor added");   setShowModal(false); };
+  const handleEdit   = async (f)  => { if (isArchived || isViewer) return; await save(f);                                      showToast("Favor updated"); setEditFavor(null);  };
   const handleDelete = async (id) => {
-    if (isArchived) return;
+    if (isArchived || isViewer) return;
     const f = favors.find(x => x.id === id);
     if (f) await remove(f._rowId);
     showToast("Favor deleted");
@@ -281,7 +281,7 @@ export function FavorsTab({
   };
 
   const cyclePre = async (id) => {
-    if (isArchived) return;
+    if (isArchived || isViewer) return;
     const f = favors.find(x => x.id === id);
     if (!f) return;
     const next = { "TBD": "Yes", "Yes": "No", "No": "TBD" };
@@ -290,7 +290,7 @@ export function FavorsTab({
 
   // ── Add person from available panel ───────────────────────────────────────
   const addFromPanel = async (p) => {
-    if (isArchived || !activeType) return;
+    if (isArchived || isViewer || !activeType) return;
     const name    = getPersonDisplayName(p);
     const sizeVal = activeType.sizeSource === "pant"   ? p.pantSize  || ""
                   : activeType.sizeSource === "manual" ? ""
@@ -339,7 +339,7 @@ export function FavorsTab({
             {typeFavors.length > 0 && (
               <button className="btn btn-secondary" onClick={() => setShowExport(true)}>↓ Export</button>
             )}
-            <button className="btn btn-primary" disabled={isArchived} onClick={() => setShowModal(true)}>+ Add Manually</button>
+            {!isViewer && <button className="btn btn-primary" disabled={isArchived} onClick={() => setShowModal(true)}>+ Add Manually</button>}
           </div>
         )}
       </div>
@@ -399,7 +399,7 @@ export function FavorsTab({
                     <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)" }}>
                       Favor Type {favorTypes.length > 1 ? idx + 1 : ""}
                     </div>
-                    {favorTypes.length > 1 && !isArchived && (
+                    {favorTypes.length > 1 && !isArchived && !isViewer && (
                       <button className="btn btn-ghost btn-sm" style={{ fontSize: 11, color: "var(--red)" }}
                         onClick={() => deleteFavorType(ft.id)}>
                         Remove
@@ -410,7 +410,7 @@ export function FavorsTab({
                   <div className="form-row" style={{ marginBottom: 10 }}>
                     <label className="form-label">What is the favor?</label>
                     <input className="form-input" value={ft.description || ""}
-                      onChange={e => updateFavorType(ft.id, { description: e.target.value })}
+                      onChange={e => !isViewer && updateFavorType(ft.id, { description: e.target.value })} disabled={isViewer}
                       placeholder="e.g., Sweatshirts, Tote bags, Candles…" />
                   </div>
 
@@ -477,7 +477,7 @@ export function FavorsTab({
 
             {!isArchived && givingFavors && (
               <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 12, paddingTop: 12, borderTop: "1px solid var(--border)" }}>
-                <button className="btn btn-primary btn-sm" onClick={() => saveConfig()} disabled={configSaving}>
+                <button className="btn btn-primary btn-sm" onClick={() => saveConfig()} disabled={configSaving || isViewer}>
                   {configSaving ? "Saving…" : "Save Settings"}
                 </button>
               </div>

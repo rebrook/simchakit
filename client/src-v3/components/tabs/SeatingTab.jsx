@@ -13,7 +13,7 @@ import { exportSeatingByTable, exportSeatingByPerson, generateSeatingPrintHTML }
 import { autoSeatByHousehold } from "@/utils/seating.js";
 import { ArchivedNotice }     from "@/components/shared/ArchivedNotice.jsx";
 
-export function SeatingTab({ eventId, event, adminConfig, showToast, isArchived, setActiveTab, searchHighlight, clearSearchHighlight }) {
+export function SeatingTab({ eventId, event, adminConfig, showToast, isArchived, isViewer, setActiveTab, searchHighlight, clearSearchHighlight }) {
   const { items: tables,     loading: tLoading, save: saveTable, remove: removeTable } = useEventData(eventId, "tables");
   const { items: people,     loading: pLoading, save: savePerson }                     = useEventData(eventId, "people", { promoteColumns: peoplePromoteColumns });
   const { items: households, loading: hLoading, save: saveHousehold }                   = useEventData(eventId, "households");
@@ -156,7 +156,7 @@ export function SeatingTab({ eventId, event, adminConfig, showToast, isArchived,
   });
 
   const handleMoveTable = async (id, direction) => {
-    if (isArchived) return;
+    if (isArchived || isViewer) return;
     const idx  = sortedTables.findIndex(t => t.id === id);
     const newI = direction === "up" ? idx - 1 : idx + 1;
     if (newI < 0 || newI >= sortedTables.length) return;
@@ -167,10 +167,10 @@ export function SeatingTab({ eventId, event, adminConfig, showToast, isArchived,
     }
   };
 
-  const handleAddTable    = async (t)  => { if (isArchived) return; await saveTable({ ...t, sectionId });                          showToast("Table added");   setShowTableModal(false); };
-  const handleEditTable   = async (t)  => { if (isArchived) return; await saveTable(t);                          showToast("Table updated"); setEditTable(null);       };
+  const handleAddTable    = async (t)  => { if (isArchived || isViewer) return; await saveTable({ ...t, sectionId });                          showToast("Table added");   setShowTableModal(false); };
+  const handleEditTable   = async (t)  => { if (isArchived || isViewer) return; await saveTable(t);                          showToast("Table updated"); setEditTable(null);       };
   const handleDeleteTable = async (id) => {
-    if (isArchived) return;
+    if (isArchived || isViewer) return;
     const assigned = people.filter(p =>
       p.tableAssignments ? Object.values(p.tableAssignments).includes(id) : p.tableId === id
     );
@@ -190,7 +190,7 @@ export function SeatingTab({ eventId, event, adminConfig, showToast, isArchived,
   };
 
   const assignPerson = async (personId, tableId) => {
-    if (isArchived) return;
+    if (isArchived || isViewer) return;
     const p = people.find(x => x.id === personId);
     if (p) {
       const ta = { ...(p.tableAssignments || {}), [sectionId]: tableId };
@@ -203,7 +203,7 @@ export function SeatingTab({ eventId, event, adminConfig, showToast, isArchived,
   };
 
   const unassignPerson = async (personId) => {
-    if (isArchived) return;
+    if (isArchived || isViewer) return;
     const p = people.find(x => x.id === personId);
     if (p) {
       const ta = { ...(p.tableAssignments || {}) };
@@ -229,12 +229,12 @@ export function SeatingTab({ eventId, event, adminConfig, showToast, isArchived,
   };
 
   const handlePersonClick = (personId) => {
-    if (isArchived) return;
+    if (isArchived || isViewer) return;
     setSelectedPersonId(id => id === personId ? null : personId);
   };
 
   const handleTableClick = (tableId) => {
-    if (!selectedPersonId || isArchived) return;
+    if (!selectedPersonId || isArchived || isViewer) return;
     assignPerson(selectedPersonId, tableId);
   };
 
@@ -317,11 +317,11 @@ export function SeatingTab({ eventId, event, adminConfig, showToast, isArchived,
           {hasSeating && sectionId && (sortedTables.length > 0 || scopedPeople.length > 0) && (
             <button className="btn btn-secondary" onClick={() => setShowExportModal(true)}>↓ Export Seating</button>
           )}
-          {hasSeating && sectionId && unseated.length > 0 && sortedTables.length > 0 && !isArchived && (
+          {hasSeating && sectionId && unseated.length > 0 && sortedTables.length > 0 && !isArchived && !isViewer && (
             <button className="btn btn-secondary" onClick={() => setShowAutoSeat(true)}>✨ Auto-Seat</button>
           )}
           {hasSeating && sectionId && (
-            <button className="btn btn-primary" disabled={isArchived} onClick={() => setShowTableModal(true)}>+ Add Table</button>
+            <button className="btn btn-primary" disabled={isArchived || isViewer} onClick={() => setShowTableModal(true)}>+ Add Table</button>
           )}
         </div>
       </div>
@@ -347,10 +347,11 @@ export function SeatingTab({ eventId, event, adminConfig, showToast, isArchived,
         </div>
         {setupOpen && (
           <div style={{ padding: 16 }}>
-            <label style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer", marginBottom: 16 }}>
+            <label style={{ display: "flex", alignItems: "center", gap: 10, cursor: isViewer ? "default" : "pointer", marginBottom: 16 }}>
               <input type="checkbox" checked={hasSeating}
-                onChange={e => saveConfig({ ...seatingConfig, hasSeating: e.target.checked, enabledSections: seatingConfig.enabledSections || [] })}
-                style={{ width: 16, height: 16, cursor: "pointer", accentColor: "var(--accent-primary)" }} />
+                onChange={e => !isViewer && saveConfig({ ...seatingConfig, hasSeating: e.target.checked, enabledSections: seatingConfig.enabledSections || [] })}
+                disabled={isViewer}
+                style={{ width: 16, height: 16, cursor: isViewer ? "default" : "pointer", accentColor: "var(--accent-primary)" }} />
               <div>
                 <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text-primary)" }}>This event has assigned seating</div>
                 <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 2 }}>Enable seating for one or more sub-events below. Each sub-event has its own independent set of tables.</div>
