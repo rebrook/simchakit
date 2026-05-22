@@ -1,9 +1,16 @@
 {
-  "current": "V3.13.2",
+  "current": "V3.13.3",
   "whatsNew": [
     "Multiple people can now plan a single event together. Invite a co-planner as an Editor for full access, or a Viewer so family can follow along. Open Admin Mode and go to Collaborators to get started. Collaborator access is covered by the event owner's purchase at no extra cost."
   ],
   "changelog": [
+    {
+      "version": "V3.13.3",
+      "date": "2026-05-22",
+      "changes": [
+        "send-invite.js: replaced supabase.auth.admin.getUserByEmail() with a user_profiles table query to check for existing collaborators before sending an invite; auth.admin API is not available on the standard createClient and was causing FUNCTION_INVOCATION_FAILED crashes"
+      ]
+    },
     {
       "version": "V3.13.2",
       "date": "2026-05-22",

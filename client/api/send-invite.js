@@ -115,14 +115,21 @@ export default async function handler(req, res) {
 
   // ── Step 3: Reject if invitee is already an accepted collaborator ─────────────
   // Only applies to email invites — link invites cannot pre-check by email.
+  // Uses user_profiles (application data layer) rather than auth.admin API,
+  // consistent with the pattern in notify.js and brevo-sync.js.
   if (isEmailInvite) {
-    const { data: existingUser } = await supabase.auth.admin.getUserByEmail(inviteeEmail);
-    if (existingUser?.user?.id) {
+    const { data: existingProfile } = await supabase
+      .from("user_profiles")
+      .select("id")
+      .eq("email", inviteeEmail.trim().toLowerCase())
+      .maybeSingle();
+
+    if (existingProfile?.id) {
       const { data: existingCollab } = await supabase
         .from("event_collaborators")
         .select("id")
         .eq("event_id", eventId)
-        .eq("user_id", existingUser.user.id)
+        .eq("user_id", existingProfile.id)
         .not("accepted_at", "is", null)
         .maybeSingle();
 
