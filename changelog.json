@@ -1,9 +1,28 @@
 {
-  "current": "V3.12.2",
+  "current": "V3.13.1",
   "whatsNew": [
-    "Re-engagement email sequence is now wired -- new users who do not purchase will receive three check-in emails at 30, 60, and 90 days."
+    "Multiple people can now plan a single event together. Invite a co-planner as an Editor for full access, or a Viewer so family can follow along. Collaborator access is covered by the event owner's purchase at no extra cost. (UI coming soon)"
   ],
   "changelog": [
+    {
+      "version": "V3.13.1",
+      "date": "2026-05-22",
+      "changes": [
+        "Added api/accept-invite.js: validates invitation tokens, inserts event_collaborators row, stamps accepted_at on invitation, syncs collaborator to Brevo list 7 (editors) or list 8 (viewers) with IS_COLLABORATOR, COLLABORATOR_ROLE, and COLLABORATOR_EVENT_ID attributes; owner-journey contacts (lists 3/6) are not moved to collaborator lists",
+        "Added api/send-invite.js: creates event_invitations row, sends Brevo transactional invite email (Template 19) with INVITER_NAME, EVENT_NAME, ROLE_LABEL, INVITE_URL, and MESSAGE params; supports email invites and link-only invites; invitation email failure is non-fatal and returns inviteUrl for manual sharing"
+      ]
+    },
+    {
+      "version": "V3.13.0",
+      "date": "2026-05-22",
+      "changes": [
+        "Database foundation for Multi-Planner feature: created event_collaborators and event_invitations tables with RLS, indexes, and grants",
+        "Extended owned_event_ids() function to include events where the user is an accepted collaborator, granting read access across all 13 collection tables",
+        "Split ALL owner policies into separate SELECT and write policies on all 13 collection tables: SELECT allows owners and all collaborators (editors and viewers); INSERT/UPDATE/DELETE restricted to owners and accepted editors only (Viewer write restriction enforced at RLS layer)",
+        "Added Collaborator can read event SELECT policy to events table so collaborators can load the event record",
+        "Re-granted EXECUTE on owned_event_ids() to authenticated, anon, and service_role after function replacement"
+      ]
+    },
     {
       "version": "V3.12.2",
       "date": "2026-05-20",

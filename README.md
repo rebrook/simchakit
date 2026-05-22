@@ -2,7 +2,7 @@
 
 A real-time event planning web app for celebrations — B'nei Mitzvot, weddings, and other simchas.
 
-![Version](https://img.shields.io/badge/version-3.12.2-blue)
+![Version](https://img.shields.io/badge/version-3.13.1-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
 ## Hosted Version
@@ -25,6 +25,7 @@ A real-time event planning web app for celebrations — B'nei Mitzvot, weddings,
 
 ## Features
 
+- **Shared Access** — invite co-planners as Editors (full access) or Viewers (read-only); collaborators covered by the event owner's purchase
 - **Guest Management** — households, people, formal names, dietary requirements, RSVP tracking
 - **Sub-Event Support** — track attendance across multiple events (service, kiddush, reception)
 - **Budget Tracking** — expenses, payments, vendor costs, gratuity calculator
@@ -51,7 +52,7 @@ A real-time event planning web app for celebrations — B'nei Mitzvot, weddings,
 - **Payments**: Stripe (one-time fee per event)
 - **Styling**: Custom CSS with CSS variables for theming
 
-### V2 — Self-Hosted NAS Edition (active through October 2026)
+### V2 — Self-Hosted NAS Edition
 
 - **Frontend**: Vite + React 18
 - **Backend**: Node.js + Express + WebSocket
@@ -126,6 +127,8 @@ simchakit/
 │   ├── api/                 # Vercel serverless functions (V3 only)
 │   │   ├── notify.js
 │   │   ├── brevo-sync.js
+│   │   ├── accept-invite.js
+│   │   ├── send-invite.js
 │   │   ├── validate-coupon.js
 │   │   ├── create-checkout-session.js
 │   │   └── stripe-webhook.js
@@ -161,18 +164,53 @@ simchakit/
 
 ## Deployment
 
-### V3 — Vercel
+### V3 — Vercel + Supabase
+
+#### Application (Vercel)
 
 Push to the `main` branch. Vercel automatically builds and deploys from `client/` using `vite.config.v3.js`. Serverless functions in `client/api/` are deployed alongside the frontend.
 
+Files that require a deploy when changed:
+- Any file under `client/src-v3/`
+- Any file under `client/api/`
+- `client/public/changelog.json`
+- `vercel.json`
+
+#### Database (Supabase)
+
+Schema changes (new tables, RLS policies, functions) are applied directly in the Supabase SQL editor. There is no ORM or migration runner -- SQL is written, reviewed, and pasted into the editor manually.
+
+**Standard process for a database change:**
+1. Write and review the SQL locally (in outputs)
+2. Open the Supabase dashboard → SQL Editor
+3. Paste the full migration block and run it
+4. Run smoke test queries to verify the change took effect
+5. No Vercel deploy is needed for database-only changes
+
+**Critical rules:**
+- Any function referenced inside an RLS policy must have `EXECUTE` granted to `anon` -- even if anon never calls it directly. Failure surfaces as a table access error, not a function error.
+- `CREATE OR REPLACE FUNCTION` does not preserve existing grants. Always re-run `GRANT EXECUTE` after replacing a function.
+- The demo event (UUID `440a8b9e-e92e-4ad6-b352-41965bd8383b`) has hardcoded `anon` policies on every collection table. New tables must include matching Demo read and Demo write policies if they need to be accessible from `demo.simcha-kit.com`.
+
+#### Changelog
+
+`changelog.json` lives in two places and both must be updated on every version bump:
+- `changelog.json` (repo root)
+- `client/public/changelog.json` (served as a static asset)
+
+Always edit using Python `json.load` / `json.dump` -- never string replacement. Verify `current` matches the first entry version before committing.
+
 ### V2 — Self-Hosted NAS
 
-SimchaKit V2 is designed to run on any server with Node.js — a VPS, home server, NAS, or local machine.
+SimchaKit V2 is designed to run on any server with Node.js -- a VPS, home server, NAS, or local machine.
 
-```bash
-# Deploy updates (after copying changed source files)
-bash deploy.sh
-```
+**Standard deploy process:**
+1. Copy changed source files to the NAS via SMB (Mac Finder → `brooknas.familyds.net`)
+2. SSH into the NAS
+3. `cd /volume1/web/simchakit`
+4. `bash deploy.sh` -- builds the client and restarts as needed
+
+**Server restart required** when any of these files change: `src/router.js`, `src/state.js`, `src/ws.js`. All other file changes (React components, CSS, constants) take effect after `deploy.sh` without a restart.
 
 See [HOW_TO_DEPLOY.md](HOW_TO_DEPLOY.md) for detailed instructions.
 
