@@ -1,9 +1,16 @@
 {
-  "current": "V3.13.4",
+  "current": "V3.13.5",
   "whatsNew": [
     "Multiple people can now plan a single event together. Invite a co-planner as an Editor for full access, or a Viewer so family can follow along. Open Admin Mode and go to Collaborators to get started. Collaborator access is covered by the event owner's purchase at no extra cost."
   ],
   "changelog": [
+    {
+      "version": "V3.13.5",
+      "date": "2026-05-22",
+      "changes": [
+        "AdminPanel.jsx: fixed CollaboratorsSection passing empty string for eventName to send-invite.js; eventName is now passed as a prop from AdminPanel (config?.name) and used directly in both handleSendInvite and handleCopyLink calls, resolving the 400 validation error on invite send"
+      ]
+    },
     {
       "version": "V3.13.4",
       "date": "2026-05-22",

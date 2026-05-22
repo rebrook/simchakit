@@ -922,7 +922,7 @@ export function AdminPanel({ eventId, userId, calendarToken: initialCalendarToke
 
           {/* ── Collaborators ── */}
           {section === "collaborators" && (
-            <CollaboratorsSection eventId={eventId} userId={userId} />
+            <CollaboratorsSection eventId={eventId} userId={userId} eventName={config?.name || ""} />
           )}
 
           {/* ── Calendar ── */}
@@ -1347,7 +1347,7 @@ function ContactBlock({ label, icon, value, onChange, alwaysShow, show }) {
 // Renders inside AdminPanel (owner-only). Manages invite flow and collaborator list.
 // ─────────────────────────────────────────────────────────────────────────────
 
-function CollaboratorsSection({ eventId, userId }) {
+function CollaboratorsSection({ eventId, userId, eventName }) {
   const [collaborators,  setCollaborators]  = useState([]);
   const [invitations,    setInvitations]    = useState([]); // pending (not yet accepted)
   const [loadStatus,     setLoadStatus]     = useState("loading");
@@ -1402,7 +1402,7 @@ function CollaboratorsSection({ eventId, userId }) {
           inviteeEmail: inviteEmail.trim(),
           role:         inviteRole,
           inviterName:  "the event owner",
-          eventName:    "",
+          eventName:    eventName,
           userId:       userId,
           message:      inviteMessage.trim(),
         }),
@@ -1441,7 +1441,7 @@ function CollaboratorsSection({ eventId, userId }) {
           eventId,
           role:        inviteRole,
           inviterName: "the event owner",
-          eventName:   "",
+          eventName:   eventName,
           userId:      userId,
         }),
       });
