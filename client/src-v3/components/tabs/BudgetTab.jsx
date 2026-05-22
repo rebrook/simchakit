@@ -335,7 +335,7 @@ function BudgetInsights({ expenses, catRows, catPaid, catBudgeted, hasAnyBudgete
 }
 
 // ── BudgetTab ─────────────────────────────────────────────────────────────────
-export function BudgetTab({ eventId, event, adminConfig, showToast, isArchived, searchHighlight, clearSearchHighlight }) {
+export function BudgetTab({ eventId, event, adminConfig, showToast, isArchived, isViewer, searchHighlight, clearSearchHighlight }) {
   const { items: expenses, loading: eLoading, save, remove } = useEventData(eventId, "expenses");
   const { items: vendors,  loading: vLoading }                = useEventData(eventId, "vendors");
 
@@ -484,7 +484,7 @@ export function BudgetTab({ eventId, event, adminConfig, showToast, isArchived, 
   const fmt = (d) => d ? new Date(d + "T00:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "";
 
   const togglePaid = async (expense, eIdx) => {
-    if (isArchived) return;
+    if (isArchived || isViewer) return;
     // Marking unpaid — always immediate
     if (expense.paid) {
       await save({ ...expense, paid: false, datePaid: "" });
@@ -552,7 +552,7 @@ export function BudgetTab({ eventId, event, adminConfig, showToast, isArchived, 
           {expenses.length > 0 && (
             <button className="btn btn-secondary btn-sm" onClick={handleExport}>↓ Export CSV</button>
           )}
-          {!isArchived && (
+          {!isArchived && !isViewer && (
             <button className="btn btn-primary btn-sm" onClick={() => { setEditing(null); setShowAdd(true); }}>
               + Add Expense
             </button>
@@ -614,7 +614,7 @@ export function BudgetTab({ eventId, event, adminConfig, showToast, isArchived, 
       />
 
       {/* Gratuity calculator */}
-      {expenses.length > 0 && !isArchived && (
+      {expenses.length > 0 && !isArchived && !isViewer && (
         <GratuityCalculator
           expenses={expenses}
           vendors={vendors}
@@ -686,7 +686,7 @@ export function BudgetTab({ eventId, event, adminConfig, showToast, isArchived, 
             <div style={{ fontSize:36, marginBottom:12, opacity:0.4 }}>💰</div>
             <div style={{ fontFamily:"var(--font-display)", fontSize:18, marginBottom:6, color:"var(--text-primary)" }}>Let's track your deposits and expenses.</div>
             <div style={{ fontSize:13, marginBottom:20 }}>Add your first expense to start building a clear picture of your budget.</div>
-            {!isArchived && <button className="btn btn-primary" style={{ marginTop:12 }} onClick={() => { setEditing(null); setShowAdd(true); }}>+ Add Expense</button>}
+            {!isArchived && !isViewer && <button className="btn btn-primary" style={{ marginTop:12 }} onClick={() => { setEditing(null); setShowAdd(true); }}>+ Add Expense</button>}
           </div>
         )}
         {expenses.length > 0 && filtered.length === 0 && (
@@ -774,10 +774,10 @@ export function BudgetTab({ eventId, event, adminConfig, showToast, isArchived, 
                   <div className="expense-row-actions">
                     <button className="icon-btn" title="Edit"
                       style={{width:28,height:28,fontSize:13}}
-                      disabled={isArchived} onClick={() => { setEditing(e); setShowAdd(true); }}>✎</button>
+                      disabled={isArchived || isViewer} onClick={() => { setEditing(e); setShowAdd(true); }}>✎</button>
                     <button className="icon-btn" title="Delete"
                       style={{width:28,height:28,fontSize:13,color:"var(--red)"}}
-                      disabled={isArchived} onClick={() => setDeleteConfirm(e)}>✕</button>
+                      disabled={isArchived || isViewer} onClick={() => setDeleteConfirm(e)}>✕</button>
                   </div>
                   {pendingPaidId === (e.id || e._rowId) && pendingPaidIdx === eIdx && (
                     <div style={{gridColumn:"1/-1",display:"flex",alignItems:"center",gap:8,flexWrap:"wrap",marginTop:6,padding:"10px 12px",background:"var(--green-light)",border:"1px solid var(--green)",borderRadius:"var(--radius-sm)"}}>
@@ -785,8 +785,8 @@ export function BudgetTab({ eventId, event, adminConfig, showToast, isArchived, 
                       <input className="form-input" type="date" value={pendingPaidDate}
                         onChange={e2 => setPendingPaidDate(e2.target.value)}
                         style={{width:150,fontSize:12,padding:"4px 8px"}} />
-                      <button className="btn btn-primary btn-sm" style={{fontSize:12}} onClick={confirmPaid}>Confirm paid</button>
-                      <button className="btn btn-secondary btn-sm" style={{fontSize:12}} onClick={cancelPaid}>Cancel</button>
+                      {!isViewer && <button className="btn btn-primary btn-sm" style={{fontSize:12}} onClick={confirmPaid}>Confirm paid</button>}
+                      {!isViewer && <button className="btn btn-secondary btn-sm" style={{fontSize:12}} onClick={cancelPaid}>Cancel</button>}
                     </div>
                   )}
                 </div>
@@ -903,10 +903,10 @@ export function BudgetTab({ eventId, event, adminConfig, showToast, isArchived, 
                         <div className="expense-row-actions">
                           <button className="icon-btn" title="Edit"
                             style={{width:28,height:28,fontSize:13}}
-                            disabled={isArchived} onClick={() => { setEditing(e); setShowAdd(true); }}>✎</button>
+                            disabled={isArchived || isViewer} onClick={() => { setEditing(e); setShowAdd(true); }}>✎</button>
                           <button className="icon-btn" title="Delete"
                             style={{width:28,height:28,fontSize:13,color:"var(--red)"}}
-                            disabled={isArchived} onClick={() => setDeleteConfirm(e)}>✕</button>
+                            disabled={isArchived || isViewer} onClick={() => setDeleteConfirm(e)}>✕</button>
                         </div>
                         {pendingPaidId === (e.id || e._rowId) && pendingPaidIdx === eIdx && (
                           <div style={{gridColumn:"1/-1",display:"flex",alignItems:"center",gap:8,flexWrap:"wrap",marginTop:6,padding:"10px 12px",background:"var(--green-light)",border:"1px solid var(--green)",borderRadius:"var(--radius-sm)"}}>
@@ -1026,8 +1026,8 @@ export function BudgetTab({ eventId, event, adminConfig, showToast, isArchived, 
                                 <input className="form-input" type="date" value={pendingPaidDate}
                                   onChange={e2 => setPendingPaidDate(e2.target.value)}
                                   style={{width:150,fontSize:12,padding:"4px 8px"}} />
-                                <button className="btn btn-primary btn-sm" style={{fontSize:12}} onClick={confirmPaid}>Confirm paid</button>
-                                <button className="btn btn-secondary btn-sm" style={{fontSize:12}} onClick={cancelPaid}>Cancel</button>
+                                {!isViewer && <button className="btn btn-primary btn-sm" style={{fontSize:12}} onClick={confirmPaid}>Confirm paid</button>}
+                                {!isViewer && <button className="btn btn-secondary btn-sm" style={{fontSize:12}} onClick={cancelPaid}>Cancel</button>}
                               </div>
                             )}
                           </div>

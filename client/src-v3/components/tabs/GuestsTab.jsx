@@ -30,7 +30,7 @@ import { RsvpPill }          from "@/components/shared/RsvpPill.jsx";
 import { CateringSummary }   from "@/components/shared/CateringSummary.jsx";
 
 // ── GuestsTab ─────────────────────────────────────────────────────────────────
-export function GuestsTab({ eventId, event, adminConfig, showToast, isArchived, searchHighlight, clearSearchHighlight }) {
+export function GuestsTab({ eventId, event, adminConfig, showToast, isArchived, isViewer, searchHighlight, clearSearchHighlight }) {
   const { items: households, loading: hLoading, save: saveHouseholdRow, remove: removeHouseholdRow } = useEventData(eventId, "households");
   const { items: people,     loading: pLoading, save: savePersonRow,    remove: removePersonRow }     = useEventData(eventId, "people", { promoteColumns: peoplePromoteColumns });
   const { items: tables,     loading: tLoading }                                                       = useEventData(eventId, "tables");
@@ -235,9 +235,13 @@ export function GuestsTab({ eventId, event, adminConfig, showToast, isArchived, 
           <div className="section-subtitle">{households.length} household{households.length!==1?"s":""} · {totalPeople} individual{totalPeople!==1?"s":""}</div>
         </div>
         <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
-          <button className="btn btn-secondary btn-sm" disabled={isArchived} onClick={()=>setShowImport(true)}>Import</button>
           <button className="btn btn-secondary btn-sm" onClick={()=>setShowGuestExport(true)}>↓ Export Guests</button>
-          <button className="btn btn-primary btn-sm" disabled={isArchived} onClick={()=>setShowAdd(true)}>+ Add Household</button>
+          {!isViewer && (
+            <>
+              <button className="btn btn-secondary btn-sm" disabled={isArchived} onClick={()=>setShowImport(true)}>Import</button>
+              <button className="btn btn-primary btn-sm" disabled={isArchived} onClick={()=>setShowAdd(true)}>+ Add Household</button>
+            </>
+          )}
         </div>
       </div>
 
@@ -276,7 +280,7 @@ export function GuestsTab({ eventId, event, adminConfig, showToast, isArchived, 
       {/* Filters */}
       <div style={{display:"flex",flexDirection:"column",gap:8,marginBottom:16}}>
         <div style={{display:"flex",gap:8,alignItems:"center"}}>
-          {!isArchived && filtered.length > 0 && (
+          {!isArchived && !isViewer && filtered.length > 0 && (
             <label style={{display:"flex",alignItems:"center",gap:6,cursor:"pointer",flexShrink:0,padding:"0 4px"}}
               title={selectedHHIds.size===filtered.length?"Deselect all":"Select all visible"}>
               <input type="checkbox"
@@ -305,7 +309,7 @@ export function GuestsTab({ eventId, event, adminConfig, showToast, isArchived, 
       </div>
 
       {/* Bulk action bar */}
-      {selectedHHIds.size > 0 && (
+      {selectedHHIds.size > 0 && !isViewer && (
         <div style={{display:"flex",alignItems:"center",gap:10,flexWrap:"wrap",padding:"10px 14px",marginBottom:8,background:"var(--accent-light)",border:"1px solid var(--accent-medium)",borderRadius:"var(--radius-md)"}}>
           <span style={{fontSize:13,fontWeight:600,color:"var(--accent-primary)",flex:1}}>{selectedHHIds.size} household{selectedHHIds.size!==1?"s":""} selected</span>
           <select className="form-select" value={bulkStatus} onChange={e=>setBulkStatus(e.target.value)} style={{fontSize:13,padding:"6px 10px",width:"auto"}} disabled={isArchived}>
@@ -326,7 +330,7 @@ export function GuestsTab({ eventId, event, adminConfig, showToast, isArchived, 
           <div style={{fontSize:13,marginBottom:households.length===0?20:0}}>
             {households.length===0 ? "Add your first household or import from CSV." : "Try adjusting your search or filters."}
           </div>
-          {households.length===0 && !isArchived && (
+          {households.length===0 && !isArchived && !isViewer && (
             <button className="btn btn-primary" onClick={()=>setShowAdd(true)}>+ Add Household</button>
           )}
         </div>
@@ -341,7 +345,7 @@ export function GuestsTab({ eventId, event, adminConfig, showToast, isArchived, 
                 <div className="hh-row-main"
                   style={{borderRadius: isExpanded ? "var(--radius-md) var(--radius-md) 0 0" : "var(--radius-md)"}}
                   onClick={()=>setExpandedHH(isExpanded?null:hh.id)}>
-                  {!isArchived && (
+                  {!isArchived && !isViewer && (
                     <div style={{flexShrink:0,display:"flex",alignItems:"center",paddingRight:4}}>
                       <input type="checkbox" checked={selectedHHIds.has(hh.id)}
                         onClick={e=>e.stopPropagation()} onChange={()=>toggleSelect(hh.id)}
@@ -355,8 +359,8 @@ export function GuestsTab({ eventId, event, adminConfig, showToast, isArchived, 
                     <div className="hh-row-mobile-meta">
                       <span className="tag tag-muted">{hh.group}</span>
                       <RsvpPill hh={hh} open={openRsvp===hh.id}
-                        onOpen={e=>{e.stopPropagation();setOpenRsvp(openRsvp===hh.id?null:hh.id);}}
-                        onSelect={s=>updateRsvpStatus(hh.id,s)} statusStyle={statusStyle} />
+                        onOpen={e=>{e.stopPropagation();if(!isViewer)setOpenRsvp(openRsvp===hh.id?null:hh.id);}}
+                        onSelect={s=>!isViewer && updateRsvpStatus(hh.id,s)} statusStyle={statusStyle} />
                       {hh.outOfTown && <span title="Out of town" style={{fontSize:13}}>🧳</span>}
                       {!hh.address1 && <span title="No address on file" style={{fontSize:13}}>📭</span>}
                       <span style={{fontSize:12,color:"var(--text-muted)"}} title={`${counts.adults} Adults, ${counts.kids} Kids`}>
@@ -367,26 +371,26 @@ export function GuestsTab({ eventId, event, adminConfig, showToast, isArchived, 
                   <div className="hh-row-meta">
                     <span className="tag tag-muted">{hh.group}</span>
                     <RsvpPill hh={hh} open={openRsvp===hh.id}
-                      onOpen={e=>{e.stopPropagation();setOpenRsvp(openRsvp===hh.id?null:hh.id);}}
-                      onSelect={s=>updateRsvpStatus(hh.id,s)} statusStyle={statusStyle} />
+                      onOpen={e=>{e.stopPropagation();if(!isViewer)setOpenRsvp(openRsvp===hh.id?null:hh.id);}}
+                      onSelect={s=>!isViewer && updateRsvpStatus(hh.id,s)} statusStyle={statusStyle} />
                     <div className="hh-row-counts" title={`${counts.adults} Adults, ${counts.kids} Kids`}>
                       {counts.adults>0 && <span>{counts.adults}A </span>}
                       {counts.kids>0   && <span>{counts.kids}K </span>}
                       {counts.total===0 && <span style={{fontStyle:"italic"}}>no members</span>}
                     </div>
                     <div style={{display:"flex",gap:4}} onClick={e=>e.stopPropagation()}>
-                      <button onClick={()=>toggleMailing(hh.id,"saveTheDateSent")} title={hh.saveTheDateSent?"Save the Date sent — click to undo":"Mark Save the Date as sent"}
-                        style={{width:26,height:26,borderRadius:6,cursor:"pointer",fontSize:13,display:"inline-flex",alignItems:"center",justifyContent:"center",border:hh.saveTheDateSent?"none":"1.5px solid var(--border-strong)",background:hh.saveTheDateSent?"var(--accent-primary)":"var(--bg-surface)",color:hh.saveTheDateSent?"white":"var(--text-muted)",transition:"all var(--transition)"}}>📅</button>
-                      <button onClick={()=>toggleMailing(hh.id,"inviteSent")} title={hh.inviteSent?"Invite sent — click to undo":"Mark invite as sent"}
-                        style={{width:26,height:26,borderRadius:6,cursor:"pointer",fontSize:13,display:"inline-flex",alignItems:"center",justifyContent:"center",border:hh.inviteSent?"none":"1.5px solid var(--border-strong)",background:hh.inviteSent?"var(--accent-primary)":"var(--bg-surface)",color:hh.inviteSent?"white":"var(--text-muted)",transition:"all var(--transition)"}}>✉</button>
+                      <button onClick={()=>!isViewer && toggleMailing(hh.id,"saveTheDateSent")} title={hh.saveTheDateSent?"Save the Date sent — click to undo":"Mark Save the Date as sent"}
+                        style={{width:26,height:26,borderRadius:6,cursor:isViewer?"default":"pointer",fontSize:13,display:"inline-flex",alignItems:"center",justifyContent:"center",border:hh.saveTheDateSent?"none":"1.5px solid var(--border-strong)",background:hh.saveTheDateSent?"var(--accent-primary)":"var(--bg-surface)",color:hh.saveTheDateSent?"white":"var(--text-muted)",transition:"all var(--transition)",opacity:isViewer?0.6:1}}>📅</button>
+                      <button onClick={()=>!isViewer && toggleMailing(hh.id,"inviteSent")} title={hh.inviteSent?"Invite sent — click to undo":"Mark invite as sent"}
+                        style={{width:26,height:26,borderRadius:6,cursor:isViewer?"default":"pointer",fontSize:13,display:"inline-flex",alignItems:"center",justifyContent:"center",border:hh.inviteSent?"none":"1.5px solid var(--border-strong)",background:hh.inviteSent?"var(--accent-primary)":"var(--bg-surface)",color:hh.inviteSent?"white":"var(--text-muted)",transition:"all var(--transition)",opacity:isViewer?0.6:1}}>✉</button>
                       {hh.accommodationNeeded && <span title="Accommodation needed" style={{fontSize:14}}>🏨</span>}
                       {hh.outOfTown       && <span title="Out of town"        style={{fontSize:14}}>🧳</span>}
                       {!hh.address1       && <span title="No address on file" style={{fontSize:14}}>📭</span>}
                     </div>
                   </div>
                   <div className="hh-row-actions" onClick={e=>e.stopPropagation()}>
-                    <button className="icon-btn" style={{width:32,height:32,fontSize:13}} title="Edit" disabled={isArchived} onClick={()=>setEditingHH(hh)}>✎</button>
-                    <button className="icon-btn" style={{width:32,height:32,fontSize:13,color:"var(--red)"}} title="Delete" disabled={isArchived} onClick={()=>setDeleteConfirm(hh.id)}>✕</button>
+                    <button className="icon-btn" style={{width:32,height:32,fontSize:13}} title="Edit" disabled={isArchived || isViewer} onClick={()=>setEditingHH(hh)}>✎</button>
+                    <button className="icon-btn" style={{width:32,height:32,fontSize:13,color:"var(--red)"}} title="Delete" disabled={isArchived || isViewer} onClick={()=>setDeleteConfirm(hh.id)}>✕</button>
                   </div>
                 </div>
 

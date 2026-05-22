@@ -12,7 +12,7 @@ import { newPrepId }          from "@/utils/ids.js";
 import { ArchivedNotice }     from "@/components/shared/ArchivedNotice.jsx";
 import { TorahPortionCard }   from "@/components/shared/TorahPortionCard.jsx";
 
-export function PrepTab({ eventId, event, adminConfig, showToast, isArchived, searchHighlight, clearSearchHighlight }) {
+export function PrepTab({ eventId, event, adminConfig, showToast, isArchived, isViewer, searchHighlight, clearSearchHighlight }) {
   const { items: prep, loading, save, remove } = useEventData(eventId, "prep");
 
   const [showModal,     setShowModal]     = useState(false);
@@ -23,10 +23,10 @@ export function PrepTab({ eventId, event, adminConfig, showToast, isArchived, se
   useSearchHighlight(searchHighlight, clearSearchHighlight, "prep");
 
   const saveItem   = async (item) => { await save(item); };
-  const handleAdd  = async (item) => { if (isArchived) return; await saveItem(item); showToast("Prep item added");   setShowModal(false); };
-  const handleEdit = async (item) => { if (isArchived) return; await saveItem(item); showToast("Prep item updated"); setEditItem(null);   };
+  const handleAdd  = async (item) => { if (isArchived || isViewer) return; await saveItem(item); showToast("Prep item added");   setShowModal(false); };
+  const handleEdit = async (item) => { if (isArchived || isViewer) return; await saveItem(item); showToast("Prep item updated"); setEditItem(null);   };
   const handleDelete = async (id) => {
-    if (isArchived) return;
+    if (isArchived || isViewer) return;
     const p = prep.find(x => x.id === id);
     if (p) await remove(p._rowId);
     showToast("Prep item deleted");
@@ -37,7 +37,7 @@ export function PrepTab({ eventId, event, adminConfig, showToast, isArchived, se
 
   // Inline progress slider — auto-derive status from new progress value
   const handleProgressChange = async (id, val) => {
-    if (isArchived) return;
+    if (isArchived || isViewer) return;
     const pct = parseInt(val, 10);
     let status = "Not Started";
     if (pct === 100)      status = "Complete";
@@ -81,7 +81,7 @@ export function PrepTab({ eventId, event, adminConfig, showToast, isArchived, se
           <div className="section-title">Preparation Tracker</div>
           <div className="section-sub">Track milestones, study progress, and key preparation items.</div>
         </div>
-        <button className="btn btn-primary" disabled={isArchived} onClick={() => setShowModal(true)}>
+        <button className="btn btn-primary" disabled={isArchived || isViewer} onClick={() => setShowModal(true)}>
           + Add Item
         </button>
       </div>
@@ -166,7 +166,7 @@ export function PrepTab({ eventId, event, adminConfig, showToast, isArchived, se
           <div style={{ fontSize: 14, marginBottom: 24, lineHeight: 1.6 }}>
             Add milestones to start tracking progress — Torah study, rehearsals, speeches, attire, and more.
           </div>
-          <button className="btn btn-primary" onClick={() => setShowModal(true)}>+ Add First Item</button>
+          {!isViewer && <button className="btn btn-primary" onClick={() => setShowModal(true)}>+ Add First Item</button>}
         </div>
       )}
 
@@ -233,8 +233,8 @@ export function PrepTab({ eventId, event, adminConfig, showToast, isArchived, se
                       {item.status}
                     </span>
                     <div className="row-actions" style={{ display: "flex", gap: 4, flexShrink: 0 }}>
-                      <button className="icon-btn" title="Edit" disabled={isArchived} onClick={() => setEditItem(item)}>✎</button>
-                      <button className="icon-btn icon-btn-danger" title="Delete" disabled={isArchived} onClick={() => setDeleteConfirm(item.id)}>✕</button>
+                      <button className="icon-btn" title="Edit" disabled={isArchived || isViewer} onClick={() => setEditItem(item)}>✎</button>
+                      <button className="icon-btn icon-btn-danger" title="Delete" disabled={isArchived || isViewer} onClick={() => setDeleteConfirm(item.id)}>✕</button>
                     </div>
                   </div>
 

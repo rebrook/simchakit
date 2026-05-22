@@ -577,6 +577,20 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false }) {
 
       {/* ── Page content ── */}
       <main className="page-content">
+        {/* Viewer read-only banner */}
+        {collaboratorRole === "viewer" && (
+          <div style={{
+            background:   "var(--accent-light)",
+            borderBottom: "1px solid var(--accent-primary)",
+            padding:      "8px 20px",
+            fontSize:     12,
+            color:        "var(--accent-primary)",
+            fontWeight:   600,
+            textAlign:    "center",
+          }}>
+            👁 You have view-only access to this event.
+          </div>
+        )}
         {activeTab === "overview"       && <OverviewTab       {...tabProps} />}
         {activeTab === "guests"         && <GuestsTab         {...tabProps} />}
         {activeTab === "budget"         && <BudgetTab         {...tabProps} />}

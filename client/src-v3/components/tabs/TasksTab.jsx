@@ -335,7 +335,7 @@ function TaskInsights({ realTasks }) {
   );
 }
 
-export function TasksTab({ eventId, event, adminConfig, showToast, isArchived, searchHighlight, clearSearchHighlight, setActiveTab, setSearchHighlight }) {
+export function TasksTab({ eventId, event, adminConfig, showToast, isArchived, isViewer, searchHighlight, clearSearchHighlight, setActiveTab, setSearchHighlight }) {
   const { items: tasks,     loading,       save,        remove       } = useEventData(eventId, "tasks");
   const { items: expenses,  save: saveExpense                        } = useEventData(eventId, "expenses");
   const { items: prep,      save: savePrep                           } = useEventData(eventId, "prep");
@@ -386,7 +386,7 @@ export function TasksTab({ eventId, event, adminConfig, showToast, isArchived, s
   };
 
   const toggleDone = (id) => {
-    if (isArchived) return;
+    if (isArchived || isViewer) return;
     const t = tasks.find(x => x.id === id);
     if (!t) return;
 
@@ -577,10 +577,10 @@ export function TasksTab({ eventId, event, adminConfig, showToast, isArchived, s
         <div className="task-actions">
           <button className="icon-btn" title="Edit"
             style={{width:26,height:26,fontSize:12}}
-            disabled={isArchived} onClick={() => setEditTask(t)}>✎</button>
+            disabled={isArchived || isViewer} onClick={() => setEditTask(t)}>✎</button>
           <button className="icon-btn" title="Delete"
             style={{width:26,height:26,fontSize:12,color:"var(--red)"}}
-            disabled={isArchived} onClick={() => setDeleteConfirm(t.id)}>✕</button>
+            disabled={isArchived || isViewer} onClick={() => setDeleteConfirm(t.id)}>✕</button>
         </div>
       </div>
     );
@@ -609,7 +609,7 @@ export function TasksTab({ eventId, event, adminConfig, showToast, isArchived, s
               </button>
             ) : null;
           })()}
-          <button className="btn btn-primary btn-sm" disabled={isArchived} onClick={() => setShowModal(true)}>
+          <button className="btn btn-primary btn-sm" disabled={isArchived || isViewer} onClick={() => setShowModal(true)}>
             + Add Task
           </button>
         </div>
@@ -700,7 +700,7 @@ export function TasksTab({ eventId, event, adminConfig, showToast, isArchived, s
           <div style={{fontSize:13,marginBottom:20}}>
             Add your first task to start tracking what needs to get done.
           </div>
-          <button className="btn btn-primary" onClick={() => setShowModal(true)}>+ Add Task</button>
+          {!isViewer && <button className="btn btn-primary" onClick={() => setShowModal(true)}>+ Add Task</button>}
         </div>
       )}
 

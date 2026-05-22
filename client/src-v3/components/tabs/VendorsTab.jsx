@@ -14,7 +14,7 @@ import { ArchivedNotice }    from "@/components/shared/ArchivedNotice.jsx";
 import { VendorQuickView }   from "@/components/shared/VendorQuickView.jsx";
 import { VendorModal }       from "@/components/shared/VendorModal.jsx";
 
-export function VendorsTab({ eventId, event, adminConfig, showToast, isArchived, searchHighlight, clearSearchHighlight }) {
+export function VendorsTab({ eventId, event, adminConfig, showToast, isArchived, isViewer, searchHighlight, clearSearchHighlight }) {
   const { items: vendors, loading, save, remove } = useEventData(eventId, "vendors");
   const { items: expenses }                        = useEventData(eventId, "expenses");
 
@@ -95,10 +95,12 @@ export function VendorsTab({ eventId, event, adminConfig, showToast, isArchived,
             {booked > 0 && ` · ${booked} confirmed`}
           </div>
         </div>
-        <button className="btn btn-primary btn-sm" disabled={isArchived}
-          onClick={() => { setEditing(null); setShowAdd(true); }}>
-          + Add Vendor
-        </button>
+        {!isViewer && (
+          <button className="btn btn-primary btn-sm" disabled={isArchived}
+            onClick={() => { setEditing(null); setShowAdd(true); }}>
+            + Add Vendor
+          </button>
+        )}
       </div>
 
       {/* Stat cards */}
@@ -167,7 +169,7 @@ export function VendorsTab({ eventId, event, adminConfig, showToast, isArchived,
           <div style={{fontSize:40,marginBottom:12,opacity:0.4}}>🏪</div>
           <div style={{fontFamily:"var(--font-display)",fontSize:18,marginBottom:6,color:"var(--text-primary)"}}>No vendors yet</div>
           <div style={{fontSize:13,marginBottom:20}}>Add your first vendor to start tracking contracts and payments.</div>
-          <button className="btn btn-primary" onClick={() => { setEditing(null); setShowAdd(true); }}>+ Add Vendor</button>
+          {!isViewer && <button className="btn btn-primary" onClick={() => { setEditing(null); setShowAdd(true); }}>+ Add Vendor</button>}
         </div>
       )}
 
@@ -327,11 +329,11 @@ export function VendorsTab({ eventId, event, adminConfig, showToast, isArchived,
                     )}
                     <button className="icon-btn" title="Edit"
                       style={{width:28,height:28,fontSize:13}}
-                      disabled={isArchived}
+                      disabled={isArchived || isViewer}
                       onClick={() => { setEditing(v); setShowAdd(true); }}>✎</button>
                     <button className="icon-btn" title="Delete"
                       style={{width:28,height:28,fontSize:13,color:"var(--red)"}}
-                      disabled={isArchived}
+                      disabled={isArchived || isViewer}
                       onClick={() => setDeleteConfirm(v._rowId || v.id)}>✕</button>
                   </div>
                 </div>

@@ -1,9 +1,21 @@
 {
-  "current": "V3.13.5",
+  "current": "V3.13.6",
   "whatsNew": [
     "Multiple people can now plan a single event together. Invite a co-planner as an Editor for full access, or a Viewer so family can follow along. Open Admin Mode and go to Collaborators to get started. Collaborator access is covered by the event owner's purchase at no extra cost."
   ],
   "changelog": [
+    {
+      "version": "V3.13.6",
+      "date": "2026-05-22",
+      "changes": [
+        "AppShell.jsx: added Viewer read-only banner below tab bar when collaboratorRole is viewer",
+        "GuestsTab.jsx: added isViewer prop; suppressed Import and Add Household buttons, select-all checkbox, bulk RSVP panel, mailing toggles, RSVP pill interaction, and row edit/delete buttons for Viewers",
+        "BudgetTab.jsx: added isViewer prop; suppressed Add Expense buttons (x2), GratuityCalculator, togglePaid, confirm/cancel paid buttons (x3), and row edit/delete buttons for Viewers",
+        "VendorsTab.jsx: added isViewer prop; suppressed Add Vendor buttons (x2) and row edit/delete buttons for Viewers",
+        "TasksTab.jsx: added isViewer prop; suppressed Add Task buttons (x2), toggleDone, and row edit/delete buttons for Viewers",
+        "PrepTab.jsx: added isViewer prop; suppressed Add Item buttons (x2), handleProgressChange, and row edit/delete buttons for Viewers"
+      ]
+    },
     {
       "version": "V3.13.5",
       "date": "2026-05-22",
