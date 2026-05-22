@@ -6,7 +6,7 @@
 // Archive stored in events.archived (boolean column).
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { supabase }          from "@/lib/supabase.js";
 import { DEFAULT_GROUPS, DEFAULT_MEALS } from "@/constants/guest-constants.js";
 import { PALETTES, SHIRT_SIZES }         from "@/constants/theme.js";
