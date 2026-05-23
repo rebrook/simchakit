@@ -1,9 +1,16 @@
 {
-  "current": "V3.14.3",
+  "current": "V3.14.4",
   "whatsNew": [
     "SimchaKit now knows your name. When you first sign in, you will be asked what to call you. Your name appears throughout the app and in invitation emails sent to your co-planners. Update it any time by clicking your name in the event picker."
   ],
   "changelog": [
+    {
+      "version": "V3.14.4",
+      "date": "2026-05-23",
+      "changes": [
+        "brevo-sync.js: new users now added to list 8 (SimchaKit - All Users) in addition to lists 3 and 6 on first sign-in"
+      ]
+    },
     {
       "version": "V3.14.3",
       "date": "2026-05-23",

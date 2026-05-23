@@ -19,6 +19,7 @@
 // Brevo transactional API: POST https://api.brevo.com/v3/smtp/email
 // Event Confirmed template ID: 4
 // SimchaKit - New Users list ID: 3
+// SimchaKit - All Users list ID: 8
 // ─────────────────────────────────────────────────────────────────────────────
 
 const BREVO_CONTACTS_URL     = "https://api.brevo.com/v3/contacts";
@@ -63,7 +64,7 @@ export default async function handler(req, res) {
     email,
     updateEnabled: true,
     attributes: contactAttributes,
-    ...(isNewUser && { listIds: [3, 6] }), // list 3: New Users (welcome automation), list 6: Prospects (re-engagement automation)
+    ...(isNewUser && { listIds: [3, 6, 8] }), // list 3: New Users (welcome automation), list 6: Prospects (re-engagement automation), list 8: All Users
   };
 
   try {
