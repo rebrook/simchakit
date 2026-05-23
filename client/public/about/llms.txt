@@ -21,6 +21,7 @@ SimchaKit is a paid SaaS web application for Jewish lifecycle event planning. It
 - Day-of Mode: mobile-optimized view with vendor contacts and hot sheet
 - Calendar sync: webcal subscription and .ics download
 - CSV import: compatible with Evite, Google Contacts, and most RSVP platforms
+- Collaborative planning: invite up to five co-planners per event as editors (full access) or viewers (read-only); collaborators are covered by the owner's purchase at no extra cost
 
 ## Pricing
 
