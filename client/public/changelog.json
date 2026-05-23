@@ -1,9 +1,17 @@
 {
-  "current": "V3.14.2",
+  "current": "V3.14.3",
   "whatsNew": [
     "SimchaKit now knows your name. When you first sign in, you will be asked what to call you. Your name appears throughout the app and in invitation emails sent to your co-planners. Update it any time by clicking your name in the event picker."
   ],
   "changelog": [
+    {
+      "version": "V3.14.3",
+      "date": "2026-05-23",
+      "changes": [
+        "EventPicker.jsx: owned event cards now show a collaborator count badge (e.g. \"\ud83d\udc65 2 collaborators\") when the event has accepted collaborators; count is fetched in parallel with the events query and correctly singularizes for 1 collaborator",
+        "ui.js: updated Collaborators guide entry to mention the count badge; updated Your name guide entry to mention the collaborator panel for invited events"
+      ]
+    },
     {
       "version": "V3.14.2",
       "date": "2026-05-23",

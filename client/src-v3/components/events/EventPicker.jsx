@@ -149,7 +149,7 @@ export function EventPicker({ session, displayName: userDisplayName, onSelectEve
   const loadEvents = useCallback(async () => {
     setLoadStatus("loading");
 
-    const [eventsResult, purchasesResult, collabResult] = await Promise.all([
+    const [eventsResult, purchasesResult, collabResult, collabCountResult] = await Promise.all([
       supabase
         .from("events")
         .select("id, name, type, archived, admin_config, created_at, updated_at")
@@ -165,6 +165,10 @@ export function EventPicker({ session, displayName: userDisplayName, onSelectEve
         .select("role, event_id, invited_by_email, invited_by_name, events(id, name, type, archived, admin_config, created_at, updated_at)")
         .eq("user_id", userId)
         .not("accepted_at", "is", null),
+      supabase
+        .from("event_collaborators")
+        .select("event_id")
+        .not("accepted_at", "is", null),
     ]);
 
     if (eventsResult.error) {
@@ -173,11 +177,23 @@ export function EventPicker({ session, displayName: userDisplayName, onSelectEve
       return;
     }
 
+    // Build collaborator count map: { [event_id]: count }
+    const collabCountMap = {};
+    (collabCountResult.data || []).forEach(row => {
+      collabCountMap[row.event_id] = (collabCountMap[row.event_id] || 0) + 1;
+    });
+
     // Sort owned: active events first, archived last
     const sorted = [...(eventsResult.data || [])].sort((a, b) => {
       if (a.archived !== b.archived) return a.archived ? 1 : -1;
       return new Date(a.created_at) - new Date(b.created_at);
     });
+
+    // Attach collaborator count to each owned event
+    const sortedWithCounts = sorted.map(ev => ({
+      ...ev,
+      _collaboratorCount: collabCountMap[ev.id] || 0,
+    }));
 
     // Build collaborated events list -- attach role for badge display
     const collabRows = (collabResult.data || []).filter(r => r.events);
@@ -188,7 +204,7 @@ export function EventPicker({ session, displayName: userDisplayName, onSelectEve
       _invitedByName:       r.invited_by_name  || null,
     }));
 
-    setEvents(sorted);
+    setEvents(sortedWithCounts);
     setCollaboratedEvents(collabEventsData);
     setEventCount(sorted.length); // count owned events only -- collaborated events do not affect purchase logic
     setTotalPurchaseCount((purchasesResult.data || []).length);
@@ -470,6 +486,7 @@ export function EventPicker({ session, displayName: userDisplayName, onSelectEve
                 meta={getEventMeta(ev)}
                 onSelect={() => onSelectEvent(ev.id)}
                 onDeleteClick={(anchorRect) => setDeleteTarget({ event: ev, anchorRect })}
+                collaboratorCount={ev._collaboratorCount || 0}
               />
             ))}
           </div>
@@ -541,7 +558,7 @@ export function EventPicker({ session, displayName: userDisplayName, onSelectEve
 }
 
 // ── EventCard ─────────────────────────────────────────────────────────────────
-function EventCard({ event, meta, onSelect, onDeleteClick, collaboratorRole = null, invitedByEmail = null, invitedByName = null }) {
+function EventCard({ event, meta, onSelect, onDeleteClick, collaboratorRole = null, invitedByEmail = null, invitedByName = null, collaboratorCount = 0 }) {
   const { palette, typeIcon, dateStr, themeName } = meta;
   const typeLabel = EVENT_TYPE_LABELS[event.type] || "Celebration";
   const isDark  = document.documentElement.getAttribute("data-theme") === "dark";
@@ -591,6 +608,11 @@ function EventCard({ event, meta, onSelect, onDeleteClick, collaboratorRole = nu
           {!isCollaborator && (
             <span className="sk-tag" style={{ background: "var(--accent-light)", color: "var(--accent-primary)", border: "1px solid var(--accent-primary)" }}>
               👑 Owner
+            </span>
+          )}
+          {!isCollaborator && collaboratorCount > 0 && (
+            <span className="sk-tag" style={{ background: "var(--bg-subtle)", color: "var(--text-secondary)", border: "1px solid var(--border)" }}>
+              👥 {collaboratorCount} collaborator{collaboratorCount !== 1 ? "s" : ""}
             </span>
           )}
           {isCollaborator && (
