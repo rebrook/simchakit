@@ -105,7 +105,7 @@ export function OnboardingModal({ userId, isRequired, initialName = "", onSave, 
           <input
             className="form-input"
             type="text"
-            placeholder="e.g. Ryan or Ryan Brook"
+            placeholder="e.g. Homer or Homer Simpson"
             value={name}
             onChange={e => { setName(e.target.value); setError(null); }}
             onKeyDown={handleKeyDown}

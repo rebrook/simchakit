@@ -729,7 +729,7 @@ export function AdminPanel({ eventId, userId, calendarToken: initialCalendarToke
                     </div>
                     {[
                       {key:"name",        label:"Hotel Name",               placeholder:"e.g., Marriott Owings Mills Metro Centre"},
-                      {key:"groupCode",   label:"Room Block / Group Code",  placeholder:"e.g., Brook Family Room Block", hint:"Guests reference this code when booking"},
+                      {key:"groupCode",   label:"Room Block / Group Code",  placeholder:"e.g., Smith Family Room Block", hint:"Guests reference this code when booking"},
                       {key:"phone",       label:"Hotel Phone",              placeholder:"e.g., (410) 555-1234"},
                       {key:"website",     label:"Hotel Website",            placeholder:"https://…"},
                     ].map(f => (
