@@ -47,7 +47,9 @@ const EVENT_TYPE_ICONS = {
 const BOTTOM_BAR_IDS = ["overview", "guests", "budget", "vendors", "tasks"];
 
 // ─────────────────────────────────────────────────────────────────────────────
-export function AppShell({ session, eventId, onBack, isDemoMode = false }) {
+import { displayNameWithEmail } from "@/utils/displayName.js";
+
+export function AppShell({ session, eventId, onBack, isDemoMode = false, displayName: userDisplayName = null }) {
   const [activeTab,       setActiveTab]       = useState("overview");
   const [event,           setEvent]           = useState(null);   // raw events row
   const [adminConfig,     setAdminConfig]     = useState(null);   // events.admin_config
@@ -623,7 +625,7 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false }) {
           <>
             <span>·</span>
             <span style={{ fontSize:11, color:"var(--text-muted)" }}>
-              {session.user.email}
+              {displayNameWithEmail(userDisplayName, session.user.email)}
             </span>
           </>
         )}

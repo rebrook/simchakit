@@ -1371,7 +1371,7 @@ function CollaboratorsSection({ eventId, userId, eventName }) {
     const [collabRes, inviteRes] = await Promise.all([
       supabase
         .from("event_collaborators")
-        .select("id, user_id, role, email, invited_at, accepted_at")
+        .select("id, user_id, role, email, display_name, invited_at, accepted_at")
         .eq("event_id", eventId)
         .not("accepted_at", "is", null)
         .order("accepted_at", { ascending: true }),
@@ -1403,7 +1403,6 @@ function CollaboratorsSection({ eventId, userId, eventName }) {
           eventId,
           inviteeEmail: inviteEmail.trim(),
           role:         inviteRole,
-          inviterName:  "the event owner",
           eventName:    eventName,
           userId:       userId,
           message:      inviteMessage.trim(),
@@ -1442,7 +1441,6 @@ function CollaboratorsSection({ eventId, userId, eventName }) {
         body:    JSON.stringify({
           eventId,
           role:        inviteRole,
-          inviterName: "the event owner",
           eventName:   eventName,
           userId:      userId,
         }),
@@ -1513,9 +1511,11 @@ function CollaboratorsSection({ eventId, userId, eventName }) {
               <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
                 <span style={{ fontSize: 16 }}>{c.role === "editor" ? "✏" : "👁"}</span>
                 <div style={{ minWidth: 0 }}>
-                  <div style={{ fontSize: 12, fontWeight: 600, color: "var(--text-primary)", textTransform: "capitalize" }}>{c.role}</div>
+                  {c.display_name && (
+                    <div style={{ fontSize: 12, fontWeight: 600, color: "var(--text-primary)" }}>{c.display_name}</div>
+                  )}
                   {c.email && <div style={{ fontSize: 11, color: "var(--text-secondary)", marginTop: 1 }}>{c.email}</div>}
-                  <div style={{ fontSize: 11, color: "var(--text-muted)" }}>Joined {new Date(c.accepted_at).toLocaleDateString()}</div>
+                  <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 1, textTransform: "capitalize" }}>{c.role} · Joined {new Date(c.accepted_at).toLocaleDateString()}</div>
                 </div>
               </div>
               <button

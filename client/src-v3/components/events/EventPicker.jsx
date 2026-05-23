@@ -57,11 +57,26 @@ function formatDate(d) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-export function EventPicker({ session, onSelectEvent }) {
+import { displayName, displayNameWithEmail } from "@/utils/displayName.js";
+
+export function EventPicker({ session, displayName: userDisplayName, onSelectEvent, onEditName }) {
   const [events,            setEvents]            = useState([]);
   const [collaboratedEvents, setCollaboratedEvents] = useState([]); // events user is a collaborator on
   const [loadStatus,        setLoadStatus]        = useState("loading"); // loading | ready | error
   const [loadError,         setLoadError]         = useState("");
+
+  // Soft banner for existing users without a display name
+  const NAME_BANNER_KEY = `simchakit-name-banner-dismissed-${session?.user?.id}`;
+  const [showNameBanner, setShowNameBanner] = useState(() => {
+    if (!session?.user?.id) return false;
+    if (userDisplayName) return false; // already has name -- no banner
+    try { return !localStorage.getItem(NAME_BANNER_KEY); } catch { return false; }
+  });
+
+  function dismissNameBanner() {
+    try { localStorage.setItem(NAME_BANNER_KEY, "1"); } catch {}
+    setShowNameBanner(false);
+  }
   const [showCreateForm,    setShowCreateForm]    = useState(false);
   const [deleteTarget,      setDeleteTarget]      = useState(null);
   const [eventCount,        setEventCount]        = useState(0);
@@ -328,11 +343,6 @@ export function EventPicker({ session, onSelectEvent }) {
           <div>
             <div style={styles.pageTitle}>Your Events</div>
             <div style={styles.pageSub}>Select an event to open its planning dashboard.</div>
-            {session?.user?.email && (
-              <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 4 }}>
-                Signed in as {session.user.email}
-              </div>
-            )}
           </div>
           <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
             <button
@@ -386,6 +396,41 @@ export function EventPicker({ session, onSelectEvent }) {
               onCancel={() => setShowCreateForm(false)}
             />
           )
+        )}
+
+        {/* ── Soft name banner for existing users without a display name ── */}
+        {showNameBanner && !userDisplayName && loadStatus === "ready" && (
+          <div style={{
+            display:      "flex",
+            alignItems:   "center",
+            justifyContent: "space-between",
+            gap:          12,
+            padding:      "10px 16px",
+            background:   "var(--accent-light)",
+            border:       "1px solid var(--accent-primary)",
+            borderRadius: "var(--radius-sm)",
+            marginBottom: 16,
+            fontSize:     13,
+            color:        "var(--accent-primary)",
+          }}>
+            <span>Add your name to personalize your experience.</span>
+            <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
+              <button
+                className="btn btn-primary btn-sm"
+                style={{ fontSize: 12 }}
+                onClick={onEditName}
+              >
+                Add name
+              </button>
+              <button
+                className="btn btn-ghost btn-sm"
+                style={{ fontSize: 12 }}
+                onClick={dismissNameBanner}
+              >
+                Dismiss
+              </button>
+            </div>
+          </div>
         )}
 
         {/* ── Event grid ── */}
@@ -454,6 +499,28 @@ export function EventPicker({ session, onSelectEvent }) {
         {/* ── Footer ── */}
         <div style={styles.footer}>
           Designed &amp; Built by Brook Creative LLC &nbsp;·&nbsp; Powered by Claude &nbsp;·&nbsp; <a href="mailto:hello@simcha-kit.com" style={{ color: "var(--text-muted)" }}>hello@simcha-kit.com</a> &nbsp;·&nbsp; <a href="https://about.simcha-kit.com" target="_blank" rel="noopener" style={{ color: "var(--text-muted)" }}>about.simcha-kit.com</a>
+          {session?.user?.email && (
+            <>
+              &nbsp;·&nbsp;
+              Signed in as{" "}
+              <button
+                onClick={onEditName}
+                style={{
+                  background:  "none",
+                  border:      "none",
+                  padding:     0,
+                  cursor:      "pointer",
+                  color:       "var(--accent-primary)",
+                  fontSize:    "inherit",
+                  fontFamily:  "inherit",
+                  textDecoration: "underline",
+                }}
+                title="Update your name"
+              >
+                {displayNameWithEmail(userDisplayName, session.user.email)}
+              </button>
+            </>
+          )}
         </div>
       </div>
 
@@ -530,9 +597,9 @@ function EventCard({ event, meta, onSelect, onDeleteClick, collaboratorRole = nu
             </span>
           )}
         </div>
-        {isCollaborator && invitedByEmail && (
+        {isCollaborator && (invitedByEmail || invitedByName) && (
           <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 6 }}>
-            Shared by {invitedByEmail}
+            Shared by {displayNameWithEmail(invitedByName, invitedByEmail)}
           </div>
         )}
 

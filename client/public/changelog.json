@@ -1,9 +1,25 @@
 {
-  "current": "V3.13.10",
+  "current": "V3.14.0",
   "whatsNew": [
-    "Multiple people can now plan a single event together. Invite a co-planner as an Editor for full access, or a Viewer so family can follow along. Open Admin Mode and go to Collaborators to get started. Collaborator access is covered by the event owner's purchase at no extra cost."
+    "SimchaKit now knows your name. When you first sign in, you will be asked what to call you. Your name appears throughout the app and in invitation emails sent to your co-planners. Update it any time by clicking your name in the event picker."
   ],
   "changelog": [
+    {
+      "version": "V3.14.0",
+      "date": "2026-05-23",
+      "changes": [
+        "Added utils/displayName.js: shared utility with displayName(name, email) and displayNameWithEmail(name, email) functions used across all identity surfaces",
+        "Added components/events/OnboardingModal.jsx: first sign-in name prompt (blocking for new users, skippable for existing users editing their name); saves to user_profiles.display_name; reused for edit-name flow from EventPicker footer",
+        "App.v3.jsx: reads display_name and event_count from user_profiles on sign-in; shows OnboardingModal for new users (event_count=0, no name); passes displayName to EventPicker and AppShell; syncs FIRSTNAME to Brevo on sign-in and after name is set",
+        "brevo-sync.js: added FIRSTNAME attribute sync -- set when display_name is available on sign-in",
+        "send-invite.js: inviter name now resolved server-side from user_profiles.display_name (with email-prefix fallback); stored as invited_by_name on event_invitations; inviterName request param removed",
+        "accept-invite.js: reads invited_by_name from invitation record; resolves collaborator display_name from user_profiles; both stored on event_collaborators row",
+        "EventPicker.jsx: removed Signed in as from page header; added to footer as clickable Name (email) that opens edit-name modal; soft dismissible banner for existing users without a display name; collaborated event cards show Shared by Name (email)",
+        "AppShell.jsx: footer now shows Name (email) using displayNameWithEmail utility; accepts displayName prop",
+        "AdminPanel.jsx: CollaboratorsSection row shows Name, email, and role type; inviterName removed from send-invite calls (resolved server-side)",
+        "ui.js: added Your name guide entry to Getting Started; updated Collaborators entry to mention name display"
+      ]
+    },
     {
       "version": "V3.13.10",
       "date": "2026-05-23",

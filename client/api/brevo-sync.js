@@ -9,6 +9,7 @@
 // Attributes synced:
 //   SIGNUP_DATE   — set only when isNewUser = true
 //   LAST_LOGIN    — set on every sign-in
+//   FIRSTNAME     — set when display_name is available (on sign-in and after name update)
 //   EVENT_NAME    — set on event creation
 //   EVENT_TYPE    — set on event creation
 //   EVENT_DATE    — set on event creation (ISO date string or empty string)
@@ -52,6 +53,7 @@ export default async function handler(req, res) {
 
   if (attributes?.LAST_LOGIN)    contactAttributes.LAST_LOGIN    = attributes.LAST_LOGIN;
   if (isNewUser)                 contactAttributes.SIGNUP_DATE   = attributes?.SIGNUP_DATE || new Date().toISOString().slice(0, 10);
+  if (attributes?.FIRSTNAME)     contactAttributes.FIRSTNAME     = attributes.FIRSTNAME;
   if (attributes?.EVENT_NAME)   contactAttributes.EVENT_NAME    = attributes.EVENT_NAME;
   if (attributes?.EVENT_TYPE)   contactAttributes.EVENT_TYPE    = attributes.EVENT_TYPE;
   if (attributes?.EVENT_DATE)   contactAttributes.EVENT_DATE    = attributes.EVENT_DATE;

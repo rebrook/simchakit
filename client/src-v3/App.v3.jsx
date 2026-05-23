@@ -9,6 +9,7 @@ import { supabase }            from "@/lib/supabase.js";
 import { AuthPage }            from "@/components/auth/AuthPage.jsx";
 import { AuthCallback }        from "@/components/auth/AuthCallback.jsx";
 import { EventPicker }         from "@/components/events/EventPicker.jsx";
+import { OnboardingModal }     from "@/components/events/OnboardingModal.jsx";
 import { AppShell }            from "@/components/shell/AppShell.jsx";
 import { useDarkMode }         from "@/hooks/useDarkMode.js";
 import { ThemeProvider }       from "@/components/shared/ThemeProvider.jsx";
@@ -96,11 +97,14 @@ export default function AppV3() {
               // by querying event_count = 0 as a proxy for new user
               supabase
                 .from("user_profiles")
-                .select("event_count")
+                .select("event_count, display_name")
                 .eq("id", id)
                 .single()
                 .then(({ data: profile }) => {
-                  if (profile?.event_count === 0) {
+                  const isNewUser = profile?.event_count === 0;
+                  const hasName   = !!(profile?.display_name);
+
+                  if (isNewUser) {
                     // Admin notification
                     fetch("/api/notify", {
                       method:  "POST",
@@ -118,11 +122,12 @@ export default function AppV3() {
                         attributes: {
                           SIGNUP_DATE: new Date().toISOString().slice(0, 10),
                           LAST_LOGIN:  new Date().toISOString().slice(0, 10),
+                          ...(hasName && { FIRSTNAME: profile.display_name }),
                         },
                       }),
                     }).catch(() => {});
                   } else {
-                    // Returning user — update LAST_LOGIN only
+                    // Returning user — update LAST_LOGIN and FIRSTNAME if set
                     fetch("/api/brevo-sync", {
                       method:  "POST",
                       headers: { "Content-Type": "application/json" },
@@ -131,6 +136,7 @@ export default function AppV3() {
                         isNewUser: false,
                         attributes: {
                           LAST_LOGIN: new Date().toISOString().slice(0, 10),
+                          ...(hasName && { FIRSTNAME: profile.display_name }),
                         },
                       }),
                     }).catch(() => {});
@@ -154,6 +160,28 @@ export default function AppV3() {
 
 function AppContent({ session, isCallback }) {
   const [selectedEventId, setSelectedEventId] = useState(null);
+  const [displayName,     setDisplayName]     = useState(null); // null = not yet loaded
+  const [showOnboarding,  setShowOnboarding]  = useState(false);
+  const [isNewUser,       setIsNewUser]       = useState(false);
+
+  // Load display_name and determine onboarding state on sign-in
+  useEffect(() => {
+    if (!session?.user?.id) return;
+    supabase
+      .from("user_profiles")
+      .select("display_name, event_count")
+      .eq("id", session.user.id)
+      .single()
+      .then(({ data: profile }) => {
+        const name = profile?.display_name || null;
+        const count = profile?.event_count ?? 0;
+        setDisplayName(name);
+        if (!name && count === 0) {
+          setIsNewUser(true);
+          setShowOnboarding(true);
+        }
+      });
+  }, [session?.user?.id]);
 
   // Loading spinner
   if (session === undefined) {
@@ -199,6 +227,7 @@ function AppContent({ session, isCallback }) {
       <AppShell
         session={session}
         eventId={selectedEventId}
+        displayName={displayName}
         onBack={() => setSelectedEventId(null)}
       />
     );
@@ -218,9 +247,34 @@ function AppContent({ session, isCallback }) {
         </div>
       </header>
 
+      {showOnboarding && (
+        <OnboardingModal
+          userId={session.user.id}
+          isRequired={isNewUser}
+          initialName=""
+          onSave={(name) => {
+            setDisplayName(name);
+            setShowOnboarding(false);
+            // Sync to Brevo
+            fetch("/api/brevo-sync", {
+              method:  "POST",
+              headers: { "Content-Type": "application/json" },
+              body:    JSON.stringify({
+                email:     session.user.email,
+                isNewUser: false,
+                attributes: { FIRSTNAME: name },
+              }),
+            }).catch(() => {});
+          }}
+          onDismiss={() => setShowOnboarding(false)}
+        />
+      )}
+
       <EventPicker
         session={session}
+        displayName={displayName}
         onSelectEvent={setSelectedEventId}
+        onEditName={() => setShowOnboarding(true)}
       />
     </>
   );

@@ -68,7 +68,7 @@ export default async function handler(req, res) {
   // ── Step 1: Look up invitation by token ──────────────────────────────────────
   const { data: invitation, error: inviteError } = await supabase
     .from("event_invitations")
-    .select("id, event_id, role, expires_at, accepted_at, email, invited_by, invited_by_email")
+    .select("id, event_id, role, expires_at, accepted_at, email, invited_by, invited_by_email, invited_by_name")
     .eq("token", token)
     .single();
 
@@ -125,17 +125,28 @@ export default async function handler(req, res) {
     inviteeEmail = profile?.email || null;
   }
 
-  // ── Resolve invited_by_email -- use value stored on invitation if present,
+  // ── Resolve invited_by_name -- use value stored on invitation if present,
   // otherwise look up from user_profiles using invited_by UUID ──────────────────
   let invitedByEmail = invitation.invited_by_email || null;
-  if (!invitedByEmail && invitation.invited_by) {
+  let invitedByName  = invitation.invited_by_name  || null;
+  if ((!invitedByEmail || !invitedByName) && invitation.invited_by) {
     const { data: ownerProfile } = await supabase
       .from("user_profiles")
-      .select("email")
+      .select("email, display_name")
       .eq("id", invitation.invited_by)
       .maybeSingle();
-    invitedByEmail = ownerProfile?.email || null;
+    if (!invitedByEmail) invitedByEmail = ownerProfile?.email || null;
+    if (!invitedByName)  invitedByName  = ownerProfile?.display_name || null;
   }
+
+  // ── Resolve collaborator display_name ────────────────────────────────────────
+  let collaboratorDisplayName = null;
+  const { data: collaboratorProfile } = await supabase
+    .from("user_profiles")
+    .select("display_name")
+    .eq("id", userId)
+    .maybeSingle();
+  collaboratorDisplayName = collaboratorProfile?.display_name || null;
 
   // ── Step 6: Insert collaborator row ─────────────────────────────────────────
   const now = new Date().toISOString();
@@ -148,9 +159,11 @@ export default async function handler(req, res) {
       role:             invitation.role,
       invited_by:       invitation.invited_by,
       invited_by_email: invitedByEmail,
+      invited_by_name:  invitedByName,
       invited_at:       now,
       accepted_at:      now,
       email:            inviteeEmail,
+      display_name:     collaboratorDisplayName,
     });
 
   if (insertError) {
