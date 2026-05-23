@@ -1383,7 +1383,27 @@ function CollaboratorsSection({ eventId, userId, eventName }) {
         .gt("expires_at", new Date().toISOString())
         .order("created_at", { ascending: true }),
     ]);
-    setCollaborators(collabRes.data || []);
+
+    // Look up email for each collaborator from user_profiles
+    const collabData = collabRes.data || [];
+    const userIds = collabData.map(c => c.user_id).filter(Boolean);
+    let profileMap = {};
+    if (userIds.length > 0) {
+      const { data: profiles } = await supabase
+        .from("user_profiles")
+        .select("id, email")
+        .in("id", userIds);
+      if (profiles) {
+        profileMap = Object.fromEntries(profiles.map(p => [p.id, p.email]));
+      }
+    }
+
+    const collabWithEmail = collabData.map(c => ({
+      ...c,
+      email: profileMap[c.user_id] || null,
+    }));
+
+    setCollaborators(collabWithEmail);
     setInvitations(inviteRes.data || []);
     setLoadStatus("ready");
   }
@@ -1512,6 +1532,7 @@ function CollaboratorsSection({ eventId, userId, eventName }) {
                 <span style={{ fontSize: 16 }}>{c.role === "editor" ? "✏" : "👁"}</span>
                 <div style={{ minWidth: 0 }}>
                   <div style={{ fontSize: 12, fontWeight: 600, color: "var(--text-primary)", textTransform: "capitalize" }}>{c.role}</div>
+                  {c.email && <div style={{ fontSize: 11, color: "var(--text-secondary)", marginTop: 1 }}>{c.email}</div>}
                   <div style={{ fontSize: 11, color: "var(--text-muted)" }}>Joined {new Date(c.accepted_at).toLocaleDateString()}</div>
                 </div>
               </div>

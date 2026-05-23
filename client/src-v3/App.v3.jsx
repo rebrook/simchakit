@@ -68,9 +68,15 @@ export default function AppV3() {
               method:  "POST",
               headers: { "Content-Type": "application/json" },
               body:    JSON.stringify({ token: pendingToken, userId: session.user.id }),
-            }).catch(() => {});
-            // No error handling shown to user here — if it fails they can try the link again.
-            // The event will appear in their picker on next load if accepted successfully.
+            })
+            .then(res => res.json())
+            .then(data => {
+              if (data.accepted) {
+                // Reload so EventPicker fetches the updated collaborator event list
+                window.location.replace("/");
+              }
+            })
+            .catch(() => {});
           }
         }
 

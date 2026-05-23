@@ -145,26 +145,21 @@ export default async function handler(req, res) {
   }
 
   // ── Step 8: Brevo sync (non-fatal — does not block on failure) ───────────────
-  // Look up the invitee email from auth.users if not on the invitation record.
-  // Then upsert contact with collaborator attributes and add to the correct list.
-  // Skip if the contact already exists on list 3 or 6 (owner journey takes precedence).
+  // Look up the invitee email from user_profiles (same pattern as notify.js).
+  // Always set collaborator attributes on the contact.
+  // Only skip the list addition if the contact is already on the owner journey
+  // (lists 3 or 6) -- owner journey takes precedence for list membership.
   try {
-    // Resolve email: use invitation.email if present, otherwise query auth.users
+    // Resolve email: use invitation.email if present, otherwise query user_profiles
     let inviteeEmail = invitation.email || null;
 
     if (!inviteeEmail) {
-      const { data: authUser } = await supabase
-        .from("auth.users")  // requires service role
+      const { data: profile } = await supabase
+        .from("user_profiles")
         .select("email")
         .eq("id", userId)
-        .single();
-      inviteeEmail = authUser?.email || null;
-    }
-
-    // Fallback: query auth.users via the admin API if the above returns nothing
-    if (!inviteeEmail) {
-      const { data: adminUser } = await supabase.auth.admin.getUserById(userId);
-      inviteeEmail = adminUser?.user?.email || null;
+        .maybeSingle();
+      inviteeEmail = profile?.email || null;
     }
 
     if (inviteeEmail) {

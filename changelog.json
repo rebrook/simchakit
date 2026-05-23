@@ -1,9 +1,18 @@
 {
-  "current": "V3.13.7",
+  "current": "V3.13.8",
   "whatsNew": [
     "Multiple people can now plan a single event together. Invite a co-planner as an Editor for full access, or a Viewer so family can follow along. Open Admin Mode and go to Collaborators to get started. Collaborator access is covered by the event owner's purchase at no extra cost."
   ],
   "changelog": [
+    {
+      "version": "V3.13.8",
+      "date": "2026-05-23",
+      "changes": [
+        "accept-invite.js: replaced broken auth.users PostgREST query and auth.admin.getUserById call with user_profiles query for email resolution (same pattern as notify.js); collaborator Brevo attributes (IS_COLLABORATOR, COLLABORATOR_ROLE, COLLABORATOR_EVENT_ID) now set correctly for all users including those already on the owner journey",
+        "AdminPanel.jsx: CollaboratorsSection now loads collaborator email from user_profiles at render time and displays it in each collaborator row, giving the event owner visibility into who accepted link-only invitations",
+        "App.v3.jsx: after a successful accept-invite call, page reloads via window.location.replace so EventPicker immediately shows the newly added collaborated event without requiring a manual refresh"
+      ]
+    },
     {
       "version": "V3.13.7",
       "date": "2026-05-22",
