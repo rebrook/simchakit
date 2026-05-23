@@ -619,6 +619,14 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false }) {
         <span className="footer-event-id" style={{ fontSize:11, color:"var(--text-muted)", fontFamily:"monospace" }}>
           {eventId}
         </span>
+        {session?.user?.email && (
+          <>
+            <span>·</span>
+            <span style={{ fontSize:11, color:"var(--text-muted)" }}>
+              {session.user.email}
+            </span>
+          </>
+        )}
         <span>·</span>
         <div className="footer-sync" title="Sync status">
           <div className="sync-dot connected" />

@@ -1,9 +1,20 @@
 {
-  "current": "V3.13.9",
+  "current": "V3.13.10",
   "whatsNew": [
     "Multiple people can now plan a single event together. Invite a co-planner as an Editor for full access, or a Viewer so family can follow along. Open Admin Mode and go to Collaborators to get started. Collaborator access is covered by the event owner's purchase at no extra cost."
   ],
   "changelog": [
+    {
+      "version": "V3.13.10",
+      "date": "2026-05-23",
+      "changes": [
+        "Supabase: added invited_by_email column to event_collaborators and event_invitations tables; backfilled event_collaborators from user_profiles",
+        "send-invite.js: resolves owner email from user_profiles and stores as invited_by_email on event_invitations row so accept-invite.js can read it without a second lookup",
+        "accept-invite.js: reads invited_by_email from invitation record (with user_profiles fallback) and stores on event_collaborators row",
+        "EventPicker.jsx: owned event cards now show a Owner badge; collaborated event cards show Shared by {email} below the role badge; signed-in email shown below the page subtitle in the picker header",
+        "AppShell.jsx: signed-in email added to footer alongside event ID and Supabase status"
+      ]
+    },
     {
       "version": "V3.13.9",
       "date": "2026-05-23",

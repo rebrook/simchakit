@@ -147,7 +147,7 @@ export function EventPicker({ session, onSelectEvent }) {
         .eq("status", "completed"),
       supabase
         .from("event_collaborators")
-        .select("role, event_id, events(id, name, type, archived, admin_config, created_at, updated_at)")
+        .select("role, event_id, invited_by_email, events(id, name, type, archived, admin_config, created_at, updated_at)")
         .eq("user_id", userId)
         .not("accepted_at", "is", null),
     ]);
@@ -168,7 +168,8 @@ export function EventPicker({ session, onSelectEvent }) {
     const collabRows = (collabResult.data || []).filter(r => r.events);
     const collabEventsData = collabRows.map(r => ({
       ...r.events,
-      _collaboratorRole: r.role,
+      _collaboratorRole:    r.role,
+      _invitedByEmail:      r.invited_by_email || null,
     }));
 
     setEvents(sorted);
@@ -327,6 +328,11 @@ export function EventPicker({ session, onSelectEvent }) {
           <div>
             <div style={styles.pageTitle}>Your Events</div>
             <div style={styles.pageSub}>Select an event to open its planning dashboard.</div>
+            {session?.user?.email && (
+              <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 4 }}>
+                Signed in as {session.user.email}
+              </div>
+            )}
           </div>
           <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
             <button
@@ -438,6 +444,7 @@ export function EventPicker({ session, onSelectEvent }) {
                   onSelect={() => onSelectEvent(ev.id)}
                   onDeleteClick={null}
                   collaboratorRole={ev._collaboratorRole}
+                  invitedByEmail={ev._invitedByEmail}
                 />
               ))}
             </div>
@@ -465,7 +472,7 @@ export function EventPicker({ session, onSelectEvent }) {
 }
 
 // ── EventCard ─────────────────────────────────────────────────────────────────
-function EventCard({ event, meta, onSelect, onDeleteClick, collaboratorRole = null }) {
+function EventCard({ event, meta, onSelect, onDeleteClick, collaboratorRole = null, invitedByEmail = null }) {
   const { palette, typeIcon, dateStr, themeName } = meta;
   const typeLabel = EVENT_TYPE_LABELS[event.type] || "Celebration";
   const isDark  = document.documentElement.getAttribute("data-theme") === "dark";
@@ -512,12 +519,22 @@ function EventCard({ event, meta, onSelect, onDeleteClick, collaboratorRole = nu
               🔒 Archived
             </span>
           )}
+          {!isCollaborator && (
+            <span className="sk-tag" style={{ background: "var(--accent-light)", color: "var(--accent-primary)", border: "1px solid var(--accent-primary)" }}>
+              👑 Owner
+            </span>
+          )}
           {isCollaborator && (
             <span className="sk-tag" style={{ background: "var(--accent-light)", color: "var(--accent-primary)", border: "1px solid var(--accent-primary)", textTransform: "capitalize" }}>
               {collaboratorRole === "editor" ? "✏ Editor" : "👁 Viewer"}
             </span>
           )}
         </div>
+        {isCollaborator && invitedByEmail && (
+          <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 6 }}>
+            Shared by {invitedByEmail}
+          </div>
+        )}
 
         {/* Delete button -- owners only */}
         {!isCollaborator && onDeleteClick && (

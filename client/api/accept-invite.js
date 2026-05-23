@@ -68,7 +68,7 @@ export default async function handler(req, res) {
   // ── Step 1: Look up invitation by token ──────────────────────────────────────
   const { data: invitation, error: inviteError } = await supabase
     .from("event_invitations")
-    .select("id, event_id, role, expires_at, accepted_at, email, invited_by")
+    .select("id, event_id, role, expires_at, accepted_at, email, invited_by, invited_by_email")
     .eq("token", token)
     .single();
 
@@ -125,19 +125,32 @@ export default async function handler(req, res) {
     inviteeEmail = profile?.email || null;
   }
 
+  // ── Resolve invited_by_email -- use value stored on invitation if present,
+  // otherwise look up from user_profiles using invited_by UUID ──────────────────
+  let invitedByEmail = invitation.invited_by_email || null;
+  if (!invitedByEmail && invitation.invited_by) {
+    const { data: ownerProfile } = await supabase
+      .from("user_profiles")
+      .select("email")
+      .eq("id", invitation.invited_by)
+      .maybeSingle();
+    invitedByEmail = ownerProfile?.email || null;
+  }
+
   // ── Step 6: Insert collaborator row ─────────────────────────────────────────
   const now = new Date().toISOString();
 
   const { error: insertError } = await supabase
     .from("event_collaborators")
     .insert({
-      event_id:    invitation.event_id,
-      user_id:     userId,
-      role:        invitation.role,
-      invited_by:  invitation.invited_by,
-      invited_at:  now,
-      accepted_at: now,
-      email:       inviteeEmail,
+      event_id:         invitation.event_id,
+      user_id:          userId,
+      role:             invitation.role,
+      invited_by:       invitation.invited_by,
+      invited_by_email: invitedByEmail,
+      invited_at:       now,
+      accepted_at:      now,
+      email:            inviteeEmail,
     });
 
   if (insertError) {
