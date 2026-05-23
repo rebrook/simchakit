@@ -1,9 +1,18 @@
 {
-  "current": "V3.13.8",
+  "current": "V3.13.9",
   "whatsNew": [
     "Multiple people can now plan a single event together. Invite a co-planner as an Editor for full access, or a Viewer so family can follow along. Open Admin Mode and go to Collaborators to get started. Collaborator access is covered by the event owner's purchase at no extra cost."
   ],
   "changelog": [
+    {
+      "version": "V3.13.9",
+      "date": "2026-05-23",
+      "changes": [
+        "Supabase: added email column to event_collaborators table; backfilled email from user_profiles for existing rows",
+        "accept-invite.js: email resolution moved before the collaborator row insert so email is stored directly on the event_collaborators row at accept time; Brevo sync reuses the already-resolved email rather than re-querying",
+        "AdminPanel.jsx: removed user_profiles cross-user lookup from loadCollaborators (blocked by RLS); email now read directly from event_collaborators.email column which is always readable by the event owner"
+      ]
+    },
     {
       "version": "V3.13.8",
       "date": "2026-05-23",

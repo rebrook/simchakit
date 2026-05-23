@@ -114,6 +114,17 @@ export default async function handler(req, res) {
     return res.status(403).json({ error: "CAP_REACHED" });
   }
 
+  // ── Resolve invitee email early — needed for both the insert and Brevo sync ──
+  let inviteeEmail = invitation.email || null;
+  if (!inviteeEmail) {
+    const { data: profile } = await supabase
+      .from("user_profiles")
+      .select("email")
+      .eq("id", userId)
+      .maybeSingle();
+    inviteeEmail = profile?.email || null;
+  }
+
   // ── Step 6: Insert collaborator row ─────────────────────────────────────────
   const now = new Date().toISOString();
 
@@ -126,6 +137,7 @@ export default async function handler(req, res) {
       invited_by:  invitation.invited_by,
       invited_at:  now,
       accepted_at: now,
+      email:       inviteeEmail,
     });
 
   if (insertError) {
@@ -145,22 +157,10 @@ export default async function handler(req, res) {
   }
 
   // ── Step 8: Brevo sync (non-fatal — does not block on failure) ───────────────
-  // Look up the invitee email from user_profiles (same pattern as notify.js).
-  // Always set collaborator attributes on the contact.
+  // Email already resolved above. Always set collaborator attributes on the contact.
   // Only skip the list addition if the contact is already on the owner journey
   // (lists 3 or 6) -- owner journey takes precedence for list membership.
   try {
-    // Resolve email: use invitation.email if present, otherwise query user_profiles
-    let inviteeEmail = invitation.email || null;
-
-    if (!inviteeEmail) {
-      const { data: profile } = await supabase
-        .from("user_profiles")
-        .select("email")
-        .eq("id", userId)
-        .maybeSingle();
-      inviteeEmail = profile?.email || null;
-    }
 
     if (inviteeEmail) {
       const brevoListId = invitation.role === "editor" ? BREVO_LIST_EDITORS : BREVO_LIST_VIEWERS;

@@ -1371,7 +1371,7 @@ function CollaboratorsSection({ eventId, userId, eventName }) {
     const [collabRes, inviteRes] = await Promise.all([
       supabase
         .from("event_collaborators")
-        .select("id, user_id, role, invited_at, accepted_at")
+        .select("id, user_id, role, email, invited_at, accepted_at")
         .eq("event_id", eventId)
         .not("accepted_at", "is", null)
         .order("accepted_at", { ascending: true }),
@@ -1384,26 +1384,8 @@ function CollaboratorsSection({ eventId, userId, eventName }) {
         .order("created_at", { ascending: true }),
     ]);
 
-    // Look up email for each collaborator from user_profiles
-    const collabData = collabRes.data || [];
-    const userIds = collabData.map(c => c.user_id).filter(Boolean);
-    let profileMap = {};
-    if (userIds.length > 0) {
-      const { data: profiles } = await supabase
-        .from("user_profiles")
-        .select("id, email")
-        .in("id", userIds);
-      if (profiles) {
-        profileMap = Object.fromEntries(profiles.map(p => [p.id, p.email]));
-      }
-    }
-
-    const collabWithEmail = collabData.map(c => ({
-      ...c,
-      email: profileMap[c.user_id] || null,
-    }));
-
-    setCollaborators(collabWithEmail);
+    // Email is stored directly on event_collaborators row at accept time
+    setCollaborators(collabRes.data || []);
     setInvitations(inviteRes.data || []);
     setLoadStatus("ready");
   }
