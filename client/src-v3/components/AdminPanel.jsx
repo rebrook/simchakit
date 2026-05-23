@@ -1369,12 +1369,7 @@ function CollaboratorsSection({ eventId, userId, eventName }) {
   async function loadCollaborators() {
     setLoadStatus("loading");
     const [collabRes, inviteRes] = await Promise.all([
-      supabase
-        .from("event_collaborators")
-        .select("id, user_id, role, email, display_name, invited_at, accepted_at")
-        .eq("event_id", eventId)
-        .not("accepted_at", "is", null)
-        .order("accepted_at", { ascending: true }),
+      supabase.rpc("get_event_collaborators", { p_event_id: eventId }),
       supabase
         .from("event_invitations")
         .select("id, email, role, created_at, expires_at")

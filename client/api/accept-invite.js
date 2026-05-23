@@ -139,15 +139,6 @@ export default async function handler(req, res) {
     if (!invitedByName)  invitedByName  = ownerProfile?.display_name || null;
   }
 
-  // ── Resolve collaborator display_name ────────────────────────────────────────
-  let collaboratorDisplayName = null;
-  const { data: collaboratorProfile } = await supabase
-    .from("user_profiles")
-    .select("display_name")
-    .eq("id", userId)
-    .maybeSingle();
-  collaboratorDisplayName = collaboratorProfile?.display_name || null;
-
   // ── Step 6: Insert collaborator row ─────────────────────────────────────────
   const now = new Date().toISOString();
 
@@ -163,7 +154,6 @@ export default async function handler(req, res) {
       invited_at:       now,
       accepted_at:      now,
       email:            inviteeEmail,
-      display_name:     collaboratorDisplayName,
     });
 
   if (insertError) {
