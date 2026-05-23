@@ -162,7 +162,7 @@ export function EventPicker({ session, displayName: userDisplayName, onSelectEve
         .eq("status", "completed"),
       supabase
         .from("event_collaborators")
-        .select("role, event_id, invited_by_email, events(id, name, type, archived, admin_config, created_at, updated_at)")
+        .select("role, event_id, invited_by_email, invited_by_name, events(id, name, type, archived, admin_config, created_at, updated_at)")
         .eq("user_id", userId)
         .not("accepted_at", "is", null),
     ]);
@@ -185,6 +185,7 @@ export function EventPicker({ session, displayName: userDisplayName, onSelectEve
       ...r.events,
       _collaboratorRole:    r.role,
       _invitedByEmail:      r.invited_by_email || null,
+      _invitedByName:       r.invited_by_name  || null,
     }));
 
     setEvents(sorted);
@@ -490,6 +491,7 @@ export function EventPicker({ session, displayName: userDisplayName, onSelectEve
                   onDeleteClick={null}
                   collaboratorRole={ev._collaboratorRole}
                   invitedByEmail={ev._invitedByEmail}
+                  invitedByName={ev._invitedByName}
                 />
               ))}
             </div>
@@ -539,7 +541,7 @@ export function EventPicker({ session, displayName: userDisplayName, onSelectEve
 }
 
 // ── EventCard ─────────────────────────────────────────────────────────────────
-function EventCard({ event, meta, onSelect, onDeleteClick, collaboratorRole = null, invitedByEmail = null }) {
+function EventCard({ event, meta, onSelect, onDeleteClick, collaboratorRole = null, invitedByEmail = null, invitedByName = null }) {
   const { palette, typeIcon, dateStr, themeName } = meta;
   const typeLabel = EVENT_TYPE_LABELS[event.type] || "Celebration";
   const isDark  = document.documentElement.getAttribute("data-theme") === "dark";

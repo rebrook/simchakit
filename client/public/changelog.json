@@ -1,9 +1,17 @@
 {
-  "current": "V3.14.0",
+  "current": "V3.14.1",
   "whatsNew": [
     "SimchaKit now knows your name. When you first sign in, you will be asked what to call you. Your name appears throughout the app and in invitation emails sent to your co-planners. Update it any time by clicking your name in the event picker."
   ],
   "changelog": [
+    {
+      "version": "V3.14.1",
+      "date": "2026-05-23",
+      "changes": [
+        "EventPicker.jsx: fixed ReferenceError -- invitedByName was used in EventCard JSX but not declared in props signature or mapped from event_collaborators query; added invited_by_name to select, _invitedByName to data mapping, invitedByName prop to EventCard call, and invitedByName to EventCard function signature",
+        "Supabase: added invited_by_email column to event_invitations (was missing, causing send-invite 500 error)"
+      ]
+    },
     {
       "version": "V3.14.0",
       "date": "2026-05-23",
