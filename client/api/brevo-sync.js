@@ -20,6 +20,8 @@
 // Event Confirmed template ID: 4
 // SimchaKit - New Users list ID: 3
 // SimchaKit - All Users list ID: 8
+// SimchaKit - Collaborators (Editors) list ID: 9
+// SimchaKit - Collaborators (Viewers) list ID: 10
 // ─────────────────────────────────────────────────────────────────────────────
 
 const BREVO_CONTACTS_URL     = "https://api.brevo.com/v3/contacts";

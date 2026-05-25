@@ -1,9 +1,19 @@
 {
-  "current": "V3.14.5",
+  "current": "V3.14.6",
   "whatsNew": [
     "SimchaKit now knows your name. When you first sign in, you will be asked what to call you. Your name appears throughout the app and in invitation emails sent to your co-planners. Update it any time by clicking your name in the event picker."
   ],
   "changelog": [
+    {
+      "version": "V3.14.6",
+      "date": "2026-05-25",
+      "changes": [
+        "accept-invite.js: updated BREVO_LIST_EDITORS from 7 to 9 (SimchaKit - Collaborators Editors) and BREVO_LIST_VIEWERS from 8 to 10 (SimchaKit - Collaborators Viewers) to match actual Brevo list IDs",
+        "brevo-sync.js: updated list ID comments to reflect correct list assignments (8=All Users, 9=Editors, 10=Viewers)",
+        "Brevo: created Templates 15 (Editor Welcome), 16 (Editor See You Next Simcha), 17 (Viewer Welcome), 18 (Viewer See You Next Simcha)",
+        "Brevo: created coupon code SIMCHACOLLAB for 25% off for collaborators converting to paid customers"
+      ]
+    },
     {
       "version": "V3.14.5",
       "date": "2026-05-25",

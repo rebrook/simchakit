@@ -35,8 +35,8 @@
 
 const BREVO_CONTACTS_URL   = "https://api.brevo.com/v3/contacts";
 const COLLABORATOR_CAP     = 5;
-const BREVO_LIST_EDITORS   = 7;
-const BREVO_LIST_VIEWERS   = 8;
+const BREVO_LIST_EDITORS   = 9;  // SimchaKit - Collaborators (Editors)
+const BREVO_LIST_VIEWERS   = 10; // SimchaKit - Collaborators (Viewers)
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {
