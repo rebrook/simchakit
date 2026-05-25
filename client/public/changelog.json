@@ -1,9 +1,16 @@
 {
-  "current": "V3.14.6",
+  "current": "V3.14.7",
   "whatsNew": [
     "SimchaKit now knows your name. When you first sign in, you will be asked what to call you. Your name appears throughout the app and in invitation emails sent to your co-planners. Update it any time by clicking your name in the event picker."
   ],
   "changelog": [
+    {
+      "version": "V3.14.7",
+      "date": "2026-05-25",
+      "changes": [
+        "lifecycle-emails.js: added collaborator lifecycle email loop; after each owner email is sent, queries event_collaborators for accepted collaborators and sends role-appropriate templates -- Editors receive planning checkpoints (T5-T8), Mazel Tov (T9), Thank-You nudge (T10), and See You Next Simcha (T22); Viewers receive Mazel Tov (T9) and See You Next Simcha (T24); removed collaborators (no accepted_at) are skipped; cron results now include collabSent count per lifecycle offset"
+      ]
+    },
     {
       "version": "V3.14.6",
       "date": "2026-05-25",

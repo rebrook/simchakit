@@ -6,9 +6,9 @@
 // For each lifecycle day offset, queries Supabase for events whose main event
 // date (admin_config -> timeline -> isMainEvent = true -> startDate) matches
 // today +/- the offset. Sends the corresponding Brevo transactional email
-// for each matching event.
+// for each matching event owner, then sends collaborator emails.
 //
-// Template IDs:
+// Owner template IDs:
 //   -90 days: 5  (90-Day Checkpoint)
 //   -60 days: 6  (60-Day Checkpoint)
 //   -30 days: 7  (30-Day Countdown)
@@ -16,6 +16,13 @@
 //    +1 day:  9  (Mazel Tov)
 //   +14 days: 10 (Thank-You Nudge)
 //   +30 days: 11 (See You Next Simcha)
+//
+// Collaborator template IDs:
+//   -90/-60/-30/-7 days: 5/6/7/8 (same planning checkpoints, Editors only)
+//    +1 day:  9  (Mazel Tov, Editors and Viewers)
+//   +14 days: 10 (Thank-You Nudge, Editors only)
+//   +30 days: 22 (Editor See You Next Simcha, Editors only)
+//   +30 days: 24 (Viewer See You Next Simcha, Viewers only)
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { createClient } from "@supabase/supabase-js";
@@ -31,6 +38,19 @@ const LIFECYCLE_TEMPLATES = [
   { offsetDays: -14, templateId: 10, label: "Thank-You Nudge"   },
   { offsetDays: -30, templateId: 11, label: "See You Next Simcha" },
 ];
+
+// Collaborator template mapping per offset.
+// editorTemplateId: template to send to editors (null = skip editors)
+// viewerTemplateId: template to send to viewers (null = skip viewers)
+const COLLABORATOR_TEMPLATES = {
+   90: { editorTemplateId: 5,    viewerTemplateId: null },
+   60: { editorTemplateId: 6,    viewerTemplateId: null },
+   30: { editorTemplateId: 7,    viewerTemplateId: null },
+    7: { editorTemplateId: 8,    viewerTemplateId: null },
+   -1: { editorTemplateId: 9,    viewerTemplateId: 9    },
+  -14: { editorTemplateId: 10,   viewerTemplateId: null },
+  -30: { editorTemplateId: 22,   viewerTemplateId: 24   },
+};
 
 export default async function handler(req, res) {
   // Verify this is a legitimate Vercel cron request
@@ -86,9 +106,12 @@ export default async function handler(req, res) {
     }
 
     let sent = 0;
+    let collabSent = 0;
+
     for (const event of events) {
       if (!event.email || !event.event_name) continue;
 
+      // ── Owner email ───────────────────────────────────────────────────────
       try {
         const response = await fetch(BREVO_TRANSACTIONAL_URL, {
           method: "POST",
@@ -116,10 +139,63 @@ export default async function handler(req, res) {
       } catch (err) {
         console.error(`[SimchaKit] Send error for ${event.email} (${label}):`, err.message);
       }
+
+      // ── Collaborator emails ───────────────────────────────────────────────
+      const collabConfig = COLLABORATOR_TEMPLATES[offsetDays];
+      if (!collabConfig) continue;
+
+      const { data: collaborators, error: collabError } = await supabase
+        .from("event_collaborators")
+        .select("email, role")
+        .eq("event_id", event.event_id)
+        .not("accepted_at", "is", null);
+
+      if (collabError) {
+        console.error(`[SimchaKit] Collab query error for event ${event.event_id} (${label}):`, collabError.message);
+        continue;
+      }
+
+      for (const collab of (collaborators || [])) {
+        if (!collab.email) continue;
+
+        const tplId = collab.role === "editor"
+          ? collabConfig.editorTemplateId
+          : collabConfig.viewerTemplateId;
+
+        if (!tplId) continue; // this role does not receive this email
+
+        try {
+          const response = await fetch(BREVO_TRANSACTIONAL_URL, {
+            method: "POST",
+            headers: {
+              "accept":       "application/json",
+              "content-type": "application/json",
+              "api-key":      BREVO_API_KEY,
+            },
+            body: JSON.stringify({
+              to:         [{ email: collab.email }],
+              templateId: tplId,
+              params: {
+                EVENT_NAME: event.event_name,
+                EVENT_TYPE: event.event_type || "",
+              },
+            }),
+          });
+
+          if (response.status === 201) {
+            collabSent++;
+          } else {
+            const body = await response.text();
+            console.error(`[SimchaKit] Brevo collab error for ${collab.email} (${label}):`, body);
+          }
+        } catch (err) {
+          console.error(`[SimchaKit] Collab send error for ${collab.email} (${label}):`, err.message);
+        }
+      }
     }
 
-    console.log(`[SimchaKit] ${label} (${targetDateStr}): sent ${sent}/${events.length}`);
-    results.push({ label, targetDate: targetDateStr, sent, total: events.length });
+    console.log(`[SimchaKit] ${label} (${targetDateStr}): owners ${sent}/${events.length}, collaborators ${collabSent}`);
+    results.push({ label, targetDate: targetDateStr, sent, collabSent, total: events.length });
   }
 
   return res.status(200).json({ ok: true, results });
