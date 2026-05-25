@@ -1,9 +1,18 @@
 {
-  "current": "V3.14.4",
+  "current": "V3.14.5",
   "whatsNew": [
     "SimchaKit now knows your name. When you first sign in, you will be asked what to call you. Your name appears throughout the app and in invitation emails sent to your co-planners. Update it any time by clicking your name in the event picker."
   ],
   "changelog": [
+    {
+      "version": "V3.14.5",
+      "date": "2026-05-25",
+      "changes": [
+        "App.css: added flex-wrap: wrap and gap: 8px 16px to .app-footer so footer items wrap cleanly on mobile instead of overflowing horizontally",
+        "App.v3.jsx: replaced fixed height: 60 with paddingTop: 12, paddingBottom: 12, minHeight: 60 in headerStyles.inner so the EventPicker page header grows naturally with its content on narrow screens instead of clipping",
+        "AdminPanel.jsx: replaced double hyphens in Role dropdown options with colons (Editor: full planning access, Viewer: read-only access)"
+      ]
+    },
     {
       "version": "V3.14.4",
       "date": "2026-05-23",

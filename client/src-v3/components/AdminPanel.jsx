@@ -1569,8 +1569,8 @@ function CollaboratorsSection({ eventId, userId, eventName }) {
           <div className="form-group">
             <label className="form-label">Role</label>
             <select className="form-input" value={inviteRole} onChange={e => setInviteRole(e.target.value)}>
-              <option value="editor">Editor -- full planning access</option>
-              <option value="viewer">Viewer -- read-only access</option>
+              <option value="editor">Editor: full planning access</option>
+              <option value="viewer">Viewer: read-only access</option>
             </select>
           </div>
 

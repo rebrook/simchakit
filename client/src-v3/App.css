@@ -1121,9 +1121,10 @@
       border-top: 1px solid var(--border);
       padding: 12px 24px;
       display: flex;
+      flex-wrap: wrap;
       align-items: center;
       justify-content: center;
-      gap: 16px;
+      gap: 8px 16px;
       font-size: 11px;
       color: var(--text-muted);
       background: var(--bg-surface);
