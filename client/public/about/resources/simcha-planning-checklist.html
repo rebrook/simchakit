@@ -18,13 +18,13 @@
   <meta property="og:description" content="A full timeline checklist for planning a bar mitzvah, bat mitzvah, Jewish wedding, or any simcha. From the first decision to the last thank-you note.">
   <meta property="og:type" content="article">
   <meta property="og:url" content="https://about.simcha-kit.com/resources/simcha-planning-checklist">
-  <meta property="og:image" content="https://app.simcha-kit.com/about/overview.png">
+  <meta property="og:image" content="https://app.simcha-kit.com/about/resources/checklist-og.png">
 
   <!-- Twitter Card -->
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="The Complete Simcha Planning Checklist">
   <meta name="twitter:description" content="A full timeline checklist for planning a bar mitzvah, bat mitzvah, Jewish wedding, or any simcha. From the first decision to the last thank-you note.">
-  <meta name="twitter:image" content="https://app.simcha-kit.com/about/overview.png">
+  <meta name="twitter:image" content="https://app.simcha-kit.com/about/resources/checklist-og.png">
 
   <!-- Structured Data: Article -->
   <script type="application/ld+json">
@@ -521,6 +521,60 @@
       padding: 10px 16px;
     }
 
+    /* ── Share bar ── */
+    .share-bar {
+      margin-top: 40px;
+      padding-top: 32px;
+      border-top: 1px solid var(--color-border);
+      max-width: 68ch;
+    }
+
+    .share-bar-label {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--color-text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 14px;
+    }
+
+    .share-buttons {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .share-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 18px;
+      border-radius: var(--radius);
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      border: 2px solid var(--color-border);
+      background: var(--color-white);
+      color: var(--color-text);
+      text-decoration: none;
+      transition: all 0.2s;
+      font-family: var(--font-body);
+    }
+
+    .share-btn:hover {
+      border-color: var(--color-primary);
+      color: var(--color-primary);
+      background: var(--color-bg-alt);
+    }
+
+    .share-btn-facebook { border-color: #1877f2; color: #1877f2; }
+    .share-btn-facebook:hover { background: #e7f0fd; border-color: #1877f2; color: #1877f2; }
+
+    .share-btn-whatsapp { border-color: #25d366; color: #25d366; }
+    .share-btn-whatsapp:hover { background: #e8fdf0; border-color: #25d366; color: #25d366; }
+
+    .share-btn-copy.copied { border-color: #22c55e; color: #22c55e; background: #f0fdf4; }
+
     /* ── Closing CTA section ── */
     .article-cta {
       background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-light) 100%);
@@ -996,6 +1050,29 @@
             </div>
           </div>
 
+          <!-- Share bar -->
+          <div class="share-bar">
+            <div class="share-bar-label">Share this guide</div>
+            <div class="share-buttons">
+              <a href="https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Fabout.simcha-kit.com%2Fresources%2Fsimcha-planning-checklist" target="_blank" rel="noopener" class="share-btn share-btn-facebook">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>
+                Share on Facebook
+              </a>
+              <a href="https://wa.me/?text=The%20Complete%20Simcha%20Planning%20Checklist%3A%20https%3A%2F%2Fabout.simcha-kit.com%2Fresources%2Fsimcha-planning-checklist" target="_blank" rel="noopener" class="share-btn share-btn-whatsapp">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/></svg>
+                Share on WhatsApp
+              </a>
+              <a href="mailto:?subject=The%20Complete%20Simcha%20Planning%20Checklist&body=Thought%20you%20might%20find%20this%20useful%3A%20https%3A%2F%2Fabout.simcha-kit.com%2Fresources%2Fsimcha-planning-checklist" class="share-btn share-btn-email">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,12 2,6"/></svg>
+                Send by Email
+              </a>
+              <button class="share-btn share-btn-copy" onclick="copyArticleLink(this)">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                <span>Copy Link</span>
+              </button>
+            </div>
+          </div>
+
         </article>
 
         <!-- Sidebar TOC -->
@@ -1045,6 +1122,17 @@
     </div>
   </footer>
   <script>
+    function copyArticleLink(btn) {
+      navigator.clipboard.writeText('https://about.simcha-kit.com/resources/simcha-planning-checklist').then(function () {
+        btn.classList.add('copied');
+        btn.querySelector('span').textContent = 'Copied!';
+        setTimeout(function () {
+          btn.classList.remove('copied');
+          btn.querySelector('span').textContent = 'Copy Link';
+        }, 2000);
+      });
+    }
+
     function toggleMobileToc(btn) {
       var list = document.getElementById('mobile-toc-list');
       var icon = btn.querySelector('.mobile-toc-icon');
