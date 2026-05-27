@@ -12,28 +12,6 @@
       ],
       "destination": "https://demo.simcha-kit.com/demo",
       "permanent": false
-    }
-  ],
-  "rewrites": [
-    {
-      "source": "/",
-      "has": [
-        {
-          "type": "host",
-          "value": "about.simcha-kit.com"
-        }
-      ],
-      "destination": "/about/index.html"
-    },
-    {
-      "source": "/resources/simcha-planning-checklist",
-      "has": [
-        {
-          "type": "host",
-          "value": "about.simcha-kit.com"
-        }
-      ],
-      "destination": "/about/resources/simcha-planning-checklist.html"
     },
     {
       "source": "/sitemap.xml",
@@ -43,7 +21,8 @@
           "value": "about.simcha-kit.com"
         }
       ],
-      "destination": "/about/sitemap.xml"
+      "destination": "https://app.simcha-kit.com/about/sitemap.xml",
+      "permanent": false
     },
     {
       "source": "/robots.txt",
@@ -53,7 +32,8 @@
           "value": "about.simcha-kit.com"
         }
       ],
-      "destination": "/about/robots.txt"
+      "destination": "https://app.simcha-kit.com/about/robots.txt",
+      "permanent": false
     },
     {
       "source": "/llms.txt",
@@ -63,21 +43,36 @@
           "value": "about.simcha-kit.com"
         }
       ],
-      "destination": "/about/llms.txt"
+      "destination": "https://app.simcha-kit.com/about/llms.txt",
+      "permanent": false
     },
     {
-      "source": "/api/:path*",
-      "destination": "/api/:path*"
-    },
-    {
-      "source": "/:path*",
+      "source": "/resources/simcha-planning-checklist",
       "has": [
         {
           "type": "host",
           "value": "about.simcha-kit.com"
         }
       ],
-      "destination": "/about/index.html"
+      "destination": "https://app.simcha-kit.com/about/resources/simcha-planning-checklist.html",
+      "permanent": false
+    },
+    {
+      "source": "/(.*)",
+      "has": [
+        {
+          "type": "host",
+          "value": "about.simcha-kit.com"
+        }
+      ],
+      "destination": "https://app.simcha-kit.com/about/index.html",
+      "permanent": false
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "/api/:path*"
     },
     {
       "source": "/:path*",
