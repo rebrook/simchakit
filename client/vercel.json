@@ -12,20 +12,29 @@
       ],
       "destination": "https://demo.simcha-kit.com/demo",
       "permanent": false
-    },
+    }
+  ],
+  "rewrites": [
     {
-      "source": "/(.*)",
+      "source": "/",
       "has": [
         {
           "type": "host",
           "value": "about.simcha-kit.com"
         }
       ],
-      "destination": "https://app.simcha-kit.com/about/index.html",
-      "permanent": false
-    }
-  ],
-  "rewrites": [
+      "destination": "/about/index.html"
+    },
+    {
+      "source": "/blog/simcha-planning-checklist",
+      "has": [
+        {
+          "type": "host",
+          "value": "about.simcha-kit.com"
+        }
+      ],
+      "destination": "/about/blog/simcha-planning-checklist.html"
+    },
     {
       "source": "/sitemap.xml",
       "has": [
