@@ -71,6 +71,16 @@
     },
     {
       "source": "/:path*",
+      "has": [
+        {
+          "type": "host",
+          "value": "about.simcha-kit.com"
+        }
+      ],
+      "destination": "/about/index.html"
+    },
+    {
+      "source": "/:path*",
       "destination": "/index.v3.html"
     }
   ],
