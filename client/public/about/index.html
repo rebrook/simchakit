@@ -1097,6 +1097,40 @@
         display: none;
       }
 
+      nav.open {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0;
+        position: absolute;
+        top: 60px;
+        left: 0;
+        right: 0;
+        background: rgba(255,255,255,0.98);
+        border-bottom: 1px solid var(--color-border);
+        padding: 8px 0 16px;
+        box-shadow: var(--shadow-md);
+        z-index: 99;
+      }
+
+      nav.open a {
+        width: 100%;
+        padding: 12px 24px;
+        font-size: 15px;
+        border-bottom: 1px solid var(--color-border);
+      }
+
+      nav.open a:last-child {
+        border-bottom: none;
+      }
+
+      nav.open .btn {
+        margin: 8px 24px 0;
+        width: calc(100% - 48px);
+        justify-content: center;
+        padding: 12px 24px;
+      }
+
       .nav-mobile-toggle {
         display: block;
       }
@@ -1511,6 +1545,25 @@
       </div>
     </div>
   </footer>
+  <script>
+    (function () {
+      var toggle = document.querySelector('.nav-mobile-toggle');
+      var nav = document.querySelector('nav');
+
+      toggle.addEventListener('click', function () {
+        var isOpen = nav.classList.contains('open');
+        nav.classList.toggle('open', !isOpen);
+        toggle.setAttribute('aria-expanded', String(!isOpen));
+      });
+
+      nav.querySelectorAll('a').forEach(function (link) {
+        link.addEventListener('click', function () {
+          nav.classList.remove('open');
+          toggle.setAttribute('aria-expanded', 'false');
+        });
+      });
+    })();
+  </script>
 
 </body>
 </html>
