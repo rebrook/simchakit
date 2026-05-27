@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SimchaKit — Jewish Lifecycle Event Planning App | Mitzvahs, Weddings, and Simchas</title>
+  <title>SimchaKit: Jewish Lifecycle Event Planning App | Mitzvahs, Weddings, and Simchas</title>
   <meta name="description" content="SimchaKit is the all-in-one planning hub for B'nei Mitzvot, weddings, and every Jewish lifecycle celebration. Manage guests, budgets, vendors, seating, and more.">
   <meta name="keywords" content="bar mitzvah planning app, bat mitzvah planning tool, simcha planning software, Jewish event planning app, B'nei Mitzvah organizer, Jewish wedding planner, simcha guest list, seating chart app">
 
@@ -18,7 +18,7 @@
   <link rel="icon" type="image/png" href="SimchaKit-logo.png">
 
   <!-- Open Graph -->
-  <meta property="og:title" content="SimchaKit — Jewish Lifecycle Event Planning App | Mitzvahs, Weddings, and Simchas">
+  <meta property="og:title" content="SimchaKit: Jewish Lifecycle Event Planning App | Mitzvahs, Weddings, and Simchas">
   <meta property="og:description" content="SimchaKit is the all-in-one planning hub for B'nei Mitzvot, weddings, and every Jewish lifecycle celebration.">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://about.simcha-kit.com">
@@ -26,7 +26,7 @@
 
   <!-- Twitter Card -->
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="SimchaKit — Jewish Lifecycle Event Planning App | Mitzvahs, Weddings, and Simchas">
+  <meta name="twitter:title" content="SimchaKit: Jewish Lifecycle Event Planning App | Mitzvahs, Weddings, and Simchas">
   <meta name="twitter:description" content="SimchaKit is the all-in-one planning hub for B'nei Mitzvot, weddings, and every Jewish lifecycle celebration.">
   <meta name="twitter:image" content="https://app.simcha-kit.com/about/overview.png">
 
@@ -67,7 +67,7 @@
         "name": "Is SimchaKit free?",
         "acceptedAnswer": {
           "@type": "Answer",
-          "text": "SimchaKit is a one-time fee of $29 per event, with introductory pricing through August 31, 2026 (regular price $49 after that). No subscription, no recurring charges — pay once and plan your entire simcha."
+          "text": "SimchaKit is a one-time fee of $29 per event, with introductory pricing through August 31, 2026 (regular price $49 after that). No subscription, no recurring charges. Pay once and plan your entire simcha."
         }
       },
       {
@@ -99,7 +99,7 @@
         "name": "Is SimchaKit mobile-friendly?",
         "acceptedAnswer": {
           "@type": "Answer",
-          "text": "Yes. SimchaKit works on any device — desktop, tablet, or phone. The Day-of Mode is designed specifically for mobile use on the day of your event."
+          "text": "Yes. SimchaKit works on any device: desktop, tablet, or phone. The Day-of Mode is designed specifically for mobile use on the day of your event."
         }
       },
       {
@@ -107,7 +107,7 @@
         "name": "Can I export my data from SimchaKit?",
         "acceptedAnswer": {
           "@type": "Answer",
-          "text": "Yes. SimchaKit lets you export your guest list, seating chart, and other data at any time. Your data is always yours — export it whenever you need it, in formats you can open in Excel or any spreadsheet tool."
+          "text": "Yes. SimchaKit lets you export your guest list, seating chart, and other data at any time. Your data is always yours. Export it whenever you need it, in formats you can open in Excel or any spreadsheet tool."
         }
       },
       {
@@ -903,6 +903,83 @@
       flex-wrap: wrap;
     }
 
+    /* Blog / Resources */
+    .blog-preview {
+      background: var(--color-white);
+    }
+
+    .blog-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 24px;
+      margin-top: 0;
+    }
+
+    .blog-card {
+      background: var(--color-bg);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      padding: 32px;
+      transition: all 0.3s;
+      text-decoration: none;
+      display: block;
+    }
+
+    .blog-card:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-md);
+      border-color: var(--color-primary);
+    }
+
+    .blog-card-tag {
+      display: inline-block;
+      background: var(--color-bg-alt);
+      border: 1px solid var(--color-border);
+      border-radius: 20px;
+      padding: 4px 12px;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--color-primary);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 14px;
+    }
+
+    .blog-card h3 {
+      color: var(--color-primary);
+      margin-bottom: 10px;
+      font-size: 1.2rem;
+      line-height: 1.3;
+    }
+
+    .blog-card p {
+      color: var(--color-text-muted);
+      font-size: 14px;
+      line-height: 1.7;
+      margin-bottom: 20px;
+    }
+
+    .blog-card-meta {
+      font-size: 12px;
+      color: var(--color-text-muted);
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .blog-card-read-more {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--color-accent);
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .blog-card:hover .blog-card-read-more {
+      color: var(--color-primary);
+    }
+
     /* Footer */
     footer {
       background: var(--color-primary);
@@ -1085,6 +1162,7 @@
           <a href="#pricing">Pricing</a>
           <a href="#faq">FAQ</a>
           <a href="#contact">Contact</a>
+          <a href="https://about.simcha-kit.com/resources/simcha-planning-checklist">Resources</a>
           <a href="https://demo.simcha-kit.com" target="_blank" class="btn btn-secondary" style="padding: 8px 16px;">Try Demo</a>
           <a href="https://app.simcha-kit.com" target="_blank" class="btn btn-primary" style="padding: 8px 20px;">Start Planning</a>
         </nav>
@@ -1101,9 +1179,9 @@
       <div class="hero-inner">
         <div class="hero-content">
           <h1>Plan Every Moment.<br><span>Celebrate Everything.</span></h1>
-          <h2 style="font-size: 1.1rem; font-weight: 500; color: var(--color-text-muted); margin-bottom: 16px; font-family: var(--font-body);">The planning hub built for every Jewish celebration — from Mitzvahs and weddings to baby namings and beyond.</h2>
+          <h2 style="font-size: 1.1rem; font-weight: 500; color: var(--color-text-muted); margin-bottom: 16px; font-family: var(--font-body);">The planning hub built for every Jewish celebration, from Mitzvahs and weddings to baby namings and beyond.</h2>
           <p class="hero-subtitle">SimchaKit is the all-in-one planning hub for B'nei Mitzvot, weddings, and every Jewish lifecycle celebration. Guests, budgets, vendors, seating, and tasks: all in one place.</p>
-          <p class="hero-differentiator">Not a generic event app — built specifically for simchas.</p>
+          <p class="hero-differentiator">Not a generic event app. Built specifically for simchas.</p>
           <div class="hero-buttons">
             <a href="https://demo.simcha-kit.com" target="_blank" class="btn btn-secondary btn-lg">Try the Demo</a>
             <a href="https://app.simcha-kit.com" target="_blank" class="btn btn-primary btn-lg">Start Planning</a>
@@ -1272,7 +1350,7 @@
           <div class="gs-step-number">3</div>
           <div class="gs-step-content">
             <h3>Start planning</h3>
-            <p>Import your guest list, add vendors, set your budget, and build your seating chart — all in one place.</p>
+            <p>Import your guest list, add vendors, set your budget, and build your seating chart, all in one place.</p>
           </div>
         </div>
       </div>
@@ -1289,7 +1367,7 @@
       <div class="pricing-inner">
         <div>
           <h2>Simple, One-Time Pricing.</h2>
-          <p class="pricing-desc">Pay once per event. No subscription, no recurring fees. Every feature is included from day one — guests, budget, vendors, seating, tasks, and more.</p>
+          <p class="pricing-desc">Pay once per event. No subscription, no recurring fees. Every feature is included from day one: guests, budget, vendors, seating, tasks, and more.</p>
           <ul class="pricing-features">
             <li>Unlimited guests, vendors, and tasks</li>
             <li>All tabs included: seating, budget, gifts, ceremony roles, and more</li>
@@ -1322,7 +1400,7 @@
       <div class="faq-grid">
         <div class="faq-item">
           <h3>Is it free?</h3>
-          <p>SimchaKit is a one-time fee of $29 per event, with introductory pricing through August 31, 2026 (regular price $49 after that). No subscription, no recurring charges — pay once and plan your entire simcha.</p>
+          <p>SimchaKit is a one-time fee of $29 per event, with introductory pricing through August 31, 2026 (regular price $49 after that). No subscription, no recurring charges. Pay once and plan your entire simcha.</p>
         </div>
         <div class="faq-item">
           <h3>Who is it for?</h3>
@@ -1338,11 +1416,11 @@
         </div>
         <div class="faq-item">
           <h3>Is it mobile-friendly?</h3>
-          <p>Yes. SimchaKit works on any device — desktop, tablet, or phone. The Day-of Mode is designed specifically for mobile use on the day of your event.</p>
+          <p>Yes. SimchaKit works on any device: desktop, tablet, or phone. The Day-of Mode is designed specifically for mobile use on the day of your event.</p>
         </div>
         <div class="faq-item">
           <h3>Can I export my data?</h3>
-          <p>Yes. SimchaKit lets you export your guest list, seating chart, and other data at any time. Your data is always yours — export it whenever you need it, in formats you can open in Excel or any spreadsheet tool.</p>
+          <p>Yes. SimchaKit lets you export your guest list, seating chart, and other data at any time. Your data is always yours. Export it whenever you need it, in formats you can open in Excel or any spreadsheet tool.</p>
         </div>
         <div class="faq-item">
           <h3>Can I import my existing guest list?</h3>
@@ -1366,6 +1444,29 @@
           <p>SimchaKit is actively used to plan a real bat mitzvah. Every feature exists because it was needed.</p>
           <p>Questions or feedback? Reach out at <a href="mailto:hello@simcha-kit.com" style="color: var(--color-accent-light);">hello@simcha-kit.com</a>.</p>
         </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Resources -->
+  <section class="blog-preview" id="resources">
+    <div class="container">
+      <div class="section-header">
+        <h2>Resources</h2>
+        <p>Practical resources for families planning a bar mitzvah, bat mitzvah, wedding, or any Jewish lifecycle celebration.</p>
+      </div>
+      <div class="blog-grid">
+        <a href="https://about.simcha-kit.com/resources/simcha-planning-checklist" class="blog-card">
+          <span class="blog-card-tag">Planning Guide</span>
+          <h3>The Complete Simcha Planning Checklist</h3>
+          <p>A full timeline checklist for planning any simcha, from the first decisions through the last thank-you note. Covers bar and bat mitzvahs, Jewish weddings, and every lifecycle celebration.</p>
+          <div class="blog-card-meta">
+            <span>&#128197; May 27, 2026</span>
+            <span>&#9201; 10 min read</span>
+          </div>
+          <br>
+          <span class="blog-card-read-more">Read the guide &#8250;</span>
+        </a>
       </div>
     </div>
   </section>
@@ -1400,6 +1501,7 @@
           <a href="#features">Features</a>
           <a href="#pricing">Pricing</a>
           <a href="https://demo.simcha-kit.com" target="_blank">Demo</a>
+          <a href="https://about.simcha-kit.com/resources/simcha-planning-checklist">Resources</a>
           <a href="https://www.facebook.com/SimchaKit/" target="_blank">Facebook</a>
           <a href="mailto:hello@simcha-kit.com">Contact</a>
         </div>

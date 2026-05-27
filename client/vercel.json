@@ -26,14 +26,14 @@
       "destination": "/about/index.html"
     },
     {
-      "source": "/blog/simcha-planning-checklist",
+      "source": "/resources/simcha-planning-checklist",
       "has": [
         {
           "type": "host",
           "value": "about.simcha-kit.com"
         }
       ],
-      "destination": "/about/blog/simcha-planning-checklist.html"
+      "destination": "/about/resources/simcha-planning-checklist.html"
     },
     {
       "source": "/sitemap.xml",
