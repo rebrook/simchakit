@@ -1,9 +1,24 @@
 {
-  "current": "V3.14.7",
+  "current": "V3.15.0",
   "whatsNew": [
-    "SimchaKit now knows your name. When you first sign in, you will be asked what to call you. Your name appears throughout the app and in invitation emails sent to your co-planners. Update it any time by clicking your name in the event picker."
+    "Admin Mode now has a sidebar navigation with grouped sections",
+    "Event Setup, People and Logistics, and App Config groups keep related settings together",
+    "On mobile, the sidebar becomes a compact section selector at the top of the panel"
   ],
   "changelog": [
+    {
+      "version": "V3.15.0",
+      "date": "2026-05-28",
+      "type": "minor",
+      "title": "Admin Mode Sidebar Navigation",
+      "changes": [
+        "Replaced Admin Mode tab row with a left sidebar navigation (V2 and V3)",
+        "Sidebar groups sections into three categories: Event Setup, People and Logistics, and App Config",
+        "Mobile: sidebar collapses to a full-width section selector with dropdown at top of panel",
+        "modal-lg width increased from 640px to 760px to accommodate sidebar layout",
+        "Added Navigating Admin Mode guide item to both V2 and V3 guides"
+      ]
+    },
     {
       "version": "V3.14.7",
       "date": "2026-05-25",
