@@ -167,7 +167,6 @@ export function AdminPanel({ eventId, userId, calendarToken: initialCalendarToke
   const [saved,   setSaved]   = useState(false);
   const [error,   setError]   = useState("");
   const [section, setSection] = useState(initialSection || "event");
-  const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [calendarToken,    setCalendarToken]    = useState(initialCalendarToken || null);
   const [calTokenCopied,   setCalTokenCopied]   = useState(false);
   const [calTokenRegen,    setCalTokenRegen]    = useState(false);   // confirm state
@@ -239,35 +238,19 @@ export function AdminPanel({ eventId, userId, calendarToken: initialCalendarToke
     { value:"other",        label:"Other Celebration"  },
   ];
 
-  const groups = [
-    {
-      label: "Event Setup",
-      items: [
-        { id:"event",          label:"Event Details"  },
-        { id:"timeline",       label:"Timeline"       },
-        { id:"clergy",         label:"Clergy & Tutor" },
-      ],
-    },
-    {
-      label: "People & Logistics",
-      items: [
-        { id:"guests",         label:"Guests"         },
-        { id:"accommodations", label:"Accommodations" },
-        { id:"collaborators",  label:"Collaborators"  },
-      ],
-    },
-    {
-      label: "App Config",
-      items: [
-        { id:"theme",          label:"Theme"          },
-        { id:"tabs",           label:"Tabs"           },
-        { id:"calendar",       label:"Calendar"       },
-        { id:"security",       label:"Security"       },
-        { id:"data",           label:"Data"           },
-      ],
-    },
+  const sections = [
+    { id:"event",          label:"Event Details"  },
+    { id:"timeline",       label:"Timeline"       },
+    { id:"clergy",         label:"Clergy & Tutor" },
+    { id:"guests",         label:"Guests"         },
+    { id:"accommodations", label:"Accommodations" },
+    { id:"theme",          label:"Theme"          },
+    { id:"tabs",           label:"Tabs"           },
+    { id:"collaborators",  label:"Collaborators"  },
+    { id:"calendar",       label:"Calendar"       },
+    { id:"security",       label:"Security"       },
+    { id:"data",           label:"Data"           },
   ];
-  const sections = groups.flatMap(g => g.items);
 
   // ── Save config to Supabase ───────────────────────────────────────────────
   const saveConfig = async () => {
@@ -513,44 +496,20 @@ export function AdminPanel({ eventId, userId, calendarToken: initialCalendarToke
           <div className="modal-title">⚙ Admin Mode</div>
           <button className="icon-btn" title="Close" onClick={onClose}>✕</button>
         </div>
-        <div className="modal-body admin-modal-body">
-          {/* Desktop sidebar */}
-          <div className="admin-sidebar">
-            {groups.map((group, gi) => (
-              <div key={group.label}>
-                {gi > 0 && <div className="admin-sidebar-divider" />}
-                <div className="admin-sidebar-group-label">{group.label}</div>
-                {group.items.map(s => (
-                  <button
-                    key={s.id}
-                    className={"admin-sidebar-btn" + (section===s.id ? " active" : "")}
-                    onClick={() => setSection(s.id)}
-                  >{s.label}</button>
-                ))}
-              </div>
+        <div className="modal-body">
+
+          {/* Section nav */}
+          <div className="admin-section-nav">
+            {sections.map(s => (
+              <button key={s.id} onClick={() => setSection(s.id)} style={{
+                padding:"8px 14px", border:"none", background:"none", cursor:"pointer",
+                fontSize:13, fontWeight:600, fontFamily:"var(--font-body)",
+                color: section===s.id ? "var(--accent-primary)" : "var(--text-muted)",
+                borderBottom: `2px solid ${section===s.id ? "var(--accent-primary)" : "transparent"}`,
+                marginBottom:-1, transition:"all 0.15s ease",
+              }}>{s.label}</button>
             ))}
           </div>
-          {/* Mobile nav */}
-          <div className="admin-mobile-nav">
-            <button
-              className={"admin-mobile-nav-btn" + (mobileNavOpen ? " open" : "")}
-              onClick={() => setMobileNavOpen(o => !o)}
-            >
-              <span>{sections.find(s => s.id === section)?.label || "Select section"}</span>
-              <span className="chevron">▼</span>
-            </button>
-            <div className={"admin-mobile-nav-list" + (mobileNavOpen ? " open" : "")}>
-              {sections.map(s => (
-                <button
-                  key={s.id}
-                  className={"admin-mobile-nav-item" + (section===s.id ? " active" : "")}
-                  onClick={() => { setSection(s.id); setMobileNavOpen(false); }}
-                >{s.label}</button>
-              ))}
-            </div>
-          </div>
-          {/* Section content */}
-          <div className="admin-content">
 
           {/* ── Event Details ── */}
           {section === "event" && (
@@ -1233,8 +1192,8 @@ export function AdminPanel({ eventId, userId, calendarToken: initialCalendarToke
             </>
           )}
 
-          </div>{/* end admin-content */}
-        </div>{/* end admin-modal-body */}
+        </div>
+      </div>
 
       {/* ── Timeline modals ── */}
       {tlModal && <TimelineEntryModal entry={tlModal==="add"?null:tlModal} onSave={handleTlSave} onClose={()=>setTlModal(null)} />}
