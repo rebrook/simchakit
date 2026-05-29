@@ -1,11 +1,20 @@
 {
-  "current": "V3.15.0",
+  "current": "V3.15.1",
   "whatsNew": [
-    "Admin Mode now has a sidebar navigation with grouped sections",
-    "Event Setup, People and Logistics, and App Config groups keep related settings together",
-    "On mobile, the sidebar becomes a compact section selector at the top of the panel"
+    "Admin Mode sidebar now stays fixed while you scroll through section content"
   ],
   "changelog": [
+    {
+      "version": "V3.15.1",
+      "date": "2026-05-29",
+      "type": "patch",
+      "title": "Admin Mode Sidebar Scroll Fix",
+      "changes": [
+        "Fixed Admin Mode sidebar to remain stationary while section content scrolls independently",
+        "Changed admin-modal-body from min-height to fixed height with 80vh maximum",
+        "Mobile override explicitly unsets height and max-height to preserve full-screen scroll behavior"
+      ]
+    },
     {
       "version": "V3.15.0",
       "date": "2026-05-28",

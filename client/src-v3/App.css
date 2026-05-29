@@ -1032,7 +1032,8 @@
       display: flex;
       padding: 0;
       overflow: hidden;
-      min-height: 480px;
+      height: 560px;
+      max-height: 80vh;
     }
 
     .admin-sidebar {
@@ -1176,7 +1177,7 @@
     @media (max-width: 640px) {
       .admin-sidebar { display: none; }
       .admin-mobile-nav { display: block; }
-      .admin-modal-body { flex-direction: column; min-height: unset; }
+      .admin-modal-body { flex-direction: column; min-height: unset; height: unset; max-height: unset; }
       .admin-content { padding: 16px; }
     }
 
