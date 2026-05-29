@@ -1235,6 +1235,7 @@ export function AdminPanel({ eventId, userId, calendarToken: initialCalendarToke
 
           </div>{/* end admin-content */}
         </div>{/* end admin-modal-body */}
+      </div>
 
       {/* ── Timeline modals ── */}
       {tlModal && <TimelineEntryModal entry={tlModal==="add"?null:tlModal} onSave={handleTlSave} onClose={()=>setTlModal(null)} />}
