@@ -22,6 +22,16 @@ export function CouponsPage({ token }) {
   const [saving,    setSaving]    = useState(false);
   const [saveError, setSaveError] = useState("");
 
+  // Edit coupon state
+  const [editingId,     setEditingId]     = useState(null);
+  const [editDiscount,  setEditDiscount]  = useState("free");
+  const [editValue,     setEditValue]     = useState("");
+  const [editMaxUses,   setEditMaxUses]   = useState("");
+  const [editExpiresAt, setEditExpiresAt] = useState("");
+  const [editNotes,     setEditNotes]     = useState("");
+  const [editSaving,    setEditSaving]    = useState(false);
+  const [editError,     setEditError]     = useState("");
+
   // New coupon form state
   const [code,      setCode]      = useState("");
   const [discount,  setDiscount]  = useState("free");
@@ -67,6 +77,46 @@ export function CouponsPage({ token }) {
     } catch (e) {
       alert("Error: " + e.message);
     }
+  }
+
+  function handleEdit(coupon) {
+    setEditingId(coupon.id);
+    setEditDiscount(coupon.discount);
+    setEditValue(
+      coupon.discount === "free" ? "" :
+      coupon.discount === "percent" ? String(coupon.value) :
+      String((coupon.value / 100).toFixed(2))
+    );
+    setEditMaxUses(coupon.max_uses != null ? String(coupon.max_uses) : "");
+    setEditExpiresAt(coupon.expires_at ? coupon.expires_at.slice(0, 10) : "");
+    setEditNotes(coupon.created_by || "");
+    setEditError("");
+  }
+
+  async function handleEditSave(coupon) {
+    if (editDiscount !== "free" && !editValue) { setEditError("Value is required."); return; }
+    setEditSaving(true);
+    setEditError("");
+    try {
+      const updated = await adminQuery(token, "update_coupon", {
+        couponId:  coupon.id,
+        discount:  editDiscount,
+        value:     editDiscount === "free" ? 0 : editDiscount === "percent" ? parseInt(editValue) : Math.round(parseFloat(editValue) * 100),
+        maxUses:   editMaxUses ? parseInt(editMaxUses) : null,
+        expiresAt: editExpiresAt || null,
+        notes:     editNotes.trim() || null,
+      });
+      setCoupons(prev => prev.map(c => c.id === coupon.id ? updated : c));
+      setEditingId(null);
+    } catch (e) {
+      setEditError(e.message);
+    }
+    setEditSaving(false);
+  }
+
+  function handleEditCancel() {
+    setEditingId(null);
+    setEditError("");
   }
 
   function resetForm() {
@@ -171,7 +221,58 @@ export function CouponsPage({ token }) {
           <tbody>
             {coupons.length === 0 ? (
               <tr><td colSpan={8} style={{ ...td, textAlign: "center", color: "#aaa" }}>No coupons yet.</td></tr>
-            ) : coupons.map(c => (
+            ) : coupons.map(c => {
+              const isEditing = c.id === editingId;
+              if (isEditing) {
+                return (
+                  <tr key={c.id} style={{ background: "#fffde7" }}>
+                    <td style={{ ...td, fontWeight: 700, fontFamily: "monospace", color: "#aaa" }}>{c.code}</td>
+                    <td style={td}>
+                      <select style={{ ...input, padding: "4px 8px", fontSize: 12 }}
+                        value={editDiscount} onChange={e => setEditDiscount(e.target.value)}>
+                        {DISCOUNT_TYPES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
+                      </select>
+                    </td>
+                    <td style={td}>
+                      {editDiscount !== "free" && (
+                        <input style={{ ...input, padding: "4px 8px", fontSize: 12, width: 70 }}
+                          type="number" min="0"
+                          placeholder={editDiscount === "percent" ? "%" : "$"}
+                          value={editValue} onChange={e => setEditValue(e.target.value)} />
+                      )}
+                    </td>
+                    <td style={td}>
+                      <input style={{ ...input, padding: "4px 8px", fontSize: 12, width: 70 }}
+                        type="number" min="1" placeholder="∞"
+                        value={editMaxUses} onChange={e => setEditMaxUses(e.target.value)} />
+                    </td>
+                    <td style={td}>
+                      <input style={{ ...input, padding: "4px 8px", fontSize: 12 }}
+                        type="date" value={editExpiresAt}
+                        onChange={e => setEditExpiresAt(e.target.value)} />
+                    </td>
+                    <td style={{ ...td }} colSpan={2}>
+                      <input style={{ ...input, padding: "4px 8px", fontSize: 12, width: "100%" }}
+                        type="text" placeholder="Notes"
+                        value={editNotes} onChange={e => setEditNotes(e.target.value)} />
+                      {editError && <div style={{ fontSize: 11, color: "#c00", marginTop: 2 }}>{editError}</div>}
+                    </td>
+                    <td style={td}>
+                      <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                        <button style={{ ...smallBtn, background: "#e8f5e9", color: "#2e7d32", border: "1px solid #c8e6c9", opacity: editSaving ? 0.5 : 1 }}
+                          onClick={() => handleEditSave(c)} disabled={editSaving}>
+                          {editSaving ? "Saving…" : "Save"}
+                        </button>
+                        <button style={{ ...smallBtn, background: "#f5f5f5", color: "#666", border: "1px solid #ddd" }}
+                          onClick={handleEditCancel}>
+                          Cancel
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              }
+              return (
               <tr key={c.id} style={{ opacity: c.active ? 1 : 0.5 }}>
                 <td style={{ ...td, fontWeight: 700, fontFamily: "monospace" }}>{c.code}</td>
                 <td style={td}>{formatDiscount(c)}</td>
@@ -189,17 +290,23 @@ export function CouponsPage({ token }) {
                   </span>
                 </td>
                 <td style={td}>
-                  <button style={{
-                    ...smallBtn,
-                    background: c.active ? "#fce4ec" : "#e8f5e9",
-                    color:      c.active ? "#c62828" : "#2e7d32",
-                    border:     `1px solid ${c.active ? "#ffcdd2" : "#c8e6c9"}`,
-                  }} onClick={() => handleToggle(c)}>
-                    {c.active ? "Deactivate" : "Activate"}
-                  </button>
+                  <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                    <button style={{ ...smallBtn, background: "#e3f2fd", color: "#1565c0", border: "1px solid #bbdefb" }}
+                      onClick={() => handleEdit(c)}>
+                      Edit
+                    </button>
+                    <button style={{
+                      ...smallBtn,
+                      background: c.active ? "#fce4ec" : "#e8f5e9",
+                      color:      c.active ? "#c62828" : "#2e7d32",
+                      border:     `1px solid ${c.active ? "#ffcdd2" : "#c8e6c9"}`,
+                    }} onClick={() => handleToggle(c)}>
+                      {c.active ? "Deactivate" : "Activate"}
+                    </button>
+                  </div>
                 </td>
               </tr>
-            ))}
+            )})}
           </tbody>
         </table>
       </div>

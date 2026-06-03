@@ -245,6 +245,26 @@ export default async function handler(req, res) {
         break;
       }
 
+      case "update_coupon": {
+        const { couponId, discount, value, maxUses, expiresAt, notes } = params || {};
+        if (!couponId) return res.status(400).json({ error: "Missing couponId." });
+        const { data: updated, error: updateError } = await supabaseAdmin
+          .from("coupon_codes")
+          .update({
+            discount,
+            value:      discount === "free" ? 0 : (value || 0),
+            max_uses:   maxUses || null,
+            expires_at: expiresAt || null,
+            created_by: notes || null,
+          })
+          .eq("id", couponId)
+          .select()
+          .single();
+        if (updateError) return res.status(500).json({ error: updateError.message });
+        result = updated;
+        break;
+      }
+
       default:
         return res.status(400).json({ error: `Unknown query: ${query}` });
     }
