@@ -12,61 +12,6 @@
       ],
       "destination": "https://demo.simcha-kit.com/demo",
       "permanent": false
-    },
-    {
-      "source": "/sitemap.xml",
-      "has": [
-        {
-          "type": "host",
-          "value": "about.simcha-kit.com"
-        }
-      ],
-      "destination": "https://app.simcha-kit.com/about/sitemap.xml",
-      "permanent": false
-    },
-    {
-      "source": "/robots.txt",
-      "has": [
-        {
-          "type": "host",
-          "value": "about.simcha-kit.com"
-        }
-      ],
-      "destination": "https://app.simcha-kit.com/about/robots.txt",
-      "permanent": false
-    },
-    {
-      "source": "/llms.txt",
-      "has": [
-        {
-          "type": "host",
-          "value": "about.simcha-kit.com"
-        }
-      ],
-      "destination": "https://app.simcha-kit.com/about/llms.txt",
-      "permanent": false
-    },
-    {
-      "source": "/resources/simcha-planning-checklist",
-      "has": [
-        {
-          "type": "host",
-          "value": "about.simcha-kit.com"
-        }
-      ],
-      "destination": "https://app.simcha-kit.com/about/resources/simcha-planning-checklist.html",
-      "permanent": false
-    },
-    {
-      "source": "/(.*)",
-      "has": [
-        {
-          "type": "host",
-          "value": "about.simcha-kit.com"
-        }
-      ],
-      "destination": "https://app.simcha-kit.com/about/index.html",
-      "permanent": false
     }
   ],
   "rewrites": [
