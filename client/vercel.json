@@ -16,6 +16,16 @@
   ],
   "rewrites": [
     {
+      "source": "/resources/:path*",
+      "has": [
+        {
+          "type": "host",
+          "value": "about.simcha-kit.com"
+        }
+      ],
+      "destination": "/resources/:path*.html"
+    },
+    {
       "source": "/api/:path*",
       "destination": "/api/:path*"
     },
