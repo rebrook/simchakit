@@ -433,9 +433,9 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false, display
               flexShrink:   0,
               whiteSpace:   "nowrap",
             }}>
-              {collaboratorRole === "editor"      ? "✏ Editor"
+              {collaboratorRole === "editor"      ? "✏️ Editor"
                : collaboratorRole === "coordinator" ? "📜 Coordinator"
-               : "👁 Viewer"}
+               : "👀 Viewer"}
             </div>
           )}
 
@@ -609,7 +609,7 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false, display
             fontWeight:   600,
             textAlign:    "center",
           }}>
-            👁 You have view-only access to this event.
+            👀 You have view-only access to this event.
           </div>
         )}
         {/* Coordinator scoped-access banner */}

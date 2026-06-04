@@ -1,9 +1,19 @@
 {
-  "current": "V3.16.1",
+  "current": "V3.16.2",
   "whatsNew": [
-    "Ritual Coordinator events now show the correct role badge in your event list"
+    "Collaborator role badges now display with a consistent look"
   ],
   "changelog": [
+    {
+      "version": "V3.16.2",
+      "date": "2026-06-04",
+      "type": "patch",
+      "title": "Consistent Role Badge Emoji",
+      "changes": [
+        "AppShell.jsx, EventPicker.jsx, AdminPanel.jsx: role badges now render as consistent color emoji -- Editor uses the pencil with emoji variation selector (✏️), Viewer uses 👀, Ritual Coordinator uses 📜; previously Editor and Viewer rendered as thin monochrome glyphs next to the coordinator color emoji",
+        "AppShell.jsx: viewer view-only access banner emoji changed from 👁 to 👀 to match the viewer badge"
+      ]
+    },
     {
       "version": "V3.16.1",
       "date": "2026-06-04",

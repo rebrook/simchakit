@@ -1546,7 +1546,7 @@ function CollaboratorsSection({ eventId, userId, eventName }) {
               border:       "1px solid var(--border)",
             }}>
               <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
-                <span style={{ fontSize: 16 }}>{c.role === "editor" ? "✏" : c.role === "coordinator" ? "📜" : "👁"}</span>
+                <span style={{ fontSize: 16 }}>{c.role === "editor" ? "✏️" : c.role === "coordinator" ? "📜" : "👀"}</span>
                 <div style={{ minWidth: 0 }}>
                   {c.display_name && (
                     <div style={{ fontSize: 12, fontWeight: 600, color: "var(--text-primary)" }}>{c.display_name}</div>
