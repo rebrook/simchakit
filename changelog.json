@@ -1,9 +1,18 @@
 {
-  "current": "V3.16.2",
+  "current": "V3.16.3",
   "whatsNew": [
-    "Collaborator role badges now display with a consistent look"
+    "Ritual Coordinators now see only the tools relevant to their role"
   ],
   "changelog": [
+    {
+      "version": "V3.16.3",
+      "date": "2026-06-04",
+      "type": "patch",
+      "title": "Hide Day-of Mode and Activity Log from Ritual Coordinators",
+      "changes": [
+        "AppShell.jsx: the Day-of Mode and Activity Log items in the header overflow menu are now hidden for Ritual Coordinators, whose access is limited to the Ceremony and Prep tabs"
+      ]
+    },
     {
       "version": "V3.16.2",
       "date": "2026-06-04",

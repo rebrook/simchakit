@@ -495,15 +495,19 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false, display
                     ✨ <span>What's New</span>
                   </button>
 
-                  <button className="header-overflow-item"
-                    onClick={() => { setShowOverflow(false); setShowDayOf(true); }}>
-                    📋 <span>Day-of Mode</span>
-                  </button>
+                  {!isCoordinator && (
+                    <button className="header-overflow-item"
+                      onClick={() => { setShowOverflow(false); setShowDayOf(true); }}>
+                      📋 <span>Day-of Mode</span>
+                    </button>
+                  )}
 
-                  <button className="header-overflow-item"
-                    onClick={() => { setShowOverflow(false); setShowActivityLog(true); }}>
-                    📊 <span>Activity Log</span>
-                  </button>
+                  {!isCoordinator && (
+                    <button className="header-overflow-item"
+                      onClick={() => { setShowOverflow(false); setShowActivityLog(true); }}>
+                      📊 <span>Activity Log</span>
+                    </button>
+                  )}
 
                   <button className="header-overflow-item"
                     onClick={() => { setShowOverflow(false); onBack(); }}>
