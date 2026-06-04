@@ -617,7 +617,9 @@ function EventCard({ event, meta, onSelect, onDeleteClick, collaboratorRole = nu
           )}
           {isCollaborator && (
             <span className="sk-tag" style={{ background: "var(--accent-light)", color: "var(--accent-primary)", border: "1px solid var(--accent-primary)", textTransform: "capitalize" }}>
-              {collaboratorRole === "editor" ? "✏ Editor" : "👁 Viewer"}
+              {collaboratorRole === "editor"      ? "✏ Editor"
+               : collaboratorRole === "coordinator" ? "📜 Ritual Coordinator"
+               : "👁 Viewer"}
             </span>
           )}
         </div>
