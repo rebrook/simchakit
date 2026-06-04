@@ -23,6 +23,8 @@
 //   +14 days: 10 (Thank-You Nudge, Editors only)
 //   +30 days: 22 (Editor See You Next Simcha, Editors only)
 //   +30 days: 24 (Viewer See You Next Simcha, Viewers only)
+//
+// Ritual Coordinators receive NO lifecycle emails.
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { createClient } from "@supabase/supabase-js";
@@ -158,9 +160,12 @@ export default async function handler(req, res) {
       for (const collab of (collaborators || [])) {
         if (!collab.email) continue;
 
-        const tplId = collab.role === "editor"
-          ? collabConfig.editorTemplateId
-          : collabConfig.viewerTemplateId;
+        // Editors and viewers receive their mapped templates. Coordinators
+        // (Ritual Coordinators) receive no lifecycle emails, and any unrecognized
+        // role is skipped rather than defaulting to viewer messaging.
+        let tplId = null;
+        if (collab.role === "editor")      tplId = collabConfig.editorTemplateId;
+        else if (collab.role === "viewer") tplId = collabConfig.viewerTemplateId;
 
         if (!tplId) continue; // this role does not receive this email
 

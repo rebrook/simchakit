@@ -32,7 +32,7 @@ const BREVO_TRANSACTIONAL_URL     = "https://api.brevo.com/v3/smtp/email";
 const INVITE_TEMPLATE_ID          = 19;
 const COLLABORATOR_CAP            = 5;
 const INVITE_BASE_URL             = "https://app.simcha-kit.com/invite";
-const VALID_ROLES                 = ["editor", "viewer"];
+const VALID_ROLES                 = ["editor", "viewer", "coordinator"];
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {
@@ -96,18 +96,24 @@ export default async function handler(req, res) {
   }
 
   // ── Step 2: Enforce collaborator cap ─────────────────────────────────────────
-  const { count, error: countError } = await supabase
-    .from("event_collaborators")
-    .select("id", { count: "exact", head: true })
-    .eq("event_id", eventId)
-    .not("accepted_at", "is", null);
+  // Ritual Coordinators do not count against the family's cap and are
+  // never blocked by it, so they are excluded from the count and the cap check is
+  // skipped entirely for coordinator invites.
+  if (role !== "coordinator") {
+    const { count, error: countError } = await supabase
+      .from("event_collaborators")
+      .select("id", { count: "exact", head: true })
+      .eq("event_id", eventId)
+      .neq("role", "coordinator")
+      .not("accepted_at", "is", null);
 
-  if (countError) {
-    console.error("[SimchaKit] send-invite: collaborator count failed:", countError.message);
-    return res.status(500).json({ error: "Failed to validate collaborator count." });
-  }
-  if (count >= COLLABORATOR_CAP) {
-    return res.status(403).json({ error: "CAP_REACHED" });
+    if (countError) {
+      console.error("[SimchaKit] send-invite: collaborator count failed:", countError.message);
+      return res.status(500).json({ error: "Failed to validate collaborator count." });
+    }
+    if (count >= COLLABORATOR_CAP) {
+      return res.status(403).json({ error: "CAP_REACHED" });
+    }
   }
 
   // ── Step 3: Reject if invitee is already an accepted collaborator ─────────────
@@ -181,7 +187,10 @@ export default async function handler(req, res) {
   // ── Step 5: Send invite email (email invites only) ───────────────────────────
   if (isEmailInvite) {
     try {
-      const roleLabel = role === "editor" ? "co-plan" : "follow along on";
+      const roleLabel =
+        role === "editor"      ? "co-plan" :
+        role === "coordinator" ? "help with the ceremony for" :
+                                 "follow along on";
 
       const transactionalPayload = {
         to: [{ email: inviteeEmail }],

@@ -1546,7 +1546,7 @@ function CollaboratorsSection({ eventId, userId, eventName }) {
               border:       "1px solid var(--border)",
             }}>
               <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
-                <span style={{ fontSize: 16 }}>{c.role === "editor" ? "✏" : "👁"}</span>
+                <span style={{ fontSize: 16 }}>{c.role === "editor" ? "✏" : c.role === "coordinator" ? "📜" : "👁"}</span>
                 <div style={{ minWidth: 0 }}>
                   {c.display_name && (
                     <div style={{ fontSize: 12, fontWeight: 600, color: "var(--text-primary)" }}>{c.display_name}</div>
@@ -1613,6 +1613,7 @@ function CollaboratorsSection({ eventId, userId, eventName }) {
             <select className="form-input" value={inviteRole} onChange={e => setInviteRole(e.target.value)}>
               <option value="editor">Editor: full planning access</option>
               <option value="viewer">Viewer: read-only access</option>
+              <option value="coordinator">Ritual Coordinator: ceremony and prep only</option>
             </select>
           </div>
 

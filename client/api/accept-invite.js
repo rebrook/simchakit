@@ -24,8 +24,9 @@
 //   CAP_REACHED         — event has 5 collaborators (the maximum)
 //
 // Brevo lists:
-//   7 — SimchaKit - Collaborators (Editors)
-//   8 — SimchaKit - Viewers
+//   9  — SimchaKit - Collaborators (Editors)
+//   10 — SimchaKit - Collaborators (Viewers)
+//   11 -- SimchaKit - Ritual Coordinators
 //
 // New Brevo contact attributes set here:
 //   IS_COLLABORATOR      (boolean true)
@@ -37,6 +38,7 @@ const BREVO_CONTACTS_URL   = "https://api.brevo.com/v3/contacts";
 const COLLABORATOR_CAP     = 5;
 const BREVO_LIST_EDITORS   = 9;  // SimchaKit - Collaborators (Editors)
 const BREVO_LIST_VIEWERS   = 10; // SimchaKit - Collaborators (Viewers)
+const BREVO_LIST_COORDINATORS = 11; // SimchaKit - Ritual Coordinators
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {
@@ -99,19 +101,24 @@ export default async function handler(req, res) {
   }
 
   // ── Step 5: Enforce collaborator cap ─────────────────────────────────────────
-  const { count, error: countError } = await supabase
-    .from("event_collaborators")
-    .select("id", { count: "exact", head: true })
-    .eq("event_id", invitation.event_id)
-    .not("accepted_at", "is", null);
+  // Coordinators do not count against the family's cap and are never blocked by
+  // it, so they are excluded from the count and the check is skipped for them.
+  if (invitation.role !== "coordinator") {
+    const { count, error: countError } = await supabase
+      .from("event_collaborators")
+      .select("id", { count: "exact", head: true })
+      .eq("event_id", invitation.event_id)
+      .neq("role", "coordinator")
+      .not("accepted_at", "is", null);
 
-  if (countError) {
-    console.error("[SimchaKit] accept-invite: collaborator count failed:", countError.message);
-    return res.status(500).json({ error: "Failed to validate collaborator count." });
-  }
+    if (countError) {
+      console.error("[SimchaKit] accept-invite: collaborator count failed:", countError.message);
+      return res.status(500).json({ error: "Failed to validate collaborator count." });
+    }
 
-  if (count >= COLLABORATOR_CAP) {
-    return res.status(403).json({ error: "CAP_REACHED" });
+    if (count >= COLLABORATOR_CAP) {
+      return res.status(403).json({ error: "CAP_REACHED" });
+    }
   }
 
   // ── Resolve invitee email early — needed for both the insert and Brevo sync ──
@@ -179,7 +186,10 @@ export default async function handler(req, res) {
   try {
 
     if (inviteeEmail) {
-      const brevoListId = invitation.role === "editor" ? BREVO_LIST_EDITORS : BREVO_LIST_VIEWERS;
+      const brevoListId =
+        invitation.role === "editor"      ? BREVO_LIST_EDITORS :
+        invitation.role === "coordinator" ? BREVO_LIST_COORDINATORS :
+                                            BREVO_LIST_VIEWERS;
 
       const brevoHeaders = {
         "accept":       "application/json",
@@ -211,7 +221,7 @@ export default async function handler(req, res) {
           COLLABORATOR_ROLE:     invitation.role,
           COLLABORATOR_EVENT_ID: invitation.event_id,
         },
-        ...(!skipListAdd && { listIds: [brevoListId] }),
+        ...(!skipListAdd && brevoListId != null && { listIds: [brevoListId] }),
       };
 
       const brevoResponse = await fetch(BREVO_CONTACTS_URL, {

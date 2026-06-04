@@ -1,5 +1,5 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// SimchaKit V3.0.0 — AppShell.jsx
+// SimchaKit V3.0.0 - AppShell.jsx
 // Full app shell rendered after an event is selected.
 // Loads event from Supabase, provides nav, header, tab routing, mobile nav.
 // Phase 5: shell + nav + stubs. Phase 6 will fill tabs with real data.
@@ -111,7 +111,7 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false, display
         .select("id, name, type, archived, admin_config, quick_notes, calendar_token, owner_id")
         .eq("id", eventId);
 
-      // RLS handles access control — no owner_id filter needed here.
+      // RLS handles access control. No owner_id filter needed here.
       // Collaborators have access via the "Collaborator can read event" SELECT policy.
       // Demo mode uses the anon key which has its own scoped policy.
 
@@ -134,6 +134,15 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false, display
     }
     load();
   }, [eventId, session?.user?.id]);
+
+  // ── Coordinators may only view Ceremony and Prep. The default activeTab is
+  // "overview", which they cannot access, so redirect to "ceremony" once the
+  // role resolves if the current tab is not one of the two permitted tabs. ──
+  useEffect(() => {
+    if (collaboratorRole === "coordinator" && activeTab !== "ceremony" && activeTab !== "prep") {
+      setActiveTab("ceremony");
+    }
+  }, [collaboratorRole, activeTab]);
 
   // ── Mobile header collapse on scroll ─────────────────────────────────────
   useEffect(() => {
@@ -233,9 +242,17 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false, display
   ];
 
   const visibleTabIds = adminConfig?.visibleTabs;
-  const tabs = (visibleTabIds && visibleTabIds.length > 0)
+  let tabs = (visibleTabIds && visibleTabIds.length > 0)
     ? ALL_TABS.filter(t => t.id === "overview" || visibleTabIds.includes(t.id))
     : ALL_TABS;
+
+  // Ritual Coordinators see only Ceremony and Prep. Applied only once the
+  // role has resolved to "coordinator" (never while null/loading), so owner and
+  // editor/viewer tab sets are never affected.
+  const isCoordinator = collaboratorRole === "coordinator";
+  if (isCoordinator) {
+    tabs = ALL_TABS.filter(t => t.id === "ceremony" || t.id === "prep");
+  }
 
   const bottomBarTabs  = tabs.filter(t => BOTTOM_BAR_IDS.includes(t.id));
   const moreDrawerTabs = tabs.filter(t => !BOTTOM_BAR_IDS.includes(t.id));
@@ -416,7 +433,9 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false, display
               flexShrink:   0,
               whiteSpace:   "nowrap",
             }}>
-              {collaboratorRole === "editor" ? "✏ Editor" : "👁 Viewer"}
+              {collaboratorRole === "editor"      ? "✏ Editor"
+               : collaboratorRole === "coordinator" ? "📜 Coordinator"
+               : "👁 Viewer"}
             </div>
           )}
 
@@ -591,6 +610,20 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false, display
             textAlign:    "center",
           }}>
             👁 You have view-only access to this event.
+          </div>
+        )}
+        {/* Coordinator scoped-access banner */}
+        {collaboratorRole === "coordinator" && (
+          <div style={{
+            background:   "var(--accent-light)",
+            borderBottom: "1px solid var(--accent-primary)",
+            padding:      "8px 20px",
+            fontSize:     12,
+            color:        "var(--accent-primary)",
+            fontWeight:   600,
+            textAlign:    "center",
+          }}>
+            📜 As Ritual Coordinator, you can view and edit Ceremony and Prep for this event.
           </div>
         )}
         {activeTab === "overview"       && <OverviewTab       {...tabProps} />}
