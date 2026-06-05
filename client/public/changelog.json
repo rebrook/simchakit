@@ -1,9 +1,18 @@
 {
-  "current": "V3.17.0",
+  "current": "V3.17.1",
   "whatsNew": [
-    "The Prep tab now tracks each item by status, with a one-click starter checklist for B'nei Mitzvot and a heads-up when something is running behind"
+    "Guide updated to reflect the new Prep tab"
   ],
   "changelog": [
+    {
+      "version": "V3.17.1",
+      "date": "2026-06-05",
+      "type": "patch",
+      "title": "Prep Guide Text Update",
+      "changes": [
+        "ui.js (V2 and V3): updated the Prep tab guide entry to match the V3.17.0 redesign. It now describes setting status from the dropdown (with the progress bar derived automatically), the Load Template starter checklist for mitzvah events, and the Behind / Due soon deadline signals. Removed the obsolete description of the progress slider and the old color-coded target-date scheme."
+      ]
+    },
     {
       "version": "V3.17.0",
       "date": "2026-06-05",
