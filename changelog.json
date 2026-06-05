@@ -1,9 +1,22 @@
 {
-  "current": "V3.16.3",
+  "current": "V3.17.0",
   "whatsNew": [
-    "Ritual Coordinators now see only the tools relevant to their role"
+    "The Prep tab now tracks each item by status, with a one-click starter checklist for B'nei Mitzvot and a heads-up when something is running behind"
   ],
   "changelog": [
+    {
+      "version": "V3.17.0",
+      "date": "2026-06-05",
+      "type": "minor",
+      "title": "Prep Tracker Redesign",
+      "changes": [
+        "PrepTab (V2 and V3): status is now the single source of truth for each preparation item; the progress bar is derived from status (Not Started 0%, In Progress 33%, Nearly Done 66%, Complete 100%). The draggable progress sliders were removed from both the item row and the edit modal, which resolves the bug where status and progress could disagree.",
+        "PrepTab (V2 and V3): existing items render their bar from status, so any item whose stored progress had drifted from its status now displays correctly. The derived progress value is persisted only when an item is saved; no writes occur on load.",
+        "PrepTab (V2 and V3): added a Load Template starter checklist for mitzvah event types (bar, bat, b'nei mitzvah), mirroring the Ceremony tab pattern. Loads Torah Portion Study, Haftarah Portion Study, D'var Torah Writing, Service Prayers and Blessings, and Mitzvah Project, each categorized appropriately. Non-mitzvah event types start with a blank list.",
+        "PrepTab (V2 and V3): added a deadline-aware signal. Items that are not complete and past their target date show a Behind label; items due within 14 days show Due soon.",
+        "PrepTab (V2 and V3): the summary stat cards are now hidden when there are no items, matching the rest of the tab's empty state."
+      ]
+    },
     {
       "version": "V3.16.3",
       "date": "2026-06-04",
