@@ -12,6 +12,45 @@ import { newPrepId }          from "@/utils/ids.js";
 import { ArchivedNotice }     from "@/components/shared/ArchivedNotice.jsx";
 import { TorahPortionCard }   from "@/components/shared/TorahPortionCard.jsx";
 
+// ── Status is the single source of truth; the progress bar is derived from it ──
+// Render the bar from status everywhere. The stored progress value is written
+// from this map on save so dependent code stays correct, but it is never the
+// input and is never written on load.
+function statusToPercent(status) {
+  switch (status) {
+    case "Complete":    return 100;
+    case "Nearly Done": return 66;
+    case "In Progress": return 33;
+    default:            return 0; // Not Started or unknown
+  }
+}
+
+// ── Prep starter template (mitzvah event types only) ──────────────────────────
+// Mirrors the Ceremony tab's Load Template pattern. Other event types have no
+// template, so the Load Template button simply does not appear for them.
+function buildMitzvahPrepTemplate() {
+  return [
+    { title: "Torah Portion Study",         category: PREP_CATEGORIES[0], status: "Not Started", notes: "Work with your tutor on the assigned parsha." },
+    { title: "Haftarah Portion Study",      category: PREP_CATEGORIES[0], status: "Not Started", notes: "Learn the trope and chant the Haftarah." },
+    { title: "D'var Torah Writing",         category: PREP_CATEGORIES[0], status: "Not Started", notes: "Draft, review with clergy, then practice aloud." },
+    { title: "Service Prayers and Blessings", category: PREP_CATEGORIES[0], status: "Not Started", notes: "Learn the prayers and blessings for the service." },
+    { title: "Mitzvah Project",             category: PREP_CATEGORIES[0], status: "Not Started", notes: "Choose a project and track sessions or milestones." },
+  ].map((p, i) => ({
+    ...p,
+    id:            newPrepId(),
+    progress:      0,
+    targetDate:    "",
+    completedDate: "",
+    order:         i,
+  }));
+}
+
+const PREP_TEMPLATES = {
+  "bat-mitzvah":  buildMitzvahPrepTemplate,
+  "bar-mitzvah":  buildMitzvahPrepTemplate,
+  "bnei-mitzvah": buildMitzvahPrepTemplate,
+};
+
 export function PrepTab({ eventId, event, adminConfig, showToast, isArchived, isViewer, searchHighlight, clearSearchHighlight }) {
   const { items: prep, loading, save, remove } = useEventData(eventId, "prep");
 
@@ -35,16 +74,24 @@ export function PrepTab({ eventId, event, adminConfig, showToast, isArchived, is
 
   const toggleNotes = (id) => setExpandedNotes(n => ({ ...n, [id]: !n[id] }));
 
-  // Inline progress slider — auto-derive status from new progress value
-  const handleProgressChange = async (id, val) => {
+  // Inline status change. Status is the single input; progress is derived and
+  // persisted from it so dependent readers stay correct.
+  const handleStatusChange = async (id, status) => {
     if (isArchived || isViewer) return;
-    const pct = parseInt(val, 10);
-    let status = "Not Started";
-    if (pct === 100)      status = "Complete";
-    else if (pct >= 50)   status = "Nearly Done";
-    else if (pct >= 1)    status = "In Progress";
     const p = prep.find(x => x.id === id);
-    if (p) await save({ ...p, progress: pct, status });
+    if (p) await save({ ...p, status, progress: statusToPercent(status) });
+  };
+
+  // Load the starter template for this event type (mitzvah types only).
+  const eventType   = adminConfig?.type;
+  const hasTemplate = !!PREP_TEMPLATES[eventType];
+  const loadTemplate = async () => {
+    if (isArchived || isViewer) return;
+    const builder = PREP_TEMPLATES[eventType];
+    if (!builder) return;
+    const items = builder();
+    for (const it of items) await save(it);
+    showToast("Template loaded");
   };
 
   // ── Stats ──────────────────────────────────────────────────────────────────
@@ -52,7 +99,7 @@ export function PrepTab({ eventId, event, adminConfig, showToast, isArchived, is
   const complete   = prep.filter(x => x.status === "Complete").length;
   const inProgress = prep.filter(x => x.status === "In Progress" || x.status === "Nearly Done").length;
   const notStarted = prep.filter(x => x.status === "Not Started").length;
-  const overallPct = total === 0 ? 0 : Math.round(prep.reduce((s, x) => s + (x.progress || 0), 0) / total);
+  const overallPct = total === 0 ? 0 : Math.round(prep.reduce((s, x) => s + statusToPercent(x.status), 0) / total);
 
   // ── Group by category ──────────────────────────────────────────────────────
   const grouped = {};
@@ -164,9 +211,16 @@ export function PrepTab({ eventId, event, adminConfig, showToast, isArchived, is
             No preparation items yet
           </div>
           <div style={{ fontSize: 14, marginBottom: 24, lineHeight: 1.6 }}>
-            Add milestones to start tracking progress — Torah study, rehearsals, speeches, attire, and more.
+            {hasTemplate
+              ? "Load the starter checklist for your event type, or add items manually. Track Torah study, rehearsals, speeches, and more."
+              : "Add milestones to start tracking progress: rehearsals, speeches, attire, and more."}
           </div>
-          {!isViewer && <button className="btn btn-primary" onClick={() => setShowModal(true)}>+ Add First Item</button>}
+          <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap" }}>
+            {!isViewer && hasTemplate && (
+              <button className="btn btn-secondary" disabled={isArchived || isViewer} onClick={loadTemplate}>✦ Load Template</button>
+            )}
+            {!isViewer && <button className="btn btn-primary" onClick={() => setShowModal(true)}>+ Add First Item</button>}
+          </div>
         </div>
       )}
 
@@ -195,17 +249,18 @@ export function PrepTab({ eventId, event, adminConfig, showToast, isArchived, is
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
             {grouped[cat].map(item => {
               const ss  = PREP_STATUS_STYLES[item.status] || PREP_STATUS_STYLES["Not Started"];
-              const pct = item.progress || 0;
+              const pct = statusToPercent(item.status);
               const hasNotes = !!(item.notes && item.notes.trim());
 
-              // Target date coloring
+              // Deadline awareness: gentle "behind" / "due soon" signal.
               let dateCls = "var(--text-muted)";
+              let dueLabel = "";
               if (item.targetDate && item.status !== "Complete") {
                 const due  = new Date(item.targetDate + "T00:00:00");
                 const diff = Math.ceil((due - today) / (1000 * 60 * 60 * 24));
-                if (diff < 0)        dateCls = "var(--red)";
-                else if (diff <= 14) dateCls = "var(--gold)";
-                else                 dateCls = "var(--green)";
+                if (diff < 0)        { dateCls = "var(--gold)"; dueLabel = "Behind"; }
+                else if (diff <= 14) { dateCls = "var(--gold)"; dueLabel = "Due soon"; }
+                else                 { dateCls = "var(--green)"; }
               }
 
               return (
@@ -254,16 +309,17 @@ export function PrepTab({ eventId, event, adminConfig, showToast, isArchived, is
                     </span>
                   </div>
 
-                  {/* Row 3: inline progress slider */}
+                  {/* Row 3: inline status selector */}
                   <div style={{ marginBottom: 8 }}>
-                    <input
-                      type="range" min="0" max="100" value={pct}
-                      onChange={e => handleProgressChange(item.id, e.target.value)}
-                      style={{
-                        width: "100%", height: 4, cursor: "pointer",
-                        accentColor: "var(--accent-primary)",
-                      }}
-                    />
+                    <select
+                      className="form-input"
+                      value={item.status}
+                      disabled={isArchived || isViewer}
+                      onChange={e => handleStatusChange(item.id, e.target.value)}
+                      style={{ fontSize: 12, padding: "4px 8px", maxWidth: 200 }}
+                    >
+                      {PREP_STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
+                    </select>
                   </div>
 
                   {/* Row 4: meta — target date + completed date + notes toggle */}
@@ -271,6 +327,9 @@ export function PrepTab({ eventId, event, adminConfig, showToast, isArchived, is
                     {item.targetDate && (
                       <span style={{ fontSize: 12, color: dateCls }}>
                         🎯 Target: {new Date(item.targetDate + "T00:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                        {dueLabel && (
+                          <span style={{ fontWeight: 700, marginLeft: 6 }}>· {dueLabel}</span>
+                        )}
                       </span>
                     )}
                     {item.completedDate && item.status === "Complete" && (
@@ -352,19 +411,10 @@ export function PrepModal({ item, onSave, onClose, isArchived }) {
 
   const setF = (k, v) => setForm(f => ({ ...f, [k]: v }));
 
-  // When progress changes, auto-derive status
-  const handleProgressInput = (val) => {
-    const pct = Math.min(100, Math.max(0, parseInt(val, 10) || 0));
-    let status = "Not Started";
-    if (pct === 100)    status = "Complete";
-    else if (pct >= 50) status = "Nearly Done";
-    else if (pct >= 1)  status = "In Progress";
-    setForm(f => ({ ...f, progress: pct, status }));
-  };
-
+  // Status is the only input; keep the derived progress in sync on save.
   const handleSave = () => {
     if (!form.title.trim()) return;
-    onSave({ ...form, title: form.title.trim() });
+    onSave({ ...form, title: form.title.trim(), progress: statusToPercent(form.status) });
   };
 
   return (
@@ -403,23 +453,21 @@ export function PrepModal({ item, onSave, onClose, isArchived }) {
             </div>
           </div>
 
-          {/* Progress */}
+          {/* Progress (derived from status) */}
           <div className="form-row">
-            <label className="form-label">Progress — {form.progress}%</label>
-            <input
-              type="range" min="0" max="100" value={form.progress}
-              onChange={e => handleProgressInput(e.target.value)}
-              style={{ width: "100%", accentColor: "var(--accent-primary)", cursor: "pointer" }}
-            />
+            <label className="form-label">Progress: {statusToPercent(form.status)}%</label>
             <div style={{ height: 6, background: "var(--bg-muted)", borderRadius: 99, overflow: "hidden", marginTop: 6 }}>
               <div style={{
                 height: "100%", borderRadius: 99,
-                width: form.progress + "%",
-                background: form.progress === 100
+                width: statusToPercent(form.status) + "%",
+                background: statusToPercent(form.status) === 100
                   ? "var(--green)"
                   : "linear-gradient(90deg, var(--accent-primary), var(--accent-medium))",
                 transition: "width 0.2s ease",
               }} />
+            </div>
+            <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 6 }}>
+              Progress is set by the status above.
             </div>
           </div>
 
