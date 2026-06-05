@@ -30,11 +30,11 @@ function statusToPercent(status) {
 // template, so the Load Template button simply does not appear for them.
 function buildMitzvahPrepTemplate() {
   return [
-    { title: "Torah Portion Study",         category: PREP_CATEGORIES[0], status: "Not Started", notes: "Work with your tutor on the assigned parsha." },
-    { title: "Haftarah Portion Study",      category: PREP_CATEGORIES[0], status: "Not Started", notes: "Learn the trope and chant the Haftarah." },
-    { title: "D'var Torah Writing",         category: PREP_CATEGORIES[0], status: "Not Started", notes: "Draft, review with clergy, then practice aloud." },
-    { title: "Service Prayers and Blessings", category: PREP_CATEGORIES[0], status: "Not Started", notes: "Learn the prayers and blessings for the service." },
-    { title: "Mitzvah Project",             category: PREP_CATEGORIES[0], status: "Not Started", notes: "Choose a project and track sessions or milestones." },
+    { title: "Torah Portion Study",         category: "Religious Study",            status: "Not Started", notes: "Work with your tutor on the assigned parsha." },
+    { title: "Haftarah Portion Study",      category: "Religious Study",            status: "Not Started", notes: "Learn the trope and chant the Haftarah." },
+    { title: "D'var Torah Writing",         category: "Speeches & Toasts",          status: "Not Started", notes: "Draft, review with clergy, then practice aloud." },
+    { title: "Service Prayers and Blessings", category: "Religious Study",          status: "Not Started", notes: "Learn the prayers and blessings for the service." },
+    { title: "Mitzvah Project",             category: "Community / Service Project", status: "Not Started", notes: "Choose a project and track sessions or milestones." },
   ].map((p, i) => ({
     ...p,
     id:            newPrepId(),
@@ -134,6 +134,7 @@ export function PrepTab({ eventId, event, adminConfig, showToast, isArchived, is
       </div>
 
       {/* Stat cards */}
+      {total > 0 && (
       <div className="stat-grid" style={{ marginBottom: 20 }}>
         <div className="stat-card">
           <div className="stat-label">Total Items</div>
@@ -154,6 +155,7 @@ export function PrepTab({ eventId, event, adminConfig, showToast, isArchived, is
           <div className="stat-value" style={{ color: "var(--text-muted)" }}>{notStarted}</div>
         </div>
       </div>
+      )}
 
       {/* Overall progress bar */}
       {total > 0 && (
