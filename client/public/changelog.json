@@ -1,9 +1,19 @@
 {
-  "current": "V3.17.1",
+  "current": "V3.18.0",
   "whatsNew": [
-    "Guide updated to reflect the new Prep tab"
+    "You can now open the New User Training slides right from the Guide and the Get Started card"
   ],
   "changelog": [
+    {
+      "version": "V3.18.0",
+      "date": "2026-06-08",
+      "type": "minor",
+      "title": "In-App Training Access",
+      "changes": [
+        "Guide (V2 and V3): added a link to the New User Training slides in the welcome panel at the top of the Guide, so anyone can open the guided walkthrough during a training session or return to it later.",
+        "Get Started card (V2 and V3): added a link to the New User Training slides under the step counter, giving new users a path to the walkthrough while they set up their first event."
+      ]
+    },
     {
       "version": "V3.17.1",
       "date": "2026-06-05",

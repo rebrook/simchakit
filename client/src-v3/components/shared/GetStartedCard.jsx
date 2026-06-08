@@ -92,6 +92,14 @@ export function GetStartedCard({ state, adminConfig, setActiveTab, onOpenAdmin, 
               ? "Your event is configured and ready to go."
               : `${[step1Done, step2Done, step3Done, step4Done].filter(Boolean).length} of 4 steps complete`}
           </div>
+          <a
+            href="https://about.simcha-kit.com/resources/new-user-training.html"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ display: "inline-block", marginTop: 6, fontSize: 12, fontWeight: 600, color: "var(--accent-primary)", textDecoration: "none" }}
+          >
+            📖 Open the new user training slides
+          </a>
         </div>
         <button onClick={dismiss} style={{
           background: "none", border: "none", cursor: "pointer",

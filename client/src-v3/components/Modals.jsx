@@ -31,6 +31,14 @@ export function GuideModal({ onClose }) {
             <div style={{ fontSize:13, color:"rgba(255,255,255,0.85)", lineHeight:1.7 }}>
               SimchaKit is an event planning dashboard for B'nei Mitzvot, weddings, and other simchas. Everything you need — guests, budget, vendors, tasks, seating, gifts, and a planning calendar — in one place, synced across all your devices.
             </div>
+            <a
+              href="https://about.simcha-kit.com/resources/new-user-training.html"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ display:"inline-block", marginTop:14, padding:"9px 16px", borderRadius:"var(--radius-sm)", background:"rgba(255,255,255,0.18)", border:"1px solid rgba(255,255,255,0.35)", color:"#fff", fontSize:13, fontWeight:700, textDecoration:"none" }}
+            >
+              📖 Open the new user training slides
+            </a>
           </div>
 
           {GUIDE_SECTIONS.map(section => {
