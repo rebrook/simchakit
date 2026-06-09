@@ -323,6 +323,15 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false, display
     showToast("Configuration saved");
   };
 
+  // Clergy/tutor update from PrepTab (owners + coordinators via /api/update-clergy)
+  const onClergyUpdated = (clergyData) => {
+    setAdminConfig(prev => {
+      const updated = { ...prev, ...clergyData };
+      setEvent(ev => ev ? { ...ev, admin_config: updated } : ev);
+      return updated;
+    });
+  };
+
   // ── Shared props passed to every tab ─────────────────────────────────────
   const tabProps = {
     eventId,
@@ -337,6 +346,7 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false, display
     onOpenAdminTo: openAdmin,
     onOpenGuide:          () => setShowGuide(true),
     onConfigSaved,
+    onClergyUpdated,
     searchHighlight,
     clearSearchHighlight: () => setSearchHighlight(null),
     setSearchHighlight,

@@ -1,9 +1,11 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// SimchaKit V3.0.0 — PrepTab.jsx
+// SimchaKit V3.20.0 — PrepTab.jsx
 // Ported from V2. Uses useEventData for Supabase persistence.
+// Clergy/tutor contacts editable by owners and coordinators (V3.20.0).
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useState } from "react";
+import { supabase }           from "@/lib/supabase.js";
 import { useEventData }       from "@/hooks/useEventData.js";
 import { useSearchHighlight } from "@/hooks/useSearchHighlight.js";
 import { MITZVAH_TYPES }      from "@/constants/events.js";
@@ -13,21 +15,16 @@ import { ArchivedNotice }     from "@/components/shared/ArchivedNotice.jsx";
 import { TorahPortionCard }   from "@/components/shared/TorahPortionCard.jsx";
 
 // ── Status is the single source of truth; the progress bar is derived from it ──
-// Render the bar from status everywhere. The stored progress value is written
-// from this map on save so dependent code stays correct, but it is never the
-// input and is never written on load.
 function statusToPercent(status) {
   switch (status) {
     case "Complete":    return 100;
     case "Nearly Done": return 66;
     case "In Progress": return 33;
-    default:            return 0; // Not Started or unknown
+    default:            return 0;
   }
 }
 
 // ── Prep starter template (mitzvah event types only) ──────────────────────────
-// Mirrors the Ceremony tab's Load Template pattern. Other event types have no
-// template, so the Load Template button simply does not appear for them.
 function buildMitzvahPrepTemplate() {
   return [
     { title: "Torah Portion Study",         category: "Religious Study",            status: "Not Started", notes: "Work with your tutor on the assigned parsha." },
@@ -51,15 +48,21 @@ const PREP_TEMPLATES = {
   "bnei-mitzvah": buildMitzvahPrepTemplate,
 };
 
-export function PrepTab({ eventId, event, adminConfig, showToast, isArchived, isViewer, searchHighlight, clearSearchHighlight }) {
+export function PrepTab({ eventId, event, adminConfig, showToast, isArchived, isViewer, collaboratorRole, onClergyUpdated, searchHighlight, clearSearchHighlight }) {
   const { items: prep, loading, save, remove } = useEventData(eventId, "prep");
 
   const [showModal,     setShowModal]     = useState(false);
   const [editItem,      setEditItem]      = useState(null);
   const [deleteConfirm, setDeleteConfirm] = useState(null);
   const [expandedNotes, setExpandedNotes] = useState({});
+  const [editingClergy, setEditingClergy] = useState(null); // "rabbi" | "cantor" | "tutor" | null
+  const [clergySaving,  setClergySaving]  = useState(false);
 
   useSearchHighlight(searchHighlight, clearSearchHighlight, "prep");
+
+  // Owners (collaboratorRole is null/undefined) and coordinators can edit clergy.
+  // Editors and viewers cannot.
+  const canEditClergy = !isArchived && (collaboratorRole == null || collaboratorRole === "coordinator");
 
   const saveItem   = async (item) => { await save(item); };
   const handleAdd  = async (item) => { if (isArchived || isViewer) return; await saveItem(item); showToast("Prep item added");   setShowModal(false); };
@@ -74,15 +77,12 @@ export function PrepTab({ eventId, event, adminConfig, showToast, isArchived, is
 
   const toggleNotes = (id) => setExpandedNotes(n => ({ ...n, [id]: !n[id] }));
 
-  // Inline status change. Status is the single input; progress is derived and
-  // persisted from it so dependent readers stay correct.
   const handleStatusChange = async (id, status) => {
     if (isArchived || isViewer) return;
     const p = prep.find(x => x.id === id);
     if (p) await save({ ...p, status, progress: statusToPercent(status) });
   };
 
-  // Load the starter template for this event type (mitzvah types only).
   const eventType   = adminConfig?.type;
   const hasTemplate = !!PREP_TEMPLATES[eventType];
   const loadTemplate = async () => {
@@ -94,14 +94,51 @@ export function PrepTab({ eventId, event, adminConfig, showToast, isArchived, is
     showToast("Template loaded");
   };
 
-  // ── Stats ──────────────────────────────────────────────────────────────────
+  // ── Clergy edit handler ─────────────────────────────────────────────────────
+  const handleClergySave = async (contactKey, updatedContact) => {
+    setClergySaving(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) { showToast("Not signed in"); setClergySaving(false); return; }
+
+      const rabbi  = contactKey === "rabbi"  ? updatedContact : (adminConfig?.rabbi  || {});
+      const cantor = contactKey === "cantor" ? updatedContact : (adminConfig?.cantor || {});
+      const tutor  = contactKey === "tutor"  ? updatedContact : (adminConfig?.tutor  || {});
+
+      const res = await fetch("/api/update-clergy", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({ eventId, rabbi, cantor, tutor }),
+      });
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        showToast(err.error || "Could not update clergy info");
+        return;
+      }
+
+      if (onClergyUpdated) onClergyUpdated({ rabbi, cantor, tutor });
+      showToast("Clergy info updated");
+      setEditingClergy(null);
+    } catch (err) {
+      console.error("[SimchaKit] Clergy update error:", err);
+      showToast("Could not update clergy info");
+    } finally {
+      setClergySaving(false);
+    }
+  };
+
+  // ── Stats ────────────────────────────────────────────────────────────────────
   const total      = prep.length;
   const complete   = prep.filter(x => x.status === "Complete").length;
   const inProgress = prep.filter(x => x.status === "In Progress" || x.status === "Nearly Done").length;
   const notStarted = prep.filter(x => x.status === "Not Started").length;
   const overallPct = total === 0 ? 0 : Math.round(prep.reduce((s, x) => s + statusToPercent(x.status), 0) / total);
 
-  // ── Group by category ──────────────────────────────────────────────────────
+  // ── Group by category ────────────────────────────────────────────────────────
   const grouped = {};
   PREP_CATEGORIES.forEach(cat => { grouped[cat] = []; });
   prep.forEach(item => {
@@ -117,6 +154,17 @@ export function PrepTab({ eventId, event, adminConfig, showToast, isArchived, is
   const today = new Date(); today.setHours(0, 0, 0, 0);
 
   if (loading) return <div style={loadingStyle}>Loading preparation items…</div>;
+
+  // ── Clergy data ──────────────────────────────────────────────────────────────
+  const cfg       = adminConfig || {};
+  const isMitzvah = MITZVAH_TYPES.has(cfg.type);
+  const rabbi     = cfg.rabbi  || {};
+  const cantor    = cfg.cantor || {};
+  const tutor     = cfg.tutor  || {};
+  const hasRabbi  = !!(rabbi.name  || rabbi.phone  || rabbi.email);
+  const hasCantor = !!(cantor.name || cantor.phone || cantor.email);
+  const hasTutor  = !!(tutor.name  || tutor.phone  || tutor.email);
+  const hasAnyClergy = hasRabbi || hasCantor || hasTutor;
 
   return (
     <div className="tab-content">
@@ -182,28 +230,29 @@ export function PrepTab({ eventId, event, adminConfig, showToast, isArchived, is
         <TorahPortionCard adminConfig={adminConfig} />
       )}
 
-      {/* Clergy & Tutor contacts */}
-      {(() => {
-        const cfg       = adminConfig || {};
-        const isMitzvah = MITZVAH_TYPES.has(cfg.type);
-        const rabbi     = cfg.rabbi  || {};
-        const cantor    = cfg.cantor || {};
-        const tutor     = cfg.tutor  || {};
-        const hasRabbi  = !!(rabbi.name  || rabbi.phone  || rabbi.email);
-        const hasCantor = !!(cantor.name || cantor.phone || cantor.email);
-        const hasTutor  = !!(tutor.name  || tutor.phone  || tutor.email);
-        if (!hasRabbi && !hasCantor && !hasTutor) return null;
-        return (
-          <div style={{ background: "var(--bg-surface)", border: "1px solid var(--border)", borderRadius: "var(--radius-md)", padding: "16px 20px", marginBottom: 24 }}>
-            <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)", marginBottom: 14 }}>Clergy & Tutor</div>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 16 }}>
-              {hasRabbi  && <PrepContactCard label="Rabbi"               icon="✡"  contact={rabbi}  />}
-              {hasCantor && isMitzvah && <PrepContactCard label="Cantor" icon="🎼" contact={cantor} />}
-              {hasTutor  && isMitzvah && <PrepContactCard label="Tutor / Madrikh·a" icon="📖" contact={tutor} />}
-            </div>
+      {/* Clergy & Tutor contacts (editable for owners and coordinators) */}
+      {(hasAnyClergy || canEditClergy) && (
+        <div style={{ background: "var(--bg-surface)", border: "1px solid var(--border)", borderRadius: "var(--radius-md)", padding: "16px 20px", marginBottom: 24 }}>
+          <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)", marginBottom: 14 }}>Clergy & Tutor</div>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 16 }}>
+            {/* Rabbi (always shown if has data or can edit) */}
+            {(hasRabbi || canEditClergy) && (
+              <PrepContactCard label="Rabbi" icon="✡" contact={rabbi}
+                onEdit={canEditClergy ? () => setEditingClergy("rabbi") : null} />
+            )}
+            {/* Cantor (mitzvah events) */}
+            {isMitzvah && (hasCantor || canEditClergy) && (
+              <PrepContactCard label="Cantor" icon="🎼" contact={cantor}
+                onEdit={canEditClergy ? () => setEditingClergy("cantor") : null} />
+            )}
+            {/* Tutor (mitzvah events) */}
+            {isMitzvah && (hasTutor || canEditClergy) && (
+              <PrepContactCard label="Tutor / Madrikh·a" icon="📖" contact={tutor}
+                onEdit={canEditClergy ? () => setEditingClergy("tutor") : null} />
+            )}
           </div>
-        );
-      })()}
+        </div>
+      )}
 
       {/* Empty state */}
       {total === 0 && (
@@ -229,7 +278,6 @@ export function PrepTab({ eventId, event, adminConfig, showToast, isArchived, is
       {/* Grouped item cards */}
       {activeCategories.map(cat => (
         <div key={cat} style={{ marginBottom: 28 }}>
-          {/* Category header */}
           <div style={{
             display: "flex", alignItems: "center", gap: 10,
             marginBottom: 12, paddingBottom: 8,
@@ -247,14 +295,12 @@ export function PrepTab({ eventId, event, adminConfig, showToast, isArchived, is
             </span>
           </div>
 
-          {/* Item cards */}
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
             {grouped[cat].map(item => {
               const ss  = PREP_STATUS_STYLES[item.status] || PREP_STATUS_STYLES["Not Started"];
               const pct = statusToPercent(item.status);
               const hasNotes = !!(item.notes && item.notes.trim());
 
-              // Deadline awareness: gentle "behind" / "due soon" signal.
               let dateCls = "var(--text-muted)";
               let dueLabel = "";
               if (item.targetDate && item.status !== "Complete") {
@@ -272,7 +318,6 @@ export function PrepTab({ eventId, event, adminConfig, showToast, isArchived, is
                   borderRadius: "var(--radius-md)",
                   padding: "14px 16px",
                 }}>
-                  {/* Row 1: title + status badge + actions */}
                   <div style={{ display: "flex", alignItems: "flex-start", gap: 10, marginBottom: 10 }}>
                     <div style={{ flex: 1 }}>
                       <span style={{
@@ -295,7 +340,6 @@ export function PrepTab({ eventId, event, adminConfig, showToast, isArchived, is
                     </div>
                   </div>
 
-                  {/* Row 2: progress bar + percentage */}
                   <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
                     <div style={{ flex: 1, height: 6, background: "var(--bg-muted)", borderRadius: 99, overflow: "hidden" }}>
                       <div style={{
@@ -311,7 +355,6 @@ export function PrepTab({ eventId, event, adminConfig, showToast, isArchived, is
                     </span>
                   </div>
 
-                  {/* Row 3: inline status selector */}
                   <div style={{ marginBottom: 8 }}>
                     <select
                       className="form-input"
@@ -324,7 +367,6 @@ export function PrepTab({ eventId, event, adminConfig, showToast, isArchived, is
                     </select>
                   </div>
 
-                  {/* Row 4: meta — target date + completed date + notes toggle */}
                   <div style={{ display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
                     {item.targetDate && (
                       <span style={{ fontSize: 12, color: dateCls }}>
@@ -350,7 +392,6 @@ export function PrepTab({ eventId, event, adminConfig, showToast, isArchived, is
                     )}
                   </div>
 
-                  {/* Row 5: expanded notes */}
                   {hasNotes && expandedNotes[item.id] && (
                     <div className="task-notes-text" style={{ marginTop: 8 }}>
                       {item.notes}
@@ -393,10 +434,24 @@ export function PrepTab({ eventId, event, adminConfig, showToast, isArchived, is
           </div>
         </div>
       )}
+
+      {/* Clergy edit modal */}
+      {editingClergy && (
+        <ClergyEditModal
+          contactKey={editingClergy}
+          label={editingClergy === "rabbi" ? "Rabbi" : editingClergy === "cantor" ? "Cantor" : "Tutor / Madrikh·a"}
+          icon={editingClergy === "rabbi" ? "✡" : editingClergy === "cantor" ? "🎼" : "📖"}
+          contact={cfg[editingClergy] || {}}
+          saving={clergySaving}
+          onSave={(updated) => handleClergySave(editingClergy, updated)}
+          onClose={() => setEditingClergy(null)}
+        />
+      )}
     </div>
   );
 }
 
+// ── PrepModal ────────────────────────────────────────────────────────────────
 export function PrepModal({ item, onSave, onClose, isArchived }) {
   const isEdit = !!item;
   const [form, setForm] = useState(() => item ? { ...item } : {
@@ -413,7 +468,6 @@ export function PrepModal({ item, onSave, onClose, isArchived }) {
 
   const setF = (k, v) => setForm(f => ({ ...f, [k]: v }));
 
-  // Status is the only input; keep the derived progress in sync on save.
   const handleSave = () => {
     if (!form.title.trim()) return;
     onSave({ ...form, title: form.title.trim(), progress: statusToPercent(form.status) });
@@ -427,19 +481,12 @@ export function PrepModal({ item, onSave, onClose, isArchived }) {
           <button className="icon-btn" title="Close" onClick={onClose}>✕</button>
         </div>
         <div className="modal-body">
-
-          {/* Title */}
           <div className="form-row">
             <label className="form-label">Title *</label>
-            <input
-              className="form-input" autoFocus
-              value={form.title}
+            <input className="form-input" autoFocus value={form.title}
               onChange={e => setF("title", e.target.value)}
-              placeholder="e.g., Torah Portion, First Dance Choreography, Ceremony Rehearsal"
-            />
+              placeholder="e.g., Torah Portion, First Dance Choreography, Ceremony Rehearsal" />
           </div>
-
-          {/* Category + Status */}
           <div className="form-row two-col">
             <div>
               <label className="form-label">Category</label>
@@ -454,8 +501,6 @@ export function PrepModal({ item, onSave, onClose, isArchived }) {
               </select>
             </div>
           </div>
-
-          {/* Progress (derived from status) */}
           <div className="form-row">
             <label className="form-label">Progress: {statusToPercent(form.status)}%</label>
             <div style={{ height: 6, background: "var(--bg-muted)", borderRadius: 99, overflow: "hidden", marginTop: 6 }}>
@@ -472,8 +517,6 @@ export function PrepModal({ item, onSave, onClose, isArchived }) {
               Progress is set by the status above.
             </div>
           </div>
-
-          {/* Target Date + Completed Date */}
           <div className="form-row two-col">
             <div>
               <label className="form-label">Target Date</label>
@@ -486,17 +529,13 @@ export function PrepModal({ item, onSave, onClose, isArchived }) {
                 onChange={e => setF("completedDate", e.target.value)} />
             </div>
           </div>
-
-          {/* Notes */}
           <div className="form-row">
             <label className="form-label">Notes</label>
             <textarea className="form-input notes-area" rows={3}
               value={form.notes || ""}
               onChange={e => setF("notes", e.target.value)}
-              placeholder="Tutor feedback, session notes, reminders…"
-            />
+              placeholder="Tutor feedback, session notes, reminders…" />
           </div>
-
           <div className="modal-footer">
             <span style={{fontSize:11,color:"var(--text-muted)",marginRight:"auto"}}>* required</span>
             <button className="btn btn-ghost" onClick={onClose}>Cancel</button>
@@ -510,21 +549,85 @@ export function PrepModal({ item, onSave, onClose, isArchived }) {
   );
 }
 
-// ── PrepContactCard — read-only contact display on Prep tab ──────────────
-function PrepContactCard({ label, icon, contact }) {
+// ── PrepContactCard — contact display with optional edit button ──────────────
+function PrepContactCard({ label, icon, contact, onEdit }) {
+  const hasData = !!(contact.name || contact.phone || contact.email);
+
   return (
     <div style={{ flex: "1 1 200px", minWidth: 180 }}>
-      <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 6 }}>
-        {icon} {label}
-      </div>
-      {contact.name  && <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text-primary)", marginBottom: 3 }}>{contact.name}</div>}
-      {contact.phone && <div style={{ fontSize: 12, color: "var(--text-secondary)", marginBottom: 2 }}>📞 {contact.phone}</div>}
-      {contact.email && (
-        <div style={{ fontSize: 12, color: "var(--text-secondary)", marginBottom: 2 }}>
-          ✉ <a href={`mailto:${contact.email}`} style={{ color: "var(--accent-primary)", textDecoration: "none" }}>{contact.email}</a>
+      <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6 }}>
+        <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.05em", flex: 1 }}>
+          {icon} {label}
         </div>
-      )}
-      {contact.notes && <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 4, fontStyle: "italic", lineHeight: 1.5 }}>{contact.notes}</div>}
+        {onEdit && (
+          <button className="icon-btn" style={{ fontSize: 12 }} onClick={onEdit} title={`Edit ${label}`}>✎</button>
+        )}
+      </div>
+      {hasData ? (
+        <>
+          {contact.name  && <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text-primary)", marginBottom: 3 }}>{contact.name}</div>}
+          {contact.phone && <div style={{ fontSize: 12, color: "var(--text-secondary)", marginBottom: 2 }}>📞 {contact.phone}</div>}
+          {contact.email && (
+            <div style={{ fontSize: 12, color: "var(--text-secondary)", marginBottom: 2 }}>
+              ✉ <a href={`mailto:${contact.email}`} style={{ color: "var(--accent-primary)", textDecoration: "none" }}>{contact.email}</a>
+            </div>
+          )}
+          {contact.notes && <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 4, fontStyle: "italic", lineHeight: 1.5 }}>{contact.notes}</div>}
+        </>
+      ) : onEdit ? (
+        <button
+          style={{ fontSize: 12, color: "var(--accent-primary)", background: "none", border: "none", cursor: "pointer", padding: 0 }}
+          onClick={onEdit}
+        >
+          + Add {label}
+        </button>
+      ) : null}
+    </div>
+  );
+}
+
+// ── ClergyEditModal ──────────────────────────────────────────────────────────
+function ClergyEditModal({ contactKey, label, icon, contact, saving, onSave, onClose }) {
+  const [form, setForm] = useState({
+    name:  contact?.name  || "",
+    phone: contact?.phone || "",
+    email: contact?.email || "",
+    notes: contact?.notes || "",
+  });
+  const setF = (k, v) => setForm(f => ({ ...f, [k]: v }));
+
+  return (
+    <div className="modal-backdrop" onMouseDown={e => { if (e.target === e.currentTarget) onClose(); }}>
+      <div className="modal" style={{ maxWidth: 420 }} onClick={e => e.stopPropagation()}>
+        <div className="modal-header">
+          <div className="modal-title">{icon} Edit {label}</div>
+          <button className="icon-btn" onClick={onClose}>✕</button>
+        </div>
+        <div className="modal-body">
+          <div className="form-group">
+            <label className="form-label">Name</label>
+            <input className="form-input" value={form.name} onChange={e => setF("name", e.target.value)} placeholder={`${label} name`} autoFocus />
+          </div>
+          <div className="form-group">
+            <label className="form-label">Phone</label>
+            <input className="form-input" value={form.phone} onChange={e => setF("phone", e.target.value)} placeholder="Phone number" />
+          </div>
+          <div className="form-group">
+            <label className="form-label">Email</label>
+            <input className="form-input" type="email" value={form.email} onChange={e => setF("email", e.target.value)} placeholder="Email address" />
+          </div>
+          <div className="form-group">
+            <label className="form-label">Notes</label>
+            <input className="form-input" value={form.notes} onChange={e => setF("notes", e.target.value)} placeholder="Additional notes" />
+          </div>
+          <div className="modal-footer">
+            <button className="btn btn-ghost" onClick={onClose}>Cancel</button>
+            <button className="btn btn-primary" disabled={saving} onClick={() => onSave(form)}>
+              {saving ? "Saving…" : "Save"}
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
