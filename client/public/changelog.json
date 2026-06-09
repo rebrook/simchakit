@@ -1,10 +1,18 @@
 {
-  "current": "V3.20.1",
+  "current": "V3.20.2",
   "whatsNew": [
-    "Fixed auto-seat result overflow when many guests cannot be placed.",
-    "Ceremony tab unassigned rows no longer have a yellow background fill."
+    "Fixed auto-seat: table type matching was case-sensitive, preventing any guests from being placed."
   ],
   "changelog": [
+    {
+      "version": "V3.20.2",
+      "date": "2026-06-09",
+      "type": "patch",
+      "title": "Auto-Seat Table Type Fix",
+      "changes": [
+        "seating.js (V3 + V2): table type comparisons in autoSeatByHousehold were lowercase (\"adult\", \"kids\", \"mixed\") but stored values are capitalized (\"Adult\", \"Kids\", \"Mixed\"). No table ever matched, so every guest was reported as unplaced. Fixed by normalizing to lowercase with a typeOf() helper."
+      ]
+    },
     {
       "version": "V3.20.1",
       "date": "2026-06-09",
@@ -5824,6 +5832,12 @@
       "priority": "P3",
       "detail": "Vercel API endpoint that generates an ICS feed on demand. Users subscribe via webcal:// URL and their calendar app stays in sync automatically. V3 only. Follow-up to the .ics download feature.",
       "completedIn": "V3.5.0"
+    },
+    {
+      "feature": "Seating tab drag-and-drop",
+      "status": "future",
+      "priority": "P2",
+      "detail": "Allow dragging unseated guests onto table cards using @dnd-kit. Cross-container drag pattern (unseated sidebar to table card). The @dnd-kit infrastructure is already installed from the Ceremony tab work in V3.19.0."
     }
   ],
   "priorities": {

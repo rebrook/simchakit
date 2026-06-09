@@ -47,7 +47,8 @@ export function autoSeatByHousehold(scopedPeople, sortedTables, households, sect
   // ── 2. Determine seating mode ───────────────────────────────────────────────
   // If any kids tables exist, route kids → kids/mixed tables, adults → adult/mixed tables.
   // If no kids tables, everyone goes to adult/mixed tables.
-  const hasKidsTables = sortedTables.some(t => t.type === "kids");
+  const typeOf = (t) => (t.type || "").toLowerCase();
+  const hasKidsTables = sortedTables.some(t => typeOf(t) === "kids");
 
   // ── 3. Build remaining capacity tracker ────────────────────────────────────
   // Pre-populate with current occupant counts (manually seated people not in unseated).
@@ -59,10 +60,10 @@ export function autoSeatByHousehold(scopedPeople, sortedTables, households, sect
     remaining[t.id] = Math.max(0, (parseInt(t.capacity) || 0) - occupants);
   }
 
-  // Eligible tables by role
-  const adultTables = sortedTables.filter(t => t.type === "adult" || t.type === "mixed");
+  // Eligible tables by role (normalize type to lowercase for case-insensitive match)
+  const adultTables = sortedTables.filter(t => typeOf(t) === "adult" || typeOf(t) === "mixed");
   const kidsTables  = hasKidsTables
-    ? sortedTables.filter(t => t.type === "kids"  || t.type === "mixed")
+    ? sortedTables.filter(t => typeOf(t) === "kids"  || typeOf(t) === "mixed")
     : adultTables; // fallback: no kids tables → kids go with adults
 
   // ── 4. Group unseated by household ─────────────────────────────────────────
