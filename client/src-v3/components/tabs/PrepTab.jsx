@@ -231,7 +231,7 @@ export function PrepTab({ eventId, event, adminConfig, showToast, isArchived, is
           <div style={{ display: "flex", alignItems: "center", marginBottom: 14 }}>
             <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)", flex: 1 }}>Clergy & Tutor</div>
             {canEditClergy && (
-              <button className="btn btn-ghost btn-sm" style={{ fontSize: 12 }} onClick={() => setEditingClergy(true)}>✎ Edit</button>
+              <button className="btn btn-secondary btn-sm" style={{ fontSize: 12 }} onClick={() => setEditingClergy(true)}>✎ Edit</button>
             )}
           </div>
           <div style={{ display: "flex", flexWrap: "wrap", gap: 16 }}>
