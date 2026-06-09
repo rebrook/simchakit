@@ -94,29 +94,24 @@ export function PrepTab({ eventId, event, adminConfig, showToast, isArchived, is
     showToast("Template loaded");
   };
 
-  // ── Clergy edit handler ─────────────────────────────────────────────────────
+  // ── Clergy edit handler (via Supabase RPC, no serverless function) ─────────
   const handleClergySave = async (contactKey, updatedContact) => {
     setClergySaving(true);
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session?.access_token) { showToast("Not signed in"); setClergySaving(false); return; }
-
       const rabbi  = contactKey === "rabbi"  ? updatedContact : (adminConfig?.rabbi  || {});
       const cantor = contactKey === "cantor" ? updatedContact : (adminConfig?.cantor || {});
       const tutor  = contactKey === "tutor"  ? updatedContact : (adminConfig?.tutor  || {});
 
-      const res = await fetch("/api/update-clergy", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${session.access_token}`,
-        },
-        body: JSON.stringify({ eventId, rabbi, cantor, tutor }),
+      const { error } = await supabase.rpc("update_clergy", {
+        p_event_id: eventId,
+        p_rabbi:    rabbi,
+        p_cantor:   cantor,
+        p_tutor:    tutor,
       });
 
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        showToast(err.error || "Could not update clergy info");
+      if (error) {
+        console.error("[SimchaKit] Clergy update error:", error.message);
+        showToast(error.message === "Not authorized" ? "Not authorized to update clergy info" : "Could not update clergy info");
         return;
       }
 
