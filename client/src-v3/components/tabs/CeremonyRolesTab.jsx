@@ -1,5 +1,5 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// SimchaKit V3.19.0 — CeremonyRolesTab.jsx
+// SimchaKit V3.20.4 — CeremonyRolesTab.jsx
 // Ceremony roles stored as a single document in ceremony_roles table
 // (one row per event, data.roles = array of role objects).
 // Drag-and-drop reordering via @dnd-kit. Section ordering via sectionOrder.
@@ -99,6 +99,24 @@ const ROLE_TEMPLATES = {
 
 // ── Grid column definition (shared between header + rows) ────────────────────
 const GRID_COLS = "32px 1fr 1fr 0.7fr 1.2fr 140px";
+
+// ── Scoped collision detection ───────────────────────────────────────────────
+// When dragging a section (sec: prefix), only consider other sections as drop
+// targets. When dragging a role, only consider other roles. Without this,
+// closestCenter checks ALL droppable nodes across nested SortableContexts and
+// often matches a role row instead of the section container, causing silent
+// drop rejection. Pattern from dnd-kit MultipleContainers example.
+function scopedCollision(args) {
+  const activeId = String(args.active.id);
+  const isSection = activeId.startsWith("sec:");
+  return closestCenter({
+    ...args,
+    droppableContainers: args.droppableContainers.filter(c => {
+      const id = String(c.id);
+      return isSection ? id.startsWith("sec:") : !id.startsWith("sec:");
+    }),
+  });
+}
 
 // ── SortableRoleRow ──────────────────────────────────────────────────────────
 function SortableRoleRow({ role, idx, total, isMobile, isReadOnly, moveRole, setEditRole, setDeleteConfirm }) {
@@ -566,7 +584,7 @@ export function CeremonyRolesTab({ eventId, event, adminConfig, showToast, isArc
       {sortedGroupEntries.length > 0 && (
         <DndContext
           sensors={sensors}
-          collisionDetection={closestCenter}
+          collisionDetection={scopedCollision}
           onDragStart={handleDragStart}
           onDragEnd={handleDragEnd}
           onDragCancel={handleDragCancel}
