@@ -98,7 +98,7 @@ const ROLE_TEMPLATES = {
 };
 
 // ── Grid column definition (shared between header + rows) ────────────────────
-const GRID_COLS = "36px 1fr 1fr 0.8fr 1.5fr 100px";
+const GRID_COLS = "32px 1fr 1fr 0.7fr 1.2fr 140px";
 
 // ── SortableRoleRow ──────────────────────────────────────────────────────────
 function SortableRoleRow({ role, idx, total, isMobile, isReadOnly, moveRole, setEditRole, setDeleteConfirm }) {
@@ -131,7 +131,6 @@ function SortableRoleRow({ role, idx, total, isMobile, isReadOnly, moveRole, set
   if (isMobile) {
     return (
       <div ref={setNodeRef} style={{ ...style, padding: "12px 10px 12px 0", borderBottom: idx < total - 1 ? "1px solid var(--border)" : "none", borderLeft: rowBorder, background: rowBg, display: "flex", gap: 6, alignItems: "flex-start" }}>
-        {/* Drag handle */}
         {!isReadOnly && (
           <div {...attributes} {...listeners} style={{ ...gripStyle, padding: "2px 6px", flexShrink: 0 }}>⠿</div>
         )}
@@ -156,7 +155,6 @@ function SortableRoleRow({ role, idx, total, isMobile, isReadOnly, moveRole, set
   // Desktop: div-based grid row
   return (
     <div ref={setNodeRef} style={{ ...style, display: "grid", gridTemplateColumns: GRID_COLS, alignItems: "center", borderBottom: "1px solid var(--border)", borderLeft: rowBorder, background: rowBg, fontSize: 13 }}>
-      {/* Drag handle */}
       <div {...attributes} {...listeners} style={gripStyle}>
         {!isReadOnly && "⠿"}
       </div>
@@ -176,7 +174,76 @@ function SortableRoleRow({ role, idx, total, isMobile, isReadOnly, moveRole, set
   );
 }
 
-// ── Drag overlay (floating preview while dragging) ───────────────────────────
+// ── SortableSectionBlock ─────────────────────────────────────────────────────
+function SortableSectionBlock({ sectionId, section, sectionRoles, secIdx, totalSections, isMobile, isReadOnly, moveSection, moveRole, setEditRole, setDeleteConfirm }) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: sectionId, disabled: isReadOnly });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.35 : 1,
+    background: "var(--bg-surface)",
+    border: "1px solid var(--border)",
+    borderRadius: "var(--radius-md)",
+    overflow: "hidden",
+  };
+
+  return (
+    <div ref={setNodeRef} style={style}>
+      {/* Section header: grip left, name center, assigned + arrows right */}
+      <div style={{ padding: "10px 16px", background: "var(--bg-subtle)", borderBottom: "1px solid var(--border)", display: "flex", alignItems: "center", gap: 8 }}>
+        {!isReadOnly && totalSections > 1 && (
+          <div {...attributes} {...listeners} style={{ touchAction: "none", cursor: "grab", color: "var(--text-muted)", fontSize: 14, userSelect: "none", opacity: 0.6, flexShrink: 0 }}>⠿</div>
+        )}
+        <div style={{ fontWeight: 700, fontSize: 13, color: "var(--text-primary)", flex: 1 }}>{section}</div>
+        <div style={{ fontSize: 11, color: "var(--text-muted)", fontWeight: 600, flexShrink: 0 }}>
+          {sectionRoles.filter(r => r.assignee?.trim()).length}/{sectionRoles.length} assigned
+        </div>
+        {!isReadOnly && totalSections > 1 && (
+          <div style={{ display: "flex", gap: 2, flexShrink: 0 }}>
+            <button className="icon-btn" style={{ fontSize: 11 }}
+              title="Move section up"
+              onClick={() => moveSection(section, "up")}
+              disabled={secIdx === 0}>↑</button>
+            <button className="icon-btn" style={{ fontSize: 11 }}
+              title="Move section down"
+              onClick={() => moveSection(section, "down")}
+              disabled={secIdx === totalSections - 1}>↓</button>
+          </div>
+        )}
+      </div>
+
+      {/* Desktop column headers */}
+      {!isMobile && (
+        <div style={{ display: "grid", gridTemplateColumns: GRID_COLS, background: "var(--bg-subtle)", borderBottom: "1px solid var(--border)" }}>
+          <div />
+          {["Role","Assignee","Hebrew Name","Notes",""].map((h, i) => (
+            <div key={i} style={{ padding: "8px 14px", textAlign: i === 4 ? "right" : "left", fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--text-muted)" }}>{h}</div>
+          ))}
+        </div>
+      )}
+
+      {/* Sortable roles within section */}
+      <SortableContext items={sectionRoles.map(r => r.id)} strategy={verticalListSortingStrategy}>
+        {sectionRoles.map((role, idx) => (
+          <SortableRoleRow
+            key={role.id}
+            role={role}
+            idx={idx}
+            total={sectionRoles.length}
+            isMobile={isMobile}
+            isReadOnly={isReadOnly}
+            moveRole={moveRole}
+            setEditRole={setEditRole}
+            setDeleteConfirm={setDeleteConfirm}
+          />
+        ))}
+      </SortableContext>
+    </div>
+  );
+}
+
+// ── Drag overlays (floating preview while dragging) ──────────────────────────
 function RoleDragPreview({ role }) {
   if (!role) return null;
   return (
@@ -196,10 +263,28 @@ function RoleDragPreview({ role }) {
   );
 }
 
+function SectionDragPreview({ name, count }) {
+  return (
+    <div style={{
+      padding: "10px 16px",
+      background: "var(--bg-subtle)",
+      border: "2px solid var(--accent-primary)",
+      borderRadius: "var(--radius-md)",
+      boxShadow: "0 8px 24px rgba(0,0,0,0.18)",
+      display: "flex",
+      alignItems: "center",
+      gap: 10,
+    }}>
+      <div style={{ fontWeight: 700, fontSize: 13, color: "var(--text-primary)" }}>{name}</div>
+      <div style={{ fontSize: 11, color: "var(--text-muted)", fontWeight: 600 }}>{count} role{count !== 1 ? "s" : ""}</div>
+    </div>
+  );
+}
+
 // ── CeremonyRolesTab ─────────────────────────────────────────────────────────
 export function CeremonyRolesTab({ eventId, event, adminConfig, showToast, isArchived, isViewer }) {
   const [roles,         setRoles]         = useState([]);
-  const [rowId,         setRowId]         = useState(null); // Supabase row UUID
+  const [rowId,         setRowId]         = useState(null);
   const [loading,       setLoading]       = useState(true);
   const [showModal,     setShowModal]     = useState(false);
   const [editRole,      setEditRole]      = useState(null);
@@ -213,7 +298,7 @@ export function CeremonyRolesTab({ eventId, event, adminConfig, showToast, isArc
   const hasTemplate = !!ROLE_TEMPLATES[eventType];
   const isReadOnly  = isArchived || isViewer;
 
-  // ── Sensors for @dnd-kit ─────────────────────────────────────────────────
+  // ── Sensors ────────────────────────────────────────────────────────────────
   const mouseSensor    = useSensor(MouseSensor, { activationConstraint: { distance: 10 } });
   const touchSensor    = useSensor(TouchSensor, { activationConstraint: { delay: 250, tolerance: 5 } });
   const keyboardSensor = useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates });
@@ -234,7 +319,6 @@ export function CeremonyRolesTab({ eventId, event, adminConfig, showToast, isArc
         .select("id, data")
         .eq("event_id", eventId)
         .limit(1);
-
       if (rows && rows.length > 0) {
         setRowId(rows[0].id);
         setRoles(rows[0].data?.roles || []);
@@ -244,7 +328,7 @@ export function CeremonyRolesTab({ eventId, event, adminConfig, showToast, isArc
     load();
   }, [eventId]);
 
-  // ── Persist ─────────────────────────────────────────────────────────────────
+  // ── Persist ────────────────────────────────────────────────────────────────
   const saveRoles = async (nextRoles) => {
     setRoles(nextRoles);
     const row = {
@@ -258,7 +342,6 @@ export function CeremonyRolesTab({ eventId, event, adminConfig, showToast, isArc
       .upsert(row, { onConflict: "id" })
       .select("id")
       .single();
-
     if (error) {
       console.error("[SimchaKit] CeremonyRoles save error:", error.message);
     } else if (!rowId && saved) {
@@ -266,10 +349,10 @@ export function CeremonyRolesTab({ eventId, event, adminConfig, showToast, isArc
     }
   };
 
-  // ── Section order map ───────────────────────────────────────────────────────
+  // ── Section order map ──────────────────────────────────────────────────────
   const sectionOrderMap = getSectionOrderMap(roles);
 
-  // ── Role handlers ──────────────────────────────────────────────────────────
+  // ── Handlers ───────────────────────────────────────────────────────────────
   const loadTemplate = () => {
     const template = ROLE_TEMPLATES[eventType];
     if (template) { saveRoles(template); showToast("Template loaded"); }
@@ -286,7 +369,6 @@ export function CeremonyRolesTab({ eventId, event, adminConfig, showToast, isArc
 
   const handleEdit = (r) => {
     if (isReadOnly) return;
-    // If section changed, assign the target section's sectionOrder
     const secOrder = sectionOrderMap[r.section] ?? Object.keys(sectionOrderMap).length;
     saveRoles(roles.map(x => x.id === r.id ? { ...r, sectionOrder: secOrder } : x));
     showToast("Role updated");
@@ -300,7 +382,7 @@ export function CeremonyRolesTab({ eventId, event, adminConfig, showToast, isArc
     setDeleteConfirm(null);
   };
 
-  // Move role ↑/↓ within its section (button fallback)
+  // Move role ↑/↓ within its section
   const moveRole = (id, dir) => {
     if (isReadOnly) return;
     const role = roles.find(r => r.id === id);
@@ -319,7 +401,7 @@ export function CeremonyRolesTab({ eventId, event, adminConfig, showToast, isArc
     saveRoles(newRoles);
   };
 
-  // Move an entire section ↑ or ↓
+  // Move an entire section ↑ or ↓ (sets sectionOrder on ALL roles)
   const moveSection = (sectionName, dir) => {
     if (isReadOnly) return;
     const orderedSections = [...new Set(roles.map(r => r.section || "Other"))]
@@ -327,48 +409,64 @@ export function CeremonyRolesTab({ eventId, event, adminConfig, showToast, isArc
     const idx = orderedSections.indexOf(sectionName);
     const swapIdx = dir === "up" ? idx - 1 : idx + 1;
     if (swapIdx < 0 || swapIdx >= orderedSections.length) return;
-    const swapSection = orderedSections[swapIdx];
-    const orderA = sectionOrderMap[sectionName] ?? idx;
-    const orderB = sectionOrderMap[swapSection] ?? swapIdx;
-    const newRoles = roles.map(r => {
-      if ((r.section || "Other") === sectionName) return { ...r, sectionOrder: orderB };
-      if ((r.section || "Other") === swapSection) return { ...r, sectionOrder: orderA };
-      return r;
-    });
+    // Build a complete order map with the swap applied
+    const newOrderMap = {};
+    orderedSections.forEach((sec, i) => { newOrderMap[sec] = i; });
+    const temp = newOrderMap[sectionName];
+    newOrderMap[sectionName] = newOrderMap[orderedSections[swapIdx]];
+    newOrderMap[orderedSections[swapIdx]] = temp;
+    // Apply sectionOrder to ALL roles
+    const newRoles = roles.map(r => ({ ...r, sectionOrder: newOrderMap[r.section || "Other"] ?? 999 }));
     saveRoles(newRoles);
   };
 
   // ── Drag-and-drop handlers ─────────────────────────────────────────────────
-  const handleDragStart = (event) => setActiveDragId(event.active.id);
+  const handleDragStart = (event) => setActiveDragId(String(event.active.id));
+  const handleDragCancel = () => setActiveDragId(null);
 
   const handleDragEnd = (event) => {
     const { active, over } = event;
     setActiveDragId(null);
     if (!over || active.id === over.id) return;
 
-    const activeRole = roles.find(r => r.id === active.id);
-    const overRole   = roles.find(r => r.id === over.id);
-    if (!activeRole || !overRole) return;
-    if (activeRole.section !== overRole.section) return; // no cross-section drag
+    const activeId = String(active.id);
+    const overId   = String(over.id);
 
-    // Get the section's roles in current order
+    // ── Section drag ──────────────────────────────────────────────────────
+    if (activeId.startsWith("sec:") && overId.startsWith("sec:")) {
+      const activeSec = activeId.slice(4);
+      const overSec   = overId.slice(4);
+      const orderedSections = sortedGroupEntries.map(([sec]) => sec);
+      const oldIdx = orderedSections.indexOf(activeSec);
+      const newIdx = orderedSections.indexOf(overSec);
+      if (oldIdx < 0 || newIdx < 0 || oldIdx === newIdx) return;
+      const reordered = arrayMove(orderedSections, oldIdx, newIdx);
+      const newOrderMap = {};
+      reordered.forEach((sec, i) => { newOrderMap[sec] = i; });
+      const newRoles = roles.map(r => ({ ...r, sectionOrder: newOrderMap[r.section || "Other"] ?? 999 }));
+      saveRoles(newRoles);
+      return;
+    }
+
+    // ── Role drag (within same section only) ──────────────────────────────
+    const activeRole = roles.find(r => r.id === activeId);
+    const overRole   = roles.find(r => r.id === overId);
+    if (!activeRole || !overRole) return;
+    if (activeRole.section !== overRole.section) return;
+
     const sectionRoles = roles
       .filter(r => r.section === activeRole.section)
       .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
-
-    const oldIndex = sectionRoles.findIndex(r => r.id === active.id);
-    const newIndex = sectionRoles.findIndex(r => r.id === over.id);
+    const oldIndex = sectionRoles.findIndex(r => r.id === activeId);
+    const newIndex = sectionRoles.findIndex(r => r.id === overId);
     if (oldIndex < 0 || newIndex < 0 || oldIndex === newIndex) return;
 
     const reordered = arrayMove(sectionRoles, oldIndex, newIndex);
     const idToOrder = new Map();
     reordered.forEach((r, i) => idToOrder.set(r.id, i));
-
     const newRoles = roles.map(r => idToOrder.has(r.id) ? { ...r, sortOrder: idToOrder.get(r.id) } : r);
     saveRoles(newRoles);
   };
-
-  const handleDragCancel = () => setActiveDragId(null);
 
   // ── Derived data ───────────────────────────────────────────────────────────
   const sections = [...new Set(roles.map(r => r.section).filter(Boolean))];
@@ -397,14 +495,18 @@ export function CeremonyRolesTab({ eventId, event, adminConfig, showToast, isArc
     return acc;
   }, {});
 
-  // Sort section entries by sectionOrderMap
   const sortedGroupEntries = Object.entries(grouped)
     .sort((a, b) => (sectionOrderMap[a[0]] ?? 999) - (sectionOrderMap[b[0]] ?? 999));
+
+  const sectionIds = sortedGroupEntries.map(([sec]) => "sec:" + sec);
 
   const assignedCount   = roles.filter(r => r.assignee?.trim()).length;
   const unassignedCount = roles.length - assignedCount;
 
-  const activeDragRole = activeDragId ? roles.find(r => r.id === activeDragId) : null;
+  // Resolve drag preview data
+  const isDraggingSection = activeDragId?.startsWith("sec:");
+  const activeDragRole = !isDraggingSection && activeDragId ? roles.find(r => r.id === activeDragId) : null;
+  const activeDragSectionName = isDraggingSection ? activeDragId.slice(4) : null;
 
   if (loading) return <div style={loadingStyle}>Loading ceremony roles…</div>;
 
@@ -419,13 +521,9 @@ export function CeremonyRolesTab({ eventId, event, adminConfig, showToast, isArc
         </div>
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap", justifyContent: "flex-end" }}>
           {roles.length === 0 && hasTemplate && (
-            <button className="btn btn-secondary" disabled={isReadOnly} onClick={loadTemplate}>
-              ✦ Load Template
-            </button>
+            <button className="btn btn-secondary" disabled={isReadOnly} onClick={loadTemplate}>✦ Load Template</button>
           )}
-          <button className="btn btn-primary" disabled={isReadOnly} onClick={() => setShowModal(true)}>
-            + Add Role
-          </button>
+          <button className="btn btn-primary" disabled={isReadOnly} onClick={() => setShowModal(true)}>+ Add Role</button>
         </div>
       </div>
 
@@ -473,62 +571,34 @@ export function CeremonyRolesTab({ eventId, event, adminConfig, showToast, isArc
           onDragEnd={handleDragEnd}
           onDragCancel={handleDragCancel}
         >
-          <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-            {sortedGroupEntries.map(([section, sectionRoles], secIdx) => (
-              <div key={section} style={{ background: "var(--bg-surface)", border: "1px solid var(--border)", borderRadius: "var(--radius-md)", overflow: "hidden" }}>
-                {/* Section header with reorder buttons */}
-                <div style={{ padding: "10px 16px", background: "var(--bg-subtle)", borderBottom: "1px solid var(--border)", display: "flex", alignItems: "center", gap: 8 }}>
-                  {!isReadOnly && sortedGroupEntries.length > 1 && (
-                    <div style={{ display: "flex", gap: 2, flexShrink: 0 }}>
-                      <button className="icon-btn" style={{ fontSize: 11 }}
-                        title="Move section up"
-                        onClick={() => moveSection(section, "up")}
-                        disabled={secIdx === 0}>↑</button>
-                      <button className="icon-btn" style={{ fontSize: 11 }}
-                        title="Move section down"
-                        onClick={() => moveSection(section, "down")}
-                        disabled={secIdx === sortedGroupEntries.length - 1}>↓</button>
-                    </div>
-                  )}
-                  <div style={{ fontWeight: 700, fontSize: 13, color: "var(--text-primary)", flex: 1 }}>{section}</div>
-                  <div style={{ fontSize: 11, color: "var(--text-muted)", fontWeight: 600, flexShrink: 0 }}>
-                    {sectionRoles.filter(r => r.assignee?.trim()).length}/{sectionRoles.length} assigned
-                  </div>
-                </div>
+          {/* Outer sortable context for sections */}
+          <SortableContext items={sectionIds} strategy={verticalListSortingStrategy}>
+            <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+              {sortedGroupEntries.map(([section, sectionRoles], secIdx) => (
+                <SortableSectionBlock
+                  key={section}
+                  sectionId={"sec:" + section}
+                  section={section}
+                  sectionRoles={sectionRoles}
+                  secIdx={secIdx}
+                  totalSections={sortedGroupEntries.length}
+                  isMobile={isMobile}
+                  isReadOnly={isReadOnly}
+                  moveSection={moveSection}
+                  moveRole={moveRole}
+                  setEditRole={setEditRole}
+                  setDeleteConfirm={setDeleteConfirm}
+                />
+              ))}
+            </div>
+          </SortableContext>
 
-                {/* Desktop column headers */}
-                {!isMobile && (
-                  <div style={{ display: "grid", gridTemplateColumns: GRID_COLS, background: "var(--bg-subtle)", borderBottom: "1px solid var(--border)" }}>
-                    <div />
-                    {["Role","Assignee","Hebrew Name","Notes",""].map((h, i) => (
-                      <div key={i} style={{ padding: "8px 14px", textAlign: i === 4 ? "right" : "left", fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--text-muted)" }}>{h}</div>
-                    ))}
-                  </div>
-                )}
-
-                {/* Sortable roles within section */}
-                <SortableContext items={sectionRoles.map(r => r.id)} strategy={verticalListSortingStrategy}>
-                  {sectionRoles.map((role, idx) => (
-                    <SortableRoleRow
-                      key={role.id}
-                      role={role}
-                      idx={idx}
-                      total={sectionRoles.length}
-                      isMobile={isMobile}
-                      isReadOnly={isReadOnly}
-                      moveRole={moveRole}
-                      setEditRole={setEditRole}
-                      setDeleteConfirm={setDeleteConfirm}
-                    />
-                  ))}
-                </SortableContext>
-              </div>
-            ))}
-          </div>
-
-          {/* Drag overlay: floating preview of the role being dragged */}
+          {/* Drag overlay */}
           <DragOverlay dropAnimation={{ duration: 200, easing: "ease" }}>
-            <RoleDragPreview role={activeDragRole} />
+            {isDraggingSection
+              ? <SectionDragPreview name={activeDragSectionName} count={grouped[activeDragSectionName]?.length || 0} />
+              : <RoleDragPreview role={activeDragRole} />
+            }
           </DragOverlay>
         </DndContext>
       )}
