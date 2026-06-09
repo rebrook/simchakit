@@ -126,7 +126,7 @@ function SortableRoleRow({ role, idx, total, isMobile, isReadOnly, moveRole, set
 
   const unassigned = !role.assignee?.trim();
   const rowBorder = unassigned ? "3px solid var(--gold)" : "3px solid transparent";
-  const rowBg = unassigned ? "var(--gold-light)" : "transparent";
+  const rowBg = "transparent";
 
   if (isMobile) {
     return (

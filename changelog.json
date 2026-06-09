@@ -1,9 +1,20 @@
 {
-  "current": "V3.20.0",
+  "current": "V3.20.1",
   "whatsNew": [
-    "Event owners and Ritual Coordinators can now edit clergy and tutor contact info directly from the Prep tab."
+    "Fixed auto-seat result overflow when many guests cannot be placed.",
+    "Ceremony tab unassigned rows no longer have a yellow background fill."
   ],
   "changelog": [
+    {
+      "version": "V3.20.1",
+      "date": "2026-06-09",
+      "type": "patch",
+      "title": "Auto-Seat Overflow + Ceremony Row Background",
+      "changes": [
+        "SeatingTab.jsx (V3): auto-seat result modal now constrains the unplaced guests list (maxHeight 200px, scroll) and the split households list (maxHeight 120px, scroll). Previously, a large number of unplaced guests caused the modal to overflow the viewport.",
+        "CeremonyRolesTab.jsx (V3 + V2): removed gold background fill on unassigned ceremony role rows. The gold left border remains as the unassigned indicator. Background is now transparent, consistent with the rest of the app in both light and dark mode."
+      ]
+    },
     {
       "version": "V3.20.0",
       "date": "2026-06-09",

@@ -670,17 +670,21 @@ export function SeatingTab({ eventId, event, adminConfig, showToast, isArchived,
             {autoSeatResult.splits.length > 0 && (
               <div style={{ padding: "10px 14px", background: "var(--gold-light)", border: "1px solid var(--gold)", borderRadius: "var(--radius-md)", marginBottom: 12 }}>
                 <div style={{ fontSize: 13, fontWeight: 600, color: "var(--gold)", marginBottom: 4 }}>⚠ {autoSeatResult.splits.length} household{autoSeatResult.splits.length !== 1 ? "s" : ""} split across tables</div>
-                {autoSeatResult.splits.map((s, i) => (
-                  <div key={i} style={{ fontSize: 12, color: "var(--text-secondary)" }}>{s.householdName}</div>
-                ))}
+                <div style={{ maxHeight: 120, overflowY: "auto" }}>
+                  {autoSeatResult.splits.map((s, i) => (
+                    <div key={i} style={{ fontSize: 12, color: "var(--text-secondary)" }}>{s.householdName}</div>
+                  ))}
+                </div>
               </div>
             )}
             {autoSeatResult.unplaced.length > 0 && (
               <div style={{ padding: "10px 14px", background: "var(--red-light)", border: "1px solid var(--red)", borderRadius: "var(--radius-md)", marginBottom: 12 }}>
                 <div style={{ fontSize: 13, fontWeight: 600, color: "var(--red)", marginBottom: 4 }}>⚠ {autoSeatResult.unplaced.length} guest{autoSeatResult.unplaced.length !== 1 ? "s" : ""} could not be placed — not enough remaining seat capacity</div>
-                {autoSeatResult.unplaced.map((u, i) => (
-                  <div key={i} style={{ fontSize: 12, color: "var(--text-secondary)" }}>{u.personName}</div>
-                ))}
+                <div style={{ maxHeight: 200, overflowY: "auto" }}>
+                  {autoSeatResult.unplaced.map((u, i) => (
+                    <div key={i} style={{ fontSize: 12, color: "var(--text-secondary)" }}>{u.personName}</div>
+                  ))}
+                </div>
               </div>
             )}
             {autoSeatResult.splits.length === 0 && autoSeatResult.unplaced.length === 0 && (
