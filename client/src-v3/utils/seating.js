@@ -121,70 +121,77 @@ export function autoSeatByHousehold(scopedPeople, sortedTables, households, sect
   // ── 5. Sort: largest units first (First Fit Decreasing) ─────────────────────
   placementUnits.sort((a, b) => b.people.length - a.people.length);
 
-  // ── 6. Greedy placement ─────────────────────────────────────────────────────
-  const assignments = []; // { personId, tableId }
-  const splitHouseholds = new Set(); // hhIds that were split
-  const unplacedPeople = []; // { personName, householdName }
+  // ── 6. Two-pass greedy placement (minimizes household splits) ────────────────
+  //
+  // Pass 1: place only households that fit entirely into one table (no splits).
+  //         Skip any household that would require splitting.
+  // Pass 2: handle skipped households by splitting across remaining space,
+  //         or marking as unplaced if no space remains.
+  //
+  const assignments = [];        // { personId, tableId }
+  const splitHouseholds = new Set();
+  const unplacedPeople = [];     // { personName, householdName }
 
-  // Track which tableId each placement unit's first member was placed at,
-  // so we can detect splits within a unit
-  const unitFirstTable = {}; // unitIndex → tableId of first placement
+  // Helper: place an entire group into a single table
+  const placeWhole = (people, table) => {
+    for (const p of people) {
+      assignments.push({ personId: p.id, tableId: table.id });
+      remaining[table.id]--;
+    }
+  };
 
-  for (let ui = 0; ui < placementUnits.length; ui++) {
-    const unit = placementUnits[ui];
-    let remaining_people = [...unit.people];
-    let firstTableForUnit = null;
-    let wasSplit = false;
+  // ── Pass 1: whole-household placement only ──────────────────────────────────
+  const deferred = []; // units that couldn't fit whole in pass 1
 
-    while (remaining_people.length > 0) {
-      const groupSize = remaining_people.length;
+  for (const unit of placementUnits) {
+    const idealTable = unit.tablePool.find(t => remaining[t.id] >= unit.people.length);
+    if (idealTable) {
+      placeWhole(unit.people, idealTable);
+    } else {
+      deferred.push(unit);
+    }
+  }
 
-      // Find first table that fits the whole remaining group
-      const idealTable = unit.tablePool.find(
-        t => remaining[t.id] >= groupSize
-      );
-
-      if (idealTable) {
-        // Place everyone in this table
-        for (const p of remaining_people) {
-          assignments.push({ personId: p.id, tableId: idealTable.id });
-          remaining[idealTable.id]--;
-        }
-        if (!firstTableForUnit) firstTableForUnit = idealTable.id;
-        else if (firstTableForUnit !== idealTable.id) wasSplit = true;
-        remaining_people = [];
-      } else {
-        // No table fits all — find the table with the most remaining space
-        const bestTable = unit.tablePool
-          .filter(t => remaining[t.id] > 0)
-          .sort((a, b) => remaining[b.id] - remaining[a.id])[0];
-
-        if (!bestTable) {
-          // No space anywhere — all remaining are unplaced
-          for (const p of remaining_people) {
-            unplacedPeople.push({ personName: getPersonName(p), householdName: unit.hhName });
-          }
-          remaining_people = [];
-        } else {
-          const canPlace = remaining[bestTable.id];
-          const toPlace  = remaining_people.slice(0, canPlace);
-          const leftover = remaining_people.slice(canPlace);
-
-          for (const p of toPlace) {
-            assignments.push({ personId: p.id, tableId: bestTable.id });
-            remaining[bestTable.id]--;
-          }
-
-          if (!firstTableForUnit) firstTableForUnit = bestTable.id;
-          else wasSplit = true;
-
-          remaining_people = leftover;
-          wasSplit = true; // splitting by definition
-        }
-      }
+  // ── Pass 2: retry deferred units, splitting as a last resort ────────────────
+  for (const unit of deferred) {
+    // Check again: capacity may have shifted after pass 1 placements
+    const idealTable = unit.tablePool.find(t => remaining[t.id] >= unit.people.length);
+    if (idealTable) {
+      placeWhole(unit.people, idealTable);
+      continue;
     }
 
-    if (wasSplit) splitHouseholds.add(unit.hhId);
+    // Must split or mark unplaced
+    let remainingPeople = [...unit.people];
+    let firstTableForUnit = null;
+
+    while (remainingPeople.length > 0) {
+      const bestTable = unit.tablePool
+        .filter(t => remaining[t.id] > 0)
+        .sort((a, b) => remaining[b.id] - remaining[a.id])[0];
+
+      if (!bestTable) {
+        for (const p of remainingPeople) {
+          unplacedPeople.push({ personName: getPersonName(p), householdName: unit.hhName });
+        }
+        remainingPeople = [];
+      } else {
+        const canPlace = remaining[bestTable.id];
+        const toPlace  = remainingPeople.slice(0, canPlace);
+        const leftover = remainingPeople.slice(canPlace);
+
+        for (const p of toPlace) {
+          assignments.push({ personId: p.id, tableId: bestTable.id });
+          remaining[bestTable.id]--;
+        }
+
+        if (!firstTableForUnit) firstTableForUnit = bestTable.id;
+        else splitHouseholds.add(unit.hhId);
+
+        if (leftover.length > 0) splitHouseholds.add(unit.hhId);
+        remainingPeople = leftover;
+      }
+    }
   }
 
   // ── 7. Build splits summary ─────────────────────────────────────────────────

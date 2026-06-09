@@ -1,9 +1,18 @@
 {
-  "current": "V3.20.2",
+  "current": "V3.20.3",
   "whatsNew": [
-    "Fixed auto-seat: table type matching was case-sensitive, preventing any guests from being placed."
+    "Auto-seat now places whole households first and only splits as a last resort."
   ],
   "changelog": [
+    {
+      "version": "V3.20.3",
+      "date": "2026-06-09",
+      "type": "patch",
+      "title": "Auto-Seat Split Minimization",
+      "changes": [
+        "seating.js (V3 + V2): replaced single-pass greedy placement with a two-pass approach. Pass 1 places only households that fit entirely into a table (no splits). Pass 2 retries deferred households, splitting across remaining space only as a last resort. This prevents splitting a household when smaller households could have filled the table whole."
+      ]
+    },
     {
       "version": "V3.20.2",
       "date": "2026-06-09",
