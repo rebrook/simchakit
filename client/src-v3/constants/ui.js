@@ -93,6 +93,22 @@ const GUIDE_SECTIONS = [
     ],
   },
   {
+    id: "ceremony",
+    icon: "✡",
+    title: "Ceremony Roles",
+    color: "var(--blue)",
+    colorLight: "var(--blue-light)",
+    items: [
+      { heading: "What Ceremony Roles tracks", body: "The Ceremony Roles tab tracks who will fill each honor or role during the service or ceremony. For B'nei Mitzvah events: Aliyot, Hagbah, Gelilah, Opening and Returning Ark, English readings, and service participation. For weddings: officiant, wedding party, readers, candle lighters, and Ketubah witnesses. Each role has an assignee, an optional Hebrew name, and a notes field for instructions or requirements. Unassigned roles are highlighted with a gold left border so you can spot gaps at a glance." },
+      { heading: "Loading a template", body: "When the tab is empty, click Load Template to pre-populate roles based on your event type. Bar/Bat/B'nei Mitzvah events get a full Torah service role list. Wedding events get a wedding party and ceremony role list. You can add, edit, reorder, or remove any role after loading the template. Use Reset to Template at the bottom of the tab to start over." },
+      { heading: "Sections", body: "Roles are organized into named sections (e.g. Torah Service, English Readings, Wedding Party). When adding or editing a role, type a section name or pick from the list of existing sections. Sections group roles visually and appear as collapsible headers in the Day-of overlay. Each section header shows how many roles are assigned out of the total." },
+      { heading: "Reordering roles", body: "Drag the grip handle on the left of any role to move it within its section. On mobile, hold the grip for a moment before dragging. You can also use the up/down arrow buttons on the right side of each role. The sort order is saved automatically and preserved across devices, in the Day-of overlay, and in the Print Brief." },
+      { heading: "Reordering sections", body: "Drag the grip handle on a section header to move the entire section up or down. You can also use the up/down arrow buttons on the right side of the section header. This is useful when you add a new section and need to place it in service order." },
+      { heading: "Hebrew names", body: "The Hebrew name field is always available for any role. For Aliyot, the format is: First name + ben (son of) or bat (daughter of) + father's Hebrew name + v' + mother's Hebrew name. Example: Yosef ben Avraham v'Sarah." },
+      { heading: "Day-of and Print Brief", body: "Ceremony Roles appear in the Day-of overlay as a read-only reference section grouped by section header, useful at the venue on the day. They also appear in the Print Brief so you can share the full event summary with your rabbi, cantor, or officiant." },
+    ],
+  },
+  {
     id: "seating",
     icon: "🪑",
     title: "Seating",

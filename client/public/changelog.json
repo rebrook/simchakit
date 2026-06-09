@@ -1,9 +1,24 @@
 {
-  "current": "V3.18.0",
+  "current": "V3.19.0",
   "whatsNew": [
-    "You can now open the New User Training slides right from the Guide and the Get Started card"
+    "Drag and drop to reorder ceremony roles and sections. Grip handles on each row and section header; hold briefly on mobile to drag. Arrow buttons still available as a quick alternative."
   ],
   "changelog": [
+    {
+      "version": "V3.19.0",
+      "date": "2026-06-09",
+      "type": "minor",
+      "title": "Ceremony Tab Drag-and-Drop Reorder",
+      "changes": [
+        "CeremonyRolesTab.jsx (V3 + V2): drag-and-drop reordering of roles within sections via @dnd-kit (PointerSensor, TouchSensor, KeyboardSensor). Grip handle on each role row; 250ms touch delay distinguishes drag from scroll on mobile. Arrow buttons retained as secondary controls.",
+        "CeremonyRolesTab.jsx (V3 + V2): drag-and-drop reordering of entire sections via nested SortableContext with sec: prefixed IDs. Grip handle on each section header; arrow buttons on right side of header as secondary controls.",
+        "CeremonyRolesTab.jsx (V3 + V2): new sectionOrder field on role data model for explicit section ordering. Backward compatible: derived at render time from existing sortOrder when not present. Templates updated with explicit sectionOrder values.",
+        "CeremonyRolesTab.jsx (V3 + V2): desktop layout converted from HTML table to div-based CSS grid for DnD compatibility. Visual appearance unchanged.",
+        "CeremonyRolesTab.jsx (V3 + V2): moveRole() scoped to within-section only (was operating on flat array, which could cross section boundaries).",
+        "package.json: added @dnd-kit/core, @dnd-kit/sortable, @dnd-kit/utilities dependencies.",
+        "ui.js (V3 + V2): added Ceremony Roles guide section with entries for role reordering, section reordering, templates, Hebrew names, and Day-of/Print Brief integration."
+      ]
+    },
     {
       "version": "V3.18.0",
       "date": "2026-06-08",
