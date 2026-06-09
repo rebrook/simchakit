@@ -1,50 +1,92 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// SimchaKit V3.0.0 — CeremonyRolesTab.jsx
-// Ported from V2. Ceremony roles stored as a single document in ceremony_roles
-// table (one row per event, data.roles = array of role objects).
+// SimchaKit V3.19.0 — CeremonyRolesTab.jsx
+// Ceremony roles stored as a single document in ceremony_roles table
+// (one row per event, data.roles = array of role objects).
+// Drag-and-drop reordering via @dnd-kit. Section ordering via sectionOrder.
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useState, useEffect } from "react";
+import {
+  DndContext, closestCenter,
+  KeyboardSensor, MouseSensor, TouchSensor,
+  useSensor, useSensors, DragOverlay,
+} from "@dnd-kit/core";
+import {
+  SortableContext, useSortable,
+  verticalListSortingStrategy, arrayMove,
+  sortableKeyboardCoordinates,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import { supabase }      from "@/lib/supabase.js";
 import { ArchivedNotice } from "@/components/shared/ArchivedNotice.jsx";
 
-// ── Role templates ────────────────────────────────────────────────────────────
+// ── Helpers ──────────────────────────────────────────────────────────────────
 function newRoleId() { return "cr_" + Date.now() + "_" + Math.random().toString(36).slice(2, 7); }
 
+/**
+ * Build a map of section name → numeric order for sorting.
+ * If any role has an explicit sectionOrder, uses stored values.
+ * Otherwise derives order from the first appearance of each section
+ * in the sortOrder-sorted list (backward compatible, no write on load).
+ */
+function getSectionOrderMap(roles) {
+  if (!roles.length) return {};
+  const anyExplicit = roles.some(r => r.sectionOrder != null);
+  if (anyExplicit) {
+    const map = {};
+    roles.forEach(r => {
+      const sec = r.section || "Other";
+      const ord = r.sectionOrder ?? 999;
+      if (!(sec in map) || ord < map[sec]) map[sec] = ord;
+    });
+    return map;
+  }
+  // Derive from first appearance in sortOrder
+  const sorted = [...roles].sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
+  const map = {};
+  let idx = 0;
+  sorted.forEach(r => {
+    const sec = r.section || "Other";
+    if (!(sec in map)) map[sec] = idx++;
+  });
+  return map;
+}
+
+// ── Role templates ───────────────────────────────────────────────────────────
 function buildMitzvahTemplate() {
   return [
-    { section: "Torah Service", role: "Aliyah 1 — Kohen",        assignee: "", hebrewName: "", notes: "Often grandparents or older siblings" },
-    { section: "Torah Service", role: "Aliyah 2 — Levi",         assignee: "", hebrewName: "", notes: "Often grandparents or older siblings" },
-    { section: "Torah Service", role: "Aliyah 3 — Parents",      assignee: "", hebrewName: "", notes: "Usually the parents" },
-    { section: "Torah Service", role: "Aliyah 4 — Maftir",       assignee: "", hebrewName: "", notes: "Bar/Bat Mitzvah" },
-    { section: "Torah Service", role: "Hagbah (Lifting Torah)",   assignee: "", hebrewName: "", notes: "Must be someone with prior experience — Torah weighs ~50 lbs" },
-    { section: "Torah Service", role: "Gelilah (Dressing Torah)", assignee: "", hebrewName: "", notes: "Rolls and dresses the Torah after reading" },
-    { section: "Torah Service", role: "Opening Ark",              assignee: "", hebrewName: "", notes: "Opens ark and hands Torah to cantor; appropriate for non-Jewish family" },
-    { section: "Torah Service", role: "Returning Torah",          assignee: "", hebrewName: "", notes: "Opens ark when Torah is returned; appropriate for non-Jewish family" },
-    { section: "English Readings", role: "Prayer for Our Country", assignee: "", hebrewName: "", notes: "" },
-    { section: "English Readings", role: "Prayer for Israel",      assignee: "", hebrewName: "", notes: "" },
-    { section: "English Readings", role: "Prayer for Peace",       assignee: "", hebrewName: "", notes: "" },
-    { section: "Service Participation", role: "Parental Blessing / Speech", assignee: "", hebrewName: "", notes: "Brief is better — 150 words or less recommended" },
-    { section: "Service Participation", role: "Ushers",             assignee: "", hebrewName: "", notes: "Assist with distributing prayer books" },
-    { section: "Service Participation", role: "Friday Evening Service", assignee: "", hebrewName: "", notes: "Note participation — Yes / No" },
-    { section: "Service Participation", role: "Morning Minyan",     assignee: "", hebrewName: "", notes: "Monday or Thursday morning the week prior" },
+    { section: "Torah Service", sectionOrder: 0, role: "Aliyah 1 — Kohen",        assignee: "", hebrewName: "", notes: "Often grandparents or older siblings" },
+    { section: "Torah Service", sectionOrder: 0, role: "Aliyah 2 — Levi",         assignee: "", hebrewName: "", notes: "Often grandparents or older siblings" },
+    { section: "Torah Service", sectionOrder: 0, role: "Aliyah 3 — Parents",      assignee: "", hebrewName: "", notes: "Usually the parents" },
+    { section: "Torah Service", sectionOrder: 0, role: "Aliyah 4 — Maftir",       assignee: "", hebrewName: "", notes: "Bar/Bat Mitzvah" },
+    { section: "Torah Service", sectionOrder: 0, role: "Hagbah (Lifting Torah)",   assignee: "", hebrewName: "", notes: "Must be someone with prior experience — Torah weighs ~50 lbs" },
+    { section: "Torah Service", sectionOrder: 0, role: "Gelilah (Dressing Torah)", assignee: "", hebrewName: "", notes: "Rolls and dresses the Torah after reading" },
+    { section: "Torah Service", sectionOrder: 0, role: "Opening Ark",              assignee: "", hebrewName: "", notes: "Opens ark and hands Torah to cantor; appropriate for non-Jewish family" },
+    { section: "Torah Service", sectionOrder: 0, role: "Returning Torah",          assignee: "", hebrewName: "", notes: "Opens ark when Torah is returned; appropriate for non-Jewish family" },
+    { section: "English Readings", sectionOrder: 1, role: "Prayer for Our Country", assignee: "", hebrewName: "", notes: "" },
+    { section: "English Readings", sectionOrder: 1, role: "Prayer for Israel",      assignee: "", hebrewName: "", notes: "" },
+    { section: "English Readings", sectionOrder: 1, role: "Prayer for Peace",       assignee: "", hebrewName: "", notes: "" },
+    { section: "Service Participation", sectionOrder: 2, role: "Parental Blessing / Speech", assignee: "", hebrewName: "", notes: "Brief is better — 150 words or less recommended" },
+    { section: "Service Participation", sectionOrder: 2, role: "Ushers",             assignee: "", hebrewName: "", notes: "Assist with distributing prayer books" },
+    { section: "Service Participation", sectionOrder: 2, role: "Friday Evening Service", assignee: "", hebrewName: "", notes: "Note participation — Yes / No" },
+    { section: "Service Participation", sectionOrder: 2, role: "Morning Minyan",     assignee: "", hebrewName: "", notes: "Monday or Thursday morning the week prior" },
   ].map((r, i) => ({ ...r, id: newRoleId(), sortOrder: i }));
 }
 
 function buildWeddingTemplate() {
   return [
-    { section: "Wedding Party",      role: "Officiant",              assignee: "", hebrewName: "", notes: "" },
-    { section: "Wedding Party",      role: "Best Man",               assignee: "", hebrewName: "", notes: "" },
-    { section: "Wedding Party",      role: "Maid / Matron of Honor", assignee: "", hebrewName: "", notes: "" },
-    { section: "Wedding Party",      role: "Groomsmen",              assignee: "", hebrewName: "", notes: "" },
-    { section: "Wedding Party",      role: "Bridesmaids",            assignee: "", hebrewName: "", notes: "" },
-    { section: "Ceremony Roles",     role: "Flower Girl",            assignee: "", hebrewName: "", notes: "" },
-    { section: "Ceremony Roles",     role: "Ring Bearer",            assignee: "", hebrewName: "", notes: "" },
-    { section: "Ceremony Roles",     role: "Candle Lighters",        assignee: "", hebrewName: "", notes: "" },
-    { section: "Ceremony Roles",     role: "Ketubah Witnesses",      assignee: "", hebrewName: "", notes: "Two witnesses required; must be Jewish in most traditions" },
-    { section: "Readings & Blessings", role: "Reader 1",             assignee: "", hebrewName: "", notes: "" },
-    { section: "Readings & Blessings", role: "Reader 2",             assignee: "", hebrewName: "", notes: "" },
-    { section: "Readings & Blessings", role: "Reader 3",             assignee: "", hebrewName: "", notes: "" },
+    { section: "Wedding Party",      sectionOrder: 0, role: "Officiant",              assignee: "", hebrewName: "", notes: "" },
+    { section: "Wedding Party",      sectionOrder: 0, role: "Best Man",               assignee: "", hebrewName: "", notes: "" },
+    { section: "Wedding Party",      sectionOrder: 0, role: "Maid / Matron of Honor", assignee: "", hebrewName: "", notes: "" },
+    { section: "Wedding Party",      sectionOrder: 0, role: "Groomsmen",              assignee: "", hebrewName: "", notes: "" },
+    { section: "Wedding Party",      sectionOrder: 0, role: "Bridesmaids",            assignee: "", hebrewName: "", notes: "" },
+    { section: "Ceremony Roles",     sectionOrder: 1, role: "Flower Girl",            assignee: "", hebrewName: "", notes: "" },
+    { section: "Ceremony Roles",     sectionOrder: 1, role: "Ring Bearer",            assignee: "", hebrewName: "", notes: "" },
+    { section: "Ceremony Roles",     sectionOrder: 1, role: "Candle Lighters",        assignee: "", hebrewName: "", notes: "" },
+    { section: "Ceremony Roles",     sectionOrder: 1, role: "Ketubah Witnesses",      assignee: "", hebrewName: "", notes: "Two witnesses required; must be Jewish in most traditions" },
+    { section: "Readings & Blessings", sectionOrder: 2, role: "Reader 1",             assignee: "", hebrewName: "", notes: "" },
+    { section: "Readings & Blessings", sectionOrder: 2, role: "Reader 2",             assignee: "", hebrewName: "", notes: "" },
+    { section: "Readings & Blessings", sectionOrder: 2, role: "Reader 3",             assignee: "", hebrewName: "", notes: "" },
   ].map((r, i) => ({ ...r, id: newRoleId(), sortOrder: i }));
 }
 
@@ -55,7 +97,106 @@ const ROLE_TEMPLATES = {
   "wedding":      buildWeddingTemplate(),
 };
 
-// ── CeremonyRolesTab ──────────────────────────────────────────────────────────
+// ── Grid column definition (shared between header + rows) ────────────────────
+const GRID_COLS = "36px 1fr 1fr 0.8fr 1.5fr 100px";
+
+// ── SortableRoleRow ──────────────────────────────────────────────────────────
+function SortableRoleRow({ role, idx, total, isMobile, isReadOnly, moveRole, setEditRole, setDeleteConfirm }) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: role.id, disabled: isReadOnly });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.35 : 1,
+    position: "relative",
+    zIndex: isDragging ? 10 : "auto",
+  };
+
+  const gripStyle = {
+    touchAction: "none",
+    cursor: isReadOnly ? "default" : "grab",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    color: "var(--text-muted)",
+    fontSize: 14,
+    userSelect: "none",
+    opacity: isReadOnly ? 0.3 : 0.6,
+  };
+
+  const unassigned = !role.assignee?.trim();
+  const rowBorder = unassigned ? "3px solid var(--gold)" : "3px solid transparent";
+  const rowBg = unassigned ? "var(--gold-light)" : "transparent";
+
+  if (isMobile) {
+    return (
+      <div ref={setNodeRef} style={{ ...style, padding: "12px 10px 12px 0", borderBottom: idx < total - 1 ? "1px solid var(--border)" : "none", borderLeft: rowBorder, background: rowBg, display: "flex", gap: 6, alignItems: "flex-start" }}>
+        {/* Drag handle */}
+        {!isReadOnly && (
+          <div {...attributes} {...listeners} style={{ ...gripStyle, padding: "2px 6px", flexShrink: 0 }}>⠿</div>
+        )}
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontWeight: 600, fontSize: 13, color: "var(--text-primary)", marginBottom: 2 }}>{role.role}</div>
+          {role.assignee
+            ? <div style={{ fontSize: 13, color: "var(--accent-primary)", fontWeight: 500 }}>{role.assignee}</div>
+            : <div style={{ fontSize: 12, color: "var(--text-muted)", fontStyle: "italic" }}>Unassigned</div>}
+          {role.hebrewName && <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 2 }}>Hebrew: {role.hebrewName}</div>}
+          {role.notes && <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 3, lineHeight: 1.4 }}>{role.notes}</div>}
+        </div>
+        <div style={{ display: "flex", gap: 4, flexShrink: 0 }}>
+          <button className="icon-btn" onClick={() => moveRole(role.id, "up")} disabled={isReadOnly || idx === 0} style={{ fontSize: 11 }}>↑</button>
+          <button className="icon-btn" onClick={() => moveRole(role.id, "down")} disabled={isReadOnly || idx === total - 1} style={{ fontSize: 11 }}>↓</button>
+          <button className="icon-btn" disabled={isReadOnly} onClick={() => !isReadOnly && setEditRole(role)}>✎</button>
+          <button className="icon-btn" disabled={isReadOnly} onClick={() => !isReadOnly && setDeleteConfirm(role.id)}>✕</button>
+        </div>
+      </div>
+    );
+  }
+
+  // Desktop: div-based grid row
+  return (
+    <div ref={setNodeRef} style={{ ...style, display: "grid", gridTemplateColumns: GRID_COLS, alignItems: "center", borderBottom: "1px solid var(--border)", borderLeft: rowBorder, background: rowBg, fontSize: 13 }}>
+      {/* Drag handle */}
+      <div {...attributes} {...listeners} style={gripStyle}>
+        {!isReadOnly && "⠿"}
+      </div>
+      <div style={{ padding: "10px 14px", fontWeight: 600, color: "var(--text-primary)" }}>{role.role}</div>
+      <div style={{ padding: "10px 14px" }}>
+        {role.assignee ? <span style={{ color: "var(--accent-primary)", fontWeight: 500 }}>{role.assignee}</span> : <span style={{ color: "var(--text-muted)", fontStyle: "italic", fontSize: 12 }}>Unassigned</span>}
+      </div>
+      <div style={{ padding: "10px 14px", color: "var(--text-secondary)", fontSize: 12 }}>{role.hebrewName || ""}</div>
+      <div style={{ padding: "10px 14px", color: "var(--text-muted)", fontSize: 12, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{role.notes || ""}</div>
+      <div style={{ padding: "10px 14px", display: "flex", gap: 4, justifyContent: "flex-end" }}>
+        <button className="icon-btn" style={{ fontSize: 11 }} onClick={() => moveRole(role.id, "up")} disabled={isReadOnly || idx === 0}>↑</button>
+        <button className="icon-btn" style={{ fontSize: 11 }} onClick={() => moveRole(role.id, "down")} disabled={isReadOnly || idx === total - 1}>↓</button>
+        <button className="icon-btn" disabled={isReadOnly} onClick={() => !isReadOnly && setEditRole(role)}>✎</button>
+        <button className="icon-btn" disabled={isReadOnly} onClick={() => !isReadOnly && setDeleteConfirm(role.id)}>✕</button>
+      </div>
+    </div>
+  );
+}
+
+// ── Drag overlay (floating preview while dragging) ───────────────────────────
+function RoleDragPreview({ role }) {
+  if (!role) return null;
+  return (
+    <div style={{
+      padding: "10px 16px",
+      background: "var(--bg-surface)",
+      border: "2px solid var(--accent-primary)",
+      borderRadius: "var(--radius-md)",
+      boxShadow: "0 8px 24px rgba(0,0,0,0.18)",
+      fontSize: 13,
+      maxWidth: 360,
+    }}>
+      <div style={{ fontWeight: 600, color: "var(--text-primary)" }}>{role.role}</div>
+      {role.assignee?.trim() && <div style={{ color: "var(--accent-primary)", fontSize: 12, marginTop: 2 }}>{role.assignee}</div>}
+      {role.section && <div style={{ color: "var(--text-muted)", fontSize: 11, marginTop: 2 }}>{role.section}</div>}
+    </div>
+  );
+}
+
+// ── CeremonyRolesTab ─────────────────────────────────────────────────────────
 export function CeremonyRolesTab({ eventId, event, adminConfig, showToast, isArchived, isViewer }) {
   const [roles,         setRoles]         = useState([]);
   const [rowId,         setRowId]         = useState(null); // Supabase row UUID
@@ -66,9 +207,17 @@ export function CeremonyRolesTab({ eventId, event, adminConfig, showToast, isArc
   const [search,        setSearch]        = useState("");
   const [filterSection, setFilterSection] = useState("all");
   const [isMobile,      setIsMobile]      = useState(() => window.innerWidth < 640);
+  const [activeDragId,  setActiveDragId]  = useState(null);
 
-  const eventType = adminConfig?.type || "other";
+  const eventType   = adminConfig?.type || "other";
   const hasTemplate = !!ROLE_TEMPLATES[eventType];
+  const isReadOnly  = isArchived || isViewer;
+
+  // ── Sensors for @dnd-kit ─────────────────────────────────────────────────
+  const mouseSensor    = useSensor(MouseSensor, { activationConstraint: { distance: 10 } });
+  const touchSensor    = useSensor(TouchSensor, { activationConstraint: { delay: 250, tolerance: 5 } });
+  const keyboardSensor = useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates });
+  const sensors        = useSensors(mouseSensor, touchSensor, keyboardSensor);
 
   useEffect(() => {
     const handler = () => setIsMobile(window.innerWidth < 640);
@@ -76,7 +225,7 @@ export function CeremonyRolesTab({ eventId, event, adminConfig, showToast, isArc
     return () => window.removeEventListener("resize", handler);
   }, []);
 
-  // ── Load ─────────────────────────────────────────────────────────────────
+  // ── Load ───────────────────────────────────────────────────────────────────
   useEffect(() => {
     if (!eventId) return;
     async function load() {
@@ -95,7 +244,7 @@ export function CeremonyRolesTab({ eventId, event, adminConfig, showToast, isArc
     load();
   }, [eventId]);
 
-  // ── Persist ───────────────────────────────────────────────────────────────
+  // ── Persist ─────────────────────────────────────────────────────────────────
   const saveRoles = async (nextRoles) => {
     setRoles(nextRoles);
     const row = {
@@ -117,45 +266,111 @@ export function CeremonyRolesTab({ eventId, event, adminConfig, showToast, isArc
     }
   };
 
-  // ── Handlers ──────────────────────────────────────────────────────────────
+  // ── Section order map ───────────────────────────────────────────────────────
+  const sectionOrderMap = getSectionOrderMap(roles);
+
+  // ── Role handlers ──────────────────────────────────────────────────────────
   const loadTemplate = () => {
     const template = ROLE_TEMPLATES[eventType];
     if (template) { saveRoles(template); showToast("Template loaded"); }
   };
 
   const handleAdd = (r) => {
-    if (isArchived || isViewer) return;
+    if (isReadOnly) return;
     const maxOrder = roles.reduce((m, x) => Math.max(m, x.sortOrder ?? 0), -1);
-    saveRoles([...roles, { ...r, sortOrder: maxOrder + 1 }]);
+    const secOrder = sectionOrderMap[r.section] ?? Object.keys(sectionOrderMap).length;
+    saveRoles([...roles, { ...r, sortOrder: maxOrder + 1, sectionOrder: secOrder }]);
     showToast("Role added");
     setShowModal(false);
   };
 
   const handleEdit = (r) => {
-    if (isArchived || isViewer) return;
-    saveRoles(roles.map(x => x.id === r.id ? r : x));
+    if (isReadOnly) return;
+    // If section changed, assign the target section's sectionOrder
+    const secOrder = sectionOrderMap[r.section] ?? Object.keys(sectionOrderMap).length;
+    saveRoles(roles.map(x => x.id === r.id ? { ...r, sectionOrder: secOrder } : x));
     showToast("Role updated");
     setEditRole(null);
   };
 
   const handleDelete = (id) => {
-    if (isArchived || isViewer) return;
+    if (isReadOnly) return;
     saveRoles(roles.filter(r => r.id !== id));
     showToast("Role removed");
     setDeleteConfirm(null);
   };
 
+  // Move role ↑/↓ within its section (button fallback)
   const moveRole = (id, dir) => {
-    if (isArchived || isViewer) return;
-    const idx = roles.findIndex(r => r.id === id);
-    if (idx < 0) return;
-    const next = [...roles];
-    const swap = dir === "up" ? idx - 1 : idx + 1;
-    if (swap < 0 || swap >= next.length) return;
-    [next[idx].sortOrder, next[swap].sortOrder] = [next[swap].sortOrder, next[idx].sortOrder];
-    saveRoles([...next].sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0)));
+    if (isReadOnly) return;
+    const role = roles.find(r => r.id === id);
+    if (!role) return;
+    const sectionRoles = roles
+      .filter(r => r.section === role.section)
+      .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
+    const idx = sectionRoles.findIndex(r => r.id === id);
+    const swapIdx = dir === "up" ? idx - 1 : idx + 1;
+    if (swapIdx < 0 || swapIdx >= sectionRoles.length) return;
+    const newRoles = roles.map(r => {
+      if (r.id === sectionRoles[idx].id) return { ...r, sortOrder: sectionRoles[swapIdx].sortOrder };
+      if (r.id === sectionRoles[swapIdx].id) return { ...r, sortOrder: sectionRoles[idx].sortOrder };
+      return r;
+    });
+    saveRoles(newRoles);
   };
 
+  // Move an entire section ↑ or ↓
+  const moveSection = (sectionName, dir) => {
+    if (isReadOnly) return;
+    const orderedSections = [...new Set(roles.map(r => r.section || "Other"))]
+      .sort((a, b) => (sectionOrderMap[a] ?? 999) - (sectionOrderMap[b] ?? 999));
+    const idx = orderedSections.indexOf(sectionName);
+    const swapIdx = dir === "up" ? idx - 1 : idx + 1;
+    if (swapIdx < 0 || swapIdx >= orderedSections.length) return;
+    const swapSection = orderedSections[swapIdx];
+    const orderA = sectionOrderMap[sectionName] ?? idx;
+    const orderB = sectionOrderMap[swapSection] ?? swapIdx;
+    const newRoles = roles.map(r => {
+      if ((r.section || "Other") === sectionName) return { ...r, sectionOrder: orderB };
+      if ((r.section || "Other") === swapSection) return { ...r, sectionOrder: orderA };
+      return r;
+    });
+    saveRoles(newRoles);
+  };
+
+  // ── Drag-and-drop handlers ─────────────────────────────────────────────────
+  const handleDragStart = (event) => setActiveDragId(event.active.id);
+
+  const handleDragEnd = (event) => {
+    const { active, over } = event;
+    setActiveDragId(null);
+    if (!over || active.id === over.id) return;
+
+    const activeRole = roles.find(r => r.id === active.id);
+    const overRole   = roles.find(r => r.id === over.id);
+    if (!activeRole || !overRole) return;
+    if (activeRole.section !== overRole.section) return; // no cross-section drag
+
+    // Get the section's roles in current order
+    const sectionRoles = roles
+      .filter(r => r.section === activeRole.section)
+      .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
+
+    const oldIndex = sectionRoles.findIndex(r => r.id === active.id);
+    const newIndex = sectionRoles.findIndex(r => r.id === over.id);
+    if (oldIndex < 0 || newIndex < 0 || oldIndex === newIndex) return;
+
+    const reordered = arrayMove(sectionRoles, oldIndex, newIndex);
+    const idToOrder = new Map();
+    reordered.forEach((r, i) => idToOrder.set(r.id, i));
+
+    const newRoles = roles.map(r => idToOrder.has(r.id) ? { ...r, sortOrder: idToOrder.get(r.id) } : r);
+    saveRoles(newRoles);
+  };
+
+  const handleDragCancel = () => setActiveDragId(null);
+
+  // ── Derived data ───────────────────────────────────────────────────────────
   const sections = [...new Set(roles.map(r => r.section).filter(Boolean))];
 
   const filtered = roles
@@ -168,7 +383,12 @@ export function CeremonyRolesTab({ eventId, event, adminConfig, showToast, isArc
       }
       return true;
     })
-    .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
+    .sort((a, b) => {
+      const secA = a.sectionOrder ?? sectionOrderMap[a.section || "Other"] ?? 999;
+      const secB = b.sectionOrder ?? sectionOrderMap[b.section || "Other"] ?? 999;
+      if (secA !== secB) return secA - secB;
+      return (a.sortOrder ?? 0) - (b.sortOrder ?? 0);
+    });
 
   const grouped = filtered.reduce((acc, r) => {
     const sec = r.section || "Other";
@@ -177,8 +397,14 @@ export function CeremonyRolesTab({ eventId, event, adminConfig, showToast, isArc
     return acc;
   }, {});
 
+  // Sort section entries by sectionOrderMap
+  const sortedGroupEntries = Object.entries(grouped)
+    .sort((a, b) => (sectionOrderMap[a[0]] ?? 999) - (sectionOrderMap[b[0]] ?? 999));
+
   const assignedCount   = roles.filter(r => r.assignee?.trim()).length;
   const unassignedCount = roles.length - assignedCount;
+
+  const activeDragRole = activeDragId ? roles.find(r => r.id === activeDragId) : null;
 
   if (loading) return <div style={loadingStyle}>Loading ceremony roles…</div>;
 
@@ -193,11 +419,11 @@ export function CeremonyRolesTab({ eventId, event, adminConfig, showToast, isArc
         </div>
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap", justifyContent: "flex-end" }}>
           {roles.length === 0 && hasTemplate && (
-            <button className="btn btn-secondary" disabled={isArchived || isViewer} onClick={loadTemplate}>
+            <button className="btn btn-secondary" disabled={isReadOnly} onClick={loadTemplate}>
               ✦ Load Template
             </button>
           )}
-          <button className="btn btn-primary" disabled={isArchived || isViewer} onClick={() => setShowModal(true)}>
+          <button className="btn btn-primary" disabled={isReadOnly} onClick={() => setShowModal(true)}>
             + Add Role
           </button>
         </div>
@@ -220,8 +446,8 @@ export function CeremonyRolesTab({ eventId, event, adminConfig, showToast, isArc
             {hasTemplate ? "Load the pre-built template for your event type, or add roles manually." : "Add roles manually to track who will participate."}
           </div>
           <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap" }}>
-            {hasTemplate && <button className="btn btn-secondary" disabled={isArchived || isViewer} onClick={loadTemplate}>✦ Load Template</button>}
-            <button className="btn btn-primary" disabled={isArchived || isViewer} onClick={() => setShowModal(true)}>+ Add First Role</button>
+            {hasTemplate && <button className="btn btn-secondary" disabled={isReadOnly} onClick={loadTemplate}>✦ Load Template</button>}
+            <button className="btn btn-primary" disabled={isReadOnly} onClick={() => setShowModal(true)}>+ Add First Role</button>
           </div>
         </div>
       )}
@@ -238,73 +464,73 @@ export function CeremonyRolesTab({ eventId, event, adminConfig, showToast, isArc
         </div>
       )}
 
-      {Object.keys(grouped).length > 0 && (
-        <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-          {Object.entries(grouped).map(([section, sectionRoles]) => (
-            <div key={section} style={{ background: "var(--bg-surface)", border: "1px solid var(--border)", borderRadius: "var(--radius-md)", overflow: "hidden" }}>
-              <div style={{ padding: "10px 16px", background: "var(--bg-subtle)", borderBottom: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                <div style={{ fontWeight: 700, fontSize: 13, color: "var(--text-primary)" }}>{section}</div>
-                <div style={{ fontSize: 11, color: "var(--text-muted)", fontWeight: 600 }}>
-                  {sectionRoles.filter(r => r.assignee?.trim()).length}/{sectionRoles.length} assigned
-                </div>
-              </div>
-              {isMobile ? (
-                <div>
-                  {sectionRoles.map((role, idx) => (
-                    <div key={role.id} style={{ padding: "12px 16px", borderBottom: idx < sectionRoles.length - 1 ? "1px solid var(--border)" : "none", borderLeft: role.assignee?.trim() ? "3px solid transparent" : "3px solid var(--gold)", background: role.assignee?.trim() ? "transparent" : "var(--gold-light)" }}>
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 8 }}>
-                        <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{ fontWeight: 600, fontSize: 13, color: "var(--text-primary)", marginBottom: 2 }}>{role.role}</div>
-                          {role.assignee
-                            ? <div style={{ fontSize: 13, color: "var(--accent-primary)", fontWeight: 500 }}>{role.assignee}</div>
-                            : <div style={{ fontSize: 12, color: "var(--text-muted)", fontStyle: "italic" }}>Unassigned</div>}
-                          {role.hebrewName && <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 2 }}>Hebrew: {role.hebrewName}</div>}
-                          {role.notes && <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 3, lineHeight: 1.4 }}>{role.notes}</div>}
-                        </div>
-                        <div style={{ display: "flex", gap: 4, flexShrink: 0 }}>
-                          <button className="icon-btn" onClick={() => moveRole(role.id, "up")} disabled={isArchived || isViewer || idx === 0}>↑</button>
-                          <button className="icon-btn" onClick={() => moveRole(role.id, "down")} disabled={isArchived || isViewer || idx === sectionRoles.length - 1}>↓</button>
-                          <button className="icon-btn" disabled={isViewer} onClick={() => !isViewer && setEditRole(role)}>✎</button>
-                          <button className="icon-btn" disabled={isViewer} onClick={() => !isViewer && setDeleteConfirm(role.id)}>✕</button>
-                        </div>
-                      </div>
+      {/* ── Sections with drag-and-drop ────────────────────────────────────── */}
+      {sortedGroupEntries.length > 0 && (
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragStart={handleDragStart}
+          onDragEnd={handleDragEnd}
+          onDragCancel={handleDragCancel}
+        >
+          <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+            {sortedGroupEntries.map(([section, sectionRoles], secIdx) => (
+              <div key={section} style={{ background: "var(--bg-surface)", border: "1px solid var(--border)", borderRadius: "var(--radius-md)", overflow: "hidden" }}>
+                {/* Section header with reorder buttons */}
+                <div style={{ padding: "10px 16px", background: "var(--bg-subtle)", borderBottom: "1px solid var(--border)", display: "flex", alignItems: "center", gap: 8 }}>
+                  {!isReadOnly && sortedGroupEntries.length > 1 && (
+                    <div style={{ display: "flex", gap: 2, flexShrink: 0 }}>
+                      <button className="icon-btn" style={{ fontSize: 11 }}
+                        title="Move section up"
+                        onClick={() => moveSection(section, "up")}
+                        disabled={secIdx === 0}>↑</button>
+                      <button className="icon-btn" style={{ fontSize: 11 }}
+                        title="Move section down"
+                        onClick={() => moveSection(section, "down")}
+                        disabled={secIdx === sortedGroupEntries.length - 1}>↓</button>
                     </div>
-                  ))}
+                  )}
+                  <div style={{ fontWeight: 700, fontSize: 13, color: "var(--text-primary)", flex: 1 }}>{section}</div>
+                  <div style={{ fontSize: 11, color: "var(--text-muted)", fontWeight: 600, flexShrink: 0 }}>
+                    {sectionRoles.filter(r => r.assignee?.trim()).length}/{sectionRoles.length} assigned
+                  </div>
                 </div>
-              ) : (
-                <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
-                  <thead>
-                    <tr style={{ background: "var(--bg-subtle)" }}>
-                      {["Role","Assignee","Hebrew Name","Notes",""].map((h, i) => (
-                        <th key={i} style={{ padding: "8px 14px", textAlign: i === 4 ? "right" : "left", fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--text-muted)", borderBottom: "1px solid var(--border)", width: i === 4 ? 100 : undefined }}>{h}</th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {sectionRoles.map((role, idx) => (
-                      <tr key={role.id} style={{ borderBottom: "1px solid var(--border)", borderLeft: role.assignee?.trim() ? "3px solid transparent" : "3px solid var(--gold)", background: role.assignee?.trim() ? "transparent" : "var(--gold-light)" }}>
-                        <td style={{ padding: "10px 14px", fontWeight: 600, color: "var(--text-primary)" }}>{role.role}</td>
-                        <td style={{ padding: "10px 14px" }}>
-                          {role.assignee ? <span style={{ color: "var(--accent-primary)", fontWeight: 500 }}>{role.assignee}</span> : <span style={{ color: "var(--text-muted)", fontStyle: "italic", fontSize: 12 }}>Unassigned</span>}
-                        </td>
-                        <td style={{ padding: "10px 14px", color: "var(--text-secondary)", fontSize: 12 }}>{role.hebrewName || ""}</td>
-                        <td style={{ padding: "10px 14px", color: "var(--text-muted)", fontSize: 12, maxWidth: 240, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{role.notes || ""}</td>
-                        <td style={{ padding: "10px 14px", textAlign: "right" }}>
-                          <div style={{ display: "flex", gap: 4, justifyContent: "flex-end" }}>
-                            <button className="icon-btn" style={{ fontSize: 11 }} onClick={() => moveRole(role.id, "up")} disabled={isArchived || isViewer || idx === 0}>↑</button>
-                            <button className="icon-btn" style={{ fontSize: 11 }} onClick={() => moveRole(role.id, "down")} disabled={isArchived || isViewer || idx === sectionRoles.length - 1}>↓</button>
-                            <button className="icon-btn" disabled={isViewer} onClick={() => !isViewer && setEditRole(role)}>✎</button>
-                            <button className="icon-btn" disabled={isViewer} onClick={() => !isViewer && setDeleteConfirm(role.id)}>✕</button>
-                          </div>
-                        </td>
-                      </tr>
+
+                {/* Desktop column headers */}
+                {!isMobile && (
+                  <div style={{ display: "grid", gridTemplateColumns: GRID_COLS, background: "var(--bg-subtle)", borderBottom: "1px solid var(--border)" }}>
+                    <div />
+                    {["Role","Assignee","Hebrew Name","Notes",""].map((h, i) => (
+                      <div key={i} style={{ padding: "8px 14px", textAlign: i === 4 ? "right" : "left", fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--text-muted)" }}>{h}</div>
                     ))}
-                  </tbody>
-                </table>
-              )}
-            </div>
-          ))}
-        </div>
+                  </div>
+                )}
+
+                {/* Sortable roles within section */}
+                <SortableContext items={sectionRoles.map(r => r.id)} strategy={verticalListSortingStrategy}>
+                  {sectionRoles.map((role, idx) => (
+                    <SortableRoleRow
+                      key={role.id}
+                      role={role}
+                      idx={idx}
+                      total={sectionRoles.length}
+                      isMobile={isMobile}
+                      isReadOnly={isReadOnly}
+                      moveRole={moveRole}
+                      setEditRole={setEditRole}
+                      setDeleteConfirm={setDeleteConfirm}
+                    />
+                  ))}
+                </SortableContext>
+              </div>
+            ))}
+          </div>
+
+          {/* Drag overlay: floating preview of the role being dragged */}
+          <DragOverlay dropAnimation={{ duration: 200, easing: "ease" }}>
+            <RoleDragPreview role={activeDragRole} />
+          </DragOverlay>
+        </DndContext>
       )}
 
       {roles.length > 0 && hasTemplate && !isArchived && (
@@ -352,7 +578,7 @@ export function CeremonyRolesTab({ eventId, event, adminConfig, showToast, isArc
   );
 }
 
-// ── RoleModal ─────────────────────────────────────────────────────────────────
+// ── RoleModal ────────────────────────────────────────────────────────────────
 export function RoleModal({ role, existingSections, onSave, onClose, isArchived }) {
   const [form, setForm] = useState(role || { id: newRoleId(), section: existingSections[0] || "", role: "", assignee: "", hebrewName: "", notes: "", sortOrder: 0 });
   const setF = (k, v) => setForm(f => ({ ...f, [k]: v }));
