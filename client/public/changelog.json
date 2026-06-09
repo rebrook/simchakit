@@ -1,9 +1,21 @@
 {
-  "current": "V3.19.0",
+  "current": "V3.20.0",
   "whatsNew": [
-    "Drag and drop to reorder ceremony roles and sections. Grip handles on each row and section header; hold briefly on mobile to drag. Arrow buttons still available as a quick alternative."
+    "Event owners and Ritual Coordinators can now edit clergy and tutor contact info directly from the Prep tab."
   ],
   "changelog": [
+    {
+      "version": "V3.20.0",
+      "date": "2026-06-09",
+      "type": "minor",
+      "title": "Clergy & Tutor Editing from Prep Tab",
+      "changes": [
+        "PrepTab.jsx (V3): event owners and Ritual Coordinators can now edit clergy and tutor contact info directly from the Prep tab. Each contact card shows a pencil icon; empty contacts show an Add prompt. Changes save via a Supabase RPC function.",
+        "Supabase: new update_clergy() SECURITY DEFINER function. Verifies caller is event owner or accepted coordinator, then merges only rabbi, cantor, and tutor keys into admin_config. All other config keys are untouched.",
+        "AppShell.jsx (V3): added onClergyUpdated callback to tabProps for optimistic local state update after clergy save.",
+        "ui.js (V3): updated Prep guide Clergy & Tutor entry to describe the editing capability and role permissions."
+      ]
+    },
     {
       "version": "V3.19.0",
       "date": "2026-06-09",
