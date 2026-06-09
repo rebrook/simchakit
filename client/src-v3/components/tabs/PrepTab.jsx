@@ -1,7 +1,8 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// SimchaKit V3.20.0 — PrepTab.jsx
+// SimchaKit V3.20.5 — PrepTab.jsx
 // Ported from V2. Uses useEventData for Supabase persistence.
 // Clergy/tutor contacts editable by owners and coordinators (V3.20.0).
+// Unified clergy edit modal replaces per-contact modals (V3.20.5).
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useState } from "react";
@@ -55,7 +56,7 @@ export function PrepTab({ eventId, event, adminConfig, showToast, isArchived, is
   const [editItem,      setEditItem]      = useState(null);
   const [deleteConfirm, setDeleteConfirm] = useState(null);
   const [expandedNotes, setExpandedNotes] = useState({});
-  const [editingClergy, setEditingClergy] = useState(null); // "rabbi" | "cantor" | "tutor" | null
+  const [editingClergy, setEditingClergy] = useState(false); // boolean
   const [clergySaving,  setClergySaving]  = useState(false);
 
   useSearchHighlight(searchHighlight, clearSearchHighlight, "prep");
@@ -94,12 +95,12 @@ export function PrepTab({ eventId, event, adminConfig, showToast, isArchived, is
   };
 
   // ── Clergy edit handler (via Supabase RPC, no serverless function) ─────────
-  const handleClergySave = async (contactKey, updatedContact) => {
+  const handleClergySave = async ({ rabbi: r, cantor: c, tutor: t }) => {
     setClergySaving(true);
     try {
-      const rabbi  = contactKey === "rabbi"  ? updatedContact : (adminConfig?.rabbi  || {});
-      const cantor = contactKey === "cantor" ? updatedContact : (adminConfig?.cantor || {});
-      const tutor  = contactKey === "tutor"  ? updatedContact : (adminConfig?.tutor  || {});
+      const rabbi  = r || {};
+      const cantor = c || {};
+      const tutor  = t || {};
 
       const { error } = await supabase.rpc("update_clergy", {
         p_event_id: eventId,
@@ -116,7 +117,7 @@ export function PrepTab({ eventId, event, adminConfig, showToast, isArchived, is
 
       if (onClergyUpdated) onClergyUpdated({ rabbi, cantor, tutor });
       showToast("Clergy info updated");
-      setEditingClergy(null);
+      setEditingClergy(false);
     } catch (err) {
       console.error("[SimchaKit] Clergy update error:", err);
       showToast("Could not update clergy info");
@@ -227,22 +228,24 @@ export function PrepTab({ eventId, event, adminConfig, showToast, isArchived, is
       {/* Clergy & Tutor contacts (editable for owners and coordinators) */}
       {(hasAnyClergy || canEditClergy) && (
         <div style={{ background: "var(--bg-surface)", border: "1px solid var(--border)", borderRadius: "var(--radius-md)", padding: "16px 20px", marginBottom: 24 }}>
-          <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)", marginBottom: 14 }}>Clergy & Tutor</div>
+          <div style={{ display: "flex", alignItems: "center", marginBottom: 14 }}>
+            <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)", flex: 1 }}>Clergy & Tutor</div>
+            {canEditClergy && (
+              <button className="btn btn-ghost btn-sm" style={{ fontSize: 12 }} onClick={() => setEditingClergy(true)}>✎ Edit</button>
+            )}
+          </div>
           <div style={{ display: "flex", flexWrap: "wrap", gap: 16 }}>
             {/* Rabbi (always shown if has data or can edit) */}
             {(hasRabbi || canEditClergy) && (
-              <PrepContactCard label="Rabbi" icon="✡" contact={rabbi}
-                onEdit={canEditClergy ? () => setEditingClergy("rabbi") : null} />
+              <PrepContactCard label="Rabbi" icon="✡" contact={rabbi} />
             )}
             {/* Cantor (mitzvah events) */}
             {isMitzvah && (hasCantor || canEditClergy) && (
-              <PrepContactCard label="Cantor" icon="🎼" contact={cantor}
-                onEdit={canEditClergy ? () => setEditingClergy("cantor") : null} />
+              <PrepContactCard label="Cantor" icon="🎼" contact={cantor} />
             )}
             {/* Tutor (mitzvah events) */}
             {isMitzvah && (hasTutor || canEditClergy) && (
-              <PrepContactCard label="Tutor / Madrikh·a" icon="📖" contact={tutor}
-                onEdit={canEditClergy ? () => setEditingClergy("tutor") : null} />
+              <PrepContactCard label="Tutor / Madrikh·a" icon="📖" contact={tutor} />
             )}
           </div>
         </div>
@@ -431,14 +434,12 @@ export function PrepTab({ eventId, event, adminConfig, showToast, isArchived, is
 
       {/* Clergy edit modal */}
       {editingClergy && (
-        <ClergyEditModal
-          contactKey={editingClergy}
-          label={editingClergy === "rabbi" ? "Rabbi" : editingClergy === "cantor" ? "Cantor" : "Tutor / Madrikh·a"}
-          icon={editingClergy === "rabbi" ? "✡" : editingClergy === "cantor" ? "🎼" : "📖"}
-          contact={cfg[editingClergy] || {}}
+        <ClergyEditAllModal
+          adminConfig={cfg}
+          isMitzvah={isMitzvah}
           saving={clergySaving}
-          onSave={(updated) => handleClergySave(editingClergy, updated)}
-          onClose={() => setEditingClergy(null)}
+          onSave={handleClergySave}
+          onClose={() => setEditingClergy(false)}
         />
       )}
     </div>
@@ -543,19 +544,14 @@ export function PrepModal({ item, onSave, onClose, isArchived }) {
   );
 }
 
-// ── PrepContactCard — contact display with optional edit button ──────────────
-function PrepContactCard({ label, icon, contact, onEdit }) {
+// ── PrepContactCard — read-only contact display ──────────────────────────────
+function PrepContactCard({ label, icon, contact }) {
   const hasData = !!(contact.name || contact.phone || contact.email);
 
   return (
     <div style={{ flex: "1 1 200px", minWidth: 180 }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6 }}>
-        <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.05em", flex: 1 }}>
-          {icon} {label}
-        </div>
-        {onEdit && (
-          <button className="icon-btn" style={{ fontSize: 12 }} onClick={onEdit} title={`Edit ${label}`}>✎</button>
-        )}
+      <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 6 }}>
+        {icon} {label}
       </div>
       {hasData ? (
         <>
@@ -568,52 +564,77 @@ function PrepContactCard({ label, icon, contact, onEdit }) {
           )}
           {contact.notes && <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 4, fontStyle: "italic", lineHeight: 1.5 }}>{contact.notes}</div>}
         </>
-      ) : onEdit ? (
-        <button
-          style={{ fontSize: 12, color: "var(--accent-primary)", background: "none", border: "none", cursor: "pointer", padding: 0 }}
-          onClick={onEdit}
-        >
-          + Add {label}
-        </button>
-      ) : null}
+      ) : (
+        <div style={{ fontSize: 12, color: "var(--text-muted)", fontStyle: "italic" }}>Not yet added</div>
+      )}
     </div>
   );
 }
 
-// ── ClergyEditModal ──────────────────────────────────────────────────────────
-function ClergyEditModal({ contactKey, label, icon, contact, saving, onSave, onClose }) {
+// ── ClergyEditAllModal — single form for all clergy/tutor contacts ───────────
+function ClergyEditAllModal({ adminConfig, isMitzvah, saving, onSave, onClose }) {
+  const cfg = adminConfig || {};
   const [form, setForm] = useState({
-    name:  contact?.name  || "",
-    phone: contact?.phone || "",
-    email: contact?.email || "",
-    notes: contact?.notes || "",
+    rabbi:  { name: cfg.rabbi?.name || "",  phone: cfg.rabbi?.phone || "",  email: cfg.rabbi?.email || "",  notes: cfg.rabbi?.notes || "" },
+    cantor: { name: cfg.cantor?.name || "", phone: cfg.cantor?.phone || "", email: cfg.cantor?.email || "", notes: cfg.cantor?.notes || "" },
+    tutor:  { name: cfg.tutor?.name || "",  phone: cfg.tutor?.phone || "",  email: cfg.tutor?.email || "",  notes: cfg.tutor?.notes || "" },
   });
-  const setF = (k, v) => setForm(f => ({ ...f, [k]: v }));
+
+  const setField = (contactKey, field, value) =>
+    setForm(f => ({ ...f, [contactKey]: { ...f[contactKey], [field]: value } }));
+
+  const sections = [
+    { key: "rabbi",  label: "Rabbi",              icon: "✡",  show: true },
+    { key: "cantor", label: "Cantor",             icon: "🎼", show: isMitzvah },
+    { key: "tutor",  label: "Tutor / Madrikh·a",  icon: "📖", show: isMitzvah },
+  ].filter(s => s.show);
 
   return (
     <div className="modal-backdrop" onMouseDown={e => { if (e.target === e.currentTarget) onClose(); }}>
-      <div className="modal" style={{ maxWidth: 420 }} onClick={e => e.stopPropagation()}>
+      <div className="modal" style={{ maxWidth: 500 }} onClick={e => e.stopPropagation()}>
         <div className="modal-header">
-          <div className="modal-title">{icon} Edit {label}</div>
+          <div className="modal-title">Edit Clergy & Tutor</div>
           <button className="icon-btn" onClick={onClose}>✕</button>
         </div>
-        <div className="modal-body">
-          <div className="form-group">
-            <label className="form-label">Name</label>
-            <input className="form-input" value={form.name} onChange={e => setF("name", e.target.value)} placeholder={`${label} name`} autoFocus />
-          </div>
-          <div className="form-group">
-            <label className="form-label">Phone</label>
-            <input className="form-input" value={form.phone} onChange={e => setF("phone", e.target.value)} placeholder="Phone number" />
-          </div>
-          <div className="form-group">
-            <label className="form-label">Email</label>
-            <input className="form-input" type="email" value={form.email} onChange={e => setF("email", e.target.value)} placeholder="Email address" />
-          </div>
-          <div className="form-group">
-            <label className="form-label">Notes</label>
-            <input className="form-input" value={form.notes} onChange={e => setF("notes", e.target.value)} placeholder="Additional notes" />
-          </div>
+        <div className="modal-body" style={{ maxHeight: "70vh", overflowY: "auto" }}>
+          {sections.map((sec, idx) => (
+            <div key={sec.key} style={{
+              paddingBottom: idx < sections.length - 1 ? 16 : 0,
+              marginBottom: idx < sections.length - 1 ? 16 : 0,
+              borderBottom: idx < sections.length - 1 ? "1px solid var(--border)" : "none",
+            }}>
+              <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)", marginBottom: 10 }}>
+                {sec.icon} {sec.label}
+              </div>
+              <div className="form-group">
+                <label className="form-label">Name</label>
+                <input className="form-input" value={form[sec.key].name}
+                  onChange={e => setField(sec.key, "name", e.target.value)}
+                  placeholder={`${sec.label} name`}
+                  autoFocus={idx === 0} />
+              </div>
+              <div className="form-row two-col">
+                <div className="form-group">
+                  <label className="form-label">Phone</label>
+                  <input className="form-input" value={form[sec.key].phone}
+                    onChange={e => setField(sec.key, "phone", e.target.value)}
+                    placeholder="Phone number" />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Email</label>
+                  <input className="form-input" type="email" value={form[sec.key].email}
+                    onChange={e => setField(sec.key, "email", e.target.value)}
+                    placeholder="Email address" />
+                </div>
+              </div>
+              <div className="form-group">
+                <label className="form-label">Notes</label>
+                <input className="form-input" value={form[sec.key].notes}
+                  onChange={e => setField(sec.key, "notes", e.target.value)}
+                  placeholder="Additional notes" />
+              </div>
+            </div>
+          ))}
           <div className="modal-footer">
             <button className="btn btn-ghost" onClick={onClose}>Cancel</button>
             <button className="btn btn-primary" disabled={saving} onClick={() => onSave(form)}>

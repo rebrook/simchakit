@@ -1,9 +1,19 @@
 {
-  "current": "V3.20.4",
+  "current": "V3.20.5",
   "whatsNew": [
-    "Dragging ceremony sections now registers across the full section area, not just near the first role row."
+    "Clergy and tutor contacts are now edited in a single form from the Prep tab."
   ],
   "changelog": [
+    {
+      "version": "V3.20.5",
+      "date": "2026-06-09",
+      "type": "patch",
+      "title": "Unified Clergy Edit Modal",
+      "changes": [
+        "PrepTab.jsx (V3): replaced the three per-contact clergy edit buttons and modals with a single Edit button in the Clergy & Tutor section header and one unified modal that edits all contacts (rabbi, cantor, tutor) in a single form. Eliminates the proximity confusion where the pencil icon on one contact card appeared closer to the adjacent card's name. Non-mitzvah events show only the Rabbi section in the modal.",
+        "PrepTab.jsx (V3): PrepContactCard is now read-only. Empty contacts display \"Not yet added\" instead of a clickable Add link. The section-level Edit button handles all editing."
+      ]
+    },
     {
       "version": "V3.20.4",
       "date": "2026-06-09",
