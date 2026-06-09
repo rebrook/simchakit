@@ -60,9 +60,8 @@ export function PrepTab({ eventId, event, adminConfig, showToast, isArchived, is
 
   useSearchHighlight(searchHighlight, clearSearchHighlight, "prep");
 
-  // Owners (collaboratorRole is null/undefined) and coordinators can edit clergy.
-  // Editors and viewers cannot.
-  const canEditClergy = !isArchived && (collaboratorRole == null || collaboratorRole === "coordinator");
+  // Owners and coordinators can edit clergy. Editors and viewers cannot.
+  const canEditClergy = !isArchived && (collaboratorRole === "owner" || collaboratorRole === "coordinator");
 
   const saveItem   = async (item) => { await save(item); };
   const handleAdd  = async (item) => { if (isArchived || isViewer) return; await saveItem(item); showToast("Prep item added");   setShowModal(false); };
