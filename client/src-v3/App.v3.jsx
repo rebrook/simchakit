@@ -92,16 +92,17 @@ export default function AppV3() {
             )
             .then(({ error, data }) => {
               if (error) console.warn("[SimchaKit] user_profiles upsert failed:", error.message);
-              // Notify on first sign-in (new user) — ignoreDuplicates: false means
-              // the upsert always runs, but we check if this is a brand new profile
-              // by querying event_count = 0 as a proxy for new user
+              // Notify on first sign-in (new user) — check account age rather than
+              // event_count, which stays 0 until the user creates their first event
+              // and would re-trigger the notification on every subsequent login.
               supabase
                 .from("user_profiles")
-                .select("event_count, display_name")
+                .select("display_name")
                 .eq("id", id)
                 .single()
                 .then(({ data: profile }) => {
-                  const isNewUser = profile?.event_count === 0;
+                  const acctAge   = Date.now() - new Date(session.user.created_at).getTime();
+                  const isNewUser = acctAge < 60_000; // created within last 60 seconds
                   const hasName   = !!(profile?.display_name);
 
                   if (isNewUser) {

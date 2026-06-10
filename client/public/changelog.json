@@ -1,9 +1,18 @@
 {
-  "current": "V3.20.5",
+  "current": "V3.20.6",
   "whatsNew": [
     "Clergy and tutor contacts are now edited in a single form from the Prep tab."
   ],
   "changelog": [
+    {
+      "version": "V3.20.6",
+      "date": "2026-06-10",
+      "type": "patch",
+      "title": "New User Notification Fix",
+      "changes": [
+        "App.v3.jsx: fixed a bug where the admin new-signup email notification fired on every login instead of only on first signup. The check used event_count === 0 as a proxy for new users, but event_count stays 0 until the user creates their first event, so the notification re-triggered on every subsequent login. Replaced with a timestamp check against the Supabase auth created_at field (account created within the last 60 seconds)."
+      ]
+    },
     {
       "version": "V3.20.5",
       "date": "2026-06-09",
