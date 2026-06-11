@@ -1,10 +1,18 @@
 {
-  "current": "V4.0.4",
+  "current": "V4.0.5",
   "whatsNew": [
-    "Lucide icon system extended to Gifts, Favors, Stay and Travel, and Calendar tabs.",
-    "Export modals, deadline indicators, and all action buttons now use consistent line icons."
+    "Admin Mode fully converted to Lucide icons: settings, alerts, timeline, tabs, collaborators, and data management."
   ],
   "changelog": [
+    {
+      "version": "V4.0.5",
+      "date": "2026-06-11",
+      "type": "patch",
+      "title": "Lucide Icons: Admin Panel",
+      "changes": [
+        "AdminPanel.jsx: replaced all UI chrome emoji with Lucide icons across the entire Admin Mode panel. Admin Mode title (settings icon), all close buttons, success/error alert icons, timeline empty state, Main Event star badge, timeline edit/delete buttons, tab visibility list (all 11 tab icons now Lucide via Icon component), password/passcode confirmation messages, archived lock icon, export download button, backup copy confirmation, collaborator role icons (pencil/scroll/eye), invite link copy, danger zone warnings, permanent reset badge. Removed checkmark prefix from setState strings and updated alert-type detection logic accordingly. Clergy type icons (Star of David, musical score, book), timeline entry.icon, and theme icon input placeholder left as domain content."
+      ]
+    },
     {
       "version": "V4.0.4",
       "date": "2026-06-11",

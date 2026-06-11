@@ -13,6 +13,7 @@ import { PALETTES, SHIRT_SIZES }         from "@/constants/theme.js";
 import { formatEntryMeta, sortTimeline } from "@/utils/dates.js";
 import { deriveCustomPalette }           from "@/utils/color.js";
 import { formatPhone }                   from "@/utils/guests.js";
+import { Icon }                          from "@/utils/iconMap.jsx";
 import { TimelineEntryModal }            from "@/components/tabs/GuestsTab.jsx";
 
 // ── AdminLogin ────────────────────────────────────────────────────────────────
@@ -67,12 +68,12 @@ export function AdminLogin({ eventId, onSuccess, onClose }) {
         <div className="modal" onClick={e => e.stopPropagation()}>
           <div className="modal-header">
             <div className="modal-title">Reset Admin Password</div>
-            <button className="icon-btn" title="Close" onClick={onClose}>✕</button>
+            <button className="icon-btn" title="Close" onClick={onClose}><Icon name="x" context="button" /></button>
           </div>
           <div className="modal-body">
             {resetDone ? (
               <>
-                <div className="alert alert-success" style={{ marginBottom:16 }}>✓ {resetMsg}</div>
+                <div className="alert alert-success" style={{ marginBottom:16 }}><Icon name="check" context="badge" style={{ marginRight: 4 }} /> {resetMsg}</div>
                 <p style={{ fontSize:13, color:"var(--text-secondary)", lineHeight:1.6, marginBottom:16 }}>
                   The admin password has been reset to <strong>'admin'</strong>. Log in now and go to Admin Mode → Security to set a new password.
                 </p>
@@ -90,7 +91,7 @@ export function AdminLogin({ eventId, onSuccess, onClose }) {
                 <p style={{ fontSize:13, color:"var(--text-secondary)", lineHeight:1.6, marginBottom:16 }}>
                   To confirm, type exactly: <strong>RESET PASSWORD</strong>
                 </p>
-                {resetMsg && <div className="alert alert-error" style={{ marginBottom:12 }}>⚠ {resetMsg}</div>}
+                {resetMsg && <div className="alert alert-error" style={{ marginBottom:12 }}><Icon name="alertTriangle" context="badge" style={{ marginRight: 3 }} /> {resetMsg}</div>}
                 <div className="form-group">
                   <label className="form-label">Confirmation Phrase</label>
                   <input className="form-input" value={resetPhrase} onChange={e => setResetPhrase(e.target.value)} placeholder="Type: RESET PASSWORD" autoFocus />
@@ -113,14 +114,14 @@ export function AdminLogin({ eventId, onSuccess, onClose }) {
     <div className="modal-backdrop" onMouseDown={e => { if (e.target === e.currentTarget) onClose(); }}>
       <div className="modal" onClick={e => e.stopPropagation()}>
         <div className="modal-header">
-          <div className="modal-title">⚙ Admin Mode</div>
-          <button className="icon-btn" title="Close" onClick={onClose}>✕</button>
+          <div className="modal-title"><Icon name="settings" context="menu" style={{ marginRight: 6 }} /> Admin Mode</div>
+          <button className="icon-btn" title="Close" onClick={onClose}><Icon name="x" context="button" /></button>
         </div>
         <div className="modal-body">
           <p style={{ fontSize:13, color:"var(--text-muted)", marginBottom:16, lineHeight:1.6 }}>
             Enter the admin password to configure this event.
           </p>
-          {error && <div className="alert alert-error" style={{ marginBottom:12 }}>⚠ {error}</div>}
+          {error && <div className="alert alert-error" style={{ marginBottom:12 }}><Icon name="alertTriangle" context="badge" style={{ marginRight: 3 }} /> {error}</div>}
           <div className="form-group">
             <label className="form-label">Password</label>
             <input className="form-input" type="password" value={password} placeholder="Enter password"
@@ -303,7 +304,7 @@ export function AdminPanel({ eventId, userId, calendarToken: initialCalendarToke
         .update({ admin_password: newPass, updated_at: new Date().toISOString() })
         .eq("id", eventId);
       if (err) { setPassMsg(err.message); }
-      else { setPassMsg("✓ Password changed"); setNewPass(""); setConfirmPass(""); }
+      else { setPassMsg("Password changed"); setNewPass(""); setConfirmPass(""); }
     } catch { setPassMsg("Could not reach server"); }
   };
 
@@ -320,7 +321,7 @@ export function AdminPanel({ eventId, userId, calendarToken: initialCalendarToke
         .update({ admin_config: updatedConfig, updated_at: new Date().toISOString() })
         .eq("id", eventId);
       if (err) { setPasscodeMsg(err.message); }
-      else { setPasscodeMsg("✓ Passcode set"); setNewPasscode(""); setConfirmPasscode(""); onConfigSaved(updatedConfig); }
+      else { setPasscodeMsg("Passcode set"); setNewPasscode(""); setConfirmPasscode(""); onConfigSaved(updatedConfig); }
     } catch { setPasscodeMsg("Could not reach server"); }
   };
 
@@ -334,7 +335,7 @@ export function AdminPanel({ eventId, userId, calendarToken: initialCalendarToke
         .update({ admin_config: updatedConfig, updated_at: new Date().toISOString() })
         .eq("id", eventId);
       if (err) { setPasscodeMsg(err.message); }
-      else { setPasscodeMsg("✓ Passcode removed"); onConfigSaved(updatedConfig); }
+      else { setPasscodeMsg("Passcode removed"); onConfigSaved(updatedConfig); }
     } catch { setPasscodeMsg("Could not reach server"); }
   };
 
@@ -510,8 +511,8 @@ export function AdminPanel({ eventId, userId, calendarToken: initialCalendarToke
     <div className="modal-backdrop" onMouseDown={e => { if (e.target === e.currentTarget) onClose(); }}>
       <div className="modal modal-lg" onClick={e => e.stopPropagation()}>
         <div className="modal-header">
-          <div className="modal-title">⚙ Admin Mode</div>
-          <button className="icon-btn" title="Close" onClick={onClose}>✕</button>
+          <div className="modal-title"><Icon name="settings" context="menu" style={{ marginRight: 6 }} /> Admin Mode</div>
+          <button className="icon-btn" title="Close" onClick={onClose}><Icon name="x" context="button" /></button>
         </div>
         <div className="modal-body admin-modal-body">
           {/* Desktop sidebar */}
@@ -555,8 +556,8 @@ export function AdminPanel({ eventId, userId, calendarToken: initialCalendarToke
           {/* ── Event Details ── */}
           {section === "event" && (
             <>
-              {saved  && <div className="alert alert-success" style={{marginBottom:12}}>✓ Event configuration saved</div>}
-              {error  && <div className="alert alert-error"   style={{marginBottom:12}}>⚠ {error}</div>}
+              {saved  && <div className="alert alert-success" style={{marginBottom:12}}><Icon name="check" context="badge" style={{ marginRight: 4 }} /> Event configuration saved</div>}
+              {error  && <div className="alert alert-error"   style={{marginBottom:12}}><Icon name="alertTriangle" context="badge" style={{ marginRight: 3 }} /> {error}</div>}
               <div className="form-group">
                 <label className="form-label">Event Name</label>
                 <input className="form-input" value={form.name} onChange={e => set("name",e.target.value)} placeholder="e.g., Lisa Simpson's Bat Mitzvah" />
@@ -599,11 +600,11 @@ export function AdminPanel({ eventId, userId, calendarToken: initialCalendarToke
           {/* ── Timeline ── */}
           {section === "timeline" && (
             <>
-              {saved && <div className="alert alert-success" style={{marginBottom:12}}>✓ Configuration saved</div>}
-              {error && <div className="alert alert-error"   style={{marginBottom:12}}>⚠ {error}</div>}
+              {saved && <div className="alert alert-success" style={{marginBottom:12}}><Icon name="check" context="badge" style={{ marginRight: 4 }} /> Configuration saved</div>}
+              {error && <div className="alert alert-error"   style={{marginBottom:12}}><Icon name="alertTriangle" context="badge" style={{ marginRight: 3 }} /> {error}</div>}
               {!hasMainEvent && (form.timeline||[]).length > 0 && (
                 <div className="alert alert-warning" style={{marginBottom:14}}>
-                  ⚠ No main event set — the countdown won't display until you mark one entry as the main event.
+                  <Icon name="alertTriangle" context="badge" style={{ marginRight: 3 }} /> No main event set — the countdown won't display until you mark one entry as the main event.
                 </div>
               )}
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
@@ -612,7 +613,7 @@ export function AdminPanel({ eventId, userId, calendarToken: initialCalendarToke
               </div>
               {sortedTimeline.length === 0 ? (
                 <div style={{textAlign:"center",padding:"32px 16px",color:"var(--text-muted)",background:"var(--bg-subtle)",borderRadius:"var(--radius-md)",border:"1px solid var(--border)"}}>
-                  <div style={{fontSize:28,marginBottom:8}}>📅</div>
+                  <div style={{fontSize:28,marginBottom:8}}><Icon name="calendar" context="empty" /></div>
                   <div style={{fontSize:14,marginBottom:4}}>No timeline entries yet.</div>
                   <div style={{fontSize:13}}>Add your event schedule to display it on the Overview.</div>
                 </div>
@@ -624,13 +625,13 @@ export function AdminPanel({ eventId, userId, calendarToken: initialCalendarToke
                       <div style={{flex:1,minWidth:0}}>
                         <div style={{display:"flex",alignItems:"center",gap:8,flexWrap:"wrap"}}>
                           <span style={{fontWeight:600,fontSize:14,color:"var(--text-primary)"}}>{entry.title}</span>
-                          {entry.isMainEvent && <span className="tag tag-accent" style={{fontSize:11}}>⭐ Main Event</span>}
+                          {entry.isMainEvent && <span className="tag tag-accent" style={{fontSize:11}}><Icon name="star" context="badge" style={{ marginRight: 3 }} /> Main Event</span>}
                         </div>
                         <div style={{fontSize:12,color:"var(--text-muted)",marginTop:2}}>{formatEntryMeta(entry)}</div>
                       </div>
                       <div style={{display:"flex",gap:4,flexShrink:0}}>
-                        <button className="icon-btn" title="Edit" onClick={() => setTlModal(entry)}>✎</button>
-                        <button className="icon-btn" title="Delete" onClick={() => setTlDelete(entry)}>✕</button>
+                        <button className="icon-btn" title="Edit" onClick={() => setTlModal(entry)}><Icon name="pencil" context="badge" /></button>
+                        <button className="icon-btn" title="Delete" onClick={() => setTlDelete(entry)}><Icon name="x" context="button" /></button>
                       </div>
                     </div>
                   ))}
@@ -646,8 +647,8 @@ export function AdminPanel({ eventId, userId, calendarToken: initialCalendarToke
           {/* ── Clergy & Tutor ── */}
           {section === "clergy" && (
             <>
-              {saved && <div className="alert alert-success" style={{marginBottom:12}}>✓ Clergy & Tutor saved</div>}
-              {error && <div className="alert alert-error"   style={{marginBottom:12}}>⚠ {error}</div>}
+              {saved && <div className="alert alert-success" style={{marginBottom:12}}><Icon name="check" context="badge" style={{ marginRight: 4 }} /> Clergy and Tutor saved</div>}
+              {error && <div className="alert alert-error"   style={{marginBottom:12}}><Icon name="alertTriangle" context="badge" style={{ marginRight: 3 }} /> {error}</div>}
               <ContactBlock label="Rabbi"  icon="✡"  value={form.rabbi ||{}} onChange={(k,v)=>setCon("rabbi",k,v)}  alwaysShow={true} />
               <ContactBlock label="Cantor" icon="🎼" value={form.cantor||{}} onChange={(k,v)=>setCon("cantor",k,v)} alwaysShow={false} show={isMitzvah} />
               <ContactBlock label="Tutor / Madrikh·a" icon="📖" value={form.tutor||{}} onChange={(k,v)=>setCon("tutor",k,v)} alwaysShow={false} show={isMitzvah} />
@@ -661,8 +662,8 @@ export function AdminPanel({ eventId, userId, calendarToken: initialCalendarToke
           {/* ── Guests ── */}
           {section === "guests" && (
             <>
-              {saved && <div className="alert alert-success" style={{marginBottom:12}}>✓ Configuration saved</div>}
-              {error && <div className="alert alert-error"   style={{marginBottom:12}}>⚠ {error}</div>}
+              {saved && <div className="alert alert-success" style={{marginBottom:12}}><Icon name="check" context="badge" style={{ marginRight: 4 }} /> Configuration saved</div>}
+              {error && <div className="alert alert-error"   style={{marginBottom:12}}><Icon name="alertTriangle" context="badge" style={{ marginRight: 3 }} /> {error}</div>}
 
               {/* Guest Groups */}
               <div className="admin-section">
@@ -678,7 +679,7 @@ export function AdminPanel({ eventId, userId, calendarToken: initialCalendarToke
                         onChange={e => { const u=[...(form.groups||[])]; u[i]=e.target.value; set("groups",u); }}
                         placeholder="Group name" />
                       <button className="btn btn-ghost btn-sm" style={{padding:"4px 8px"}} disabled={(form.groups||[]).length<=1}
-                        onClick={() => set("groups",(form.groups||[]).filter((_,j)=>j!==i))}>✕</button>
+                        onClick={() => set("groups",(form.groups||[]).filter((_,j)=>j!==i))}><Icon name="x" context="button" /></button>
                       <button className="btn btn-ghost btn-sm" style={{padding:"4px 8px"}} disabled={i===0}
                         onClick={() => { const u=[...(form.groups||[])]; [u[i-1],u[i]]=[u[i],u[i-1]]; set("groups",u); }}>↑</button>
                       <button className="btn btn-ghost btn-sm" style={{padding:"4px 8px"}} disabled={i===(form.groups||[]).length-1}
@@ -706,7 +707,7 @@ export function AdminPanel({ eventId, userId, calendarToken: initialCalendarToke
                         onChange={e => { const u=[...(form.mealChoices||[])]; u[i]=e.target.value; set("mealChoices",u); }}
                         placeholder="Meal option" />
                       <button className="btn btn-ghost btn-sm" style={{padding:"4px 8px"}} disabled={(form.mealChoices||[]).length<=1}
-                        onClick={() => set("mealChoices",(form.mealChoices||[]).filter((_,j)=>j!==i))}>✕</button>
+                        onClick={() => set("mealChoices",(form.mealChoices||[]).filter((_,j)=>j!==i))}><Icon name="x" context="button" /></button>
                       <button className="btn btn-ghost btn-sm" style={{padding:"4px 8px"}} disabled={i===0}
                         onClick={() => { const u=[...(form.mealChoices||[])]; [u[i-1],u[i]]=[u[i],u[i-1]]; set("mealChoices",u); }}>↑</button>
                       <button className="btn btn-ghost btn-sm" style={{padding:"4px 8px"}} disabled={i===(form.mealChoices||[]).length-1}
@@ -734,7 +735,7 @@ export function AdminPanel({ eventId, userId, calendarToken: initialCalendarToke
                         onChange={e => { const u=[...(form.shirtSizes||[])]; u[i]=e.target.value; set("shirtSizes",u); }}
                         placeholder="e.g. AM | Adult Medium" />
                       <button className="btn btn-ghost btn-sm" style={{padding:"4px 8px"}} disabled={(form.shirtSizes||[]).length<=1}
-                        onClick={() => set("shirtSizes",(form.shirtSizes||[]).filter((_,j)=>j!==i))}>✕</button>
+                        onClick={() => set("shirtSizes",(form.shirtSizes||[]).filter((_,j)=>j!==i))}><Icon name="x" context="button" /></button>
                       <button className="btn btn-ghost btn-sm" style={{padding:"4px 8px"}} disabled={i===0}
                         onClick={() => { const u=[...(form.shirtSizes||[])]; [u[i-1],u[i]]=[u[i],u[i-1]]; set("shirtSizes",u); }}>↑</button>
                       <button className="btn btn-ghost btn-sm" style={{padding:"4px 8px"}} disabled={i===(form.shirtSizes||[]).length-1}
@@ -756,8 +757,8 @@ export function AdminPanel({ eventId, userId, calendarToken: initialCalendarToke
           {/* ── Accommodations ── */}
           {section === "accommodations" && (
             <>
-              {saved && <div className="alert alert-success" style={{marginBottom:12}}>✓ Configuration saved</div>}
-              {error && <div className="alert alert-error"   style={{marginBottom:12}}>⚠ {error}</div>}
+              {saved && <div className="alert alert-success" style={{marginBottom:12}}><Icon name="check" context="badge" style={{ marginRight: 4 }} /> Configuration saved</div>}
+              {error && <div className="alert alert-error"   style={{marginBottom:12}}><Icon name="alertTriangle" context="badge" style={{ marginRight: 3 }} /> {error}</div>}
               <div style={{display:"flex",flexDirection:"column",gap:16}}>
                 {(form.hotelBlocks||[]).map((block,idx) => (
                   <div key={block.id} style={{border:"1px solid var(--border)",borderRadius:"var(--radius-md)",padding:"16px 20px",background:"var(--bg-subtle)"}}>
@@ -804,8 +805,8 @@ export function AdminPanel({ eventId, userId, calendarToken: initialCalendarToke
           {/* ── Theme ── */}
           {section === "theme" && (
             <>
-              {saved && <div className="alert alert-success" style={{marginBottom:12}}>✓ Configuration saved</div>}
-              {error && <div className="alert alert-error"   style={{marginBottom:12}}>⚠ {error}</div>}
+              {saved && <div className="alert alert-success" style={{marginBottom:12}}><Icon name="check" context="badge" style={{ marginRight: 4 }} /> Configuration saved</div>}
+              {error && <div className="alert alert-error"   style={{marginBottom:12}}><Icon name="alertTriangle" context="badge" style={{ marginRight: 3 }} /> {error}</div>}
               <div className="form-group">
                 <label className="form-label">Theme Name</label>
                 <input className="form-input" value={form.theme?.name||""} onChange={e => setThm("name",e.target.value)} placeholder="e.g., Sydney's Sweet Shop" />
@@ -916,24 +917,24 @@ export function AdminPanel({ eventId, userId, calendarToken: initialCalendarToke
           {/* ── Tabs ── */}
           {section === "tabs" && (
             <>
-              {saved && <div className="alert alert-success" style={{marginBottom:12}}>✓ Tab visibility saved</div>}
+              {saved && <div className="alert alert-success" style={{marginBottom:12}}><Icon name="check" context="badge" style={{ marginRight: 4 }} /> Tab visibility saved</div>}
               <div className="admin-section">
                 <div className="admin-section-title">Visible Tabs</div>
                 <p style={{fontSize:13,color:"var(--text-secondary)",lineHeight:1.6,marginBottom:16}}>
                   Choose which tabs appear in the navigation. Hidden tabs are not deleted — you can restore them at any time. Overview is always visible.
                 </p>
                 {[
-                  {id:"guests",         icon:"👥",label:"Guests"},
-                  {id:"accommodations", icon:"🧳",label:"Stay & Travel"},
-                  {id:"budget",         icon:"💰",label:"Budget"},
-                  {id:"vendors",        icon:"🏪",label:"Vendors"},
-                  {id:"tasks",          icon:"✅",label:"Tasks"},
-                  {id:"prep",           icon:"📖",label:"Prep"},
-                  {id:"ceremony",       icon:"📜",label:"Ceremony"},
-                  {id:"seating",        icon:"🪑",label:"Seating"},
-                  {id:"gifts",          icon:"🎁",label:"Gifts"},
-                  {id:"favors",         icon:"⭐",label:"Favors"},
-                  {id:"calendar",       icon:"📅",label:"Calendar"},
+                  {id:"guests",         icon:"guests",label:"Guests"},
+                  {id:"accommodations", icon:"accommodations",label:"Stay & Travel"},
+                  {id:"budget",         icon:"budget",label:"Budget"},
+                  {id:"vendors",        icon:"vendors",label:"Vendors"},
+                  {id:"tasks",          icon:"tasks",label:"Tasks"},
+                  {id:"prep",           icon:"prep",label:"Prep"},
+                  {id:"ceremony",       icon:"ceremony",label:"Ceremony"},
+                  {id:"seating",        icon:"seating",label:"Seating"},
+                  {id:"gifts",          icon:"gifts",label:"Gifts"},
+                  {id:"favors",         icon:"favors",label:"Favors"},
+                  {id:"calendar",       icon:"calendar",label:"Calendar"},
                 ].map(tab => {
                   const visibleTabs = form.visibleTabs||[];
                   const isVisible   = visibleTabs.length===0 || visibleTabs.includes(tab.id);
@@ -946,7 +947,7 @@ export function AdminPanel({ eventId, userId, calendarToken: initialCalendarToke
                         }}
                         style={{width:16,height:16,cursor:"pointer",accentColor:"var(--accent-primary)"}} />
                       <label htmlFor={`tab-vis-${tab.id}`} style={{fontSize:14,cursor:"pointer",display:"flex",alignItems:"center",gap:6,flex:1}}>
-                        <span>{tab.icon}</span><span>{tab.label}</span>
+                        <span><Icon name={tab.icon} context="inline" /></span><span>{tab.label}</span>
                       </label>
                     </div>
                   );
@@ -996,7 +997,7 @@ export function AdminPanel({ eventId, userId, calendarToken: initialCalendarToke
                               .catch(() => {});
                           }}
                         >
-                          {calTokenCopied ? "✓ Copied" : "Copy"}
+                          {calTokenCopied ? <><Icon name="check" context="badge" /> Copied</> : "Copy"}
                         </button>
                       </div>
                       <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 6 }}>
@@ -1060,7 +1061,7 @@ export function AdminPanel({ eventId, userId, calendarToken: initialCalendarToke
             <>
               <div className="admin-section">
                 <div className="admin-section-title">Change Password</div>
-                {passMsg && <div className={`alert ${passMsg.startsWith("✓")?"alert-success":"alert-error"}`} style={{marginBottom:12}}>{passMsg}</div>}
+                {passMsg && <div className={`alert ${!passMsg.toLowerCase().includes("error") && !passMsg.toLowerCase().includes("match") && !passMsg.toLowerCase().includes("least")?"alert-success":"alert-error"}`} style={{marginBottom:12}}>{passMsg}</div>}
                 <div className="form-group">
                   <label className="form-label">New Password</label>
                   <input className="form-input" type="password" value={newPass} onChange={e => setNewPass(e.target.value)} placeholder="Min 8 characters" />
@@ -1085,8 +1086,8 @@ export function AdminPanel({ eventId, userId, calendarToken: initialCalendarToke
                 <div className="admin-section-desc">
                   Require a passcode before the event dashboard loads. Anyone with the direct event URL must enter this passcode to view the dashboard. Separate from your Admin Mode password.
                 </div>
-                {config?.accessPasscode && <div className="alert alert-success" style={{marginBottom:12}}>🔒 An access passcode is currently set.</div>}
-                {passcodeMsg && <div className={`alert ${passcodeMsg.startsWith("✓")?"alert-success":"alert-error"}`} style={{marginBottom:12}}>{passcodeMsg}</div>}
+                {config?.accessPasscode && <div className="alert alert-success" style={{marginBottom:12}}><Icon name="lock" context="badge" style={{ marginRight: 4 }} /> An access passcode is currently set.</div>}
+                {passcodeMsg && <div className={`alert ${!passcodeMsg.toLowerCase().includes("error") && !passcodeMsg.toLowerCase().includes("match") && !passcodeMsg.toLowerCase().includes("least")?"alert-success":"alert-error"}`} style={{marginBottom:12}}>{passcodeMsg}</div>}
                 <div className="form-group">
                   <label className="form-label">{config?.accessPasscode?"New Passcode":"Set Passcode"}</label>
                   <input className="form-input" type="password" value={newPasscode} onChange={e => setNewPasscode(e.target.value)} placeholder="Min 4 characters" />
@@ -1095,7 +1096,7 @@ export function AdminPanel({ eventId, userId, calendarToken: initialCalendarToke
                   <label className="form-label">Confirm Passcode</label>
                   <input className="form-input" type="password" value={confirmPasscode} onChange={e => setConfirmPasscode(e.target.value)} placeholder="Repeat passcode" />
                 </div>
-                <div style={{fontSize:12,color:"var(--text-muted)",marginBottom:12,lineHeight:1.5}}>⚠ If you forget this passcode, it can only be removed by an admin with the Admin Mode password.</div>
+                <div style={{fontSize:12,color:"var(--text-muted)",marginBottom:12,lineHeight:1.5}}><Icon name="alertTriangle" context="badge" style={{ marginRight: 3 }} /> If you forget this passcode, it can only be removed by an admin with the Admin Mode password.</div>
                 <div style={{display:"flex",gap:8}}>
                   <button className="btn btn-primary btn-sm" onClick={savePasscode}>{config?.accessPasscode?"Update Passcode":"Set Passcode"}</button>
                   {config?.accessPasscode && <button className="btn btn-danger btn-sm" onClick={removePasscode}>Remove Passcode</button>}
@@ -1149,7 +1150,7 @@ export function AdminPanel({ eventId, userId, calendarToken: initialCalendarToke
                   <div className="alert alert-warning" style={{marginBottom:12}}>This event is archived and cannot be restored to. Unarchive the event first.</div>
                 ) : restoreDone ? (
                   <div className="alert alert-success" style={{marginBottom:12}}>
-                    ✓ Backup restored successfully.
+                    <Icon name="check" context="badge" style={{ marginRight: 4 }} /> Backup restored successfully.
                     <button className="btn btn-ghost btn-sm" style={{marginLeft:12}} onClick={() => setRestoreDone(false)}>Restore another</button>
                   </div>
                 ) : (
@@ -1180,7 +1181,7 @@ export function AdminPanel({ eventId, userId, calendarToken: initialCalendarToke
               {/* Archive */}
               <div className="admin-section">
                 <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:8}}>
-                  <div className="admin-section-title" style={{marginBottom:0}}>{isArchived?"🔒 Event is Archived":"Archive Event"}</div>
+                  <div className="admin-section-title" style={{marginBottom:0}}>{isArchived?<><Icon name="lock" context="badge" style={{ marginRight: 4 }} /> Event is Archived</>:"Archive Event"}</div>
                   {!isArchived && <span style={{fontSize:11,fontWeight:700,padding:"2px 8px",borderRadius:20,background:"var(--gold-light)",color:"var(--gold)",whiteSpace:"nowrap"}}>↩ Reversible</span>}
                 </div>
                 {isArchived ? (
@@ -1202,7 +1203,7 @@ export function AdminPanel({ eventId, userId, calendarToken: initialCalendarToke
                       <input className="form-input" type="password" value={archiveUnlockConfirm} onChange={e => setArchiveUnlockConfirm(e.target.value)} placeholder="Repeat the code above" />
                       {archiveUnlockCode.length>=4&&archiveUnlockConfirm.length>0&&archiveUnlockCode.trim()!==archiveUnlockConfirm.trim() && <div className="form-hint" style={{color:"var(--red)"}}>Codes do not match.</div>}
                     </div>
-                    <div className="alert alert-warning" style={{marginBottom:16}}>⚠ Save this code somewhere safe — it cannot be recovered if lost.</div>
+                    <div className="alert alert-warning" style={{marginBottom:16}}><Icon name="alertTriangle" context="badge" style={{ marginRight: 3 }} /> Save this code somewhere safe — it cannot be recovered if lost.</div>
                     <button className="btn btn-warning" disabled={archiving||archiveUnlockCode.trim().length<4||archiveUnlockCode.trim()!==archiveUnlockConfirm.trim()} onClick={handleArchive}>
                       {archiving?"Archiving…":"Archive This Event"}
                     </button>
@@ -1216,7 +1217,7 @@ export function AdminPanel({ eventId, userId, calendarToken: initialCalendarToke
               <div className="admin-section">
                 <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:8}}>
                   <div className="admin-section-title" style={{marginBottom:0}}>Reset Event Data</div>
-                  <span style={{fontSize:11,fontWeight:700,padding:"2px 8px",borderRadius:20,background:"var(--red-light)",color:"var(--red)",whiteSpace:"nowrap"}}>⚠ Permanent</span>
+                  <span style={{fontSize:11,fontWeight:700,padding:"2px 8px",borderRadius:20,background:"var(--red-light)",color:"var(--red)",whiteSpace:"nowrap",display:"inline-flex",alignItems:"center",gap:3}}><Icon name="alertTriangle" context="badge" /> Permanent</span>
                 </div>
                 <p style={{fontSize:13,color:"var(--text-secondary)",lineHeight:1.6,marginBottom:12}}>
                   Permanently deletes all planning data: guests, people, expenses, vendors, tasks, prep, seating, gifts, favors, and notes.
@@ -1224,7 +1225,7 @@ export function AdminPanel({ eventId, userId, calendarToken: initialCalendarToke
                 <p style={{fontSize:13,color:"var(--text-secondary)",lineHeight:1.6,marginBottom:16}}>
                   <strong>What is preserved:</strong> your event configuration (name, type, timeline, theme) and your admin password.
                 </p>
-                <p style={{fontSize:13,color:"var(--red)",fontWeight:600,lineHeight:1.6,marginBottom:16}}>⚠ This action cannot be undone.</p>
+                <p style={{fontSize:13,color:"var(--red)",fontWeight:600,lineHeight:1.6,marginBottom:16}}><Icon name="alertTriangle" context="badge" style={{ marginRight: 3 }} /> This action cannot be undone.</p>
                 <button className="btn btn-danger" disabled={isArchived} onClick={() => { setShowReset(true); setResetConfirm(""); setResetMsg(""); }}>
                   Reset Event Data…
                 </button>
@@ -1243,7 +1244,7 @@ export function AdminPanel({ eventId, userId, calendarToken: initialCalendarToke
       {tlDelete && (
         <div className="modal-backdrop" onMouseDown={e => { if (e.target===e.currentTarget) setTlDelete(null); }}>
           <div className="modal" style={{maxWidth:380}} onClick={e=>e.stopPropagation()}>
-            <div className="modal-header"><div className="modal-title">Delete Timeline Entry</div><button className="icon-btn" title="Close" onClick={()=>setTlDelete(null)}>✕</button></div>
+            <div className="modal-header"><div className="modal-title">Delete Timeline Entry</div><button className="icon-btn" title="Close" onClick={()=>setTlDelete(null)}><Icon name="x" context="button" /></button></div>
             <div className="modal-body">
               <p style={{fontSize:14,color:"var(--text-primary)",lineHeight:1.6}}>Delete <strong>{tlDelete.title}</strong>? This cannot be undone.</p>
               <div className="modal-footer"><button className="btn btn-ghost" onClick={()=>setTlDelete(null)}>Cancel</button><button className="btn btn-danger" onClick={()=>handleTlDelete(tlDelete.id)}>Delete</button></div>
@@ -1256,7 +1257,7 @@ export function AdminPanel({ eventId, userId, calendarToken: initialCalendarToke
       {backupModal && (
         <div className="modal-backdrop" onMouseDown={e => { if (e.target===e.currentTarget){setBackupModal(false);setBackupCopied(false);} }}>
           <div className="modal modal-lg" style={{maxWidth:600}} onClick={e=>e.stopPropagation()}>
-            <div className="modal-header"><div className="modal-title">↓ Export Full Backup</div><button className="icon-btn" title="Close" onClick={()=>{setBackupModal(false);setBackupCopied(false);}}>✕</button></div>
+            <div className="modal-header"><div className="modal-title"><Icon name="download" context="inline" style={{ marginRight: 4 }} /> Export Full Backup</div><button className="icon-btn" title="Close" onClick={()=>{setBackupModal(false);setBackupCopied(false);}}><Icon name="x" context="button" /></button></div>
             <div className="modal-body">
               <p style={{fontSize:13,color:"var(--text-secondary)",marginBottom:12,lineHeight:1.6}}>Copy the JSON below and save it to a file as a complete snapshot of your event data.</p>
               <textarea readOnly value={backupData||""} onClick={e=>e.target.select()} style={{width:"100%",minHeight:220,fontFamily:"var(--font-mono,monospace)",fontSize:11,background:"var(--bg-subtle)",border:"1px solid var(--border)",borderRadius:"var(--radius-sm)",padding:"10px 12px",color:"var(--text-secondary)",resize:"vertical",outline:"none"}} />
@@ -1271,10 +1272,10 @@ export function AdminPanel({ eventId, userId, calendarToken: initialCalendarToke
                   a.click();
                   URL.revokeObjectURL(url);
                 }}>
-                  ⬇ Download File
+                  <Icon name="download" context="inline" style={{ marginRight: 4 }} /> Download File
                 </button>
                 <button className="btn btn-primary" onClick={()=>navigator.clipboard.writeText(backupData||"").then(()=>{setBackupCopied(true);setTimeout(()=>setBackupCopied(false),2500);})}>
-                  {backupCopied?"✓ Copied!":"Copy to Clipboard"}
+                  {backupCopied?<><Icon name="check" context="badge" /> Copied!</>:"Copy to Clipboard"}
                 </button>
               </div>
             </div>
@@ -1286,7 +1287,7 @@ export function AdminPanel({ eventId, userId, calendarToken: initialCalendarToke
       {showUnarchive && (
         <div className="modal-backdrop" onMouseDown={e => { if (e.target===e.currentTarget) setShowUnarchive(false); }}>
           <div className="modal" onClick={e=>e.stopPropagation()}>
-            <div className="modal-header"><div className="modal-title">Unarchive Event</div><button className="icon-btn" onClick={()=>setShowUnarchive(false)}>✕</button></div>
+            <div className="modal-header"><div className="modal-title">Unarchive Event</div><button className="icon-btn" onClick={()=>setShowUnarchive(false)}><Icon name="x" context="button" /></button></div>
             <div className="modal-body">
               <p style={{fontSize:13,color:"var(--text-secondary)",lineHeight:1.6,marginBottom:16}}>
                 Unarchiving restores the event to fully editable. You will need two things:
@@ -1313,7 +1314,7 @@ export function AdminPanel({ eventId, userId, calendarToken: initialCalendarToke
       {showReset && (
         <div className="modal-backdrop" onMouseDown={e => { if (e.target===e.currentTarget) setShowReset(false); }}>
           <div className="modal" onClick={e=>e.stopPropagation()}>
-            <div className="modal-header"><div className="modal-title">Reset Event Data</div><button className="icon-btn" onClick={()=>setShowReset(false)}>✕</button></div>
+            <div className="modal-header"><div className="modal-title">Reset Event Data</div><button className="icon-btn" onClick={()=>setShowReset(false)}><Icon name="x" context="button" /></button></div>
             <div className="modal-body">
               <p style={{fontSize:13,color:"var(--text-secondary)",lineHeight:1.6,marginBottom:12}}>
                 This will permanently delete all planning data for this event:
@@ -1332,7 +1333,7 @@ export function AdminPanel({ eventId, userId, calendarToken: initialCalendarToke
                 <strong>Your event configuration will be kept</strong> — the event name, type, timeline,
                 theme, accommodations settings, and admin password are not affected.
               </p>
-              <p style={{fontSize:13,color:"var(--red)",fontWeight:600,lineHeight:1.6,marginBottom:16}}>⚠ This cannot be undone. Export a backup first if you need this data.</p>
+              <p style={{fontSize:13,color:"var(--red)",fontWeight:600,lineHeight:1.6,marginBottom:16}}><Icon name="alertTriangle" context="badge" style={{ marginRight: 3 }} /> This cannot be undone. Export a backup first if you need this data.</p>
               {resetMsg && <div className="alert alert-error" style={{marginBottom:12}}>{resetMsg}</div>}
               <div className="form-group">
                 <label className="form-label">Type the event name to confirm: <strong>{eventName||"(no event name set)"}</strong></label>
@@ -1546,7 +1547,7 @@ function CollaboratorsSection({ eventId, userId, eventName }) {
               border:       "1px solid var(--border)",
             }}>
               <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
-                <span style={{ fontSize: 16 }}>{c.role === "editor" ? "✏️" : c.role === "coordinator" ? "📜" : "👀"}</span>
+                <span style={{ fontSize: 16 }}>{c.role === "editor" ? <Icon name="pencil" context="inline" /> : c.role === "coordinator" ? <Icon name="ceremony" context="inline" /> : <Icon name="eye" context="inline" />}</span>
                 <div style={{ minWidth: 0 }}>
                   {c.display_name && (
                     <div style={{ fontSize: 12, fontWeight: 600, color: "var(--text-primary)" }}>{c.display_name}</div>
@@ -1667,7 +1668,7 @@ function CollaboratorsSection({ eventId, userId, eventName }) {
               disabled={copyStatus === "copying"}
               title="Generate a shareable invite link without sending an email"
             >
-              {copyStatus === "copied" ? "✓ Copied!" : copyStatus === "copying" ? "Generating…" : "Copy Invite Link"}
+              {copyStatus === "copied" ? <><Icon name="check" context="badge" /> Copied!</> : copyStatus === "copying" ? "Generating…" : "Copy Invite Link"}
             </button>
           </div>
           <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 8 }}>
