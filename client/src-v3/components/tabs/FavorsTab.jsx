@@ -13,6 +13,7 @@ import { SHIRT_SIZES }        from "@/constants/theme.js";
 import { newFavorId }         from "@/utils/ids.js";
 import { exportFavorsCSV, generateFavorPrintHTML } from "@/utils/exports.js";
 import { ArchivedNotice }     from "@/components/shared/ArchivedNotice.jsx";
+import { Icon }               from "@/utils/iconMap.jsx";
 import { supabase }           from "@/lib/supabase.js";
 
 // ── Favor type ID helper ───────────────────────────────────────────────────────
@@ -349,7 +350,7 @@ export function FavorsTab({
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", cursor: "pointer" }}
           onClick={() => setSetupOpen(o => !o)}>
           <div>
-            <div className="card-title" style={{ marginBottom: 0 }}>⚙ Favor Setup</div>
+            <div className="card-title" style={{ marginBottom: 0 }}><Icon name="settings" context="inline" style={{ marginRight: 6 }} /> Favor Setup</div>
             {!setupOpen && (
               <div className="card-subtitle" style={{ marginBottom: 0, marginTop: 4 }}>
                 {givingFavors && favorTypes.length > 0
@@ -578,7 +579,7 @@ export function FavorsTab({
           <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
             <button className={`btn ${mobilePanel === "favors" ? "btn-primary" : "btn-ghost"}`} style={{ flex: 1 }}
               onClick={() => setMobilePanel("favors")}>
-              ⭐ Favors ({favors.length})
+              <Icon name="favors" context="inline" style={{ marginRight: 4 }} /> Favors ({favors.length})
             </button>
             <button className={`btn ${mobilePanel === "available" ? "btn-primary" : "btn-ghost"}`} style={{ flex: 1 }}
               onClick={() => setMobilePanel("available")}>
@@ -629,7 +630,7 @@ export function FavorsTab({
             {/* Empty state */}
             {favors.length === 0 ? (
               <div style={{ textAlign: "center", padding: "40px 24px", color: "var(--text-muted)", background: "var(--bg-surface)", borderRadius: "var(--radius-md)", border: "1px solid var(--border)" }}>
-                <div style={{ fontSize: 28, marginBottom: 8 }}>⭐</div>
+                <div style={{ fontSize: 28, marginBottom: 8 }}><Icon name="favors" context="empty" /></div>
                 <div style={{ fontSize: 14, marginBottom: 4 }}>No favor recipients yet.</div>
                 <div style={{ fontSize: 13 }}>Select people from the Available panel on the right to add them to the list.</div>
               </div>
@@ -651,7 +652,7 @@ export function FavorsTab({
                             Name on Favor
                             <button onClick={e => { e.stopPropagation(); setOpenTip(t => t === "printName" ? null : "printName"); }}
                               aria-label="Name on Favor info"
-                              style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)", fontSize: 11, marginLeft: 4, padding: 0, lineHeight: 1, verticalAlign: "middle" }}>ⓘ</button>
+                              style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)", fontSize: 11, marginLeft: 4, padding: 0, lineHeight: 1, verticalAlign: "middle" }}><Icon name="info" context="badge" /></button>
                             {openTip === "printName" && (
                               <div style={{ position: "absolute", top: "100%", left: 0, zIndex: 300, width: 220, background: "var(--bg-surface)", border: "1px solid var(--border-strong)", borderRadius: "var(--radius-md)", boxShadow: "var(--shadow-md)", padding: "10px 12px", fontSize: 12, color: "var(--text-secondary)", fontWeight: 400, textTransform: "none", letterSpacing: 0, lineHeight: 1.5, whiteSpace: "normal" }}>
                                 The name or text to print on the favor — e.g. a nickname, family role, or custom label. Leave blank to skip personalization for this person.
@@ -664,7 +665,7 @@ export function FavorsTab({
                             Pre-Printed?
                             <button onClick={e => { e.stopPropagation(); setOpenTip(t => t === "preprint" ? null : "preprint"); }}
                               aria-label="Pre-Printed info"
-                              style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)", fontSize: 11, marginLeft: 4, padding: 0, lineHeight: 1, verticalAlign: "middle" }}>ⓘ</button>
+                              style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)", fontSize: 11, marginLeft: 4, padding: 0, lineHeight: 1, verticalAlign: "middle" }}><Icon name="info" context="badge" /></button>
                             {openTip === "preprint" && (
                               <div style={{ position: "absolute", top: "100%", left: 0, zIndex: 300, width: 220, background: "var(--bg-surface)", border: "1px solid var(--border-strong)", borderRadius: "var(--radius-md)", boxShadow: "var(--shadow-md)", padding: "10px 12px", fontSize: 12, color: "var(--text-secondary)", fontWeight: 400, textTransform: "none", letterSpacing: 0, lineHeight: 1.5, whiteSpace: "normal" }}>
                                 Has this person's name already been printed on the favor before the event? Tap the cell to cycle: TBD → Yes → No.
@@ -724,8 +725,8 @@ export function FavorsTab({
                             <td style={{ ...TD, color: "var(--text-muted)", fontSize: 12, maxWidth: 120, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{f.notes || "—"}</td>
                             <td style={{ ...TD, textAlign: "center" }}>
                               <div style={{ display: "flex", gap: 4, justifyContent: "center" }}>
-                                <button className="icon-btn" title="Edit"   disabled={isArchived} onClick={() => setEditFavor(f)}>✎</button>
-                                <button className="icon-btn icon-btn-danger" title="Delete" disabled={isArchived} onClick={() => setDeleteConfirm(f)}>✕</button>
+                                <button className="icon-btn" title="Edit"   disabled={isArchived} onClick={() => setEditFavor(f)}><Icon name="pencil" context="badge" /></button>
+                                <button className="icon-btn icon-btn-danger" title="Delete" disabled={isArchived} onClick={() => setDeleteConfirm(f)}><Icon name="x" context="badge" /></button>
                               </div>
                             </td>
                           </tr>
@@ -768,7 +769,7 @@ export function FavorsTab({
                       </div>
                     </div>
                   ) : availPool.length === 0 ? (
-                    "Everyone matching your filter has been added. 🎉"
+                    <>Everyone matching your filter has been added. <Icon name="partyPopper" context="inline" /></>
                   ) : (
                     "No matching people."
                   )}
@@ -822,7 +823,7 @@ export function FavorsTab({
           <div className="modal" style={{ maxWidth: 400 }} onClick={e => e.stopPropagation()}>
             <div className="modal-header">
               <div className="modal-title">Delete Favor Recipient</div>
-              <button className="icon-btn" title="Close" onClick={() => setDeleteConfirm(null)}>✕</button>
+              <button className="icon-btn" title="Close" onClick={() => setDeleteConfirm(null)}><Icon name="x" context="button" /></button>
             </div>
             <div className="modal-body">
               <p style={{ fontSize: 14, color: "var(--text-primary)", lineHeight: 1.6 }}>
@@ -857,9 +858,9 @@ export function FavorsTab({
               <div style={{ display: "flex", gap: 8 }}>
                 <button className="btn btn-primary" style={{ fontSize: 12 }}
                   onClick={() => { const f = document.getElementById("favor-print-frame"); if (f?.contentWindow) f.contentWindow.print(); }}>
-                  🖨 Print
+                  <Icon name="printer" context="inline" style={{ marginRight: 4 }} /> Print
                 </button>
-                <button className="icon-btn" title="Close" onClick={() => setPrintHTML(null)}>✕</button>
+                <button className="icon-btn" title="Close" onClick={() => setPrintHTML(null)}><Icon name="x" context="button" /></button>
               </div>
             </div>
             <iframe id="favor-print-frame" srcDoc={printHTML}
@@ -905,7 +906,7 @@ export function FavorModal({ favor, favorConfig, people, personNames, sizes, fav
       <div className="modal modal-lg" style={{ maxWidth: 460 }} onClick={e => e.stopPropagation()}>
         <div className="modal-header">
           <div className="modal-title">{isEdit ? "Edit Favor Entry" : "Add Favor Entry"}</div>
-          <button className="icon-btn" title="Close" onClick={onClose}>✕</button>
+          <button className="icon-btn" title="Close" onClick={onClose}><Icon name="x" context="button" /></button>
         </div>
         <div className="modal-body">
 
@@ -949,7 +950,7 @@ export function FavorModal({ favor, favorConfig, people, personNames, sizes, fav
                 onChange={e => setF("printName", e.target.value)}
                 placeholder="e.g., Dad, Aunt Ains, C-Bizkit" />
               {form.printName?.trim() && favors.some(f => f.id !== form.id && (f.printName || "").trim().toLowerCase() === form.printName.trim().toLowerCase()) && (
-                <div style={{ fontSize: 11, color: "var(--gold,#b45309)", marginTop: 4 }}>⚠ This name is already used on another favor entry.</div>
+                <div style={{ fontSize: 11, color: "var(--gold,#b45309)", marginTop: 4 }}><Icon name="alertTriangle" context="badge" style={{ marginRight: 3 }} /> This name is already used on another favor entry.</div>
               )}
               <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 4 }}>The name or text to print on the favor — e.g. a nickname, family role, or custom label. Leave blank to skip personalization for this person.</div>
             </div>
@@ -1030,17 +1031,17 @@ export function FavorExportModal({ favors, favorConfig, favorType, adminConfig, 
       <div className="modal modal-lg" style={{ maxWidth: 500 }} onClick={e => e.stopPropagation()}>
         <div className="modal-header">
           <div className="modal-title">Export Favor List</div>
-          <button className="icon-btn" title="Close" onClick={onClose}>✕</button>
+          <button className="icon-btn" title="Close" onClick={onClose}><Icon name="x" context="button" /></button>
         </div>
         <div className="modal-body">
           <div style={{ display: "flex", gap: 10, marginBottom: 20 }}>
             <button style={OPT(showCSV)} onClick={() => { setShowCSV(true); setCopied(false); }}>
-              <div style={{ fontSize: 20, marginBottom: 6 }}>📋</div>
+              <div style={{ fontSize: 20, marginBottom: 6 }}><Icon name="clipboardList" context="button" /></div>
               <div style={{ fontWeight: 700, fontSize: 13, color: "var(--text-primary)", marginBottom: 4 }}>CSV Export</div>
               <div style={{ fontSize: 11, color: "var(--text-muted)", lineHeight: 1.5 }}>One row per person, sorted by last name. For vendor order forms.</div>
             </button>
             <button style={OPT(false)} onClick={handlePrint}>
-              <div style={{ fontSize: 20, marginBottom: 6 }}>🖨</div>
+              <div style={{ fontSize: 20, marginBottom: 6 }}><Icon name="printer" context="button" /></div>
               <div style={{ fontWeight: 700, fontSize: 13, color: "var(--text-primary)", marginBottom: 4 }}>Printable View</div>
               <div style={{ fontSize: 11, color: "var(--text-muted)", lineHeight: 1.5 }}>
                 {favorConfig.activeType?.needsSizing ? "Grouped by size with totals. " : "Alphabetical list. "}
@@ -1054,7 +1055,7 @@ export function FavorExportModal({ favors, favorConfig, favorType, adminConfig, 
               style={{ width: "100%", minHeight: 160, background: "var(--bg-subtle)", border: "1px solid var(--border)", borderRadius: "var(--radius-sm)", padding: 10, fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--text-primary)", resize: "vertical" }} />
             <div className="modal-footer" style={{ marginTop: 12 }}>
               <button className="btn btn-ghost" onClick={onClose}>Close</button>
-              <button className="btn btn-primary" onClick={handleCopy}>{copied ? "✓ Copied!" : "Copy to Clipboard"}</button>
+              <button className="btn btn-primary" onClick={handleCopy}>{copied ? <><Icon name="check" context="badge" /> Copied!</> : "Copy to Clipboard"}</button>
             </div>
           </>)}
           {!showCSV && (

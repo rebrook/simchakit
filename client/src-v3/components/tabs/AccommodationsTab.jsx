@@ -9,6 +9,7 @@ import { useEventData }       from "@/hooks/useEventData.js";
 import { useSearchHighlight } from "@/hooks/useSearchHighlight.js";
 import { formatAddress, migrateCityStateZip, formatPhone } from "@/utils/guests.js";
 import { ArchivedNotice }     from "@/components/shared/ArchivedNotice.jsx";
+import { Icon }               from "@/utils/iconMap.jsx";
 
 export function AccommodationsTab({ eventId, event, adminConfig, showToast, isArchived, isViewer, setActiveTab, searchHighlight, clearSearchHighlight }) {
   const { items: households, loading: hLoading, save: saveHousehold } = useEventData(eventId, "households");
@@ -63,11 +64,11 @@ export function AccommodationsTab({ eventId, event, adminConfig, showToast, isAr
     const today = new Date(); today.setHours(0,0,0,0);
     const due   = new Date(cutoffDate + "T00:00:00");
     const diff  = Math.ceil((due - today) / (1000*60*60*24));
-    if (diff < 0)   return { cls: "urgent", icon: "⚠", text: `Cut-off passed ${Math.abs(diff)} day${Math.abs(diff)!==1?"s":""} ago` };
-    if (diff === 0) return { cls: "urgent", icon: "⚠", text: "Cut-off is today" };
-    if (diff <= 14) return { cls: "urgent", icon: "⚠", text: `Cut-off in ${diff} day${diff!==1?"s":""}` };
-    if (diff <= 60) return { cls: "warn",   icon: "📅", text: `Cut-off in ${diff} days` };
-    return { cls: "info", icon: "📅", text: `Cut-off in ${diff} days` };
+    if (diff < 0)   return { cls: "urgent", icon: <Icon name="alertTriangle" context="inline" />, text: `Cut-off passed ${Math.abs(diff)} day${Math.abs(diff)!==1?"s":""} ago` };
+    if (diff === 0) return { cls: "urgent", icon: <Icon name="alertTriangle" context="inline" />, text: "Cut-off is today" };
+    if (diff <= 14) return { cls: "urgent", icon: <Icon name="alertTriangle" context="inline" />, text: `Cut-off in ${diff} day${diff!==1?"s":""}` };
+    if (diff <= 60) return { cls: "warn",   icon: <Icon name="calendar" context="inline" />, text: `Cut-off in ${diff} days` };
+    return { cls: "info", icon: <Icon name="calendar" context="inline" />, text: `Cut-off in ${diff} days` };
   };
 
   const bannerStyles = {
@@ -80,13 +81,13 @@ export function AccommodationsTab({ eventId, event, adminConfig, showToast, isAr
   const toggleNotified = async (hh) => {
     if (isArchived || isViewer) return;
     await saveHousehold({ ...hh, accomNotified: !hh.accomNotified });
-    showToast(hh.accomNotified ? "Marked not notified" : "Marked notified ✓");
+    showToast(hh.accomNotified ? "Marked not notified" : "Marked notified");
   };
 
   const toggleBooked = async (hh) => {
     if (isArchived || isViewer) return;
     await saveHousehold({ ...hh, accomBooked: !hh.accomBooked });
-    showToast(hh.accomBooked ? "Marked not booked" : "Marked booked ✓");
+    showToast(hh.accomBooked ? "Marked not booked" : "Marked booked");
   };
 
   const saveAccomDetails = async (hhId, fields) => {
@@ -123,11 +124,11 @@ export function AccommodationsTab({ eventId, event, adminConfig, showToast, isAr
                 <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
                   <div style={{ flex: 1, minWidth: 200 }}>
                     <div style={{ fontFamily: "var(--font-display)", fontSize: 17, fontWeight: 600, color: "var(--text-primary)", marginBottom: 6 }}>
-                      🏨 {block.name}
+                      <Icon name="hotel" context="inline" style={{ marginRight: 4 }} /> {block.name}
                     </div>
                     {block.groupCode && <div style={{ fontSize: 13, color: "var(--text-secondary)", marginBottom: 3 }}><strong>Group Code:</strong> {block.groupCode}</div>}
                     {block.phone    && <div style={{ fontSize: 13, color: "var(--text-secondary)", marginBottom: 3 }}><strong>Phone:</strong> <a href={`tel:${block.phone}`}>{formatPhone(block.phone)}</a></div>}
-                    {block.website  && <div style={{ fontSize: 13, marginBottom: 3 }}><a href={block.website} target="_blank" rel="noopener noreferrer">🔗 Hotel Website →</a></div>}
+                    {block.website  && <div style={{ fontSize: 13, marginBottom: 3 }}><a href={block.website} target="_blank" rel="noopener noreferrer"><Icon name="link" context="badge" style={{ marginRight: 3 }} /> Hotel Website →</a></div>}
                   </div>
                   {banner && (
                     <div style={{ ...bannerStyles[banner.cls], borderRadius: "var(--radius-md)", padding: "10px 16px", fontSize: 13, fontWeight: 600, display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
@@ -160,12 +161,12 @@ export function AccommodationsTab({ eventId, event, adminConfig, showToast, isAr
 
       {totalOOT === 0 ? (
         <div className="card" style={{ textAlign: "center", padding: "60px 24px" }}>
-          <div style={{ fontSize: 40, marginBottom: 12 }}>🧳</div>
+          <div style={{ fontSize: 40, marginBottom: 12 }}><Icon name="accommodations" context="empty" /></div>
           <div style={{ fontFamily: "var(--font-display)", fontSize: 20, fontWeight: 600, color: "var(--text-primary)", marginBottom: 8 }}>No out-of-town guests yet</div>
           <div style={{ fontSize: 14, color: "var(--text-muted)", marginBottom: 20, maxWidth: 360, margin: "0 auto 20px" }}>
             Mark households as out-of-town in the Guests tab and they'll appear here automatically.
           </div>
-          {setActiveTab && <button className="btn btn-secondary" onClick={() => setActiveTab("guests")}>👥 Go to Guests</button>}
+          {setActiveTab && <button className="btn btn-secondary" onClick={() => setActiveTab("guests")}><Icon name="guests" context="inline" style={{ marginRight: 4 }} /> Go to Guests</button>}
         </div>
       ) : (
         <>
@@ -204,24 +205,24 @@ export function AccommodationsTab({ eventId, event, adminConfig, showToast, isAr
                       <tr key={hh.id || hh._rowId} id={`row-${hh.id}`} style={{ borderBottom: "1px solid var(--border)" }}>
                         <td style={{ padding: "10px 16px", fontWeight: 600, color: "var(--text-primary)" }}>
                           {hh.formalName}
-                          {hh.accomBooked && <span style={{ marginLeft: 6, fontSize: 11, background: "var(--green-light)", color: "var(--green)", padding: "1px 7px", borderRadius: 20, fontWeight: 700 }}>✓ Booked</span>}
+                          {hh.accomBooked && <span style={{ marginLeft: 6, fontSize: 11, background: "var(--green-light)", color: "var(--green)", padding: "1px 7px", borderRadius: 20, fontWeight: 700 }}><Icon name="check" context="badge" style={{ marginRight: 2 }} /> Booked</span>}
                         </td>
                         <td style={{ padding: "10px 12px", color: "var(--text-muted)", fontSize: 12 }}>{location || <span style={{ fontStyle: "italic" }}>No address</span>}</td>
                         <td style={{ padding: "10px 12px", textAlign: "center" }}>
                           <button onClick={() => !isViewer && toggleNotified(hh)} style={{ width: 26, height: 26, borderRadius: 6, border: hh.accomNotified ? "none" : "1.5px solid var(--border-strong)", background: hh.accomNotified ? "var(--green)" : "var(--bg-surface)", color: "white", cursor: "pointer", fontSize: 13, display: "inline-flex", alignItems: "center", justifyContent: "center", transition: "all var(--transition)" }}>
-                            {hh.accomNotified ? "✓" : ""}
+                            {hh.accomNotified ? <Icon name="check" context="badge" /> : ""}
                           </button>
                         </td>
                         <td style={{ padding: "10px 12px", textAlign: "center" }}>
                           <button onClick={() => !isViewer && toggleBooked(hh)} style={{ width: 26, height: 26, borderRadius: 6, border: hh.accomBooked ? "none" : "1.5px solid var(--border-strong)", background: hh.accomBooked ? "var(--green)" : "var(--bg-surface)", color: "white", cursor: "pointer", fontSize: 13, display: "inline-flex", alignItems: "center", justifyContent: "center", transition: "all var(--transition)" }}>
-                            {hh.accomBooked ? "✓" : ""}
+                            {hh.accomBooked ? <Icon name="check" context="badge" /> : ""}
                           </button>
                         </td>
                         <td style={{ padding: "10px 12px", fontSize: 12, color: checkIn ? "var(--text-primary)" : "var(--text-muted)" }}>{checkIn || <span style={{ fontStyle: "italic" }}>—</span>}</td>
                         <td style={{ padding: "10px 12px", fontSize: 12, color: checkOut ? "var(--text-primary)" : "var(--text-muted)" }}>{checkOut || <span style={{ fontStyle: "italic" }}>—</span>}</td>
                         <td style={{ padding: "10px 12px", fontSize: 12, color: "var(--text-muted)", maxWidth: 180, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{hh.accomNotes || ""}</td>
                         <td style={{ padding: "10px 12px", textAlign: "right" }}>
-                          <button className="icon-btn" style={{ width: 28, height: 28 }} title="Edit accommodation details" disabled={isViewer} onClick={() => !isViewer && setEditingHH(hh)}>✎</button>
+                          <button className="icon-btn" style={{ width: 28, height: 28 }} title="Edit accommodation details" disabled={isViewer} onClick={() => !isViewer && setEditingHH(hh)}><Icon name="pencil" context="badge" /></button>
                         </td>
                       </tr>
                     );
@@ -260,8 +261,8 @@ export function AccomEditModal({ household, onSave, onClose, isArchived }) {
     <div className="modal-backdrop" onMouseDown={e => { if (e.target === e.currentTarget) onClose(); }}>
       <div className="modal" onClick={e => e.stopPropagation()}>
         <div className="modal-header">
-          <div className="modal-title">🧳 {household.formalName}</div>
-          <button className="icon-btn" title="Close" onClick={onClose}>✕</button>
+          <div className="modal-title"><Icon name="accommodations" context="inline" style={{ marginRight: 6 }} /> {household.formalName}</div>
+          <button className="icon-btn" title="Close" onClick={onClose}><Icon name="x" context="button" /></button>
         </div>
         <div className="modal-body">
           <div style={{ display: "flex", gap: 16, marginBottom: 16 }}>
@@ -285,7 +286,7 @@ export function AccomEditModal({ household, onSave, onClose, isArchived }) {
             </div>
           </div>
           {form.accomCheckIn && form.accomCheckOut && form.accomCheckOut < form.accomCheckIn && (
-            <div style={{ fontSize: 12, color: "var(--red)", marginTop: 4, marginBottom: 8 }}>⚠ Check-out date is before check-in date</div>
+            <div style={{ fontSize: 12, color: "var(--red)", marginTop: 4, marginBottom: 8 }}><Icon name="alertTriangle" context="badge" style={{ marginRight: 3 }} /> Check-out date is before check-in date</div>
           )}
           <div className="form-group">
             <label className="form-label">Notes</label>

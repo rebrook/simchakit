@@ -1,10 +1,22 @@
 {
-  "current": "V4.0.3",
+  "current": "V4.0.4",
   "whatsNew": [
-    "Lucide icon system extended to Prep, Ceremony Roles, and Seating tabs.",
-    "Drag grip handles, auto-seat indicators, and export modals now use consistent line icons."
+    "Lucide icon system extended to Gifts, Favors, Stay and Travel, and Calendar tabs.",
+    "Export modals, deadline indicators, and all action buttons now use consistent line icons."
   ],
   "changelog": [
+    {
+      "version": "V4.0.4",
+      "date": "2026-06-11",
+      "type": "patch",
+      "title": "Lucide Icons: Gifts, Favors, Accommodations, Calendar",
+      "changes": [
+        "GiftsTab.jsx: replaced all emoji with Lucide icons. Empty state, thank-you checkmarks, edit/delete buttons, print button, address validation warning, export modal category icons, copy confirmation.",
+        "FavorsTab.jsx: replaced all emoji with Lucide icons. Favor Setup header, section title, empty state, info tooltips, edit/delete buttons, party popper completion, print button, duplicate name warning, export modal icons, copy confirmation. Timeline entry icons in dropdown options left as domain content.",
+        "AccommodationsTab.jsx: replaced all emoji with Lucide icons. Cut-off deadline status icons, hotel block header, website link, empty state, Go to Guests button, booked badge, notified/booked checkmarks, edit button, modal title, date validation warning, close buttons. Native select option text checkmarks left as-is (HTML limitation).",
+        "CalendarTab.jsx: replaced all emoji with Lucide icons. View switcher (list, calendar), download ICS button, subscribe button, overdue indicator, show-completed checkmark, empty state, month heading, event detail close button. Subscribe toast text cleaned of emoji."
+      ]
+    },
     {
       "version": "V4.0.3",
       "date": "2026-06-11",

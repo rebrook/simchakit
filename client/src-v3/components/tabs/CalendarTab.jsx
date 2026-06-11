@@ -157,7 +157,7 @@ export function CalendarTab({ eventId, event, adminConfig, showToast, isArchived
     }
     const url = `webcal://app.simcha-kit.com/api/calendar/subscribe?token=${token}`;
     navigator.clipboard.writeText(url)
-      .then(() => showToast("📅 Subscribe URL copied to clipboard — paste it into your calendar app"))
+      .then(() => showToast("Subscribe URL copied to clipboard. Paste it into your calendar app."))
       .catch(() => showToast("Could not copy. URL: " + url));
   };
 
@@ -172,7 +172,7 @@ export function CalendarTab({ eventId, event, adminConfig, showToast, isArchived
             {allEvents.length > 0
               ? `${allEvents.length} event${allEvents.length !== 1 ? "s" : ""} across all sources`
               : "All planning dates in one place"}
-            {overdueCount  > 0 && <span style={{ color: "var(--red)",  fontWeight: 600, marginLeft: 8 }}>· ⚠ {overdueCount} overdue</span>}
+            {overdueCount  > 0 && <span style={{ color: "var(--red)",  fontWeight: 600, marginLeft: 8 }}>· <Icon name="alertTriangle" context="badge" style={{ marginRight: 2 }} /> {overdueCount} overdue</span>}
             {upcomingCount > 0 && <span style={{ color: "var(--gold)", fontWeight: 600, marginLeft: 8 }}>· {upcomingCount} due soon</span>}
           </div>
         </div>
@@ -226,26 +226,26 @@ export function CalendarTab({ eventId, event, adminConfig, showToast, isArchived
         <button
           className={`btn btn-sm ${showCompleted ? "btn-primary" : "btn-secondary"}`}
           onClick={() => setShowCompleted(c => !c)}>
-          {showCompleted ? "✓ Showing completed" : "Show completed"}
+          {showCompleted ? <><Icon name="check" context="badge" /> Showing completed</> : "Show completed"}
         </button>
         {!isMobile && (
           <div style={{ display: "flex", gap: 2, marginLeft: "auto", background: "var(--bg-subtle)", borderRadius: "var(--radius-sm)", padding: 2, border: "1px solid var(--border)" }}>
-            <button className={`btn btn-sm ${view==="list" ? "btn-primary" : "btn-ghost"}`} style={{ padding: "4px 10px", fontSize: 12 }} onClick={() => setView("list")}>☰ List</button>
-            <button className={`btn btn-sm ${view==="month" ? "btn-primary" : "btn-ghost"}`} style={{ padding: "4px 10px", fontSize: 12 }} onClick={() => setView("month")}>📅 Month</button>
+            <button className={`btn btn-sm ${view==="list" ? "btn-primary" : "btn-ghost"}`} style={{ padding: "4px 10px", fontSize: 12 }} onClick={() => setView("list")}><Icon name="list" context="badge" style={{ marginRight: 4 }} /> List</button>
+            <button className={`btn btn-sm ${view==="month" ? "btn-primary" : "btn-ghost"}`} style={{ padding: "4px 10px", fontSize: 12 }} onClick={() => setView("month")}><Icon name="calendar" context="badge" style={{ marginRight: 4 }} /> Month</button>
           </div>
         )}
         {allEvents.length > 0 && (
-          <button className="btn btn-secondary btn-sm" onClick={handleDownloadICS} title="Download as .ics calendar file">⬇ .ics</button>
+          <button className="btn btn-secondary btn-sm" onClick={handleDownloadICS} title="Download as .ics calendar file"><Icon name="download" context="badge" style={{ marginRight: 4 }} /> .ics</button>
         )}
         {allEvents.length > 0 && event?.calendar_token && (
-          <button className="btn btn-secondary btn-sm" onClick={handleSubscribe} title="Copy subscribe URL for Google Calendar, Apple Calendar, or Outlook">📅 Subscribe</button>
+          <button className="btn btn-secondary btn-sm" onClick={handleSubscribe} title="Copy subscribe URL for Google Calendar, Apple Calendar, or Outlook"><Icon name="calendar" context="badge" style={{ marginRight: 4 }} /> Subscribe</button>
         )}
       </div>
 
       {/* Empty state */}
       {allEvents.length === 0 && (
         <div className="cal-empty">
-          <div style={{ fontSize: 40, marginBottom: 12, opacity: 0.4 }}>📅</div>
+          <div style={{ fontSize: 40, marginBottom: 12, opacity: 0.4 }}><Icon name="calendar" context="empty" /></div>
           <div style={{ fontFamily: "var(--font-display)", fontSize: 18, marginBottom: 6, color: "var(--text-primary)" }}>
             No planning events yet
           </div>
@@ -254,9 +254,9 @@ export function CalendarTab({ eventId, event, adminConfig, showToast, isArchived
             and prep items to see them here.
           </div>
           <div style={{ display: "flex", gap: 8, justifyContent: "center", flexWrap: "wrap" }}>
-            <button className="btn btn-secondary btn-sm" onClick={() => setActiveTab && setActiveTab("tasks")}>→ Tasks</button>
-            <button className="btn btn-secondary btn-sm" onClick={() => setActiveTab && setActiveTab("vendors")}>→ Vendors</button>
-            <button className="btn btn-secondary btn-sm" onClick={() => setActiveTab && setActiveTab("prep")}>→ Prep</button>
+            <button className="btn btn-secondary btn-sm" onClick={() => setActiveTab && setActiveTab("tasks")}><Icon name="arrowRight" context="badge" style={{ marginRight: 3 }} /> Tasks</button>
+            <button className="btn btn-secondary btn-sm" onClick={() => setActiveTab && setActiveTab("vendors")}><Icon name="arrowRight" context="badge" style={{ marginRight: 3 }} /> Vendors</button>
+            <button className="btn btn-secondary btn-sm" onClick={() => setActiveTab && setActiveTab("prep")}><Icon name="arrowRight" context="badge" style={{ marginRight: 3 }} /> Prep</button>
           </div>
         </div>
       )}
@@ -275,7 +275,7 @@ export function CalendarTab({ eventId, event, adminConfig, showToast, isArchived
               return (
                 <div key={monthKey} className="cal-list-month">
                   <div className="cal-month-heading">
-                    <span>📅</span>
+                    <span><Icon name="calendar" context="inline" /></span>
                     <span>{label}</span>
                     <span style={{ fontSize: 12, fontWeight: 400, color: "var(--text-muted)", marginLeft: 4 }}>
                       — {events.length} item{events.length !== 1 ? "s" : ""}
@@ -411,7 +411,7 @@ export function CalendarTab({ eventId, event, adminConfig, showToast, isArchived
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
                 <span className={`cal-source-tag ${src?.tagCls || ""}`}>{src?.label || selectedEvent.source}</span>
                 <button className="icon-btn" style={{ fontSize: 12, padding: 2 }} title="Close"
-                  onClick={() => setSelectedEvent(null)}>✕</button>
+                  onClick={() => setSelectedEvent(null)}><Icon name="x" context="button" /></button>
               </div>
               <div className="cal-popover-title">
                 {selectedEvent.isMain && (

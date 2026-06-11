@@ -14,6 +14,7 @@ import { newGiftId }           from "@/utils/ids.js";
 import { exportGiftsCSV, generateGiftPrintHTML } from "@/utils/exports.js";
 import { getAddressFields, formatAddress, migrateCityStateZip, COUNTRIES } from "@/utils/guests.js";
 import { ArchivedNotice }      from "@/components/shared/ArchivedNotice.jsx";
+import { Icon }                from "@/utils/iconMap.jsx";
 
 export function GiftsTab({ eventId, event, adminConfig, showToast, isArchived, isViewer, searchHighlight, clearSearchHighlight }) {
   const { items: gifts,      loading: gLoading, save, remove } = useEventData(eventId, "gifts");
@@ -195,7 +196,7 @@ export function GiftsTab({ eventId, event, adminConfig, showToast, isArchived, i
       {/* Empty state */}
       {gifts.length === 0 && (
         <div style={{ textAlign: "center", padding: "60px 24px", color: "var(--text-muted)", background: "var(--bg-surface)", borderRadius: "var(--radius-md)", border: "1px solid var(--border)" }}>
-          <div style={{ fontSize: 36, marginBottom: 12 }}>🎁</div>
+          <div style={{ fontSize: 36, marginBottom: 12 }}><Icon name="gifts" context="empty" /></div>
           <div style={{ fontFamily: "var(--font-display)", fontSize: 20, color: "var(--text-primary)", marginBottom: 8 }}>No gifts recorded yet</div>
           <div style={{ fontSize: 14, marginBottom: 24 }}>Add gifts as they arrive to track thank-you letters and totals.</div>
           {!isViewer && <button className="btn btn-primary" onClick={() => setShowModal(true)}>+ Add First Gift</button>}
@@ -258,19 +259,19 @@ export function GiftsTab({ eventId, event, adminConfig, showToast, isArchived, i
                       <td style={{ ...TD, textAlign: "center" }}>
                         <div onClick={() => !isViewer && toggleWritten(g.id)}
                           style={{ width: 22, height: 22, borderRadius: 6, border: `2px solid ${g.thankYouWritten ? "var(--green)" : "var(--border)"}`, background: g.thankYouWritten ? "var(--green)" : "transparent", display: "inline-flex", alignItems: "center", justifyContent: "center", cursor: "pointer", transition: "all 0.15s" }}>
-                          {g.thankYouWritten && <span style={{ color: "white", fontSize: 13, fontWeight: 700 }}>✓</span>}
+                          {g.thankYouWritten && <span style={{ color: "white", fontSize: 13, fontWeight: 700 }}><Icon name="check" context="badge" /></span>}
                         </div>
                       </td>
                       <td style={{ ...TD, textAlign: "center" }}>
                         <div onClick={() => !isViewer && toggleMailed(g.id)}
                           style={{ width: 22, height: 22, borderRadius: 6, border: `2px solid ${g.thankYouMailed ? "var(--blue)" : "var(--border)"}`, background: g.thankYouMailed ? "var(--blue)" : "transparent", display: "inline-flex", alignItems: "center", justifyContent: "center", cursor: "pointer", transition: "all 0.15s" }}>
-                          {g.thankYouMailed && <span style={{ color: "white", fontSize: 13, fontWeight: 700 }}>✓</span>}
+                          {g.thankYouMailed && <span style={{ color: "white", fontSize: 13, fontWeight: 700 }}><Icon name="check" context="badge" /></span>}
                         </div>
                       </td>
                       <td style={{ ...TD, textAlign: "center" }}>
                         <div style={{ display: "flex", gap: 4, justifyContent: "center" }}>
-                          <button className="icon-btn" title="Edit"   disabled={isArchived || isViewer} onClick={() => setEditGift(g)}>✎</button>
-                          <button className="icon-btn icon-btn-danger" title="Delete" disabled={isArchived || isViewer} onClick={() => setDeleteConfirm(g)}>✕</button>
+                          <button className="icon-btn" title="Edit"   disabled={isArchived || isViewer} onClick={() => setEditGift(g)}><Icon name="pencil" context="badge" /></button>
+                          <button className="icon-btn icon-btn-danger" title="Delete" disabled={isArchived || isViewer} onClick={() => setDeleteConfirm(g)}><Icon name="x" context="badge" /></button>
                         </div>
                       </td>
                     </tr>
@@ -320,18 +321,18 @@ export function GiftsTab({ eventId, event, adminConfig, showToast, isArchived, i
                       <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
                         <span style={{ fontSize: 10, color: "var(--text-muted)", fontWeight: 600 }}>W</span>
                         <div onClick={() => !isViewer && toggleWritten(g.id)} style={{ width: 24, height: 24, borderRadius: 6, border: `2px solid ${g.thankYouWritten ? "var(--green)" : "var(--border)"}`, background: g.thankYouWritten ? "var(--green)" : "transparent", display: "inline-flex", alignItems: "center", justifyContent: "center", cursor: "pointer", transition: "all 0.15s" }}>
-                          {g.thankYouWritten && <span style={{ color: "white", fontSize: 13, fontWeight: 700 }}>✓</span>}
+                          {g.thankYouWritten && <span style={{ color: "white", fontSize: 13, fontWeight: 700 }}><Icon name="check" context="badge" /></span>}
                         </div>
                         <span style={{ fontSize: 10, color: "var(--text-muted)", fontWeight: 600 }}>M</span>
                         <div onClick={() => !isViewer && toggleMailed(g.id)} style={{ width: 24, height: 24, borderRadius: 6, border: `2px solid ${g.thankYouMailed ? "var(--blue)" : "var(--border)"}`, background: g.thankYouMailed ? "var(--blue)" : "transparent", display: "inline-flex", alignItems: "center", justifyContent: "center", cursor: "pointer", transition: "all 0.15s" }}>
-                          {g.thankYouMailed && <span style={{ color: "white", fontSize: 13, fontWeight: 700 }}>✓</span>}
+                          {g.thankYouMailed && <span style={{ color: "white", fontSize: 13, fontWeight: 700 }}><Icon name="check" context="badge" /></span>}
                         </div>
                       </div>
                     </div>
                     {/* Actions */}
                     <div style={{ display: "flex", flexDirection: "column", gap: 4, flexShrink: 0 }}>
-                      <button className="icon-btn" title="Edit"   disabled={isArchived || isViewer} onClick={() => setEditGift(g)}>✎</button>
-                      <button className="icon-btn icon-btn-danger" title="Delete" disabled={isArchived || isViewer} onClick={() => setDeleteConfirm(g)}>✕</button>
+                      <button className="icon-btn" title="Edit"   disabled={isArchived || isViewer} onClick={() => setEditGift(g)}><Icon name="pencil" context="badge" /></button>
+                      <button className="icon-btn icon-btn-danger" title="Delete" disabled={isArchived || isViewer} onClick={() => setDeleteConfirm(g)}><Icon name="x" context="badge" /></button>
                     </div>
                     {/* Expand chevron */}
                     <div onClick={() => toggleExpand(g.id)} style={{ cursor: "pointer", color: "var(--text-muted)", fontSize: 16, flexShrink: 0, padding: "0 2px", transform: isExpanded ? "rotate(90deg)" : "none", transition: "transform 0.2s ease" }}>›</div>
@@ -380,7 +381,7 @@ export function GiftsTab({ eventId, event, adminConfig, showToast, isArchived, i
           <div className="modal" style={{ maxWidth: 400 }} onClick={e => e.stopPropagation()}>
             <div className="modal-header">
               <div className="modal-title">Delete Gift</div>
-              <button className="icon-btn" title="Close" onClick={() => setDeleteConfirm(null)}>✕</button>
+              <button className="icon-btn" title="Close" onClick={() => setDeleteConfirm(null)}><Icon name="x" context="button" /></button>
             </div>
             <div className="modal-body">
               <p style={{ fontSize: 14, color: "var(--text-primary)", lineHeight: 1.6 }}>
@@ -415,9 +416,9 @@ export function GiftsTab({ eventId, event, adminConfig, showToast, isArchived, i
               <div style={{ display: "flex", gap: 8 }}>
                 <button className="btn btn-primary" style={{ fontSize: 12 }}
                   onClick={() => { const f = document.getElementById("gift-print-frame"); if (f?.contentWindow) f.contentWindow.print(); }}>
-                  🖨 Print
+                  <Icon name="printer" context="inline" style={{ marginRight: 4 }} /> Print
                 </button>
-                <button className="icon-btn" title="Close" onClick={() => setPrintHTML(null)}>✕</button>
+                <button className="icon-btn" title="Close" onClick={() => setPrintHTML(null)}><Icon name="x" context="button" /></button>
               </div>
             </div>
             <iframe id="gift-print-frame" srcDoc={printHTML}
@@ -484,7 +485,7 @@ export function GiftModal({ gift, households, onSave, onClose, isArchived }) {
       <div className="modal modal-lg" style={{ maxWidth: 520 }} onClick={e => e.stopPropagation()}>
         <div className="modal-header">
           <div className="modal-title">{isEdit ? "Edit Gift" : "Add Gift"}</div>
-          <button className="icon-btn" title="Close" onClick={onClose}>✕</button>
+          <button className="icon-btn" title="Close" onClick={onClose}><Icon name="x" context="button" /></button>
         </div>
         <div className="modal-body">
 
@@ -551,7 +552,7 @@ export function GiftModal({ gift, households, onSave, onClose, isArchived }) {
                   else if (form.country === "Canada")         invalid = !/^[A-Za-z]\d[A-Za-z][ -]?\d[A-Za-z]\d$/.test(v);
                   else if (form.country === "United Kingdom") invalid = !/^[A-Za-z]{1,2}\d[A-Za-z\d]? ?\d[A-Za-z]{2}$/.test(v);
                   else if (form.country === "Australia")      invalid = !/^\d{4}$/.test(v);
-                  return invalid ? <div style={{ fontSize: 11, color: "var(--gold,#b45309)", marginTop: 3 }}>⚠ Format looks off for {form.country}</div> : null;
+                  return invalid ? <div style={{ fontSize: 11, color: "var(--gold,#b45309)", marginTop: 3 }}><Icon name="alertTriangle" context="badge" style={{ marginRight: 3 }} /> Format looks off for {form.country}</div> : null;
                 })()}
               </div>
             </div>
@@ -668,19 +669,19 @@ export function GiftExportModal({ gifts, households, adminConfig, onPrint, onClo
       <div className="modal modal-lg" style={{ maxWidth: 520 }} onClick={e => e.stopPropagation()}>
         <div className="modal-header">
           <div className="modal-title">Export Gift List</div>
-          <button className="icon-btn" title="Close" onClick={onClose}>✕</button>
+          <button className="icon-btn" title="Close" onClick={onClose}><Icon name="x" context="button" /></button>
         </div>
         <div className="modal-body">
           <div style={{ display: "flex", gap: 10, marginBottom: 20 }}>
             <button style={OPTION_STYLES(showCSV)} onClick={() => { setShowCSV(true); setCopied(false); }}>
-              <div style={{ fontSize: 20, marginBottom: 6 }}>📋</div>
+              <div style={{ fontSize: 20, marginBottom: 6 }}><Icon name="clipboardList" context="button" /></div>
               <div style={{ fontWeight: 700, fontSize: 13, color: "var(--text-primary)", marginBottom: 4 }}>CSV Export</div>
               <div style={{ fontSize: 11, color: "var(--text-muted)", lineHeight: 1.5 }}>
                 One row per gift, sorted by last name. Includes address, amounts, and thank-you status.
               </div>
             </button>
             <button style={OPTION_STYLES(false)} onClick={handlePrint}>
-              <div style={{ fontSize: 20, marginBottom: 6 }}>🖨</div>
+              <div style={{ fontSize: 20, marginBottom: 6 }}><Icon name="printer" context="button" /></div>
               <div style={{ fontWeight: 700, fontSize: 13, color: "var(--text-primary)", marginBottom: 4 }}>Printable View</div>
               <div style={{ fontSize: 11, color: "var(--text-muted)", lineHeight: 1.5 }}>
                 Grouped by donor with address, gift details, and thank-you status. Works as a mailing checklist.
@@ -697,7 +698,7 @@ export function GiftExportModal({ gifts, households, adminConfig, onPrint, onClo
               <div className="modal-footer" style={{ marginTop: 12 }}>
                 <button className="btn btn-ghost" onClick={onClose}>Close</button>
                 <button className="btn btn-primary" onClick={handleCopy}>
-                  {copied ? "✓ Copied!" : "Copy to Clipboard"}
+                  {copied ? <><Icon name="check" context="badge" /> Copied!</> : "Copy to Clipboard"}
                 </button>
               </div>
             </>
