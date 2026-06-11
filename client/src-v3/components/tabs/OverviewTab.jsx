@@ -11,6 +11,7 @@ import { EVENT_TYPE_ICONS }   from "@/constants/events.js";
 import { getCountdown, formatDate, formatEntryMeta, sortTimeline } from "@/utils/dates.js";
 import { GetStartedCard }     from "@/components/shared/GetStartedCard.jsx";
 import { generateEventBriefHTML } from "@/utils/exports.js";
+import { Icon }               from "@/utils/iconMap.js";
 
 export function OverviewTab({ eventId, event, adminConfig, showToast, setActiveTab, onOpenAdmin, onOpenAdminTo, onOpenGuide, onPrintBrief, isViewer }) {
   const config    = adminConfig || {};
@@ -130,12 +131,12 @@ export function OverviewTab({ eventId, event, adminConfig, showToast, setActiveT
               setShowChecklist(true);
             }}
               style={{ fontSize: 12 }}>
-              👋 Setup checklist
+              <Icon name="hand" context="inline" style={{ marginRight: 4 }} /> Setup checklist
             </button>
           )}
           <button className="btn btn-secondary btn-sm" onClick={handlePrintBrief}
             style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0 }}>
-            🖨 Print Brief
+            <Icon name="printer" context="inline" /> Print Brief
           </button>
         </div>
       </div>
@@ -157,6 +158,7 @@ export function OverviewTab({ eventId, event, adminConfig, showToast, setActiveT
       {eventDate && countdown ? (
         <div className="countdown-card">
           <div style={{ position: "absolute", right: 28, top: "50%", transform: "translateY(-50%)", fontSize: 80, opacity: 0.08, lineHeight: 1, pointerEvents: "none", userSelect: "none" }}>
+            {/* TODO: event-type glyph — decide icon vs emoji separately (data model decision) */}
             {EVENT_TYPE_ICONS[config.type] || "✡"}
           </div>
           <div className="countdown-label">Counting down to</div>
@@ -181,8 +183,8 @@ export function OverviewTab({ eventId, event, adminConfig, showToast, setActiveT
           <div className="countdown-title" style={{ marginBottom: 8 }}>Welcome to SimchaKit</div>
           <div className="countdown-date">Add your event timeline and mark a main event in Admin Mode to start the countdown</div>
           <div style={{ marginTop: 16 }}>
-            <span className="tag" style={{ background: "rgba(255,255,255,0.2)", color: "white", fontSize: 12 }}>
-              ⚙ Click the gear icon in the header to configure your event
+            <span className="tag" style={{ background: "rgba(255,255,255,0.2)", color: "white", fontSize: 12, display: "inline-flex", alignItems: "center", gap: 6 }}>
+              <Icon name="settings" context="inline" /> Click the settings icon in the header to configure your event
             </span>
           </div>
         </div>
@@ -237,6 +239,7 @@ export function OverviewTab({ eventId, event, adminConfig, showToast, setActiveT
           if (sectionTables.length === 0 || confirmed === 0 || gap <= 0) return null;
           const entry = (config.timeline||[]).find(e => e.id === sid);
           const label = entry ? `${entry.icon||"📅"} ${entry.title}` : sid;
+          // TODO: entry.icon is user-configured from admin_config timeline — leave as emoji for now
           return { label, totalSeats, confirmed, gap };
         }).filter(Boolean);
 
@@ -248,14 +251,14 @@ export function OverviewTab({ eventId, event, adminConfig, showToast, setActiveT
             borderRadius: "var(--radius-md)", padding: "12px 16px", marginBottom: 12,
             fontSize: 13, color: "var(--red)",
           }}>
-            <span style={{ fontSize: 16 }}>⚠</span>
+            <span style={{ fontSize: 16 }}><Icon name="alertTriangle" context="alert" /></span>
             <span style={{ flex: 1 }}>
               <strong>Seating gap ({w.label}) —</strong> {w.totalSeats} seat{w.totalSeats !== 1 ? "s" : ""} configured
               for <strong>{w.confirmed}</strong> confirmed guest{w.confirmed !== 1 ? "s" : ""}. {w.gap} additional seat{w.gap !== 1 ? "s" : ""} needed.
             </span>
             <button className="btn btn-sm" onClick={() => setActiveTab && setActiveTab("seating")}
-              style={{ background: "var(--red)", color: "white", border: "none", flexShrink: 0, fontSize: 12 }}>
-              → Seating
+              style={{ background: "var(--red)", color: "white", border: "none", flexShrink: 0, fontSize: 12, display: "inline-flex", alignItems: "center", gap: 4 }}>
+              <Icon name="arrowRight" context="inline" /> Seating
             </button>
           </div>
         ));
@@ -281,11 +284,11 @@ export function OverviewTab({ eventId, event, adminConfig, showToast, setActiveT
           <div className="timeline">
             {timelineEntries.length === 0 ? (
               <div style={{ textAlign: "center", padding: "24px 12px", color: "var(--text-muted)" }}>
-                <div style={{ fontSize: 24, marginBottom: 8 }}>📅</div>
+                <div style={{ marginBottom: 8 }}><Icon name="calendar" context="empty" /></div>
                 <div style={{ fontSize: 13, marginBottom: 8 }}>No events scheduled yet.</div>
                 {onOpenAdmin && (
-                  <button className="btn btn-ghost" style={{ fontSize: 12 }} onClick={onOpenAdmin}>
-                    ⚙ Add timeline in Admin Mode
+                  <button className="btn btn-ghost" style={{ fontSize: 12, display: "inline-flex", alignItems: "center", gap: 4 }} onClick={onOpenAdmin}>
+                    <Icon name="settings" context="inline" /> Add timeline in Admin Mode
                   </button>
                 )}
               </div>
@@ -297,13 +300,14 @@ export function OverviewTab({ eventId, event, adminConfig, showToast, setActiveT
                 const counts = getSubEventCounts(item.id);
                 return (
                   <div className="timeline-item" key={item.id || i}>
+                    {/* TODO: item.icon is user-configured from admin_config timeline — leave as emoji for now */}
                     <div className="timeline-icon">{item.icon || "📅"}</div>
                     <div className="timeline-content">
                       <div className="timeline-title">{item.title}</div>
                       <div className="timeline-meta">{formatEntryMeta(item)}</div>
                       {counts.invited > 0 && (
-                        <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 4 }}>
-                          👥 {counts.invited} invited · {counts.confirmed} confirmed
+                        <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 4, display: "flex", alignItems: "center", gap: 4 }}>
+                          <Icon name="guests" context="inline" /> {counts.invited} invited · {counts.confirmed} confirmed
                         </div>
                       )}
                     </div>
@@ -316,8 +320,8 @@ export function OverviewTab({ eventId, event, adminConfig, showToast, setActiveT
           {config.rsvpUrl && (
             <div style={{ marginTop: 16, paddingTop: 16, borderTop: "1px solid var(--border)" }}>
               <a href={config.rsvpUrl} target="_blank" rel="noopener noreferrer"
-                className="btn btn-secondary" style={{ width: "100%", justifyContent: "center" }}>
-                📬 RSVP Website →
+                className="btn btn-secondary" style={{ width: "100%", justifyContent: "center", display: "inline-flex", alignItems: "center", gap: 6 }}>
+                <Icon name="externalLink" context="inline" /> RSVP Website
               </a>
             </div>
           )}
@@ -338,7 +342,7 @@ export function OverviewTab({ eventId, event, adminConfig, showToast, setActiveT
             <>
               <div className="divider" />
               <div style={{ background: "var(--gold-light)", border: "1px solid var(--gold)", borderRadius: "var(--radius-sm)", padding: "8px 12px", fontSize: 12, color: "var(--text-secondary)", lineHeight: 1.6 }}>
-                <span style={{ fontWeight: 700, color: "var(--gold)", marginRight: 6 }}>📌 Admin Note</span>
+                <span style={{ fontWeight: 700, color: "var(--gold)", marginRight: 6, display: "inline-flex", alignItems: "center", gap: 4 }}><Icon name="pin" context="inline" /> Admin Note</span>
                 {config.notes}
               </div>
             </>
@@ -359,11 +363,11 @@ export function OverviewTab({ eventId, event, adminConfig, showToast, setActiveT
                 Print Preview — Event Brief
               </div>
               <div style={{ display: "flex", gap: 8 }}>
-                <button className="btn btn-primary" style={{ fontSize: 12 }}
+                <button className="btn btn-primary" style={{ fontSize: 12, display: "inline-flex", alignItems: "center", gap: 4 }}
                   onClick={() => { if (printFrameRef.current?.contentWindow) printFrameRef.current.contentWindow.print(); }}>
-                  🖨 Print / Save PDF
+                  <Icon name="printer" context="inline" /> Print / Save PDF
                 </button>
-                <button className="icon-btn" title="Close" onClick={() => setBriefHTML(null)}>✕</button>
+                <button className="icon-btn" title="Close" onClick={() => setBriefHTML(null)}><Icon name="x" context="button" /></button>
               </div>
             </div>
             <iframe ref={printFrameRef} srcDoc={briefHTML}

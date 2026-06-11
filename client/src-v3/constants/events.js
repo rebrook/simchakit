@@ -14,6 +14,10 @@ const EVENT_TYPE_LABELS_MAP = {
   "other":        "Other Celebration",
 };
 
+// TODO: Event-type glyphs carry meaning and brand identity (✡ for mitzvahs,
+// 💍 for weddings, etc.). These are stored as emoji strings in admin_config
+// and in the database. Converting them to Lucide icons requires a data model
+// decision and migration — handle separately from the Q1 icon system swap.
 const EVENT_TYPE_ICONS = {
   "bat-mitzvah":  "✡",
   "bar-mitzvah":  "✡",

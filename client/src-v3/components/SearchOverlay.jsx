@@ -8,6 +8,7 @@ import { useState, useEffect, useRef, useMemo } from "react";
 import { useEventData }       from "@/hooks/useEventData.js";
 import { SEARCH_GROUPS, SEARCH_PER_GROUP } from "@/constants/ui.js";
 import { searchCollection }   from "@/utils/search.js";
+import { Icon }               from "@/utils/iconMap.js";
 
 export function SearchOverlay({ eventId, adminConfig, onNavigate, onClose }) {
   const { items: households } = useEventData(eventId, "households");
@@ -64,7 +65,7 @@ export function SearchOverlay({ eventId, adminConfig, onNavigate, onClose }) {
 
         {/* Input row */}
         <div className="search-overlay-input-row">
-          <span style={{ fontSize: 18, color: "var(--text-muted)", flexShrink: 0 }}>🔍</span>
+          <span style={{ color: "var(--text-muted)", flexShrink: 0, display: "flex", alignItems: "center" }}><Icon name="search" context="button" /></span>
           <input
             ref={inputRef}
             className="search-overlay-input"
@@ -76,7 +77,7 @@ export function SearchOverlay({ eventId, adminConfig, onNavigate, onClose }) {
             autoCorrect="off"
             spellCheck={false}
           />
-          <button className="icon-btn" onClick={onClose} title="Close search" style={{ flexShrink: 0 }}>✕</button>
+          <button className="icon-btn" onClick={onClose} title="Close search" style={{ flexShrink: 0 }}><Icon name="x" context="button" /></button>
         </div>
 
         {/* Results */}
@@ -89,7 +90,7 @@ export function SearchOverlay({ eventId, adminConfig, onNavigate, onClose }) {
 
           {hasQuery && totalResults === 0 && (
             <div className="search-overlay-empty">
-              <div style={{ fontSize: 28, marginBottom: 10 }}>🔍</div>
+              <div style={{ marginBottom: 10 }}><Icon name="search" context="empty" /></div>
               No results for <strong>"{query}"</strong>
             </div>
           )}
@@ -104,11 +105,11 @@ export function SearchOverlay({ eventId, adminConfig, onNavigate, onClose }) {
             return (
               <div key={group.key}>
                 <div className="search-group-header">
-                  {group.icon} {group.label} — {items.length} result{items.length !== 1 ? "s" : ""}
+                  <Icon name={group.icon} context="inline" /> {group.label} — {items.length} result{items.length !== 1 ? "s" : ""}
                 </div>
                 {visibleItems.map(result => (
                   <div key={result.id} className="search-result-row" onClick={() => handleSelect(result)}>
-                    <span className="search-result-icon">{group.icon}</span>
+                    <span className="search-result-icon"><Icon name={group.icon} context="inline" /></span>
                     <div className="search-result-body">
                       <div className="search-result-primary">{result.primary}</div>
                       {result.secondary && (
@@ -121,7 +122,7 @@ export function SearchOverlay({ eventId, adminConfig, onNavigate, onClose }) {
                 {!isExpanded && hiddenCount > 0 && (
                   <button className="search-show-all"
                     onClick={() => setExpanded(ex => ({ ...ex, [group.key]: true }))}>
-                    Show all {items.length} results in {group.label} →
+                    Show all {items.length} results in {group.label}
                   </button>
                 )}
               </div>

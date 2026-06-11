@@ -15,6 +15,7 @@ import { AdminLogin, AdminPanel } from "@/components/AdminPanel.jsx";
 import { SearchOverlay }         from "@/components/SearchOverlay.jsx";
 import { GuideModal, ActivityLogModal, WhatsNewModal } from "@/components/Modals.jsx";
 import { DayOfOverlay }          from "@/components/DayOfOverlay.jsx";
+import { Icon }                  from "@/utils/iconMap.js";
 
 // ── Tab components (stubs in Phase 5, filled in Phase 6) ─────────────────────
 import { OverviewTab }        from "@/components/tabs/OverviewTab.jsx";
@@ -98,7 +99,7 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false, display
 
   // ── Listen for audit log write failures from useEventData ─────────────────
   useEffect(() => {
-    const handler = () => showToast("⚠ Activity log entry could not be saved");
+    const handler = () => showToast("Activity log entry could not be saved");
     window.addEventListener("simchakit:audit-error", handler);
     return () => window.removeEventListener("simchakit:audit-error", handler);
   }, [showToast]);
@@ -227,18 +228,18 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false, display
 
   // ── Build tab list from adminConfig.visibleTabs ───────────────────────────
   const ALL_TABS = [
-    { id: "overview",       icon: "✦",  label: "Overview"      },
-    { id: "guests",         icon: "👥", label: "Guests"        },
-    { id: "budget",         icon: "💰", label: "Budget"        },
-    { id: "vendors",        icon: "🏪", label: "Vendors"       },
-    { id: "tasks",          icon: "✅", label: "Tasks"         },
-    { id: "prep",           icon: "📖", label: "Prep"          },
-    { id: "ceremony",       icon: "📜", label: "Ceremony"      },
-    { id: "seating",        icon: "🪑", label: "Seating"       },
-    { id: "gifts",          icon: "🎁", label: "Gifts"         },
-    { id: "accommodations", icon: "🧳", label: "Stay & Travel" },
-    { id: "favors",         icon: "⭐", label: "Favors"        },
-    { id: "calendar",       icon: "📅", label: "Calendar"      },
+    { id: "overview",       icon: "overview",       label: "Overview"      },
+    { id: "guests",         icon: "guests",         label: "Guests"        },
+    { id: "budget",         icon: "budget",         label: "Budget"        },
+    { id: "vendors",        icon: "vendors",        label: "Vendors"       },
+    { id: "tasks",          icon: "tasks",          label: "Tasks"         },
+    { id: "prep",           icon: "prep",           label: "Prep"          },
+    { id: "ceremony",       icon: "ceremony",       label: "Ceremony"      },
+    { id: "seating",        icon: "seating",        label: "Seating"       },
+    { id: "gifts",          icon: "gifts",          label: "Gifts"         },
+    { id: "accommodations", icon: "accommodations", label: "Stay & Travel" },
+    { id: "favors",         icon: "favors",         label: "Favors"        },
+    { id: "calendar",       icon: "calendar",       label: "Calendar"      },
   ];
 
   const visibleTabIds = adminConfig?.visibleTabs;
@@ -289,10 +290,10 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false, display
       <div className="app-shell">
         <ThemeProvider palette="rose" customColor="" />
         <div style={{ display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", minHeight:"100vh", gap:16, padding:24, textAlign:"center" }}>
-          <div style={{ fontSize:40 }}>⚠</div>
+          <div style={{ fontSize:40 }}><Icon name="alertTriangle" context="empty" /></div>
           <div style={{ fontFamily:"var(--font-display)", fontSize:20, color:"var(--text-primary)" }}>Could not load event</div>
           <div style={{ fontSize:13, color:"var(--text-muted)" }}>Check your connection or go back and try again.</div>
-          <button className="btn btn-secondary" onClick={onBack}>← Back to Events</button>
+          <button className="btn btn-secondary" onClick={onBack}><Icon name="arrowLeft" context="inline" style={{ marginRight: 4 }} /> Back to Events</button>
         </div>
       </div>
     );
@@ -368,20 +369,20 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false, display
           gap: 12,
           flexWrap: "wrap",
         }}>
-          <span>📋 You're viewing the SimchaKit demo · Data resets nightly</span>
+          <span><Icon name="clipboardList" context="inline" style={{ marginRight: 6 }} />You're viewing the SimchaKit demo · Data resets nightly</span>
           <a href="https://app.simcha-kit.com" style={{
             color: "white",
             fontWeight: 700,
             textDecoration: "underline",
             whiteSpace: "nowrap",
-          }}>Create your account →</a>
+          }}>Create your account</a>
         </div>
       )}
 
       {/* ── Archived banner ── */}
       {event?.archived && (
         <div className="archived-banner">
-          🔒 This event is archived and read-only.
+          <Icon name="lock" context="inline" style={{ marginRight: 6 }} /> This event is archived and read-only.
         </div>
       )}
 
@@ -402,7 +403,7 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false, display
             }}
             onMouseEnter={e => { e.currentTarget.style.color="var(--accent-primary)"; e.currentTarget.style.borderColor="var(--accent-primary)"; }}
             onMouseLeave={e => { e.currentTarget.style.color="var(--text-muted)"; e.currentTarget.style.borderColor="var(--border)"; }}
-          >← Events</button>
+          ><Icon name="arrowLeft" context="inline" style={{ marginRight: 2 }} /> Events</button>
 
           {/* Brand */}
           <div className="header-brand">
@@ -443,9 +444,9 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false, display
               flexShrink:   0,
               whiteSpace:   "nowrap",
             }}>
-              {collaboratorRole === "editor"      ? "✏️ Editor"
-               : collaboratorRole === "coordinator" ? "📜 Coordinator"
-               : "👀 Viewer"}
+              {collaboratorRole === "editor"      ? <><Icon name="pencil" context="badge" /> Editor</>
+               : collaboratorRole === "coordinator" ? <><Icon name="ceremony" context="badge" /> Coordinator</>
+               : <><Icon name="eye" context="badge" /> Viewer</>}
             </div>
           )}
 
@@ -453,12 +454,12 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false, display
           <div className="header-actions">
             {/* Search */}
             <button className="icon-btn" title="Search (⌘K)" onClick={() => setShowSearch(true)}>
-              🔍
+              <Icon name="search" context="button" />
             </button>
 
             {/* Admin Mode */}
             <button className="icon-btn" title="Admin Mode" onClick={() => openAdmin("event")}>
-              ⚙
+              <Icon name="settings" context="button" />
             </button>
 
             {/* Overflow menu */}
@@ -467,7 +468,7 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false, display
                 className={`icon-btn ${showOverflow ? "active" : ""}`}
                 title="More options"
                 onClick={() => setShowOverflow(s => !s)}
-              >⋯</button>
+              ><Icon name="moreHorizontal" context="button" /></button>
 
               {showOverflow && (
                 <div className="header-overflow-menu">
@@ -476,9 +477,9 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false, display
                     <span className="header-overflow-dark-label">Theme</span>
                     <div className="header-overflow-dark-btns">
                       {[
-                        { mode:"light",  icon:"☀",  title:"Light"  },
-                        { mode:"dark",   icon:"🌙", title:"Dark"   },
-                        { mode:"system", icon:"💻", title:"System" },
+                        { mode:"light",  icon:"sun",     title:"Light"  },
+                        { mode:"dark",   icon:"moon",    title:"Dark"   },
+                        { mode:"system", icon:"monitor", title:"System" },
                       ].map(({ mode, icon, title }) => (
                         <button key={mode} title={title}
                           onClick={() => setDarkMode(mode)}
@@ -490,43 +491,43 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false, display
                             background: darkMode === mode ? "var(--accent-light)" : "var(--bg-subtle)",
                             color:      darkMode === mode ? "var(--accent-primary)" : "var(--text-muted)",
                           }}
-                        >{icon}</button>
+                        >{<Icon name={icon} context="inline" />}</button>
                       ))}
                     </div>
                   </div>
 
                   <button className="header-overflow-item"
                     onClick={() => { setShowOverflow(false); setShowGuide(true); }}>
-                    📖 <span>Guide</span>
+                    <Icon name="bookOpen" context="menu" /> <span>Guide</span>
                   </button>
 
                   <button className="header-overflow-item"
                     onClick={() => { setShowOverflow(false); setShowWhatsNew(true); }}>
-                    ✨ <span>What's New</span>
+                    <Icon name="sparkles" context="menu" /> <span>What's New</span>
                   </button>
 
                   {!isCoordinator && (
                     <button className="header-overflow-item"
                       onClick={() => { setShowOverflow(false); setShowDayOf(true); }}>
-                      📋 <span>Day-of Mode</span>
+                      <Icon name="clipboardList" context="menu" /> <span>Day-of Mode</span>
                     </button>
                   )}
 
                   {!isCoordinator && (
                     <button className="header-overflow-item"
                       onClick={() => { setShowOverflow(false); setShowActivityLog(true); }}>
-                      📊 <span>Activity Log</span>
+                      <Icon name="barChart3" context="menu" /> <span>Activity Log</span>
                     </button>
                   )}
 
                   <button className="header-overflow-item"
                     onClick={() => { setShowOverflow(false); onBack(); }}>
-                    ← <span>Back to Events</span>
+                    <Icon name="arrowLeft" context="menu" /> <span>Back to Events</span>
                   </button>
 
                   <button className="header-overflow-item"
                     onClick={() => { setShowOverflow(false); supabase.auth.signOut(); }}>
-                    🚪 <span>Sign out</span>
+                    <Icon name="logOut" context="menu" /> <span>Sign out</span>
                   </button>
                 </div>
               )}
@@ -553,7 +554,7 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false, display
                 onClick={() => navigateTo(tab.id)}
                 style={hidden ? { visibility:"hidden", pointerEvents:"none", position:"absolute" } : {}}
               >
-                <span className="tab-icon">{tab.icon}</span>
+                <span className="tab-icon"><Icon name={tab.icon} context="nav" /></span>
                 {tab.label}
                 {tab.badge != null && tab.badge > 0 && (
                   <span className="tab-badge">{tab.badge}</span>
@@ -578,7 +579,7 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false, display
                     setShowNavMore(s => !s);
                   }}
                 >
-                  ⋯ More
+                  <Icon name="moreHorizontal" context="nav" /> More
                   {overflowHasBadge && <span className="tab-badge">!</span>}
                 </button>
               </div>
@@ -600,7 +601,7 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false, display
               className={`header-overflow-item ${activeTab === tab.id ? "active" : ""}`}
               onClick={() => navigateTo(tab.id)}
             >
-              <span>{tab.icon}</span>
+              <span><Icon name={tab.icon} context="menu" /></span>
               {tab.label}
               {tab.badge != null && tab.badge > 0 && (
                 <span className="tab-badge" style={{ marginLeft:"auto" }}>{tab.badge}</span>
@@ -623,7 +624,7 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false, display
             fontWeight:   600,
             textAlign:    "center",
           }}>
-            👀 You have view-only access to this event.
+            <Icon name="eye" context="inline" /> You have view-only access to this event.
           </div>
         )}
         {/* Coordinator scoped-access banner */}
@@ -637,7 +638,7 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false, display
             fontWeight:   600,
             textAlign:    "center",
           }}>
-            📜 As Ritual Coordinator, you can view and edit Ceremony and Prep for this event.
+            <Icon name="ceremony" context="inline" /> As Ritual Coordinator, you can view and edit Ceremony and Prep for this event.
           </div>
         )}
         {activeTab === "overview"       && <OverviewTab       {...tabProps} />}
@@ -690,7 +691,7 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false, display
             className={`bottom-nav-tab ${activeTab === tab.id ? "active" : ""}`}
             onClick={() => navigateTo(tab.id)}
           >
-            <span className="bottom-nav-icon">{tab.icon}</span>
+            <span className="bottom-nav-icon"><Icon name={tab.icon} context="navMobile" /></span>
             <span className="bottom-nav-label">{tab.label}</span>
             {tab.badge != null && tab.badge > 0 && (
               <span className="bottom-nav-badge">{tab.badge}</span>
@@ -701,7 +702,7 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false, display
           className={`bottom-nav-tab ${moreIsActive || showMoreDrawer ? "active" : ""}`}
           onClick={() => setShowMoreDrawer(s => !s)}
         >
-          <span className="bottom-nav-icon">⋯</span>
+          <span className="bottom-nav-icon"><Icon name="moreHorizontal" context="navMobile" /></span>
           <span className="bottom-nav-label">More</span>
         </button>
       </div>
@@ -715,19 +716,19 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false, display
       <div className={`more-drawer ${showMoreDrawer ? "open" : ""}`}>
         <div className="more-drawer-header">
           <span className="more-drawer-title">More</span>
-          <button className="more-drawer-close" onClick={() => setShowMoreDrawer(false)}>✕</button>
+          <button className="more-drawer-close" onClick={() => setShowMoreDrawer(false)}><Icon name="x" context="button" /></button>
         </div>
         {moreDrawerTabs.map(tab => (
           <button key={tab.id}
             className={`more-drawer-item ${activeTab === tab.id ? "active" : ""}`}
             onClick={() => navigateTo(tab.id)}
           >
-            <span className="more-drawer-item-icon">{tab.icon}</span>
+            <span className="more-drawer-item-icon"><Icon name={tab.icon} context="menu" /></span>
             <span className="more-drawer-item-label">{tab.label}</span>
             {tab.badge != null && tab.badge > 0 && (
               <span className="more-drawer-item-badge">{tab.badge}</span>
             )}
-            <span className="more-drawer-item-chevron">›</span>
+            <span className="more-drawer-item-chevron"><Icon name="chevronRight" context="inline" /></span>
           </button>
         ))}
       </div>
@@ -817,7 +818,7 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false, display
         opacity:    toastVisible ? 1 : 0,
         transform:  toastVisible ? "translateX(-50%) translateY(0)" : "translateX(-50%) translateY(8px)",
       }}>
-        ✓ {toastMsg}
+        <Icon name="check" context="inline" style={{ marginRight: 6 }} /> {toastMsg}
       </div>
     </div>
   );

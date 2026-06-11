@@ -3,13 +3,13 @@
 const GUIDE_SECTIONS = [
   {
     id: "getting-started",
-    icon: "✦",
+    icon: "gettingStarted",
     title: "Getting Started",
     color: "var(--accent-primary)",
     colorLight: "var(--accent-light)",
     items: [
       { heading: "How SimchaKit works", body: "SimchaKit is a single-event planning dashboard. Each event has its own URL and data store. All changes sync in real time — open the same URL on any device and you'll see the same data instantly. The sync indicator in the footer shows connection status." },
-      { heading: "Admin Mode", body: "Admin Mode (⚙) is where you configure the event — name, type, theme, RSVP URL, timeline, guest groups, meal choices, and catering style. Admin Mode is owner-only and password-protected. Most tabs read from Admin config, so set it up first. Changes save immediately." },
+      { heading: "Admin Mode", body: "Admin Mode (the settings icon in the header) is where you configure the event — name, type, theme, RSVP URL, timeline, guest groups, meal choices, and catering style. Admin Mode is owner-only and password-protected. Most tabs read from Admin config, so set it up first. Changes save immediately." },
       { heading: "Your name", body: "When you first sign in, SimchaKit will ask what to call you. Your name appears in the event picker footer, in the app footer, in invitation emails sent to your co-planners, and in the collaborator panel for events you have been invited to. You can use a first name, full name, or nickname -- whatever you prefer. To update your name at any time, click your name in the event picker footer. Your name is visible to collaborators you invite -- they will see it in the invitation email and in the collaborator panel." },
       { heading: "Archived events", body: "Archiving an event (in Admin Mode) locks all data and disables editing. Archived events are read-only. The banner at the top of each tab indicates archived status." },
       { heading: "Export & backup", body: "Use the Export button in Admin Mode \u2192 Data to save a full JSON backup of your event data. Two options: Copy to Clipboard (paste into a text editor and save as .json) or \u2b07 Download File (saves directly to your device as a .json file \u2014 no extra steps needed). Export before making major changes or archiving. Individual tabs (Budget, Gifts) have CSV export options. The Guests tab has a dedicated Export Guests modal with four formats: By Household, By Person, Mailing / Invitations, and a Printable View \u2014 each tailored to a specific audience such as catering, invitation vendor, or day-of staff." },
@@ -18,7 +18,7 @@ const GUIDE_SECTIONS = [
   },
   {
     id: "guests",
-    icon: "👥",
+    icon: "guests",
     title: "Guests",
     color: "var(--accent-primary)",
     colorLight: "var(--accent-light)",
@@ -37,7 +37,7 @@ const GUIDE_SECTIONS = [
   },
   {
     id: "budget",
-    icon: "💰",
+    icon: "budget",
     title: "Budget",
     color: "var(--gold)",
     colorLight: "var(--gold-light)",
@@ -51,7 +51,7 @@ const GUIDE_SECTIONS = [
   },
   {
     id: "vendors",
-    icon: "🏪",
+    icon: "vendors",
     title: "Vendors",
     color: "var(--orange)",
     colorLight: "var(--orange-light)",
@@ -66,7 +66,7 @@ const GUIDE_SECTIONS = [
   },
   {
     id: "tasks",
-    icon: "✅",
+    icon: "tasks",
     title: "Tasks",
     color: "var(--blue)",
     colorLight: "var(--blue-light)",
@@ -81,7 +81,7 @@ const GUIDE_SECTIONS = [
   },
   {
     id: "prep",
-    icon: "📖",
+    icon: "prep",
     title: "Prep",
     color: "var(--green)",
     colorLight: "var(--green-light)",
@@ -94,7 +94,7 @@ const GUIDE_SECTIONS = [
   },
   {
     id: "ceremony",
-    icon: "✡",
+    icon: "ceremony",
     title: "Ceremony Roles",
     color: "var(--blue)",
     colorLight: "var(--blue-light)",
@@ -110,7 +110,7 @@ const GUIDE_SECTIONS = [
   },
   {
     id: "seating",
-    icon: "🪑",
+    icon: "seating",
     title: "Seating",
     color: "var(--accent-primary)",
     colorLight: "var(--accent-light)",
@@ -127,7 +127,7 @@ const GUIDE_SECTIONS = [
   },
   {
     id: "gifts",
-    icon: "🎁",
+    icon: "gifts",
     title: "Gifts",
     color: "var(--green)",
     colorLight: "var(--green-light)",
@@ -139,7 +139,7 @@ const GUIDE_SECTIONS = [
   },
   {
     id: "favors",
-    icon: "⭐",
+    icon: "favors",
     title: "Favors",
     color: "var(--gold)",
     colorLight: "var(--gold-light)",
@@ -153,7 +153,7 @@ const GUIDE_SECTIONS = [
   },
   {
     id: "travel",
-    icon: "🧳",
+    icon: "accommodations",
     title: "Stay & Travel",
     color: "var(--blue)",
     colorLight: "var(--blue-light)",
@@ -165,7 +165,7 @@ const GUIDE_SECTIONS = [
   },
   {
     id: "calendar",
-    icon: "📅",
+    icon: "calendar",
     title: "Planning Calendar",
     color: "var(--accent-primary)",
     colorLight: "var(--accent-light)",
@@ -180,7 +180,7 @@ const GUIDE_SECTIONS = [
   },
   {
     id: "search",
-    icon: "🔍",
+    icon: "search",
     title: "Search",
     color: "var(--blue)",
     colorLight: "var(--blue-light)",
@@ -192,13 +192,13 @@ const GUIDE_SECTIONS = [
   },
   {
     id: "admin",
-    icon: "⚙",
+    icon: "admin",
     title: "Admin Mode",
     color: "var(--orange)",
     colorLight: "var(--orange-light)",
     items: [
       { heading: "Navigating Admin Mode", body: "Use the sidebar on the left to move between sections. On mobile the sidebar collapses to a section selector at the top of the panel. Tap it to switch sections. Changes in each section save immediately." },
-      { heading: "Accessing Admin Mode", body: "Click ⚙ in the header. Admin Mode is password-protected. The default password is 'admin' -- change it in Admin Mode → Security after setup. Only the event owner can access Admin Mode. Editors and Viewers see the ⚙ button but cannot open the panel." },
+      { heading: "Accessing Admin Mode", body: "Click the settings icon in the header. Admin Mode is password-protected. The default password is 'admin' -- change it in Admin Mode → Security after setup. Only the event owner can access Admin Mode. Editors and Viewers see the ⚙ button but cannot open the panel." },
       { heading: "Event Details", body: "Set the event name, type (Bar/Bat Mitzvah, Wedding, etc.), theme, RSVP URL, RSVP deadline, and catering style. The event name appears in the header. The RSVP deadline triggers a countdown banner in the Guests tab." },
       { heading: "Timeline", body: "Build the event timeline here, each entry has a title, icon, date, start/end time, venue, and an Is Main Event flag. Timeline entries appear on the Overview tab, the Planning Calendar, and the Print Brief." },
       { heading: "Guest configuration", body: "Customize guest groups, meal choices, and sizes in the Guests section of Admin Mode. Guest groups control the filter options and household group dropdown (e.g., Family, Friends, Sydney's Class). Meal choices drive the household meal selection and Catering Summary. Sizes (shirt & pant) use a CODE | Label format (e.g. AS | Adult Small), the code appears in the Favors size summary, the full label in dropdowns. All three lists support add, remove, reorder, and reset to defaults." },
@@ -209,12 +209,12 @@ const GUIDE_SECTIONS = [
   },
   {
     id: "dayof",
-    icon: "📋",
+    icon: "dayof",
     title: "Day-of Mode",
     color: "var(--accent-primary)",
     colorLight: "var(--accent-light)",
     items: [
-      { heading: "Opening Day-of Mode", body: "Click the 📋 button in the header to open Day-of Mode. On days that match a timeline entry, the button appears directly in the header highlighted in the accent color with a green dot — one tap away. On all other days it lives in the ⋯ overflow menu. Day-of Mode opens as a full-screen overlay — no nav, no distractions. Close it with the ✕ button to return to the dashboard." },
+      { heading: "Opening Day-of Mode", body: "Click the clipboard button in the header to open Day-of Mode. On days that match a timeline entry, the button appears directly in the header highlighted in the accent color with a green dot — one tap away. On all other days it lives in the ⋯ overflow menu. Day-of Mode opens as a full-screen overlay — no nav, no distractions. Close it with the ✕ button to return to the dashboard." },
       { heading: "Event Timeline", body: "Your Admin Mode timeline entries appear in chronological order. Tap each row to check it off as it gets underway or completes. Checks persist across device refreshes — closing and reopening the overlay keeps your progress." },
       { heading: "Hot Sheet", body: "Key numbers at a glance: confirmed guest count, kosher meals required, and dietary flags with confirmed/pending status. Below that, all booked vendors with their contact name and a tap-to-call phone link — no digging through vendor cards needed." },
       { heading: "Day-of Checklist", body: "A manual checklist you build in the weeks before the event. Each item has a task description and a time block (Morning / Midday / Afternoon / Evening / Wrap-up). Items are grouped by time block so at 3 PM you only see the afternoon tasks. Add items with + Add Item directly in the overlay. Check items off by tapping the circle." },
@@ -223,7 +223,7 @@ const GUIDE_SECTIONS = [
   },
   {
     id: "activitylog",
-    icon: "📊",
+    icon: "activitylog",
     title: "Activity Log",
     color: "var(--blue)",
     colorLight: "var(--blue-light)",
@@ -237,7 +237,7 @@ const GUIDE_SECTIONS = [
   },
   {
     id: "tips",
-    icon: "💡",
+    icon: "tips",
     title: "Tips & Shortcuts",
     color: "var(--gold)",
     colorLight: "var(--gold-light)",
@@ -245,10 +245,10 @@ const GUIDE_SECTIONS = [
       { heading: "Confirmation toasts", body: "After any add, edit, or delete action — adding a guest, marking an expense paid, completing a task, logging a gift, and so on — a small confirmation message briefly appears at the bottom of the screen and fades away automatically. This is called a toast notification. No action is needed to dismiss it." },
       { heading: "Tab indicators", body: "Tabs that contain at least one record show a small filled dot in the nav bar. This lets you see at a glance which planning areas have been started without opening each tab. The dot is suppressed on tabs that already show a numeric badge count (Budget, Tasks, Stay & Travel)." },
       { heading: "Keyboard shortcuts", body: "⌘K / Ctrl+K opens global search from anywhere. Escape closes any open modal or overlay. These are the only keyboard shortcuts currently supported — more are planned." },
-      { heading: "Dark mode", body: "Use the ☀ / 🌙 / 💻 toggle in the header to switch between light, dark, and system-following modes. Your preference is saved to your browser." },
+      { heading: "Dark mode", body: "Use the sun/moon/monitor toggle in the header to switch between light, dark, and system-following modes. Your preference is saved to your browser." },
       { heading: "Sync & offline", body: "SimchaKit syncs in real time over a WebSocket connection. If you go offline, changes queue locally and sync automatically when the connection restores. The sync indicator in the footer shows Live, Connecting, Offline, or ⏳ N pending. After any data change, the indicator updates to show when data was last saved — 'Saved just now', 'Saved 2m ago', and so on." },
-      { heading: "Print Brief", body: "The 🖨 Print Brief button in the Overview tab header generates a printable HTML summary of your event: timeline, guest counts, dietary summary, confirmed vendors with payment progress, and open tasks. The same button is also available inside Day-of Mode. Use your browser's Print to PDF to save it." },
-      { heading: "Setup checklist", body: "When you first open a new event, the Overview tab shows a Get Started checklist with four steps: name your event, choose an event type, add an event date, and add your first guest. Each step shows a shortcut button to the relevant section. The checklist disappears automatically once all four steps are complete, or you can dismiss it early using the Dismiss link. If you dismiss it before finishing, a 👋 Setup checklist button appears in the Overview tab header — click it to bring the checklist back." },
+      { heading: "Print Brief", body: "The Print Brief button in the Overview tab header generates a printable HTML summary of your event: timeline, guest counts, dietary summary, confirmed vendors with payment progress, and open tasks. The same button is also available inside Day-of Mode. Use your browser's Print to PDF to save it." },
+      { heading: "Setup checklist", body: "When you first open a new event, the Overview tab shows a Get Started checklist with four steps: name your event, choose an event type, add an event date, and add your first guest. Each step shows a shortcut button to the relevant section. The checklist disappears automatically once all four steps are complete, or you can dismiss it early using the Dismiss link. If you dismiss it before finishing, a Setup checklist button appears in the Overview tab header — click it to bring the checklist back." },
       { heading: "Multiple devices", body: "Open the event URL on any device — phone, tablet, or desktop — and changes sync instantly. There's no login required beyond the Admin Mode password for configuration changes." },
       { heading: "Mobile navigation", body: "On screens 640px wide and under, the main nav moves to a bottom tab bar with four primary tabs (Overview, Guests, Budget, Tasks). Tap More \u22ef to access all remaining tabs in a slide-up list. A dot on the More button means at least one secondary tab has a pending badge." },
     ],
@@ -269,15 +269,15 @@ const TL_MINUTES = ["00","15","30","45"];
 const FOLLOW_UP_STATUSES = new Set(["Booked","Deposit Paid","Paid in Full"]);
 
 const SEARCH_GROUPS = [
-  { key: "households",     label: "Guests",       icon: "👥", tab: "guests"         },
-  { key: "people",         label: "People",        icon: "🙋", tab: "guests"         },
-  { key: "vendors",        label: "Vendors",       icon: "🏪", tab: "vendors"        },
-  { key: "expenses",       label: "Expenses",      icon: "💰", tab: "budget"         },
-  { key: "tasks",          label: "Tasks",         icon: "✅", tab: "tasks"          },
-  { key: "prep",           label: "Prep",          icon: "📖", tab: "prep"           },
-  { key: "gifts",          label: "Gifts",         icon: "🎁", tab: "gifts"          },
-  { key: "favors",         label: "Favors",        icon: "⭐", tab: "favors"         },
-  { key: "calendar",       label: "Calendar",      icon: "📅", tab: "calendar"       },
+  { key: "households",     label: "Guests",       icon: "guests", tab: "guests"         },
+  { key: "people",         label: "People",        icon: "people", tab: "guests"         },
+  { key: "vendors",        label: "Vendors",       icon: "vendors", tab: "vendors"        },
+  { key: "expenses",       label: "Expenses",      icon: "budget", tab: "budget"         },
+  { key: "tasks",          label: "Tasks",         icon: "tasks", tab: "tasks"          },
+  { key: "prep",           label: "Prep",          icon: "prep", tab: "prep"           },
+  { key: "gifts",          label: "Gifts",         icon: "gifts", tab: "gifts"          },
+  { key: "favors",         label: "Favors",        icon: "favors", tab: "favors"         },
+  { key: "calendar",       label: "Calendar",      icon: "calendar", tab: "calendar"       },
 ];
 
 const SEARCH_PER_GROUP = 4;

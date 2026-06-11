@@ -9,6 +9,7 @@ import { supabase }              from "@/lib/supabase.js";
 import { CreateEventForm }       from "./CreateEventForm.jsx";
 import { DeleteEventConfirm }    from "./DeleteEventConfirm.jsx";
 import { PaywallGate }           from "./PaywallGate.jsx";
+import { Icon }                  from "@/utils/iconMap.js";
 
 // ── Palette + type maps (mirrors V2 index.html exactly) ──────────────────────
 const PALETTES = {
@@ -35,6 +36,8 @@ const EVENT_TYPE_LABELS = {
   "other":        "Celebration",
 };
 
+// TODO: Event-type glyphs carry meaning and brand identity — converting to
+// Lucide icons requires a data model decision. Handle separately.
 const EVENT_TYPE_ICONS = {
   "bat-mitzvah":  "✡",
   "bar-mitzvah":  "✡",
@@ -366,7 +369,7 @@ export function EventPicker({ session, displayName: userDisplayName, onSelectEve
               style={styles.btnNewEvent}
               onClick={() => setShowCreateForm(v => !v)}
             >
-              ＋ New Event
+              <Icon name="plus" context="inline" /> New Event
             </button>
             <button
               style={styles.btnSignOut}
@@ -381,7 +384,7 @@ export function EventPicker({ session, displayName: userDisplayName, onSelectEve
         {paymentNotice === "cancelled" && (
           <div style={styles.noticeCancelled}>
             Payment was cancelled — no charge was made.
-            <button style={styles.noticeDismiss} onClick={() => setPaymentNotice(null)}>✕</button>
+            <button style={styles.noticeDismiss} onClick={() => setPaymentNotice(null)}><Icon name="x" context="inline" /></button>
           </div>
         )}
         {paymentNotice === "success" && paymentPolling && (
@@ -392,8 +395,8 @@ export function EventPicker({ session, displayName: userDisplayName, onSelectEve
         )}
         {paymentNotice === "success" && !paymentPolling && (
           <div style={styles.noticeSuccess}>
-            ✓ Payment confirmed — you can now create your event below.
-            <button style={styles.noticeDismiss} onClick={() => setPaymentNotice(null)}>✕</button>
+            Payment confirmed. You can now create your event below.
+            <button style={styles.noticeDismiss} onClick={() => setPaymentNotice(null)}><Icon name="x" context="inline" /></button>
           </div>
         )}
 
@@ -460,7 +463,7 @@ export function EventPicker({ session, displayName: userDisplayName, onSelectEve
 
         {loadStatus === "error" && (
           <div style={styles.stateBox}>
-            <div style={styles.stateIcon}>⚠</div>
+            <div style={styles.stateIcon}><Icon name="alertTriangle" context="empty" /></div>
             <div style={styles.stateTitle}>Could not load events</div>
             <div style={styles.stateDesc}>{loadError}</div>
             <button style={styles.btnRetry} onClick={loadEvents}>Try again</button>
@@ -469,6 +472,7 @@ export function EventPicker({ session, displayName: userDisplayName, onSelectEve
 
         {loadStatus === "ready" && events.length === 0 && (
           <div style={styles.stateBox}>
+            {/* TODO: event-type glyph — decide icon vs emoji separately */}
             <div style={styles.stateIcon}>✡</div>
             <div style={styles.stateTitle}>Welcome to SimchaKit</div>
             <div style={styles.stateDesc}>
@@ -586,6 +590,7 @@ function EventCard({ event, meta, onSelect, onDeleteClick, collaboratorRole = nu
 
       {/* Card header */}
       <div style={{ padding: "20px 20px 16px", background: cardBg, position: "relative" }}>
+        {/* TODO: typeIcon is derived from EVENT_TYPE_ICONS — handle with event-type glyph migration */}
         <span style={{ fontSize: 28, lineHeight: 1, display: "block", marginBottom: 10 }}>
           {typeIcon}
         </span>
@@ -601,25 +606,25 @@ function EventCard({ event, meta, onSelect, onDeleteClick, collaboratorRole = nu
             {typeLabel}
           </span>
           {event.archived && (
-            <span className="sk-tag" style={{ background: "var(--gold-light)", color: "var(--gold)" }}>
-              🔒 Archived
+            <span className="sk-tag" style={{ background: "var(--gold-light)", color: "var(--gold)", display: "inline-flex", alignItems: "center", gap: 4 }}>
+              <Icon name="lock" context="badge" /> Archived
             </span>
           )}
           {!isCollaborator && (
-            <span className="sk-tag" style={{ background: "var(--accent-light)", color: "var(--accent-primary)", border: "1px solid var(--accent-primary)" }}>
-              👑 Owner
+            <span className="sk-tag" style={{ background: "var(--accent-light)", color: "var(--accent-primary)", border: "1px solid var(--accent-primary)", display: "inline-flex", alignItems: "center", gap: 4 }}>
+              <Icon name="crown" context="badge" /> Owner
             </span>
           )}
           {!isCollaborator && collaboratorCount > 0 && (
-            <span className="sk-tag" style={{ background: "var(--bg-subtle)", color: "var(--text-secondary)", border: "1px solid var(--border)" }}>
-              👥 {collaboratorCount} collaborator{collaboratorCount !== 1 ? "s" : ""}
+            <span className="sk-tag" style={{ background: "var(--bg-subtle)", color: "var(--text-secondary)", border: "1px solid var(--border)", display: "inline-flex", alignItems: "center", gap: 4 }}>
+              <Icon name="guests" context="badge" /> {collaboratorCount} collaborator{collaboratorCount !== 1 ? "s" : ""}
             </span>
           )}
           {isCollaborator && (
-            <span className="sk-tag" style={{ background: "var(--accent-light)", color: "var(--accent-primary)", border: "1px solid var(--accent-primary)", textTransform: "capitalize" }}>
-              {collaboratorRole === "editor"      ? "✏️ Editor"
-               : collaboratorRole === "coordinator" ? "📜 Ritual Coordinator"
-               : "👀 Viewer"}
+            <span className="sk-tag" style={{ background: "var(--accent-light)", color: "var(--accent-primary)", border: "1px solid var(--accent-primary)", textTransform: "capitalize", display: "inline-flex", alignItems: "center", gap: 4 }}>
+              {collaboratorRole === "editor"      ? <><Icon name="pencil" context="badge" /> Editor</>
+               : collaboratorRole === "coordinator" ? <><Icon name="ceremony" context="badge" /> Ritual Coordinator</>
+               : <><Icon name="eye" context="badge" /> Viewer</>}
             </span>
           )}
         </div>
@@ -637,7 +642,7 @@ function EventCard({ event, meta, onSelect, onDeleteClick, collaboratorRole = nu
             onClick={handleDeleteClick}
             aria-label="Delete event"
           >
-            ✕
+            <Icon name="x" context="badge" />
           </button>
         )}
       </div>
@@ -646,7 +651,7 @@ function EventCard({ event, meta, onSelect, onDeleteClick, collaboratorRole = nu
       <div style={{ padding: "16px 20px", flex: 1, display: "flex", flexDirection: "column", gap: 6, justifyContent: "center" }}>
         {dateStr && (
           <div style={styles.cardDetail}>
-            <span style={{ fontSize: 13 }}>📅</span>
+            <Icon name="calendar" context="inline" />
             {dateStr}
           </div>
         )}
@@ -657,7 +662,7 @@ function EventCard({ event, meta, onSelect, onDeleteClick, collaboratorRole = nu
         <span style={{ fontSize: 13, fontWeight: 600, color: palette.accent }}>
           Open Dashboard
         </span>
-        <span className="sk-card-arrow" style={{ color: palette.accent }}>→</span>
+        <span className="sk-card-arrow" style={{ color: palette.accent }}><Icon name="arrowRight" context="inline" /></span>
       </div>
     </div>
   );
