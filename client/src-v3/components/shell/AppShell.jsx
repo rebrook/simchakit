@@ -15,7 +15,7 @@ import { AdminLogin, AdminPanel } from "@/components/AdminPanel.jsx";
 import { SearchOverlay }         from "@/components/SearchOverlay.jsx";
 import { GuideModal, ActivityLogModal, WhatsNewModal } from "@/components/Modals.jsx";
 import { DayOfOverlay }          from "@/components/DayOfOverlay.jsx";
-import { Icon }                  from "@/utils/iconMap.js";
+import { Icon }                  from "@/utils/iconMap.jsx";
 
 // ── Tab components (stubs in Phase 5, filled in Phase 6) ─────────────────────
 import { OverviewTab }        from "@/components/tabs/OverviewTab.jsx";

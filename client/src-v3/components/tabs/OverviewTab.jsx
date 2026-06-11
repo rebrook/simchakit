@@ -11,7 +11,7 @@ import { EVENT_TYPE_ICONS }   from "@/constants/events.js";
 import { getCountdown, formatDate, formatEntryMeta, sortTimeline } from "@/utils/dates.js";
 import { GetStartedCard }     from "@/components/shared/GetStartedCard.jsx";
 import { generateEventBriefHTML } from "@/utils/exports.js";
-import { Icon }               from "@/utils/iconMap.js";
+import { Icon }               from "@/utils/iconMap.jsx";
 
 export function OverviewTab({ eventId, event, adminConfig, showToast, setActiveTab, onOpenAdmin, onOpenAdminTo, onOpenGuide, onPrintBrief, isViewer }) {
   const config    = adminConfig || {};

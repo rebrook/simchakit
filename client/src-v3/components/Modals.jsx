@@ -8,7 +8,7 @@
 import { useState, useEffect } from "react";
 import { supabase }            from "@/lib/supabase.js";
 import { GUIDE_SECTIONS, ACTION_COLORS } from "@/constants/ui.js";
-import { Icon }                from "@/utils/iconMap.js";
+import { Icon }                from "@/utils/iconMap.jsx";
 
 // ── GuideModal ────────────────────────────────────────────────────────────────
 export function GuideModal({ onClose }) {

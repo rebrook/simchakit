@@ -8,7 +8,7 @@ import { useState, useEffect, useRef, useMemo } from "react";
 import { useEventData }       from "@/hooks/useEventData.js";
 import { SEARCH_GROUPS, SEARCH_PER_GROUP } from "@/constants/ui.js";
 import { searchCollection }   from "@/utils/search.js";
-import { Icon }               from "@/utils/iconMap.js";
+import { Icon }               from "@/utils/iconMap.jsx";
 
 export function SearchOverlay({ eventId, adminConfig, onNavigate, onClose }) {
   const { items: households } = useEventData(eventId, "households");

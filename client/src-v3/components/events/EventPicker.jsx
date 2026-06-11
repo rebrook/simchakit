@@ -9,7 +9,7 @@ import { supabase }              from "@/lib/supabase.js";
 import { CreateEventForm }       from "./CreateEventForm.jsx";
 import { DeleteEventConfirm }    from "./DeleteEventConfirm.jsx";
 import { PaywallGate }           from "./PaywallGate.jsx";
-import { Icon }                  from "@/utils/iconMap.js";
+import { Icon }                  from "@/utils/iconMap.jsx";
 
 // ── Palette + type maps (mirrors V2 index.html exactly) ──────────────────────
 const PALETTES = {
