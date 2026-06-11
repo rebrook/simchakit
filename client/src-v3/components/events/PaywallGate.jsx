@@ -5,6 +5,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useState } from "react";
+import { Icon } from "@/utils/iconMap.jsx";
 
 const INTRO_CUTOFF   = new Date("2026-08-31T23:59:59Z");
 const PRICE_INTRO    = 29;
@@ -125,7 +126,7 @@ export function PaywallGate({ session, onFreeEventGranted, onCancel }) {
           "Day-of Mode with a printable brief for your coordinator",
         ].map((item, i) => (
           <div key={i} style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8, fontSize: 13, color: "var(--text-secondary)" }}>
-            <span style={{ color: "var(--green)", fontWeight: 700, fontSize: 14, flexShrink: 0 }}>✓</span>
+            <span style={{ color: "var(--green)", fontWeight: 700, fontSize: 14, flexShrink: 0 }}><Icon name="check" context="badge" /></span>
             {item}
           </div>
         ))}
@@ -187,7 +188,7 @@ export function PaywallGate({ session, onFreeEventGranted, onCancel }) {
             spellCheck={false}
           />
           {couponStatus === "valid" && (
-            <span style={styles.couponCheck}>✓</span>
+            <span style={styles.couponCheck}><Icon name="check" context="badge" /></span>
           )}
         </div>
         <button
@@ -242,7 +243,7 @@ export function PaywallGate({ session, onFreeEventGranted, onCancel }) {
 
       {/* Trust note */}
       <div style={styles.trustNote}>
-        🔒 Payments are processed securely by Stripe. SimchaKit never stores your payment details.
+        <Icon name="lock" context="badge" style={{ marginRight: 4 }} /> Payments are processed securely by Stripe. SimchaKit never stores your payment details.
       </div>
 
       {/* Support contact */}

@@ -5,6 +5,7 @@
 
 import { useState } from "react";
 import { supabase } from "@/lib/supabase.js";
+import { Icon } from "@/utils/iconMap.jsx";
 
 export function AuthPage() {
   const [email,   setEmail]   = useState("");
@@ -79,7 +80,7 @@ export function AuthPage() {
           {status === "sent" ? (
             // Success state
             <div style={{ textAlign: "center" }}>
-              <div style={{ fontSize: 40, marginBottom: 16 }}>📬</div>
+              <div style={{ fontSize: 40, marginBottom: 16, color: "var(--accent-primary)" }}><Icon name="mailCheck" context="empty" /></div>
               <div style={{
                 fontFamily:  "var(--font-display)",
                 fontSize:    20,
@@ -208,7 +209,7 @@ export function AuthPage() {
                   textAlign:   "center",
                   lineHeight:  1.5,
                 }}>
-                  🔒 Your data is private, secure, and never shared.
+                  <Icon name="lock" context="badge" style={{ marginRight: 4 }} /> Your data is private, secure, and never shared.
                 </div>
               </form>
             </>

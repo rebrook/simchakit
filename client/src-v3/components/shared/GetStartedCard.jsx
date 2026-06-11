@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { EVENT_TYPE_LABELS_MAP, EVENT_TYPE_ICONS } from "@/constants/events.js";
 import { formatDate } from "@/utils/dates.js";
+import { Icon } from "@/utils/iconMap.jsx";
 
 export function GetStartedCard({ state, adminConfig, setActiveTab, onOpenAdmin, onOpenGuide, eventId, onDismissedChange }) {
   const STORAGE_KEY = `simchakit-getstarted-dismissed-${eventId || "default"}`;
@@ -85,7 +86,7 @@ export function GetStartedCard({ state, adminConfig, setActiveTab, onOpenAdmin, 
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 }}>
         <div>
           <div style={{ fontFamily: "var(--font-display)", fontSize: 17, fontWeight: 700, color: "var(--text-primary)", marginBottom: 3 }}>
-            {allDone ? "🎉 You're all set!" : "👋 Get Started"}
+            {allDone ? <><Icon name="partyPopper" context="inline" style={{ marginRight: 6 }} /> You're all set!</> : <><Icon name="hand" context="inline" style={{ marginRight: 6 }} /> Get Started</>}
           </div>
           <div style={{ fontSize: 12, color: "var(--text-muted)" }}>
             {allDone
@@ -98,7 +99,7 @@ export function GetStartedCard({ state, adminConfig, setActiveTab, onOpenAdmin, 
             rel="noopener noreferrer"
             style={{ display: "inline-block", marginTop: 6, fontSize: 12, fontWeight: 600, color: "var(--accent-primary)", textDecoration: "none" }}
           >
-            📖 Open the new user training slides
+            <Icon name="bookOpen" context="badge" style={{ marginRight: 4 }} /> Open the new user training slides
           </a>
         </div>
         <button onClick={dismiss} style={{
@@ -130,7 +131,7 @@ export function GetStartedCard({ state, adminConfig, setActiveTab, onOpenAdmin, 
               color: step.done ? "white" : "var(--text-muted)",
               border: step.done ? "none" : "2px solid var(--border-strong)",
             }}>
-              {step.done ? "✓" : step.num}
+              {step.done ? <Icon name="check" context="badge" /> : step.num}
             </div>
 
             {/* Label + detail */}

@@ -6,6 +6,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/lib/supabase.js";
+import { Icon } from "@/utils/iconMap.jsx";
 
 export function DeleteEventConfirm({ event, anchorRect, userId, onDeleted, onClose }) {
   const [typed,    setTyped]    = useState("");
@@ -71,7 +72,7 @@ export function DeleteEventConfirm({ event, anchorRect, userId, onDeleted, onClo
 
       {/* Overlay */}
       <div style={{ ...styles.overlay, top, left, width: overlayWidth }}>
-        <div style={styles.title}>⚠ Delete this event?</div>
+        <div style={styles.title}><Icon name="alertTriangle" context="alert" style={{ marginRight: 6 }} /> Delete this event?</div>
         <div style={styles.desc}>
           This permanently deletes all data for <strong>{confirmText}</strong>. This cannot be undone.
         </div>

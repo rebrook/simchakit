@@ -6,6 +6,7 @@
 
 import { useState } from "react";
 import { supabase } from "@/lib/supabase.js";
+import { Icon } from "@/utils/iconMap.jsx";
 
 const EVENT_TYPES = [
   { value: "bat-mitzvah",  label: "Bat Mitzvah" },
@@ -198,7 +199,7 @@ export function CreateEventForm({ userId, userEmail, onCreated, onCancel }) {
         marginTop:    12,
         lineHeight:   1.6,
       }}>
-        🔒 Once inside your dashboard, use the ⚙ gear icon to configure your event. Your default access code is <strong>admin</strong> and you can change it anytime.
+        <Icon name="lock" context="badge" style={{ marginRight: 4 }} /> Once inside your dashboard, use the settings icon to configure your event. Your default access code is <strong>admin</strong> and you can change it anytime.
       </div>
     </div>
   );

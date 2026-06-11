@@ -7,6 +7,7 @@
 
 import { useEffect, useState } from "react";
 import { supabase }            from "@/lib/supabase.js";
+import { Icon }                from "@/utils/iconMap.jsx";
 
 export function AuthCallback({ onComplete }) {
   const [error, setError] = useState(null);
@@ -56,7 +57,7 @@ export function AuthCallback({ onComplete }) {
       }}>
         {error ? (
           <>
-            <div style={{ fontSize: 36 }}>⚠️</div>
+            <div style={{ fontSize: 36 }}><Icon name="alertTriangle" context="empty" /></div>
             <div style={{
               fontFamily:  "var(--font-display)",
               fontSize:    18,

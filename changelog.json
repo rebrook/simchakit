@@ -1,9 +1,24 @@
 {
-  "current": "V4.0.5",
+  "current": "V4.0.6",
   "whatsNew": [
-    "Admin Mode fully converted to Lucide icons: settings, alerts, timeline, tabs, collaborators, and data management."
+    "Lucide icons applied to all shared components: GetStartedCard, PaywallGate, CreateEventForm, sign-in and callback pages, and delete confirmation.",
+    "Magic link success screen now shows a MailCheck icon instead of the mailbox emoji."
   ],
   "changelog": [
+    {
+      "version": "V4.0.6",
+      "date": "2026-06-11",
+      "type": "patch",
+      "title": "Lucide Icons: Shared Components and Auth",
+      "changes": [
+        "GetStartedCard.jsx: header emoji replaced with Hand/PartyPopper icons, training slides link with BookOpen, step checkmarks with Check icon. Event-type fallback emoji left as domain content.",
+        "PaywallGate.jsx: value bullet checkmarks, coupon validation check, and trust note lock replaced with Lucide icons.",
+        "CreateEventForm.jsx: trust note lock and settings reference replaced with Lucide icons.",
+        "AuthPage.jsx: magic link success state replaced with MailCheck icon at empty-state size tinted accent-primary. Trust note lock replaced with Lucide icon.",
+        "AuthCallback.jsx: error state warning replaced with AlertTriangle at empty-state size.",
+        "DeleteEventConfirm.jsx: warning title replaced with AlertTriangle icon."
+      ]
+    },
     {
       "version": "V4.0.5",
       "date": "2026-06-11",
