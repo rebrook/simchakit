@@ -299,7 +299,7 @@ const headerStyles = {
     minHeight:     60,
   },
   title: {
-    fontFamily: "\"Cormorant Garamond\", Georgia, serif",
+    fontFamily: "var(--font-display)",
     fontSize:   22,
     fontWeight: 600,
     color:      "var(--text-primary)",

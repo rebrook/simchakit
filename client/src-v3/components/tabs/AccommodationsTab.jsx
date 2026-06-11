@@ -123,7 +123,7 @@ export function AccommodationsTab({ eventId, event, adminConfig, showToast, isAr
               <div key={block.id} className="card">
                 <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
                   <div style={{ flex: 1, minWidth: 200 }}>
-                    <div style={{ fontFamily: "var(--font-display)", fontSize: 17, fontWeight: 600, color: "var(--text-primary)", marginBottom: 6 }}>
+                    <div style={{ fontSize: 17, fontWeight: 700, color: "var(--text-primary)", marginBottom: 6 }}>
                       <Icon name="hotel" context="inline" style={{ marginRight: 4 }} /> {block.name}
                     </div>
                     {block.groupCode && <div style={{ fontSize: 13, color: "var(--text-secondary)", marginBottom: 3 }}><strong>Group Code:</strong> {block.groupCode}</div>}

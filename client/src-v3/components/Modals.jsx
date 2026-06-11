@@ -48,7 +48,7 @@ export function GuideModal({ onClose }) {
               <div key={section.id} style={{ border:"1px solid var(--border)", borderRadius:"var(--radius-md)", marginBottom:12, overflow:"hidden" }}>
                 <button onClick={() => toggle(section.id)} style={{ width:"100%", display:"flex", alignItems:"center", gap:10, padding:"13px 18px", background:isCollapsed?"var(--bg-surface)":"var(--bg-subtle)", border:"none", cursor:"pointer", borderBottom:isCollapsed?"none":"1px solid var(--border)", transition:"background 0.15s ease", textAlign:"left" }}>
                   <span style={{ display:"inline-flex", alignItems:"center", justifyContent:"center", width:28, height:28, borderRadius:"var(--radius-sm)", background:section.colorLight, border:"1px solid var(--border)", flexShrink:0 }}><Icon name={section.icon} context="inline" /></span>
-                  <span style={{ fontFamily:"var(--font-display)", fontSize:15, fontWeight:600, color:"var(--text-primary)", flex:1 }}>{section.title}</span>
+                  <span style={{ fontSize:15, fontWeight:700, color:"var(--text-primary)", flex:1 }}>{section.title}</span>
                   <span style={{ color:"var(--text-muted)", transform:isCollapsed?"none":"rotate(180deg)", transition:"transform 0.2s ease", display:"inline-flex" }}><Icon name="chevronDown" context="inline" /></span>
                 </button>
                 {!isCollapsed && (
@@ -157,7 +157,7 @@ export function ActivityLogModal({ eventId, isArchived, onClose }) {
           ) : filtered.length === 0 ? (
             <div style={{ textAlign:"center", padding:"48px 24px", color:"var(--text-muted)", fontSize:13 }}>
               <div style={{ marginBottom:12 }}><Icon name="clipboardList" context="empty" /></div>
-              <div style={{ fontFamily:"var(--font-display)", fontSize:16, marginBottom:6, color:"var(--text-primary)" }}>
+              <div style={{ fontSize:16, fontWeight:700, marginBottom:6, color:"var(--text-primary)" }}>
                 {filterAction==="All" ? "No activity yet" : `No ${filterAction} entries`}
               </div>
               <div style={{ fontSize:12, lineHeight:1.6 }}>Changes to guests, expenses, vendors, tasks, and gifts will appear here.</div>

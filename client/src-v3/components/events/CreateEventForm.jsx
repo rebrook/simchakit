@@ -215,9 +215,8 @@ const styles = {
     boxShadow:    "var(--shadow-sm)",
   },
   title: {
-    fontFamily:   "var(--font-display)",
     fontSize:     16,
-    fontWeight:   600,
+    fontWeight:   700,
     color:        "var(--text-primary)",
     marginBottom: 14,
   },

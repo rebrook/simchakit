@@ -281,7 +281,7 @@ export function PrepTab({ eventId, event, adminConfig, showToast, isArchived, is
             marginBottom: 12, paddingBottom: 8,
             borderBottom: "2px solid var(--border)",
           }}>
-            <span style={{ fontFamily: "var(--font-display)", fontSize: 17, fontWeight: 700, color: "var(--text-primary)" }}>
+            <span style={{ fontSize: 17, fontWeight: 700, color: "var(--text-primary)" }}>
               {cat}
             </span>
             <span style={{
@@ -319,7 +319,7 @@ export function PrepTab({ eventId, event, adminConfig, showToast, isArchived, is
                   <div style={{ display: "flex", alignItems: "flex-start", gap: 10, marginBottom: 10 }}>
                     <div style={{ flex: 1 }}>
                       <span style={{
-                        fontFamily: "var(--font-display)", fontSize: 16, fontWeight: 600,
+                        fontSize: 16, fontWeight: 700,
                         color: "var(--text-primary)", lineHeight: 1.3,
                       }}>
                         {item.title || "Untitled"}

@@ -497,7 +497,7 @@ export function SeatingTab({ eventId, event, adminConfig, showToast, isArchived,
                       <div key={table.id} onClick={() => handleTableClick(table.id)} style={{ background: "var(--bg-surface)", border: isTarget ? "2px solid var(--accent-primary)" : "1px solid var(--border)", borderRadius: "var(--radius-md)", padding: 16, cursor: isTarget ? "pointer" : "default", transition: "border-color 0.15s, box-shadow 0.15s", boxShadow: isTarget ? "0 0 0 3px var(--accent-light)" : "none" }}>
                         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 10 }}>
                           <div>
-                            <div style={{ fontFamily: "var(--font-display)", fontSize: 17, fontWeight: 700, color: "var(--text-primary)" }}>{table.name}</div>
+                            <div style={{ fontSize: 17, fontWeight: 700, color: "var(--text-primary)" }}>{table.name}</div>
                             {isTarget
                               ? <span style={{ fontSize: 11, fontWeight: 700, padding: "2px 8px", borderRadius: 99, background: "var(--accent-light)", color: "var(--accent-primary)" }}><Icon name="plus" context="badge" style={{ marginRight: 2 }} /> Click to assign {selectedPerson ? (selectedPerson.firstName || getPersonDisplayName(selectedPerson).split(" ")[0]) : ""}</span>
                               : <span style={{ fontSize: 11, fontWeight: 700, padding: "2px 8px", borderRadius: 99, background: tb.bg, color: tb.color }}>{table.type}</span>}
@@ -542,7 +542,7 @@ export function SeatingTab({ eventId, event, adminConfig, showToast, isArchived,
           {(!isMobile || mobilePanel === "unseated") && (
             <div style={{ background: "var(--bg-surface)", border: "1px solid var(--border)", borderRadius: "var(--radius-md)", overflow: "hidden", position: isMobile ? "static" : "sticky", top: 80 }}>
               <div style={{ padding: "12px 14px", borderBottom: "1px solid var(--border)", background: "var(--bg-subtle)" }}>
-                <div style={{ fontFamily: "var(--font-display)", fontSize: 15, fontWeight: 700, color: "var(--text-primary)", marginBottom: 4 }}>Unseated ({unseated.length})</div>
+                <div style={{ fontSize: 15, fontWeight: 700, color: "var(--text-primary)", marginBottom: 4 }}>Unseated ({unseated.length})</div>
                 {tbdPeople.length > 0 && <div style={{ fontSize: 11, color: "var(--text-muted)", marginBottom: 6 }}>{tbdPeople.length} person{tbdPeople.length !== 1 ? "s" : ""} not yet confirmed</div>}
                 <input className="form-input" style={{ marginBottom: 6, fontSize: 12, padding: "5px 8px" }} placeholder="Search by name…" value={unseatedSearch} onChange={e => setUnseatedSearch(e.target.value)} />
                 <select className="form-select" style={{ fontSize: 12, padding: "5px 8px" }} value={unseatedGroup} onChange={e => setUnseatedGroup(e.target.value)}>
@@ -624,7 +624,7 @@ export function SeatingTab({ eventId, event, adminConfig, showToast, isArchived,
         <div className="modal-backdrop" onMouseDown={e => { if (e.target === e.currentTarget) setPrintHTML(null); }}>
           <div onClick={e => e.stopPropagation()} style={{ background: "var(--bg-surface)", borderRadius: "var(--radius-lg)", width: "95%", maxWidth: 960, height: "90vh", display: "flex", flexDirection: "column", boxShadow: "var(--shadow-lg)" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "14px 20px", borderBottom: "1px solid var(--border)", flexShrink: 0 }}>
-              <div style={{ fontFamily: "var(--font-display)", fontSize: 17, fontWeight: 700, color: "var(--text-primary)" }}>Print Preview — Seating Chart</div>
+              <div style={{ fontSize: 17, fontWeight: 700, color: "var(--text-primary)" }}>Print Preview — Seating Chart</div>
               <div style={{ display: "flex", gap: 8 }}>
                 <button className="btn btn-primary" style={{ fontSize: 12 }} onClick={() => { const f = document.getElementById("seating-print-frame"); if (f?.contentWindow) f.contentWindow.print(); }}><Icon name="printer" context="inline" style={{ marginRight: 4 }} /> Print</button>
                 <button className="icon-btn" title="Close" onClick={() => setPrintHTML(null)}><Icon name="x" context="button" /></button>

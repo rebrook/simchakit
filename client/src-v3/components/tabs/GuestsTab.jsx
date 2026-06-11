@@ -489,7 +489,7 @@ export function GuestsTab({ eventId, event, adminConfig, showToast, isArchived, 
         <div className="modal-backdrop" onMouseDown={e=>{if(e.target===e.currentTarget)setGuestPrintHTML(null);}}>
           <div onClick={e=>e.stopPropagation()} style={{background:"var(--bg-surface)",borderRadius:"var(--radius-lg)",width:"95%",maxWidth:960,height:"90vh",display:"flex",flexDirection:"column",boxShadow:"var(--shadow-lg)"}}>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"14px 20px",borderBottom:"1px solid var(--border)",flexShrink:0}}>
-              <div style={{fontFamily:"var(--font-display)",fontSize:17,fontWeight:700,color:"var(--text-primary)"}}>Print Preview — Guest List</div>
+              <div style={{fontSize:17,fontWeight:700,color:"var(--text-primary)"}}>Print Preview — Guest List</div>
               <div style={{display:"flex",gap:8}}>
                 <button className="btn btn-primary" style={{fontSize:12,display:"inline-flex",alignItems:"center",gap:4}} onClick={()=>{const f=document.getElementById("guest-print-frame");if(f?.contentWindow)f.contentWindow.print();}}><Icon name="printer" context="inline" /> Print</button>
                 <button className="icon-btn" title="Close" onClick={()=>setGuestPrintHTML(null)}><Icon name="x" context="button" /></button>

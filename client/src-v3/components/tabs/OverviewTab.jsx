@@ -359,7 +359,7 @@ export function OverviewTab({ eventId, event, adminConfig, showToast, setActiveT
             display: "flex", flexDirection: "column", boxShadow: "var(--shadow-lg)",
           }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "14px 20px", borderBottom: "1px solid var(--border)", flexShrink: 0 }}>
-              <div style={{ fontFamily: "var(--font-display)", fontSize: 17, fontWeight: 700, color: "var(--text-primary)" }}>
+              <div style={{ fontSize: 17, fontWeight: 700, color: "var(--text-primary)" }}>
                 Print Preview — Event Brief
               </div>
               <div style={{ display: "flex", gap: 8 }}>

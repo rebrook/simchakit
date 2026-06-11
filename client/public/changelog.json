@@ -1,11 +1,23 @@
 {
-  "current": "V4.0.7",
+  "current": "V4.1.0",
   "whatsNew": [
-    "Q1 Lucide icon migration complete. Every UI icon across all tabs, overlays, modals, and print exports now renders as a consistent SVG line icon.",
-    "Day-of overlay and print brief converted using the new iconSvg.js raw-HTML helper.",
-    "Domain content glyphs (event types, clergy, task templates) remain as emoji by design."
+    "Typography refinement: serif reserved for event names, countdown, and page titles. All functional UI text (nav, buttons, stat cards, chart headers, calendar labels) now uses the sans-serif body font for better legibility at small sizes.",
+    "Event name in the header bumped from 17px to 18px for improved serif rendering."
   ],
   "changelog": [
+    {
+      "version": "V4.1.0",
+      "date": "2026-06-11",
+      "type": "minor",
+      "title": "Typography: Reserve Serif for Emotional Moments",
+      "changes": [
+        "App.css: added governing typography rule as a comment by the font tokens. Serif (--font-display) is now reserved for event names, countdown, page/section titles, modal titles, and the auth wordmark. All functional text (nav, buttons, stat-card labels, table headers, chart titles, calendar labels, popover titles, vendor card names) uses --font-body.",
+        "App.css: removed --font-display from .card-title, .budget-chart-title, .vendor-card-name, .cal-month-heading, .cal-grid-month-label, and .cal-popover-title. Bumped font-weight to 700 on each to preserve heading hierarchy. Bumped .header-event-name from 17px to 18px (kept serif, as the event name is the primary identity string).",
+        "Component files: removed inline fontFamily: var(--font-display) from 17 functional headings below 18px across AccommodationsTab, CreateEventForm, DayOfOverlay, FavorsTab, GetStartedCard, GiftsTab, GuestsTab, Modals, OverviewTab, PrepTab, SeatingTab, and DeleteEventConfirm. Preserved font-weight: 700 on all de-serifed headings to prevent flattening.",
+        "App.v3.jsx: replaced hardcoded Cormorant Garamond font stack with var(--font-display) on the event picker wordmark.",
+        "Serif retained on: event names (.header-event-name at 18px), countdown (.countdown-title, .countdown-num), section titles (.section-title at 24px), modal titles (.modal-title), auth wordmark (32px), Day-of panel title (.dayof-panel-title at 18px), vendor quick view name (.vqv-header-name at 22px), placeholder title (48px), and all empty-state/page headings at 18px+ in component inline styles."
+      ]
+    },
     {
       "version": "V4.0.7",
       "date": "2026-06-11",

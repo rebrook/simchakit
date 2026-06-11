@@ -3,6 +3,18 @@
       --font-display: "Cormorant Garamond", Georgia, serif;
       --font-body:    "DM Sans", system-ui, sans-serif;
       --font-mono:    "DM Mono", monospace;
+      /*
+       * Typography rule (V4.1.0):
+       * --font-display (serif) is reserved for emotional/identity moments:
+       *   event names (everywhere), countdown, page/section titles (.section-title),
+       *   modal titles (.modal-title), placeholder titles, auth wordmark,
+       *   and the Day-of Mode panel title.
+       * Everything functional (nav labels, buttons, form labels, stat-card values,
+       *   stat-card labels, table headers, chart titles, calendar grid labels,
+       *   popover titles, vendor card names) uses --font-body, regardless of size.
+       * When in doubt: if it identifies the event or marks a ceremonial moment,
+       *   serif. If it labels UI chrome, sans.
+       */
 
       /* Light theme */
       --bg-base:       #faf8f5;
@@ -171,7 +183,7 @@
     }
     .header-event-name {
       font-family: var(--font-display);
-      font-size: 17px;
+      font-size: 18px;
       font-weight: 500;
       color: var(--accent-primary);
       font-style: italic;
@@ -329,9 +341,8 @@
       box-shadow: var(--shadow-sm);
     }
     .card-title {
-      font-family: var(--font-display);
       font-size: 18px;
-      font-weight: 600;
+      font-weight: 700;
       color: var(--text-primary);
       margin-bottom: 4px;
     }
@@ -1441,7 +1452,6 @@
       font-weight: 700;
       color: var(--text-primary);
       margin-bottom: 4px;
-      font-family: var(--font-display);
     }
     .budget-chart-subtitle {
       font-size: 11px;
@@ -1616,9 +1626,8 @@
       gap: 10px;
     }
     .vendor-card-name {
-      font-family: var(--font-display);
       font-size: 17px;
-      font-weight: 600;
+      font-weight: 700;
       color: var(--text-primary);
       line-height: 1.2;
     }
@@ -2222,9 +2231,8 @@
       margin-bottom: 28px;
     }
     .cal-month-heading {
-      font-family: var(--font-display);
       font-size: 16px;
-      font-weight: 600;
+      font-weight: 700;
       color: var(--text-primary);
       padding: 8px 0 10px;
       border-bottom: 2px solid var(--border);
@@ -2348,9 +2356,8 @@
       gap: 10px;
     }
     .cal-grid-month-label {
-      font-family: var(--font-display);
       font-size: 18px;
-      font-weight: 600;
+      font-weight: 700;
       color: var(--text-primary);
       min-width: 180px;
       text-align: center;
@@ -2456,9 +2463,8 @@
       to   { opacity: 1; transform: translateY(0);   }
     }
     .cal-popover-title {
-      font-family: var(--font-display);
       font-size: 15px;
-      font-weight: 600;
+      font-weight: 700;
       color: var(--text-primary);
       margin-bottom: 4px;
       line-height: 1.3;

@@ -85,7 +85,7 @@ export function GetStartedCard({ state, adminConfig, setActiveTab, onOpenAdmin, 
       {/* Header */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 }}>
         <div>
-          <div style={{ fontFamily: "var(--font-display)", fontSize: 17, fontWeight: 700, color: "var(--text-primary)", marginBottom: 3 }}>
+          <div style={{ fontSize: 17, fontWeight: 700, color: "var(--text-primary)", marginBottom: 3 }}>
             {allDone ? <><Icon name="partyPopper" context="inline" style={{ marginRight: 6 }} /> You're all set!</> : <><Icon name="hand" context="inline" style={{ marginRight: 6 }} /> Get Started</>}
           </div>
           <div style={{ fontSize: 12, color: "var(--text-muted)" }}>

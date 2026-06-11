@@ -627,7 +627,7 @@ export function DayOfOverlay({ eventId, event, adminConfig, onClose, onPrintBrie
         >
           {/* Preview header */}
           <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"14px 20px", borderBottom:"1px solid var(--border)", flexShrink:0 }}>
-            <div style={{ fontFamily:"var(--font-display)", fontSize:17, fontWeight:700, color:"var(--text-primary)" }}>
+            <div style={{ fontSize:17, fontWeight:700, color:"var(--text-primary)" }}>
               <Icon name="printer" context="inline" style={{ marginRight: 4 }} /> Print Event Brief
             </div>
             <div style={{ display:"flex", gap:8 }}>

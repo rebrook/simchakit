@@ -742,7 +742,7 @@ export function FavorsTab({
           {/* RIGHT: Available panel */}
           {(!isMobile || mobilePanel === "available") && <div style={{ background: "var(--bg-surface)", border: "1px solid var(--border)", borderRadius: "var(--radius-md)", overflow: "hidden", position: isMobile ? "static" : "sticky", top: 80 }}>
             <div style={{ padding: "12px 14px", borderBottom: "1px solid var(--border)", background: "var(--bg-subtle)" }}>
-              <div style={{ fontFamily: "var(--font-display)", fontSize: 15, fontWeight: 500, color: "var(--text-primary)", marginBottom: 8 }}>
+              <div style={{ fontSize: 15, fontWeight: 700, color: "var(--text-primary)", marginBottom: 8 }}>
                 Available ({availPool.length})
               </div>
               <input className="form-input" style={{ marginBottom: 6, fontSize: 12, padding: "5px 8px" }}
@@ -854,7 +854,7 @@ export function FavorsTab({
         <div className="modal-backdrop" onMouseDown={e => { if (e.target === e.currentTarget) { setPrintHTML(null); } }}>
           <div onClick={e => e.stopPropagation()} style={{ background: "var(--bg-surface)", borderRadius: "var(--radius-lg)", width: "95%", maxWidth: 960, height: "90vh", display: "flex", flexDirection: "column", boxShadow: "var(--shadow-lg)" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "14px 20px", borderBottom: "1px solid var(--border)", flexShrink: 0 }}>
-              <div style={{ fontFamily: "var(--font-display)", fontSize: 17, fontWeight: 500, color: "var(--text-primary)" }}>Print Preview — Favor List</div>
+              <div style={{ fontSize: 17, fontWeight: 700, color: "var(--text-primary)" }}>Print Preview — Favor List</div>
               <div style={{ display: "flex", gap: 8 }}>
                 <button className="btn btn-primary" style={{ fontSize: 12 }}
                   onClick={() => { const f = document.getElementById("favor-print-frame"); if (f?.contentWindow) f.contentWindow.print(); }}>

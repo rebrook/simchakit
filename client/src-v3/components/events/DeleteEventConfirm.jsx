@@ -135,9 +135,8 @@ const styles = {
     gap:          10,
   },
   title: {
-    fontFamily: "var(--font-display)",
     fontSize:   15,
-    fontWeight: 600,
+    fontWeight: 700,
     color:      "var(--red)",
   },
   desc: {
