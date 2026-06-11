@@ -13,6 +13,7 @@ import { MITZVAH_TYPES }      from "@/constants/events.js";
 import { PREP_CATEGORIES, PREP_STATUSES, PREP_STATUS_STYLES } from "@/constants/prep.js";
 import { newPrepId }          from "@/utils/ids.js";
 import { ArchivedNotice }     from "@/components/shared/ArchivedNotice.jsx";
+import { Icon }               from "@/utils/iconMap.jsx";
 import { TorahPortionCard }   from "@/components/shared/TorahPortionCard.jsx";
 
 // ── Status is the single source of truth; the progress bar is derived from it ──
@@ -231,7 +232,7 @@ export function PrepTab({ eventId, event, adminConfig, showToast, isArchived, is
           <div style={{ display: "flex", alignItems: "center", marginBottom: 14 }}>
             <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)", flex: 1 }}>Clergy & Tutor</div>
             {canEditClergy && (
-              <button className="btn btn-secondary btn-sm" style={{ fontSize: 12 }} onClick={() => setEditingClergy(true)}>✎ Edit</button>
+              <button className="btn btn-secondary btn-sm" style={{ fontSize: 12 }} onClick={() => setEditingClergy(true)}><Icon name="pencil" context="badge" style={{ marginRight: 4 }} /> Edit</button>
             )}
           </div>
           <div style={{ display: "flex", flexWrap: "wrap", gap: 16 }}>
@@ -254,7 +255,7 @@ export function PrepTab({ eventId, event, adminConfig, showToast, isArchived, is
       {/* Empty state */}
       {total === 0 && (
         <div style={{ textAlign: "center", padding: "60px 24px", color: "var(--text-muted)" }}>
-          <div style={{ fontSize: 36, marginBottom: 12 }}>📖</div>
+          <div style={{ fontSize: 36, marginBottom: 12 }}><Icon name="prep" context="empty" /></div>
           <div style={{ fontFamily: "var(--font-display)", fontSize: 20, color: "var(--text-primary)", marginBottom: 8 }}>
             No preparation items yet
           </div>
@@ -265,7 +266,7 @@ export function PrepTab({ eventId, event, adminConfig, showToast, isArchived, is
           </div>
           <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap" }}>
             {!isViewer && hasTemplate && (
-              <button className="btn btn-secondary" disabled={isArchived || isViewer} onClick={loadTemplate}>✦ Load Template</button>
+              <button className="btn btn-secondary" disabled={isArchived || isViewer} onClick={loadTemplate}><Icon name="wand" context="inline" style={{ marginRight: 4 }} /> Load Template</button>
             )}
             {!isViewer && <button className="btn btn-primary" onClick={() => setShowModal(true)}>+ Add First Item</button>}
           </div>
@@ -332,8 +333,8 @@ export function PrepTab({ eventId, event, adminConfig, showToast, isArchived, is
                       {item.status}
                     </span>
                     <div className="row-actions" style={{ display: "flex", gap: 4, flexShrink: 0 }}>
-                      <button className="icon-btn" title="Edit" disabled={isArchived || isViewer} onClick={() => setEditItem(item)}>✎</button>
-                      <button className="icon-btn icon-btn-danger" title="Delete" disabled={isArchived || isViewer} onClick={() => setDeleteConfirm(item.id)}>✕</button>
+                      <button className="icon-btn" title="Edit" disabled={isArchived || isViewer} onClick={() => setEditItem(item)}><Icon name="pencil" context="badge" /></button>
+                      <button className="icon-btn icon-btn-danger" title="Delete" disabled={isArchived || isViewer} onClick={() => setDeleteConfirm(item.id)}><Icon name="x" context="badge" /></button>
                     </div>
                   </div>
 
@@ -367,7 +368,7 @@ export function PrepTab({ eventId, event, adminConfig, showToast, isArchived, is
                   <div style={{ display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
                     {item.targetDate && (
                       <span style={{ fontSize: 12, color: dateCls }}>
-                        🎯 Target: {new Date(item.targetDate + "T00:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                        <Icon name="target" context="badge" style={{ marginRight: 3 }} /> Target: {new Date(item.targetDate + "T00:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
                         {dueLabel && (
                           <span style={{ fontWeight: 700, marginLeft: 6 }}>· {dueLabel}</span>
                         )}
@@ -375,7 +376,7 @@ export function PrepTab({ eventId, event, adminConfig, showToast, isArchived, is
                     )}
                     {item.completedDate && item.status === "Complete" && (
                       <span style={{ fontSize: 12, color: "var(--green)" }}>
-                        ✓ Completed: {new Date(item.completedDate + "T00:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                        <Icon name="check" context="badge" style={{ marginRight: 3 }} /> Completed: {new Date(item.completedDate + "T00:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
                       </span>
                     )}
                     {hasNotes && (
@@ -417,7 +418,7 @@ export function PrepTab({ eventId, event, adminConfig, showToast, isArchived, is
           <div className="modal" style={{ maxWidth: 400 }} onClick={e => e.stopPropagation()}>
             <div className="modal-header">
               <div className="modal-title">Delete Item</div>
-              <button className="icon-btn" title="Close" onClick={() => setDeleteConfirm(null)}>✕</button>
+              <button className="icon-btn" title="Close" onClick={() => setDeleteConfirm(null)}><Icon name="x" context="button" /></button>
             </div>
             <div className="modal-body">
               <p style={{ fontSize: 14, color: "var(--text-primary)", marginBottom: 4, lineHeight: 1.6 }}>
@@ -473,7 +474,7 @@ export function PrepModal({ item, onSave, onClose, isArchived }) {
       <div className="modal" style={{ maxWidth: 500 }} onClick={e => e.stopPropagation()}>
         <div className="modal-header">
           <div className="modal-title">{isEdit ? "Edit Preparation Item" : "Add Preparation Item"}</div>
-          <button className="icon-btn" title="Close" onClick={onClose}>✕</button>
+          <button className="icon-btn" title="Close" onClick={onClose}><Icon name="x" context="button" /></button>
         </div>
         <div className="modal-body">
           <div className="form-row">
@@ -556,10 +557,10 @@ function PrepContactCard({ label, icon, contact }) {
       {hasData ? (
         <>
           {contact.name  && <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text-primary)", marginBottom: 3 }}>{contact.name}</div>}
-          {contact.phone && <div style={{ fontSize: 12, color: "var(--text-secondary)", marginBottom: 2 }}>📞 {contact.phone}</div>}
+          {contact.phone && <div style={{ fontSize: 12, color: "var(--text-secondary)", marginBottom: 2 }}><Icon name="phone" context="badge" style={{ marginRight: 3 }} /> {contact.phone}</div>}
           {contact.email && (
             <div style={{ fontSize: 12, color: "var(--text-secondary)", marginBottom: 2 }}>
-              ✉ <a href={`mailto:${contact.email}`} style={{ color: "var(--accent-primary)", textDecoration: "none" }}>{contact.email}</a>
+              <Icon name="mail" context="badge" style={{ marginRight: 3 }} /> <a href={`mailto:${contact.email}`} style={{ color: "var(--accent-primary)", textDecoration: "none" }}>{contact.email}</a>
             </div>
           )}
           {contact.notes && <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 4, fontStyle: "italic", lineHeight: 1.5 }}>{contact.notes}</div>}
@@ -594,7 +595,7 @@ function ClergyEditAllModal({ adminConfig, isMitzvah, saving, onSave, onClose })
       <div className="modal" style={{ maxWidth: 500 }} onClick={e => e.stopPropagation()}>
         <div className="modal-header">
           <div className="modal-title">Edit Clergy & Tutor</div>
-          <button className="icon-btn" onClick={onClose}>✕</button>
+          <button className="icon-btn" onClick={onClose}><Icon name="x" context="button" /></button>
         </div>
         <div className="modal-body" style={{ maxHeight: "70vh", overflowY: "auto" }}>
           {sections.map((sec, idx) => (

@@ -1,10 +1,21 @@
 {
-  "current": "V4.0.2",
+  "current": "V4.0.3",
   "whatsNew": [
-    "Lucide icon system extended to Guests and Budget tabs.",
-    "RSVP banners, mailing toggles, contact icons, export modal, and budget view switcher all use consistent line icons."
+    "Lucide icon system extended to Prep, Ceremony Roles, and Seating tabs.",
+    "Drag grip handles, auto-seat indicators, and export modals now use consistent line icons."
   ],
   "changelog": [
+    {
+      "version": "V4.0.3",
+      "date": "2026-06-11",
+      "type": "patch",
+      "title": "Lucide Icons: Prep, Ceremony, Seating",
+      "changes": [
+        "PrepTab.jsx: replaced all UI chrome emoji with Lucide icons. Edit/delete buttons, target/complete date indicators, phone/email contact icons, empty state, Load Template button, delete confirm and modal close buttons. Clergy type icons (Star of David, musical score, book) left as domain content glyphs (deliberate).",
+        "CeremonyRolesTab.jsx: replaced all UI chrome emoji with Lucide icons. Drag grip handles (GripVertical), edit/delete buttons, Load Template buttons (Wand), empty state, delete confirm and role modal close buttons.",
+        "SeatingTab.jsx: replaced all UI chrome emoji with Lucide icons. Setup/Auto-Seat buttons, snowflake selection indicator, overcapacity warnings, mobile tip lightbulb, table card indicators, edit/delete buttons, auto-seat result checkmarks and warnings, export modal category icons, print button, copy confirmation. Timeline section icons left as domain content (entry.icon from admin_config)."
+      ]
+    },
     {
       "version": "V4.0.2",
       "date": "2026-06-11",

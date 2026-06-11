@@ -12,6 +12,7 @@ import { newTableId }         from "@/utils/ids.js";
 import { exportSeatingByTable, exportSeatingByPerson, generateSeatingPrintHTML } from "@/utils/exports.js";
 import { autoSeatByHousehold } from "@/utils/seating.js";
 import { ArchivedNotice }     from "@/components/shared/ArchivedNotice.jsx";
+import { Icon }               from "@/utils/iconMap.jsx";
 
 export function SeatingTab({ eventId, event, adminConfig, showToast, isArchived, isViewer, setActiveTab, searchHighlight, clearSearchHighlight }) {
   const { items: tables,     loading: tLoading, save: saveTable, remove: removeTable } = useEventData(eventId, "tables");
@@ -306,19 +307,19 @@ export function SeatingTab({ eventId, event, adminConfig, showToast, isArchived,
           <div className="section-title">Seating Chart</div>
           <div className="section-sub">
             {selectedPerson
-              ? <span style={{ color: "var(--accent-primary)", fontWeight: 600 }}>❆ {getPersonDisplayName(selectedPerson)} selected — click a table to assign</span>
+              ? <span style={{ color: "var(--accent-primary)", fontWeight: 600 }}><Icon name="snowflake" context="inline" style={{ marginRight: 4 }} /> {getPersonDisplayName(selectedPerson)} selected — click a table to assign</span>
               : activeSection
                 ? `Seating for: ${activeSection.icon||"📅"} ${activeSection.title}`
                 : "Configure seating setup below to get started."}
           </div>
         </div>
         <div style={{ display: "flex", gap: 8 }}>
-          <button className="btn btn-ghost btn-sm" onClick={() => setSetupOpen(o => !o)} style={{ fontSize: 12 }}>⚙ Setup</button>
+          <button className="btn btn-ghost btn-sm" onClick={() => setSetupOpen(o => !o)} style={{ fontSize: 12 }}><Icon name="settings" context="badge" style={{ marginRight: 4 }} /> Setup</button>
           {hasSeating && sectionId && (sortedTables.length > 0 || scopedPeople.length > 0) && (
             <button className="btn btn-secondary" onClick={() => setShowExportModal(true)}>↓ Export Seating</button>
           )}
           {hasSeating && sectionId && unseated.length > 0 && sortedTables.length > 0 && !isArchived && !isViewer && (
-            <button className="btn btn-secondary" onClick={() => setShowAutoSeat(true)}>✨ Auto-Seat</button>
+            <button className="btn btn-secondary" onClick={() => setShowAutoSeat(true)}><Icon name="sparkles" context="inline" style={{ marginRight: 4 }} /> Auto-Seat</button>
           )}
           {hasSeating && sectionId && (
             <button className="btn btn-primary" disabled={isArchived || isViewer} onClick={() => setShowTableModal(true)}>+ Add Table</button>
@@ -330,7 +331,7 @@ export function SeatingTab({ eventId, event, adminConfig, showToast, isArchived,
       <div style={{ marginBottom: 20, background: "var(--bg-surface)", border: "1px solid var(--border)", borderRadius: "var(--radius-md)", overflow: "hidden" }}>
         <div onClick={() => setSetupOpen(o => !o)} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 16px", cursor: "pointer", background: "var(--bg-subtle)", borderBottom: setupOpen ? "1px solid var(--border)" : "none" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <span style={{ fontSize: 15 }}>⚙</span>
+            <span style={{ fontSize: 15 }}><Icon name="settings" context="inline" /></span>
             <div>
               <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)" }}>Seating Setup</div>
               {!setupOpen && (
@@ -413,7 +414,7 @@ export function SeatingTab({ eventId, event, adminConfig, showToast, isArchived,
       {/* Gated content */}
       {(!hasSeating || enabledSections.length === 0) ? (
         <div style={{ textAlign: "center", padding: "48px 24px", color: "var(--text-muted)", background: "var(--bg-surface)", borderRadius: "var(--radius-md)", border: "1px solid var(--border)" }}>
-          <div style={{ fontSize: 36, marginBottom: 12 }}>🪑</div>
+          <div style={{ fontSize: 36, marginBottom: 12 }}><Icon name="seating" context="empty" /></div>
           <div style={{ fontFamily: "var(--font-display)", fontSize: 18, color: "var(--text-primary)", marginBottom: 8 }}>
             {!hasSeating ? "Assigned seating is off" : "No sub-events selected"}
           </div>
@@ -438,7 +439,7 @@ export function SeatingTab({ eventId, event, adminConfig, showToast, isArchived,
           return (
             <div style={{ fontSize: 12, color: "var(--text-muted)", marginBottom: 16, display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
               <span>{tables.length} table{tables.length !== 1 ? "s" : ""} · {totalSeats} seat{totalSeats !== 1 ? "s" : ""} · {seated} seated · {unseated.length} unseated</span>
-              {over.length > 0 && <span style={{ color: "var(--red)", fontWeight: 600 }}>· ⚠ {over.length === 1 ? `${over[0].name} is` : `${over.length} tables are`} over capacity</span>}
+              {over.length > 0 && <span style={{ color: "var(--red)", fontWeight: 600 }}>· <Icon name="alertTriangle" context="badge" style={{ marginRight: 2 }} /> {over.length === 1 ? `${over[0].name} is` : `${over.length} tables are`} over capacity</span>}
             </div>
           );
         })()}
@@ -446,14 +447,14 @@ export function SeatingTab({ eventId, event, adminConfig, showToast, isArchived,
         {/* Mobile desktop recommendation */}
         {isMobile && (
           <div style={{ background: "var(--bg-surface)", border: "1px solid var(--border)", borderRadius: "var(--radius-md)", padding: "10px 14px", marginBottom: 12, fontSize: 13, color: "var(--text-muted)", display: "flex", alignItems: "center", gap: 8 }}>
-            💡 For the best experience, seating charts are easiest to manage on a desktop or tablet.
+            <Icon name="lightbulb" context="inline" style={{ marginRight: 4 }} /> For the best experience, seating charts are easiest to manage on a desktop or tablet.
           </div>
         )}
 
         {/* Mobile tab switcher */}
         {isMobile && (
           <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
-            <button className={`btn ${mobilePanel === "tables" ? "btn-primary" : "btn-ghost"}`} style={{ flex: 1 }} onClick={() => setMobilePanel("tables")}>🪑 Tables ({tables.length})</button>
+            <button className={`btn ${mobilePanel === "tables" ? "btn-primary" : "btn-ghost"}`} style={{ flex: 1 }} onClick={() => setMobilePanel("tables")}><Icon name="seating" context="inline" style={{ marginRight: 4 }} /> Tables ({tables.length})</button>
             <button className={`btn ${mobilePanel === "unseated" ? "btn-primary" : "btn-ghost"}`} style={{ flex: 1 }} onClick={() => setMobilePanel("unseated")}>Unseated ({unseated.length})</button>
           </div>
         )}
@@ -466,7 +467,7 @@ export function SeatingTab({ eventId, event, adminConfig, showToast, isArchived,
             <div>
               {tables.length === 0 ? (
                 <div style={{ textAlign: "center", padding: "60px 24px", color: "var(--text-muted)", background: "var(--bg-surface)", borderRadius: "var(--radius-md)", border: "1px solid var(--border)" }}>
-                  <div style={{ fontSize: 36, marginBottom: 12 }}>🪑</div>
+                  <div style={{ fontSize: 36, marginBottom: 12 }}><Icon name="seating" context="empty" /></div>
                   <div style={{ fontFamily: "var(--font-display)", fontSize: 20, color: "var(--text-primary)", marginBottom: 8 }}>No tables yet</div>
                   <div style={{ fontSize: 14, marginBottom: 24 }}>Add tables to start building your seating chart{activeSection ? ` for ${activeSection.icon||""} ${activeSection.title}` : ""}.</div>
                   <button className="btn btn-primary" onClick={() => setShowTableModal(true)}>+ Add First Table</button>
@@ -498,15 +499,15 @@ export function SeatingTab({ eventId, event, adminConfig, showToast, isArchived,
                           <div>
                             <div style={{ fontFamily: "var(--font-display)", fontSize: 17, fontWeight: 700, color: "var(--text-primary)" }}>{table.name}</div>
                             {isTarget
-                              ? <span style={{ fontSize: 11, fontWeight: 700, padding: "2px 8px", borderRadius: 99, background: "var(--accent-light)", color: "var(--accent-primary)" }}>✦ Click to assign {selectedPerson ? (selectedPerson.firstName || getPersonDisplayName(selectedPerson).split(" ")[0]) : ""}</span>
+                              ? <span style={{ fontSize: 11, fontWeight: 700, padding: "2px 8px", borderRadius: 99, background: "var(--accent-light)", color: "var(--accent-primary)" }}><Icon name="plus" context="badge" style={{ marginRight: 2 }} /> Click to assign {selectedPerson ? (selectedPerson.firstName || getPersonDisplayName(selectedPerson).split(" ")[0]) : ""}</span>
                               : <span style={{ fontSize: 11, fontWeight: 700, padding: "2px 8px", borderRadius: 99, background: tb.bg, color: tb.color }}>{table.type}</span>}
                           </div>
                           <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                             <span style={{ fontSize: 12, fontWeight: 700, color: isOver ? "var(--red)" : "var(--text-secondary)" }}>{filled}/{cap}</span>
                             <button className="icon-btn" title="Move up" style={{ fontSize: 12, opacity: tableIndex === 0 ? 0.3 : 1 }} disabled={isArchived || tableIndex === 0} onClick={e => { e.stopPropagation(); handleMoveTable(table.id, "up"); }}>↑</button>
                             <button className="icon-btn" title="Move down" style={{ fontSize: 12, opacity: tableIndex === lastIndex ? 0.3 : 1 }} disabled={isArchived || tableIndex === lastIndex} onClick={e => { e.stopPropagation(); handleMoveTable(table.id, "down"); }}>↓</button>
-                            <button className="icon-btn" title="Edit" disabled={isArchived} onClick={e => { e.stopPropagation(); setEditTable(table); }}>✎</button>
-                            <button className="icon-btn icon-btn-danger" title="Delete" disabled={isArchived} onClick={e => { e.stopPropagation(); setDeleteConfirm(table); }}>✕</button>
+                            <button className="icon-btn" title="Edit" disabled={isArchived} onClick={e => { e.stopPropagation(); setEditTable(table); }}><Icon name="pencil" context="badge" /></button>
+                            <button className="icon-btn icon-btn-danger" title="Delete" disabled={isArchived} onClick={e => { e.stopPropagation(); setDeleteConfirm(table); }}><Icon name="x" context="button" /></button>
                           </div>
                         </div>
                         <div style={{ height: 5, background: "var(--bg-muted)", borderRadius: 99, overflow: "hidden", marginBottom: 10 }}>
@@ -522,7 +523,7 @@ export function SeatingTab({ eventId, event, adminConfig, showToast, isArchived,
                                 {members.map(p => (
                                   <div key={p.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "2px 4px", borderRadius: 4, fontSize: 13 }}>
                                     <span style={{ color: "var(--text-primary)" }}>{getPersonDisplayName(p)}</span>
-                                    <button className="icon-btn icon-btn-danger" style={{ padding: "1px 3px", fontSize: 10 }} onClick={e => { e.stopPropagation(); unassignPerson(p.id); }}>✕</button>
+                                    <button className="icon-btn icon-btn-danger" style={{ padding: "1px 3px", fontSize: 10 }} onClick={e => { e.stopPropagation(); unassignPerson(p.id); }}><Icon name="x" context="button" /></button>
                                   </div>
                                 ))}
                               </div>
@@ -557,7 +558,7 @@ export function SeatingTab({ eventId, event, adminConfig, showToast, isArchived,
                         <div style={{ marginBottom: 8 }}>No confirmed attendees for this sub-event yet.</div>
                         <div style={{ fontSize: 12, lineHeight: 1.6 }}>Go to the <button onClick={() => setActiveTab && setActiveTab("guests")} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--accent-primary)", fontWeight: 700, fontSize: 12, padding: 0, textDecoration: "underline" }}>Guests tab</button> and confirm per-person attendance.</div>
                       </div>
-                    ) : unseated.length === 0 ? "Everyone is seated! 🎉" : "No matching people."}
+                    ) : unseated.length === 0 ? <>Everyone is seated! <Icon name="partyPopper" context="inline" /></> : "No matching people."}
                   </div>
                 ) : (
                   unseatedFiltered.map(p => {
@@ -595,7 +596,7 @@ export function SeatingTab({ eventId, event, adminConfig, showToast, isArchived,
         return (
           <div className="modal-backdrop" onMouseDown={e => { if (e.target === e.currentTarget) setDeleteConfirm(null); }}>
             <div className="modal" style={{ maxWidth: 400 }} onClick={e => e.stopPropagation()}>
-              <div className="modal-header"><div className="modal-title">Delete Table</div><button className="icon-btn" title="Close" onClick={() => setDeleteConfirm(null)}>✕</button></div>
+              <div className="modal-header"><div className="modal-title">Delete Table</div><button className="icon-btn" title="Close" onClick={() => setDeleteConfirm(null)}><Icon name="x" context="button" /></button></div>
               <div className="modal-body">
                 <p style={{ fontSize: 14, color: "var(--text-primary)", lineHeight: 1.6, marginBottom: 4 }}>
                   Permanently delete <strong>{deleteConfirm.name}</strong>?
@@ -625,8 +626,8 @@ export function SeatingTab({ eventId, event, adminConfig, showToast, isArchived,
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "14px 20px", borderBottom: "1px solid var(--border)", flexShrink: 0 }}>
               <div style={{ fontFamily: "var(--font-display)", fontSize: 17, fontWeight: 700, color: "var(--text-primary)" }}>Print Preview — Seating Chart</div>
               <div style={{ display: "flex", gap: 8 }}>
-                <button className="btn btn-primary" style={{ fontSize: 12 }} onClick={() => { const f = document.getElementById("seating-print-frame"); if (f?.contentWindow) f.contentWindow.print(); }}>🖨 Print</button>
-                <button className="icon-btn" title="Close" onClick={() => setPrintHTML(null)}>✕</button>
+                <button className="btn btn-primary" style={{ fontSize: 12 }} onClick={() => { const f = document.getElementById("seating-print-frame"); if (f?.contentWindow) f.contentWindow.print(); }}><Icon name="printer" context="inline" style={{ marginRight: 4 }} /> Print</button>
+                <button className="icon-btn" title="Close" onClick={() => setPrintHTML(null)}><Icon name="x" context="button" /></button>
               </div>
             </div>
             <iframe id="seating-print-frame" srcDoc={printHTML} style={{ flex: 1, border: "none", borderRadius: "0 0 var(--radius-lg) var(--radius-lg)" }} title="Seating Chart Print Preview" />
@@ -638,13 +639,13 @@ export function SeatingTab({ eventId, event, adminConfig, showToast, isArchived,
       {showAutoSeat && (
         <div className="modal-backdrop" onMouseDown={e => { if (e.target === e.currentTarget) setShowAutoSeat(false); }}>
           <div onClick={e => e.stopPropagation()} style={{ background: "var(--bg-surface)", borderRadius: "var(--radius-lg)", width: "90%", maxWidth: 480, padding: "28px", boxShadow: "var(--shadow-lg)" }}>
-            <div style={{ fontFamily: "var(--font-display)", fontSize: 18, fontWeight: 700, color: "var(--text-primary)", marginBottom: 12 }}>✨ Auto-Seat Guests</div>
+            <div style={{ fontFamily: "var(--font-display)", fontSize: 18, fontWeight: 700, color: "var(--text-primary)", marginBottom: 12 }}><Icon name="sparkles" context="inline" style={{ marginRight: 6 }} /> Auto-Seat Guests</div>
             <p style={{ fontSize: 14, color: "var(--text-secondary)", lineHeight: 1.6, marginBottom: 8 }}>
               SimchaKit will assign all <strong>{unseated.length} unseated guest{unseated.length !== 1 ? "s" : ""}</strong> to available tables, keeping households together where possible. Guests already assigned to tables will not be moved.
             </p>
             {sortedTables.some(t => t.type === "kids") && (
               <p style={{ fontSize: 13, color: "var(--text-muted)", marginBottom: 8 }}>
-                👧 Kids will be assigned to kids tables, adults to adult tables.
+                <Icon name="info" context="inline" style={{ marginRight: 4 }} /> Kids will be assigned to kids tables, adults to adult tables.
               </p>
             )}
             <p style={{ fontSize: 13, color: "var(--text-muted)", marginBottom: 20 }}>
@@ -662,14 +663,14 @@ export function SeatingTab({ eventId, event, adminConfig, showToast, isArchived,
       {autoSeatResult && (
         <div className="modal-backdrop" onMouseDown={e => { if (e.target === e.currentTarget) setAutoSeatResult(null); }}>
           <div onClick={e => e.stopPropagation()} style={{ background: "var(--bg-surface)", borderRadius: "var(--radius-lg)", width: "90%", maxWidth: 480, padding: "28px", boxShadow: "var(--shadow-lg)" }}>
-            <div style={{ fontFamily: "var(--font-display)", fontSize: 18, fontWeight: 700, color: "var(--text-primary)", marginBottom: 16 }}>✨ Auto-Seat Complete</div>
+            <div style={{ fontFamily: "var(--font-display)", fontSize: 18, fontWeight: 700, color: "var(--text-primary)", marginBottom: 16 }}><Icon name="sparkles" context="inline" style={{ marginRight: 6 }} /> Auto-Seat Complete</div>
             <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 14px", background: "var(--green-light)", border: "1px solid var(--green)", borderRadius: "var(--radius-md)", marginBottom: 12 }}>
-              <span style={{ fontSize: 18 }}>✓</span>
+              <span style={{ fontSize: 18 }}><Icon name="check" context="menu" /></span>
               <span style={{ fontSize: 14, color: "var(--green)", fontWeight: 600 }}>{autoSeatResult.seatedCount} guest{autoSeatResult.seatedCount !== 1 ? "s" : ""} seated automatically</span>
             </div>
             {autoSeatResult.splits.length > 0 && (
               <div style={{ padding: "10px 14px", background: "var(--gold-light)", border: "1px solid var(--gold)", borderRadius: "var(--radius-md)", marginBottom: 12 }}>
-                <div style={{ fontSize: 13, fontWeight: 600, color: "var(--gold)", marginBottom: 4 }}>⚠ {autoSeatResult.splits.length} household{autoSeatResult.splits.length !== 1 ? "s" : ""} split across tables</div>
+                <div style={{ fontSize: 13, fontWeight: 600, color: "var(--gold)", marginBottom: 4 }}><Icon name="alertTriangle" context="inline" style={{ marginRight: 3 }} /> {autoSeatResult.splits.length} household{autoSeatResult.splits.length !== 1 ? "s" : ""} split across tables</div>
                 <div style={{ maxHeight: 120, overflowY: "auto" }}>
                   {autoSeatResult.splits.map((s, i) => (
                     <div key={i} style={{ fontSize: 12, color: "var(--text-secondary)" }}>{s.householdName}</div>
@@ -679,7 +680,7 @@ export function SeatingTab({ eventId, event, adminConfig, showToast, isArchived,
             )}
             {autoSeatResult.unplaced.length > 0 && (
               <div style={{ padding: "10px 14px", background: "var(--red-light)", border: "1px solid var(--red)", borderRadius: "var(--radius-md)", marginBottom: 12 }}>
-                <div style={{ fontSize: 13, fontWeight: 600, color: "var(--red)", marginBottom: 4 }}>⚠ {autoSeatResult.unplaced.length} guest{autoSeatResult.unplaced.length !== 1 ? "s" : ""} could not be placed — not enough remaining seat capacity</div>
+                <div style={{ fontSize: 13, fontWeight: 600, color: "var(--red)", marginBottom: 4 }}><Icon name="alertTriangle" context="inline" style={{ marginRight: 3 }} /> {autoSeatResult.unplaced.length} guest{autoSeatResult.unplaced.length !== 1 ? "s" : ""} could not be placed — not enough remaining seat capacity</div>
                 <div style={{ maxHeight: 200, overflowY: "auto" }}>
                   {autoSeatResult.unplaced.map((u, i) => (
                     <div key={i} style={{ fontSize: 12, color: "var(--text-secondary)" }}>{u.personName}</div>
@@ -688,7 +689,7 @@ export function SeatingTab({ eventId, event, adminConfig, showToast, isArchived,
               </div>
             )}
             {autoSeatResult.splits.length === 0 && autoSeatResult.unplaced.length === 0 && (
-              <div style={{ fontSize: 13, color: "var(--text-muted)" }}>✓ All households seated together with no splits.</div>
+              <div style={{ fontSize: 13, color: "var(--text-muted)" }}><Icon name="check" context="inline" style={{ marginRight: 3 }} /> All households seated together with no splits.</div>
             )}
             <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 20 }}>
               <button className="btn btn-primary" onClick={() => setAutoSeatResult(null)}>Done</button>
@@ -730,7 +731,7 @@ export function AssignModal({ table, tables, people, households, sectionId, getP
   return (
     <div className="modal-backdrop" onMouseDown={e => { if (e.target === e.currentTarget) onClose(); }}>
       <div className="modal" style={{ maxWidth: 540 }} onClick={e => e.stopPropagation()}>
-        <div className="modal-header"><div className="modal-title">Manage — {table.name}</div><button className="icon-btn" title="Close" onClick={onClose}>✕</button></div>
+        <div className="modal-header"><div className="modal-title">Manage — {table.name}</div><button className="icon-btn" title="Close" onClick={onClose}><Icon name="x" context="button" /></button></div>
         <div className="modal-body">
           <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
             <span style={{ fontSize: 13, color: "var(--text-secondary)" }}>{assigned.length} of {cap} seats filled</span>
@@ -748,7 +749,7 @@ export function AssignModal({ table, tables, people, households, sectionId, getP
                     {members.map(p => (
                       <div key={p.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "5px 10px", borderTop: "1px solid var(--border)" }}>
                         <span style={{ fontSize: 13 }}>{getPersonDisplayName(p)}</span>
-                        <button className="icon-btn icon-btn-danger" onClick={() => onUnassign(p.id)} title="Unassign">✕</button>
+                        <button className="icon-btn icon-btn-danger" onClick={() => onUnassign(p.id)} title="Unassign"><Icon name="x" context="button" /></button>
                       </div>
                     ))}
                   </div>
@@ -797,7 +798,7 @@ export function TableModal({ table, tableCount, onSave, onClose, isArchived }) {
   return (
     <div className="modal-backdrop" onMouseDown={e => { if (e.target === e.currentTarget) onClose(); }}>
       <div className="modal" style={{ maxWidth: 420 }} onClick={e => e.stopPropagation()}>
-        <div className="modal-header"><div className="modal-title">{isEdit ? "Edit Table" : "Add Table"}</div><button className="icon-btn" title="Close" onClick={onClose}>✕</button></div>
+        <div className="modal-header"><div className="modal-title">{isEdit ? "Edit Table" : "Add Table"}</div><button className="icon-btn" title="Close" onClick={onClose}><Icon name="x" context="button" /></button></div>
         <div className="modal-body">
           <div className="form-row">
             <label className="form-label">Table Name *</label>
@@ -844,19 +845,19 @@ export function SeatingExportModal({ tables, people, households, adminConfig, se
   return (
     <div className="modal-backdrop" onMouseDown={e => { if (e.target === e.currentTarget) onClose(); }}>
       <div className="modal modal-lg" style={{ maxWidth: 560 }} onClick={e => e.stopPropagation()}>
-        <div className="modal-header"><div className="modal-title">Export Seating Chart</div><button className="icon-btn" title="Close" onClick={onClose}>✕</button></div>
+        <div className="modal-header"><div className="modal-title">Export Seating Chart</div><button className="icon-btn" title="Close" onClick={onClose}><Icon name="x" context="button" /></button></div>
         <div className="modal-body">
           <div style={{ display: "flex", gap: 10, marginBottom: 20 }}>
-            <button style={OPTION(activeExport === "byTable")} onClick={() => { setActiveExport("byTable"); setCopied(false); }}><div style={{ fontSize: 20, marginBottom: 6 }}>📋</div><div style={{ fontWeight: 700, fontSize: 13, color: "var(--text-primary)", marginBottom: 4 }}>By Table</div><div style={{ fontSize: 11, color: "var(--text-muted)", lineHeight: 1.5 }}>Tables as columns, names listed underneath. Best for venue staff and day-of binders.</div></button>
-            <button style={OPTION(activeExport === "byPerson")} onClick={() => { setActiveExport("byPerson"); setCopied(false); }}><div style={{ fontSize: 20, marginBottom: 6 }}>👤</div><div style={{ fontWeight: 700, fontSize: 13, color: "var(--text-primary)", marginBottom: 4 }}>By Person</div><div style={{ fontSize: 11, color: "var(--text-muted)", lineHeight: 1.5 }}>One row per person with table, household, group, and meal. Best for planning and catering.</div></button>
-            <button style={OPTION(false)} onClick={handlePrint}><div style={{ fontSize: 20, marginBottom: 6 }}>🖨</div><div style={{ fontWeight: 700, fontSize: 13, color: "var(--text-primary)", marginBottom: 4 }}>Printable View</div><div style={{ fontSize: 11, color: "var(--text-muted)", lineHeight: 1.5 }}>Grouped by table with names, household, group, meal, and dietary flags. Print-ready.</div></button>
+            <button style={OPTION(activeExport === "byTable")} onClick={() => { setActiveExport("byTable"); setCopied(false); }}><div style={{ fontSize: 20, marginBottom: 6 }}><Icon name="clipboardList" context="button" /></div><div style={{ fontWeight: 700, fontSize: 13, color: "var(--text-primary)", marginBottom: 4 }}>By Table</div><div style={{ fontSize: 11, color: "var(--text-muted)", lineHeight: 1.5 }}>Tables as columns, names listed underneath. Best for venue staff and day-of binders.</div></button>
+            <button style={OPTION(activeExport === "byPerson")} onClick={() => { setActiveExport("byPerson"); setCopied(false); }}><div style={{ fontSize: 20, marginBottom: 6 }}><Icon name="people" context="button" /></div><div style={{ fontWeight: 700, fontSize: 13, color: "var(--text-primary)", marginBottom: 4 }}>By Person</div><div style={{ fontSize: 11, color: "var(--text-muted)", lineHeight: 1.5 }}>One row per person with table, household, group, and meal. Best for planning and catering.</div></button>
+            <button style={OPTION(false)} onClick={handlePrint}><div style={{ fontSize: 20, marginBottom: 6 }}><Icon name="printer" context="button" /></div><div style={{ fontWeight: 700, fontSize: 13, color: "var(--text-primary)", marginBottom: 4 }}>Printable View</div><div style={{ fontSize: 11, color: "var(--text-muted)", lineHeight: 1.5 }}>Grouped by table with names, household, group, meal, and dietary flags. Print-ready.</div></button>
           </div>
           {activeExport && (<>
             <div className="alert alert-info" style={{ marginBottom: 10 }}>{activeExport === "byTable" ? "Copy the CSV and paste into Excel. Tables appear as columns." : "Copy the CSV and paste into Excel. One row per person."}</div>
             <textarea readOnly value={csvContent} onClick={e => e.target.select()} style={{ width: "100%", minHeight: 180, background: "var(--bg-subtle)", border: "1px solid var(--border)", borderRadius: "var(--radius-sm)", padding: 10, fontFamily: "var(--font-mono, monospace)", fontSize: 11, resize: "vertical" }} />
             <div className="modal-footer" style={{ marginTop: 12 }}>
               <button className="btn btn-ghost" onClick={onClose}>Close</button>
-              <button className="btn btn-primary" onClick={() => navigator.clipboard.writeText(csvContent).then(() => { setCopied(true); setTimeout(() => setCopied(false), 2000); })}>{copied ? "✓ Copied!" : "Copy to Clipboard"}</button>
+              <button className="btn btn-primary" onClick={() => navigator.clipboard.writeText(csvContent).then(() => { setCopied(true); setTimeout(() => setCopied(false), 2000); })}>{copied ? <><Icon name="check" context="badge" /> Copied!</> : "Copy to Clipboard"}</button>
             </div>
           </>)}
           {!activeExport && <div className="modal-footer"><button className="btn btn-ghost" onClick={onClose}>Cancel</button></div>}

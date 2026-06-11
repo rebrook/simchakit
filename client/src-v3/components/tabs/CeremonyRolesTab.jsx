@@ -19,6 +19,7 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import { supabase }      from "@/lib/supabase.js";
 import { ArchivedNotice } from "@/components/shared/ArchivedNotice.jsx";
+import { Icon }            from "@/utils/iconMap.jsx";
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 function newRoleId() { return "cr_" + Date.now() + "_" + Math.random().toString(36).slice(2, 7); }
@@ -150,7 +151,7 @@ function SortableRoleRow({ role, idx, total, isMobile, isReadOnly, moveRole, set
     return (
       <div ref={setNodeRef} style={{ ...style, padding: "12px 10px 12px 0", borderBottom: idx < total - 1 ? "1px solid var(--border)" : "none", borderLeft: rowBorder, background: rowBg, display: "flex", gap: 6, alignItems: "flex-start" }}>
         {!isReadOnly && (
-          <div {...attributes} {...listeners} style={{ ...gripStyle, padding: "2px 6px", flexShrink: 0 }}>⠿</div>
+          <div {...attributes} {...listeners} style={{ ...gripStyle, padding: "2px 6px", flexShrink: 0 }}><Icon name="grip" context="badge" /></div>
         )}
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ fontWeight: 600, fontSize: 13, color: "var(--text-primary)", marginBottom: 2 }}>{role.role}</div>
@@ -163,8 +164,8 @@ function SortableRoleRow({ role, idx, total, isMobile, isReadOnly, moveRole, set
         <div style={{ display: "flex", gap: 4, flexShrink: 0 }}>
           <button className="icon-btn" onClick={() => moveRole(role.id, "up")} disabled={isReadOnly || idx === 0} style={{ fontSize: 11 }}>↑</button>
           <button className="icon-btn" onClick={() => moveRole(role.id, "down")} disabled={isReadOnly || idx === total - 1} style={{ fontSize: 11 }}>↓</button>
-          <button className="icon-btn" disabled={isReadOnly} onClick={() => !isReadOnly && setEditRole(role)}>✎</button>
-          <button className="icon-btn" disabled={isReadOnly} onClick={() => !isReadOnly && setDeleteConfirm(role.id)}>✕</button>
+          <button className="icon-btn" disabled={isReadOnly} onClick={() => !isReadOnly && setEditRole(role)}><Icon name="pencil" context="badge" /></button>
+          <button className="icon-btn" disabled={isReadOnly} onClick={() => !isReadOnly && setDeleteConfirm(role.id)}><Icon name="x" context="badge" /></button>
         </div>
       </div>
     );
@@ -174,7 +175,7 @@ function SortableRoleRow({ role, idx, total, isMobile, isReadOnly, moveRole, set
   return (
     <div ref={setNodeRef} style={{ ...style, display: "grid", gridTemplateColumns: GRID_COLS, alignItems: "center", borderBottom: "1px solid var(--border)", borderLeft: rowBorder, background: rowBg, fontSize: 13 }}>
       <div {...attributes} {...listeners} style={gripStyle}>
-        {!isReadOnly && "⠿"}
+        {!isReadOnly && <Icon name="grip" context="badge" />}
       </div>
       <div style={{ padding: "10px 14px", fontWeight: 600, color: "var(--text-primary)" }}>{role.role}</div>
       <div style={{ padding: "10px 14px" }}>
@@ -185,8 +186,8 @@ function SortableRoleRow({ role, idx, total, isMobile, isReadOnly, moveRole, set
       <div style={{ padding: "10px 14px", display: "flex", gap: 4, justifyContent: "flex-end" }}>
         <button className="icon-btn" style={{ fontSize: 11 }} onClick={() => moveRole(role.id, "up")} disabled={isReadOnly || idx === 0}>↑</button>
         <button className="icon-btn" style={{ fontSize: 11 }} onClick={() => moveRole(role.id, "down")} disabled={isReadOnly || idx === total - 1}>↓</button>
-        <button className="icon-btn" disabled={isReadOnly} onClick={() => !isReadOnly && setEditRole(role)}>✎</button>
-        <button className="icon-btn" disabled={isReadOnly} onClick={() => !isReadOnly && setDeleteConfirm(role.id)}>✕</button>
+        <button className="icon-btn" disabled={isReadOnly} onClick={() => !isReadOnly && setEditRole(role)}><Icon name="pencil" context="badge" /></button>
+        <button className="icon-btn" disabled={isReadOnly} onClick={() => !isReadOnly && setDeleteConfirm(role.id)}><Icon name="x" context="badge" /></button>
       </div>
     </div>
   );
@@ -211,7 +212,7 @@ function SortableSectionBlock({ sectionId, section, sectionRoles, secIdx, totalS
       {/* Section header: grip left, name center, assigned + arrows right */}
       <div style={{ padding: "10px 16px", background: "var(--bg-subtle)", borderBottom: "1px solid var(--border)", display: "flex", alignItems: "center", gap: 8 }}>
         {!isReadOnly && totalSections > 1 && (
-          <div {...attributes} {...listeners} style={{ touchAction: "none", cursor: "grab", color: "var(--text-muted)", fontSize: 14, userSelect: "none", opacity: 0.6, flexShrink: 0 }}>⠿</div>
+          <div {...attributes} {...listeners} style={{ touchAction: "none", cursor: "grab", color: "var(--text-muted)", fontSize: 14, userSelect: "none", opacity: 0.6, flexShrink: 0 }}><Icon name="grip" context="badge" /></div>
         )}
         <div style={{ fontWeight: 700, fontSize: 13, color: "var(--text-primary)", flex: 1 }}>{section}</div>
         <div style={{ fontSize: 11, color: "var(--text-muted)", fontWeight: 600, flexShrink: 0 }}>
@@ -539,7 +540,7 @@ export function CeremonyRolesTab({ eventId, event, adminConfig, showToast, isArc
         </div>
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap", justifyContent: "flex-end" }}>
           {roles.length === 0 && hasTemplate && (
-            <button className="btn btn-secondary" disabled={isReadOnly} onClick={loadTemplate}>✦ Load Template</button>
+            <button className="btn btn-secondary" disabled={isReadOnly} onClick={loadTemplate}><Icon name="wand" context="inline" style={{ marginRight: 4 }} /> Load Template</button>
           )}
           <button className="btn btn-primary" disabled={isReadOnly} onClick={() => setShowModal(true)}>+ Add Role</button>
         </div>
@@ -556,13 +557,13 @@ export function CeremonyRolesTab({ eventId, event, adminConfig, showToast, isArc
 
       {roles.length === 0 && (
         <div style={{ textAlign: "center", padding: "60px 24px", color: "var(--text-muted)", background: "var(--bg-surface)", borderRadius: "var(--radius-md)", border: "1px solid var(--border)" }}>
-          <div style={{ fontSize: 36, marginBottom: 12 }}>📜</div>
+          <div style={{ fontSize: 36, marginBottom: 12 }}><Icon name="ceremony" context="empty" /></div>
           <div style={{ fontFamily: "var(--font-display)", fontSize: 20, color: "var(--text-primary)", marginBottom: 8 }}>No ceremony roles yet</div>
           <div style={{ fontSize: 14, marginBottom: 24, maxWidth: 360, margin: "0 auto 24px" }}>
             {hasTemplate ? "Load the pre-built template for your event type, or add roles manually." : "Add roles manually to track who will participate."}
           </div>
           <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap" }}>
-            {hasTemplate && <button className="btn btn-secondary" disabled={isReadOnly} onClick={loadTemplate}>✦ Load Template</button>}
+            {hasTemplate && <button className="btn btn-secondary" disabled={isReadOnly} onClick={loadTemplate}><Icon name="wand" context="inline" style={{ marginRight: 4 }} /> Load Template</button>}
             <button className="btn btn-primary" disabled={isReadOnly} onClick={() => setShowModal(true)}>+ Add First Role</button>
           </div>
         </div>
@@ -643,7 +644,7 @@ export function CeremonyRolesTab({ eventId, event, adminConfig, showToast, isArc
           <div className="modal" style={{ maxWidth: 380 }} onClick={e => e.stopPropagation()}>
             <div className="modal-header">
               <div className="modal-title">{deleteConfirm === "__reset__" ? "Reset to Template?" : "Remove Role?"}</div>
-              <button className="icon-btn" onClick={() => setDeleteConfirm(null)}>✕</button>
+              <button className="icon-btn" onClick={() => setDeleteConfirm(null)}><Icon name="x" context="button" /></button>
             </div>
             <div className="modal-body">
               <p style={{ fontSize: 13, color: "var(--text-secondary)", lineHeight: 1.6 }}>
@@ -676,7 +677,7 @@ export function RoleModal({ role, existingSections, onSave, onClose, isArchived 
       <div className="modal modal-lg" style={{ maxWidth: 500 }} onClick={e => e.stopPropagation()}>
         <div className="modal-header">
           <div className="modal-title">{role ? "Edit Role" : "Add Role"}</div>
-          <button className="icon-btn" onClick={onClose}>✕</button>
+          <button className="icon-btn" onClick={onClose}><Icon name="x" context="button" /></button>
         </div>
         <div className="modal-body">
           <div className="form-group">
