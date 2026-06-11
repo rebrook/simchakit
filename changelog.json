@@ -1,10 +1,20 @@
 {
-  "current": "V4.0.1",
+  "current": "V4.0.2",
   "whatsNew": [
-    "Lucide icon system extended to Tasks, Suggestions Panel, and Vendors tabs.",
-    "Contact icons, follow-up indicators, and all action buttons now use consistent line icons."
+    "Lucide icon system extended to Guests and Budget tabs.",
+    "RSVP banners, mailing toggles, contact icons, export modal, and budget view switcher all use consistent line icons."
   ],
   "changelog": [
+    {
+      "version": "V4.0.2",
+      "date": "2026-06-11",
+      "type": "patch",
+      "title": "Lucide Icons: Guests and Budget",
+      "changes": [
+        "GuestsTab.jsx: replaced all emoji with Lucide icons. RSVP deadline banner icons, out-of-town/missing-address filter buttons, save-the-date/invite mailing toggles, accommodation/suitcase/no-address row indicators, contact icons (map pin, phone, mail), edit/delete buttons, attending override checkmark, print preview, delete confirm, import error warnings, export modal category icons (household, person, mailing, email, print), column mapping confidence check, Guest Insights header.",
+        "BudgetTab.jsx: replaced all emoji with Lucide icons. Budget Insights header, view mode switcher (list, vendor, timeline), empty state, edit/delete buttons, payment date indicators, timeline section headers, delete confirm, expense modal close, Gratuity Calculator header, tip-logged and added checkmarks."
+      ]
+    },
     {
       "version": "V4.0.1",
       "date": "2026-06-11",

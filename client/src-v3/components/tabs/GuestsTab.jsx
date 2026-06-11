@@ -28,6 +28,7 @@ import {
 import { ArchivedNotice }    from "@/components/shared/ArchivedNotice.jsx";
 import { RsvpPill }          from "@/components/shared/RsvpPill.jsx";
 import { CateringSummary }   from "@/components/shared/CateringSummary.jsx";
+import { Icon }              from "@/utils/iconMap.jsx";
 
 // ── GuestsTab ─────────────────────────────────────────────────────────────────
 export function GuestsTab({ eventId, event, adminConfig, showToast, isArchived, isViewer, searchHighlight, clearSearchHighlight }) {
@@ -185,13 +186,13 @@ export function GuestsTab({ eventId, event, adminConfig, showToast, isArchived, 
     const due   = new Date(rsvpDeadline + "T00:00:00");
     const diff  = Math.ceil((due - today) / (1000*60*60*24));
     const allResponded = rsvpPending === 0 && households.length > 0;
-    if (allResponded) return { cls:"done", icon:"✓", text:"All RSVPs received — no households are still pending." };
+    if (allResponded) return { cls:"done", icon:<Icon name="check" context="inline" />, text:"All RSVPs received — no households are still pending." };
     const pendingText = `${rsvpPending} household${rsvpPending!==1?"s":""} haven't responded yet`;
-    if (diff < 0)  return { cls:"urgent", icon:"⚠", text:`RSVP deadline passed ${Math.abs(diff)} day${Math.abs(diff)!==1?"s":""} ago · ${pendingText}` };
-    if (diff === 0) return { cls:"urgent", icon:"⚠", text:`RSVP deadline is today · ${pendingText}` };
-    if (diff <= 7)  return { cls:"urgent", icon:"⚠", text:`RSVP deadline in ${diff} day${diff!==1?"s":""} · ${pendingText}` };
-    if (diff <= 14) return { cls:"warn",   icon:"📬", text:`RSVP deadline in ${diff} days · ${pendingText}` };
-    return               { cls:"info",   icon:"📬", text:`RSVP deadline in ${diff} days · ${pendingText}` };
+    if (diff < 0)  return { cls:"urgent", icon:<Icon name="alertTriangle" context="inline" />, text:`RSVP deadline passed ${Math.abs(diff)} day${Math.abs(diff)!==1?"s":""} ago · ${pendingText}` };
+    if (diff === 0) return { cls:"urgent", icon:<Icon name="alertTriangle" context="inline" />, text:`RSVP deadline is today · ${pendingText}` };
+    if (diff <= 7)  return { cls:"urgent", icon:<Icon name="alertTriangle" context="inline" />, text:`RSVP deadline in ${diff} day${diff!==1?"s":""} · ${pendingText}` };
+    if (diff <= 14) return { cls:"warn",   icon:<Icon name="mailCheck" context="inline" />, text:`RSVP deadline in ${diff} days · ${pendingText}` };
+    return               { cls:"info",   icon:<Icon name="mailCheck" context="inline" />, text:`RSVP deadline in ${diff} days · ${pendingText}` };
   })();
 
   // ── Filtering ─────────────────────────────────────────────────────────────
@@ -303,8 +304,8 @@ export function GuestsTab({ eventId, event, adminConfig, showToast, isArchived, 
             <option value="All">All Statuses</option>
             {RSVP_STATUSES.map(s=><option key={s} value={s}>{s}</option>)}
           </select>
-          <button className={`btn btn-sm ${outOfTownFilter?"btn-primary":"btn-secondary"}`} title="Show out-of-town households only" onClick={()=>setOutOfTownFilter(f=>!f)}>🧳 Out of Town{outOfTownFilter?" ✓":""}</button>
-          <button className={`btn btn-sm ${missingAddressFilter?"btn-primary":"btn-secondary"}`} title="Show households missing a mailing address" onClick={()=>setMissingAddressFilter(f=>!f)}>📭 No Address{missingAddressFilter?" ✓":""}</button>
+          <button className={`btn btn-sm ${outOfTownFilter?"btn-primary":"btn-secondary"}`} title="Show out-of-town households only" onClick={()=>setOutOfTownFilter(f=>!f)}><Icon name="accommodations" context="badge" style={{ marginRight: 4 }} /> Out of Town{outOfTownFilter?<> <Icon name="check" context="badge" /></>:""}</button>
+          <button className={`btn btn-sm ${missingAddressFilter?"btn-primary":"btn-secondary"}`} title="Show households missing a mailing address" onClick={()=>setMissingAddressFilter(f=>!f)}><Icon name="mailX" context="badge" style={{ marginRight: 4 }} /> No Address{missingAddressFilter?<> <Icon name="check" context="badge" /></>:""}</button>
         </div>
       </div>
 
@@ -323,7 +324,7 @@ export function GuestsTab({ eventId, event, adminConfig, showToast, isArchived, 
       {/* List */}
       {filtered.length===0 ? (
         <div style={{textAlign:"center",padding:"60px 24px",color:"var(--text-muted)"}}>
-          <div style={{fontSize:36,marginBottom:12}}>👥</div>
+          <div style={{fontSize:36,marginBottom:12}}><Icon name="guests" context="empty" /></div>
           <div style={{fontFamily:"var(--font-display)",fontSize:18,marginBottom:8}}>
             {households.length===0 ? "No guests yet" : "No guests match your filters"}
           </div>
@@ -361,8 +362,8 @@ export function GuestsTab({ eventId, event, adminConfig, showToast, isArchived, 
                       <RsvpPill hh={hh} open={openRsvp===hh.id}
                         onOpen={e=>{e.stopPropagation();if(!isViewer)setOpenRsvp(openRsvp===hh.id?null:hh.id);}}
                         onSelect={s=>!isViewer && updateRsvpStatus(hh.id,s)} statusStyle={statusStyle} />
-                      {hh.outOfTown && <span title="Out of town" style={{fontSize:13}}>🧳</span>}
-                      {!hh.address1 && <span title="No address on file" style={{fontSize:13}}>📭</span>}
+                      {hh.outOfTown && <span title="Out of town" style={{fontSize:13}}><Icon name="accommodations" context="badge" /></span>}
+                      {!hh.address1 && <span title="No address on file" style={{fontSize:13}}><Icon name="mailX" context="badge" /></span>}
                       <span style={{fontSize:12,color:"var(--text-muted)"}} title={`${counts.adults} Adults, ${counts.kids} Kids`}>
                         {counts.adults>0 && `${counts.adults}A `}{counts.kids>0 && `${counts.kids}K`}{counts.total===0 && "no members"}
                       </span>
@@ -380,30 +381,30 @@ export function GuestsTab({ eventId, event, adminConfig, showToast, isArchived, 
                     </div>
                     <div style={{display:"flex",gap:4}} onClick={e=>e.stopPropagation()}>
                       <button onClick={()=>!isViewer && toggleMailing(hh.id,"saveTheDateSent")} title={hh.saveTheDateSent?"Save the Date sent — click to undo":"Mark Save the Date as sent"}
-                        style={{width:26,height:26,borderRadius:6,cursor:isViewer?"default":"pointer",fontSize:13,display:"inline-flex",alignItems:"center",justifyContent:"center",border:hh.saveTheDateSent?"none":"1.5px solid var(--border-strong)",background:hh.saveTheDateSent?"var(--accent-primary)":"var(--bg-surface)",color:hh.saveTheDateSent?"white":"var(--text-muted)",transition:"all var(--transition)",opacity:isViewer?0.6:1}}>📅</button>
+                        style={{width:26,height:26,borderRadius:6,cursor:isViewer?"default":"pointer",fontSize:13,display:"inline-flex",alignItems:"center",justifyContent:"center",border:hh.saveTheDateSent?"none":"1.5px solid var(--border-strong)",background:hh.saveTheDateSent?"var(--accent-primary)":"var(--bg-surface)",color:hh.saveTheDateSent?"white":"var(--text-muted)",transition:"all var(--transition)",opacity:isViewer?0.6:1}}><Icon name="calendar" context="badge" /></button>
                       <button onClick={()=>!isViewer && toggleMailing(hh.id,"inviteSent")} title={hh.inviteSent?"Invite sent — click to undo":"Mark invite as sent"}
-                        style={{width:26,height:26,borderRadius:6,cursor:isViewer?"default":"pointer",fontSize:13,display:"inline-flex",alignItems:"center",justifyContent:"center",border:hh.inviteSent?"none":"1.5px solid var(--border-strong)",background:hh.inviteSent?"var(--accent-primary)":"var(--bg-surface)",color:hh.inviteSent?"white":"var(--text-muted)",transition:"all var(--transition)",opacity:isViewer?0.6:1}}>✉</button>
-                      {hh.accommodationNeeded && <span title="Accommodation needed" style={{fontSize:14}}>🏨</span>}
-                      {hh.outOfTown       && <span title="Out of town"        style={{fontSize:14}}>🧳</span>}
-                      {!hh.address1       && <span title="No address on file" style={{fontSize:14}}>📭</span>}
+                        style={{width:26,height:26,borderRadius:6,cursor:isViewer?"default":"pointer",fontSize:13,display:"inline-flex",alignItems:"center",justifyContent:"center",border:hh.inviteSent?"none":"1.5px solid var(--border-strong)",background:hh.inviteSent?"var(--accent-primary)":"var(--bg-surface)",color:hh.inviteSent?"white":"var(--text-muted)",transition:"all var(--transition)",opacity:isViewer?0.6:1}}><Icon name="mail" context="badge" /></button>
+                      {hh.accommodationNeeded && <span title="Accommodation needed" style={{fontSize:14}}><Icon name="hotel" context="badge" /></span>}
+                      {hh.outOfTown       && <span title="Out of town"        style={{fontSize:14}}><Icon name="accommodations" context="badge" /></span>}
+                      {!hh.address1       && <span title="No address on file" style={{fontSize:14}}><Icon name="mailX" context="badge" /></span>}
                     </div>
                   </div>
                   <div className="hh-row-actions" onClick={e=>e.stopPropagation()}>
-                    <button className="icon-btn" style={{width:32,height:32,fontSize:13}} title="Edit" disabled={isArchived || isViewer} onClick={()=>setEditingHH(hh)}>✎</button>
-                    <button className="icon-btn" style={{width:32,height:32,fontSize:13,color:"var(--red)"}} title="Delete" disabled={isArchived || isViewer} onClick={()=>setDeleteConfirm(hh.id)}>✕</button>
+                    <button className="icon-btn" style={{width:32,height:32,fontSize:13}} title="Edit" disabled={isArchived || isViewer} onClick={()=>setEditingHH(hh)}><Icon name="pencil" context="inline" /></button>
+                    <button className="icon-btn" style={{width:32,height:32,fontSize:13,color:"var(--red)"}} title="Delete" disabled={isArchived || isViewer} onClick={()=>setDeleteConfirm(hh.id)}><Icon name="x" context="inline" /></button>
                   </div>
                 </div>
 
                 {isExpanded && (
                   <div style={{borderTop:"1px solid var(--border)",background:"var(--bg-subtle)",padding:"12px 14px 16px 14px",borderRadius:"0 0 var(--radius-md) var(--radius-md)"}}>
                     <div style={{display:"flex",gap:24,flexWrap:"wrap",marginBottom:12}}>
-                      {(hh.address1 || hh.city) && <div style={{fontSize:12,color:"var(--text-secondary)"}}><span style={{color:"var(--text-muted)",marginRight:4}}>📍</span>{formatAddress(migrateCityStateZip(hh))}</div>}
-                      {hh.phone && <div style={{fontSize:12,color:"var(--text-secondary)"}}><span style={{color:"var(--text-muted)",marginRight:4}}>📞</span>{hh.phone}</div>}
-                      {hh.email && <div style={{fontSize:12,color:"var(--text-secondary)"}}><span style={{color:"var(--text-muted)",marginRight:4}}>✉</span>{hh.email}</div>}
+                      {(hh.address1 || hh.city) && <div style={{fontSize:12,color:"var(--text-secondary)"}}><span style={{color:"var(--text-muted)",marginRight:4}}><Icon name="mapPin" context="badge" /></span>{formatAddress(migrateCityStateZip(hh))}</div>}
+                      {hh.phone && <div style={{fontSize:12,color:"var(--text-secondary)"}}><span style={{color:"var(--text-muted)",marginRight:4}}><Icon name="phone" context="badge" /></span>{hh.phone}</div>}
+                      {hh.email && <div style={{fontSize:12,color:"var(--text-secondary)"}}><span style={{color:"var(--text-muted)",marginRight:4}}><Icon name="mail" context="badge" /></span>{hh.email}</div>}
                     </div>
                     {(hh.attendingAdults != null || hh.attendingKids != null) && (
                       <div style={{display:"flex",alignItems:"center",gap:8,background:"var(--green-light)",border:"1px solid var(--green)",borderRadius:"var(--radius-sm)",padding:"6px 10px",marginBottom:10,fontSize:12,color:"var(--green)",fontWeight:600}}>
-                        <span>✓</span>
+                        <span><Icon name="check" context="badge" /></span>
                         <span>Attending override set:{hh.attendingAdults!=null&&` ${hh.attendingAdults} adult${hh.attendingAdults!==1?"s":""}`}{hh.attendingAdults!=null&&hh.attendingKids!=null&&","}{hh.attendingKids!=null&&` ${hh.attendingKids} kid${hh.attendingKids!==1?"s":""}`}</span>
                         <button style={{marginLeft:"auto",fontSize:11,background:"none",border:"none",color:"var(--green)",cursor:"pointer",fontWeight:700,padding:0}}
                           onClick={()=>clearAttendingOverride(hh.id)}>Clear override</button>
@@ -433,7 +434,7 @@ export function GuestsTab({ eventId, event, adminConfig, showToast, isArchived, 
                                 <td style={{padding:"6px 10px",color:"var(--text-muted)"}}>{p.shirtSize||"—"}</td>
                                 <td style={{padding:"6px 10px",color:"var(--text-muted)"}}>{p.pantSize||"—"}</td>
                                 <td style={{padding:"6px 10px",color:"var(--text-muted)"}}>{p.mealChoice||"—"}</td>
-                                <td style={{padding:"6px 10px",textAlign:"center"}}>{p.kosher?"✓":""}</td>
+                                <td style={{padding:"6px 10px",textAlign:"center"}}>{p.kosher?<Icon name="check" context="badge" />:""}</td>
                                 <td style={{padding:"6px 10px",color:"var(--text-muted)",maxWidth:160,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{p.dietary||"—"}</td>
                               </tr>
                             ))}
@@ -490,8 +491,8 @@ export function GuestsTab({ eventId, event, adminConfig, showToast, isArchived, 
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"14px 20px",borderBottom:"1px solid var(--border)",flexShrink:0}}>
               <div style={{fontFamily:"var(--font-display)",fontSize:17,fontWeight:700,color:"var(--text-primary)"}}>Print Preview — Guest List</div>
               <div style={{display:"flex",gap:8}}>
-                <button className="btn btn-primary" style={{fontSize:12}} onClick={()=>{const f=document.getElementById("guest-print-frame");if(f?.contentWindow)f.contentWindow.print();}}>🖨 Print</button>
-                <button className="icon-btn" title="Close" onClick={()=>setGuestPrintHTML(null)}>✕</button>
+                <button className="btn btn-primary" style={{fontSize:12,display:"inline-flex",alignItems:"center",gap:4}} onClick={()=>{const f=document.getElementById("guest-print-frame");if(f?.contentWindow)f.contentWindow.print();}}><Icon name="printer" context="inline" /> Print</button>
+                <button className="icon-btn" title="Close" onClick={()=>setGuestPrintHTML(null)}><Icon name="x" context="button" /></button>
               </div>
             </div>
             <iframe id="guest-print-frame" srcDoc={guestPrintHTML} style={{flex:1,border:"none",borderRadius:"0 0 var(--radius-lg) var(--radius-lg)"}} title="Guest List Print Preview" />
@@ -501,7 +502,7 @@ export function GuestsTab({ eventId, event, adminConfig, showToast, isArchived, 
       {deleteConfirm && (
         <div className="modal-backdrop" onMouseDown={e=>{if(e.target===e.currentTarget)setDeleteConfirm(null);}}>
           <div className="modal" style={{maxWidth:400}} onClick={e=>e.stopPropagation()}>
-            <div className="modal-header"><div className="modal-title">Delete Household</div><button className="icon-btn" title="Close" onClick={()=>setDeleteConfirm(null)}>✕</button></div>
+            <div className="modal-header"><div className="modal-title">Delete Household</div><button className="icon-btn" title="Close" onClick={()=>setDeleteConfirm(null)}><Icon name="x" context="button" /></button></div>
             <div className="modal-body">
               <p style={{fontSize:14,color:"var(--text-primary)",marginBottom:8}}>This will permanently delete this household and all its members.</p>
               <div className="modal-footer">
@@ -667,7 +668,7 @@ export function HouseholdModal({ household, members, adminConfig, onSave, onClos
             <div className="modal-title">{isEdit?"Edit Household":"Add Household"}</div>
             {!isEdit && <div style={{fontSize:12,color:"var(--text-muted)",marginTop:2}}>Step {step} of 2 — {step===1?"Household Details":"Members"}</div>}
           </div>
-          <button className="icon-btn" title="Close" onClick={onClose}>✕</button>
+          <button className="icon-btn" title="Close" onClick={onClose}><Icon name="x" context="button" /></button>
         </div>
         {isEdit && (
           <div className="hh-modal-tabs">
@@ -757,7 +758,7 @@ export function HouseholdModal({ household, members, adminConfig, onSave, onClos
               else if (hh.country === "Canada")        invalid = !/^[A-Za-z]\d[A-Za-z][ -]?\d[A-Za-z]\d$/.test(v) && v.length > 0;
               else if (hh.country === "United Kingdom") invalid = !/^[A-Za-z]{1,2}\d[A-Za-z\d]? ?\d[A-Za-z]{2}$/.test(v) && v.length > 0;
               else if (hh.country === "Australia")      invalid = !/^\d{4}$/.test(v) && v.length > 0;
-              return invalid ? <div style={{fontSize:11,color:"var(--gold,#b45309)",marginTop:3}}>⚠ Format looks off for {hh.country}</div> : null;
+              return invalid ? <div style={{fontSize:11,color:"var(--gold,#b45309)",marginTop:3}}><Icon name="alertTriangle" context="badge" style={{ marginRight: 3 }} /> Format looks off for {hh.country}</div> : null;
             })()}
             <div className="form-grid-2">
               <div className="form-group"><label className="form-label">Phone</label><input className="form-input" value={hh.phone} onChange={e=>setHHF("phone",e.target.value)} onBlur={e=>setHHF("phone",formatPhone(e.target.value))} placeholder="(555) 555-1234" /></div>
@@ -822,7 +823,7 @@ export function HouseholdModal({ household, members, adminConfig, onSave, onClos
                       <button type="button" className="icon-btn" title="Remove contact"
                         style={{color:"var(--red)",flexShrink:0,marginTop:2}}
                         disabled={isArchived}
-                        onClick={()=>deleteHHContact(c.id)}>✕</button>
+                        onClick={()=>deleteHHContact(c.id)}><Icon name="x" context="button" /></button>
                     </div>
                   ))}
                 </div>
@@ -903,7 +904,7 @@ export function ImportModal({ adminConfig, onImport, onClose }) {
   return (
     <div className="modal-backdrop" onMouseDown={e=>{if(e.target===e.currentTarget)onClose();}}>
       <div className="modal modal-lg" onClick={e=>e.stopPropagation()}>
-        <div className="modal-header"><div className="modal-title">Import Guests</div><button className="icon-btn" title="Close" onClick={onClose}>✕</button></div>
+        <div className="modal-header"><div className="modal-title">Import Guests</div><button className="icon-btn" title="Close" onClick={onClose}><Icon name="x" context="button" /></button></div>
         <div className="modal-body">
           {stage==="upload" && (<>
             <div className="alert alert-info" style={{marginBottom:16}}>Upload any CSV file — SimchaKit will detect your columns automatically. Or download the template for a pre-formatted starting point.</div>
@@ -933,7 +934,7 @@ export function ImportModal({ adminConfig, onImport, onClose }) {
                 <tbody>
                   {headers.map(h=>{
                     const mappedField=Object.entries(mapping).find(([,v])=>v===h)?.[0]||"";
-                    return(<tr key={h} style={{borderBottom:"1px solid var(--border)"}}><td style={{padding:"8px 12px",fontWeight:500}}>{h}{mappedField&&confidence[mappedField]==="alias"&&<span style={{marginLeft:6,fontSize:10,color:"var(--gold)",fontWeight:700}}>auto-matched</span>}{mappedField&&confidence[mappedField]==="exact"&&<span style={{marginLeft:6,fontSize:10,color:"var(--green)",fontWeight:700}}>✓</span>}</td><td style={{padding:"6px 12px"}}><select className="form-select" style={{fontSize:12}} value={mappedField} onChange={e=>{const nf=e.target.value;const u={...mapping};Object.keys(u).forEach(k=>{if(u[k]===h)delete u[k];});if(nf){Object.keys(u).forEach(k=>{if(k===nf)delete u[k];});u[nf]=h;}setMapping(u);}}><option value="">— Skip this column —</option>{Object.entries(FIELD_LABELS).map(([field,label])=>(<option key={field} value={field}>{label}</option>))}</select></td></tr>);
+                    return(<tr key={h} style={{borderBottom:"1px solid var(--border)"}}><td style={{padding:"8px 12px",fontWeight:500}}>{h}{mappedField&&confidence[mappedField]==="alias"&&<span style={{marginLeft:6,fontSize:10,color:"var(--gold)",fontWeight:700}}>auto-matched</span>}{mappedField&&confidence[mappedField]==="exact"&&<span style={{marginLeft:6,fontSize:10,color:"var(--green)",fontWeight:700}}><Icon name="check" context="badge" /></span>}</td><td style={{padding:"6px 12px"}}><select className="form-select" style={{fontSize:12}} value={mappedField} onChange={e=>{const nf=e.target.value;const u={...mapping};Object.keys(u).forEach(k=>{if(u[k]===h)delete u[k];});if(nf){Object.keys(u).forEach(k=>{if(k===nf)delete u[k];});u[nf]=h;}setMapping(u);}}><option value="">— Skip this column —</option>{Object.entries(FIELD_LABELS).map(([field,label])=>(<option key={field} value={field}>{label}</option>))}</select></td></tr>);
                   })}
                 </tbody>
               </table>
@@ -941,7 +942,7 @@ export function ImportModal({ adminConfig, onImport, onClose }) {
           </>)}
           {stage==="preview" && preview && (<>
             {preview.peopleCentric&&<div className="alert alert-info" style={{marginBottom:12}}><strong>Person-by-person format detected.</strong> Households have been automatically grouped.</div>}
-            {preview.errors&&preview.errors.length>0&&(<div className="alert alert-error" style={{marginBottom:12}}><div style={{fontWeight:700,marginBottom:6}}>⚠ {preview.errors.length} row{preview.errors.length!==1?"s":""} could not be imported</div><div style={{maxHeight:120,overflowY:"auto"}}>{preview.errors.map((err,i)=>(<div key={i} style={{fontSize:12,borderTop:i>0?"1px solid rgba(0,0,0,0.1)":"none",paddingTop:i>0?4:0,marginTop:i>0?4:0}}><strong>Row {err.rowIndex}:</strong> {err.message}{err.rawRow&&Object.values(err.rawRow).filter(Boolean).length>0&&<span style={{color:"var(--text-muted)",marginLeft:6}}>({Object.values(err.rawRow).filter(Boolean).slice(0,3).join(", ")}{Object.values(err.rawRow).filter(Boolean).length>3?"…":""})</span>}</div>))}</div><div style={{fontSize:12,marginTop:8,fontStyle:"italic"}}>The {preview.households.length} valid household{preview.households.length!==1?"s":""} below will still be imported.</div></div>)}
+            {preview.errors&&preview.errors.length>0&&(<div className="alert alert-error" style={{marginBottom:12}}><div style={{fontWeight:700,marginBottom:6}}><Icon name="alertTriangle" context="badge" style={{ marginRight: 3 }} /> {preview.errors.length} row{preview.errors.length!==1?"s":""} could not be imported</div><div style={{maxHeight:120,overflowY:"auto"}}>{preview.errors.map((err,i)=>(<div key={i} style={{fontSize:12,borderTop:i>0?"1px solid rgba(0,0,0,0.1)":"none",paddingTop:i>0?4:0,marginTop:i>0?4:0}}><strong>Row {err.rowIndex}:</strong> {err.message}{err.rawRow&&Object.values(err.rawRow).filter(Boolean).length>0&&<span style={{color:"var(--text-muted)",marginLeft:6}}>({Object.values(err.rawRow).filter(Boolean).slice(0,3).join(", ")}{Object.values(err.rawRow).filter(Boolean).length>3?"…":""})</span>}</div>))}</div><div style={{fontSize:12,marginTop:8,fontStyle:"italic"}}>The {preview.households.length} valid household{preview.households.length!==1?"s":""} below will still be imported.</div></div>)}
             <div className="alert alert-success" style={{marginBottom:12}}>Ready to import {preview.households.length} household{preview.households.length!==1?"s":""} and {preview.people.length} individual{preview.people.length!==1?"s":""}.</div>
             <div style={{maxHeight:280,overflowY:"auto",border:"1px solid var(--border)",borderRadius:"var(--radius-sm)"}}><table style={{width:"100%",borderCollapse:"collapse",fontSize:12}}><thead><tr style={{background:"var(--bg-subtle)",position:"sticky",top:0}}>{["Household","Members","Group","Status"].map(h=>(<th key={h} style={{padding:"8px 12px",textAlign:"left",fontWeight:700,color:"var(--text-muted)",borderBottom:"1px solid var(--border)",fontSize:11,textTransform:"uppercase"}}>{h}</th>))}</tr></thead><tbody>{preview.households.map(hh=>{const members=preview.people.filter(p=>p.householdId===hh.id);return(<tr key={hh.id} style={{borderBottom:"1px solid var(--border)"}}><td style={{padding:"8px 12px",fontWeight:600}}>{hh.formalName}</td><td style={{padding:"8px 12px",color:"var(--text-secondary)"}}>{members.length>0?members.map(p=>[p.firstName,p.lastName].filter(Boolean).join(" ")||p.name||"?").join(", "):<span style={{color:"var(--text-muted)",fontStyle:"italic"}}>None</span>}</td><td style={{padding:"8px 12px",color:"var(--text-muted)"}}>{hh.group}</td><td style={{padding:"8px 12px",color:"var(--text-muted)"}}>{hh.status}</td></tr>);})}</tbody></table></div>
             <div style={{marginTop:10,fontSize:12,color:"var(--text-muted)"}}>Mode: <strong>{mergeMode==="append"?"Append to existing list":"Replace existing list"}</strong></div>
@@ -972,7 +973,7 @@ export function TimelineEntryModal({ entry, onSave, onClose }) {
   return (
     <div className="modal-backdrop" onMouseDown={e=>{if(e.target===e.currentTarget)onClose();}}>
       <div className="modal" style={{maxWidth:480}} onClick={e=>e.stopPropagation()}>
-        <div className="modal-header"><div className="modal-title">{isEdit?"Edit Timeline Event":"Add Timeline Event"}</div><button className="icon-btn" title="Close" onClick={onClose}>✕</button></div>
+        <div className="modal-header"><div className="modal-title">{isEdit?"Edit Timeline Event":"Add Timeline Event"}</div><button className="icon-btn" title="Close" onClick={onClose}><Icon name="x" context="button" /></button></div>
         <div className="modal-body">
           <div className="form-grid-2">
             <div className="form-group" style={{flex:"0 0 80px"}}><label className="form-label">Icon</label><input className="form-input" value={form.icon} onChange={e=>setF("icon",e.target.value)} placeholder="📅" style={{textAlign:"center",fontSize:20}} maxLength={4} /></div>
@@ -1022,16 +1023,16 @@ export function GuestExportModal({ households, people, tables, adminConfig, onPr
   return (
     <div className="modal-backdrop" onMouseDown={e=>{if(e.target===e.currentTarget)onClose();}}>
       <div className="modal modal-lg" style={{maxWidth:640}} onClick={e=>e.stopPropagation()}>
-        <div className="modal-header"><div className="modal-title">Export Guest List</div><button className="icon-btn" title="Close" onClick={onClose}>✕</button></div>
+        <div className="modal-header"><div className="modal-title">Export Guest List</div><button className="icon-btn" title="Close" onClick={onClose}><Icon name="x" context="button" /></button></div>
         <div className="modal-body">
           <div style={{display:"flex",gap:10,marginBottom:20,flexWrap:"wrap"}}>
-            <button style={OPTION("byHousehold")} onClick={()=>{setActiveExport("byHousehold");setCopied(false);}}><div style={{fontSize:22,marginBottom:6}}>🏠</div><div style={{fontWeight:700,fontSize:13,marginBottom:4}}>By Household</div><div style={{fontSize:11,color:"var(--text-muted)",lineHeight:1.5}}>One row per household with RSVP status, headcount, address, and sub-events. Best for your planner or a full reference spreadsheet.</div></button>
-            <button style={OPTION("byPerson")} onClick={()=>{setActiveExport("byPerson");setCopied(false);}}><div style={{fontSize:22,marginBottom:6}}>👤</div><div style={{fontWeight:700,fontSize:13,marginBottom:4}}>By Person</div><div style={{fontSize:11,color:"var(--text-muted)",lineHeight:1.5}}>One row per individual with meal choice, kosher flag, dietary notes, shirt size, and table. Best for catering, favors vendor, or day-of staff.</div></button>
-            <button style={OPTION("mailing")} onClick={()=>{setActiveExport("mailing");setCopied(false);}}><div style={{fontSize:22,marginBottom:6}}>✉️</div><div style={{fontWeight:700,fontSize:13,marginBottom:4}}>Mailing / Invitations</div><div style={{fontSize:11,color:"var(--text-muted)",lineHeight:1.5}}>Formal names and addresses with split columns (Street, City, State, Zip, Country). Ready for mail-merge, a calligrapher, or any vendor that needs a structured address list.</div></button>
-            <button style={OPTION("emailList")} onClick={()=>{setActiveExport("emailList");setCopied(false);}}><div style={{fontSize:22,marginBottom:6}}>📧</div><div style={{fontWeight:700,fontSize:13,marginBottom:4}}>Email List</div><div style={{fontSize:11,color:"var(--text-muted)",lineHeight:1.5}}>Email addresses and phone numbers for all households. Ready for mail merge, bulk email, or RSVP follow-up.</div></button>
-            <button style={PRINT_OPT()} onClick={handlePrint}><div style={{fontSize:22,marginBottom:6}}>🖨</div><div style={{fontWeight:700,fontSize:13,marginBottom:4}}>Printable View</div><div style={{fontSize:11,color:"var(--text-muted)",lineHeight:1.5}}>Grouped by family / friend group with members, RSVP status, headcount, and dietary flags. Print-ready for a day-of binder or door checklist.</div></button>
+            <button style={OPTION("byHousehold")} onClick={()=>{setActiveExport("byHousehold");setCopied(false);}}><div style={{fontSize:22,marginBottom:6}}><Icon name="guests" context="button" /></div><div style={{fontWeight:700,fontSize:13,marginBottom:4}}>By Household</div><div style={{fontSize:11,color:"var(--text-muted)",lineHeight:1.5}}>One row per household with RSVP status, headcount, address, and sub-events. Best for your planner or a full reference spreadsheet.</div></button>
+            <button style={OPTION("byPerson")} onClick={()=>{setActiveExport("byPerson");setCopied(false);}}><div style={{fontSize:22,marginBottom:6}}><Icon name="people" context="button" /></div><div style={{fontWeight:700,fontSize:13,marginBottom:4}}>By Person</div><div style={{fontSize:11,color:"var(--text-muted)",lineHeight:1.5}}>One row per individual with meal choice, kosher flag, dietary notes, shirt size, and table. Best for catering, favors vendor, or day-of staff.</div></button>
+            <button style={OPTION("mailing")} onClick={()=>{setActiveExport("mailing");setCopied(false);}}><div style={{fontSize:22,marginBottom:6}}><Icon name="mail" context="button" /></div><div style={{fontWeight:700,fontSize:13,marginBottom:4}}>Mailing / Invitations</div><div style={{fontSize:11,color:"var(--text-muted)",lineHeight:1.5}}>Formal names and addresses with split columns (Street, City, State, Zip, Country). Ready for mail-merge, a calligrapher, or any vendor that needs a structured address list.</div></button>
+            <button style={OPTION("emailList")} onClick={()=>{setActiveExport("emailList");setCopied(false);}}><div style={{fontSize:22,marginBottom:6}}><Icon name="mail" context="button" /></div><div style={{fontWeight:700,fontSize:13,marginBottom:4}}>Email List</div><div style={{fontSize:11,color:"var(--text-muted)",lineHeight:1.5}}>Email addresses and phone numbers for all households. Ready for mail merge, bulk email, or RSVP follow-up.</div></button>
+            <button style={PRINT_OPT()} onClick={handlePrint}><div style={{fontSize:22,marginBottom:6}}><Icon name="printer" context="button" /></div><div style={{fontWeight:700,fontSize:13,marginBottom:4}}>Printable View</div><div style={{fontSize:11,color:"var(--text-muted)",lineHeight:1.5}}>Grouped by family / friend group with members, RSVP status, headcount, and dietary flags. Print-ready for a day-of binder or door checklist.</div></button>
           </div>
-          {activeExport && (<><div className="alert alert-info" style={{marginBottom:10}}>{ALERT_TEXT[activeExport]}</div><textarea readOnly value={csvContent} onClick={e=>e.target.select()} style={{width:"100%",minHeight:180,background:"var(--bg-subtle)",border:"1px solid var(--border)",borderRadius:"var(--radius-sm)",padding:10,fontFamily:"var(--font-mono,monospace)",fontSize:11,resize:"vertical"}} /><div className="modal-footer" style={{marginTop:12}}><button className="btn btn-ghost" onClick={onClose}>Close</button><button className="btn btn-primary" onClick={()=>navigator.clipboard.writeText(csvContent).then(()=>{setCopied(true);setTimeout(()=>setCopied(false),2000);})}>{copied?"✓ Copied!":"Copy to Clipboard"}</button></div></>)}
+          {activeExport && (<><div className="alert alert-info" style={{marginBottom:10}}>{ALERT_TEXT[activeExport]}</div><textarea readOnly value={csvContent} onClick={e=>e.target.select()} style={{width:"100%",minHeight:180,background:"var(--bg-subtle)",border:"1px solid var(--border)",borderRadius:"var(--radius-sm)",padding:10,fontFamily:"var(--font-mono,monospace)",fontSize:11,resize:"vertical"}} /><div className="modal-footer" style={{marginTop:12}}><button className="btn btn-ghost" onClick={onClose}>Close</button><button className="btn btn-primary" onClick={()=>navigator.clipboard.writeText(csvContent).then(()=>{setCopied(true);setTimeout(()=>setCopied(false),2000);})}>{copied?<><Icon name="check" context="badge" /> Copied!</>:"Copy to Clipboard"}</button></div></>)}
           {!activeExport && <div className="modal-footer"><button className="btn btn-ghost" onClick={onClose}>Cancel</button></div>}
         </div>
       </div>
@@ -1075,7 +1076,7 @@ function GuestInsights({ households, people, groups, statusStyle }) {
     <div className="card budget-insights" style={{marginBottom:20}}>
       <div className="budget-insights-header" onClick={()=>setOpen(o=>!o)}>
         <div>
-          <div className="card-title" style={{marginBottom:0}}>👥 Guest Insights</div>
+          <div className="card-title" style={{marginBottom:0}}><Icon name="guests" context="inline" style={{ marginRight: 6 }} /> Guest Insights</div>
           {!open&&<div className="card-subtitle" style={{marginBottom:0,marginTop:4}}>{collapsedSummary} · click to expand</div>}
         </div>
         <button className="budget-insights-toggle" aria-label={open?"Collapse":"Expand"}>{open?"▴":"▾"}</button>

@@ -16,6 +16,7 @@ import { newExpenseId }       from "@/utils/ids.js";
 import { getDueStatus, getNextDue } from "@/utils/vendors.js";
 import { exportExpensesCSV }  from "@/utils/exports.js";
 import { ArchivedNotice }     from "@/components/shared/ArchivedNotice.jsx";
+import { Icon }               from "@/utils/iconMap.jsx";
 import { VendorQuickView }    from "@/components/shared/VendorQuickView.jsx";
 import { VendorModal }        from "@/components/shared/VendorModal.jsx";
 
@@ -159,7 +160,7 @@ function BudgetInsights({ expenses, catRows, catPaid, catBudgeted, hasAnyBudgete
       {/* Header */}
       <div className="budget-insights-header" onClick={() => setOpen(o => !o)}>
         <div>
-          <div className="card-title" style={{ marginBottom: 0 }}>📊 Budget Insights</div>
+          <div className="card-title" style={{ marginBottom: 0 }}><Icon name="barChart3" context="inline" style={{ marginRight: 6 }} /> Budget Insights</div>
           {!open && (
             <div className="card-subtitle" style={{ marginBottom: 0, marginTop: 4 }}>
               {categoryData.length} categor{categoryData.length !== 1 ? "ies" : "y"}
@@ -662,9 +663,9 @@ export function BudgetTab({ eventId, event, adminConfig, showToast, isArchived, 
         </select>
         <div style={{ display:"flex", gap:2, background:"var(--bg-subtle)", border:"1px solid var(--border)", borderRadius:"var(--radius-sm)", padding:2, marginLeft:"auto", flexShrink:0 }}>
           {[
-            { id:"list",    icon:"☰",  label:"List"        },
-            { id:"vendor",  icon:"🏢", label:"By Vendor"   },
-            ...(hasSections ? [{ id:"section", icon:"📅", label:"By Timeline" }] : []),
+            { id:"list",    icon:"list",    label:"List"        },
+            { id:"vendor",  icon:"vendors", label:"By Vendor"   },
+            ...(hasSections ? [{ id:"section", icon:"calendar", label:"By Timeline" }] : []),
           ].map(v => (
             <button key={v.id} title={v.label} onClick={() => setViewMode(v.id)}
               style={{ padding:"4px 10px", border:"none", borderRadius:4, cursor:"pointer", fontSize:12, fontWeight:600,
@@ -672,7 +673,7 @@ export function BudgetTab({ eventId, event, adminConfig, showToast, isArchived, 
                 color: viewMode === v.id ? "var(--accent-primary)" : "var(--text-muted)",
                 boxShadow: viewMode === v.id ? "var(--shadow-sm)" : "none",
                 transition:"all 0.15s ease" }}>
-              {v.icon} {v.label}
+              <Icon name={v.icon} context="badge" style={{ marginRight: 4 }} /> {v.label}
             </button>
           ))}
         </div>
@@ -683,7 +684,7 @@ export function BudgetTab({ eventId, event, adminConfig, showToast, isArchived, 
       <div className="card">
         {expenses.length === 0 && (
           <div style={{ textAlign:"center", padding:"48px 24px", color:"var(--text-muted)" }}>
-            <div style={{ fontSize:36, marginBottom:12, opacity:0.4 }}>💰</div>
+            <div style={{ fontSize:36, marginBottom:12, opacity:0.4 }}><Icon name="budget" context="empty" /></div>
             <div style={{ fontFamily:"var(--font-display)", fontSize:18, marginBottom:6, color:"var(--text-primary)" }}>Let's track your deposits and expenses.</div>
             <div style={{ fontSize:13, marginBottom:20 }}>Add your first expense to start building a clear picture of your budget.</div>
             {!isArchived && !isViewer && <button className="btn btn-primary" style={{ marginTop:12 }} onClick={() => { setEditing(null); setShowAdd(true); }}>+ Add Expense</button>}
@@ -774,14 +775,14 @@ export function BudgetTab({ eventId, event, adminConfig, showToast, isArchived, 
                   <div className="expense-row-actions">
                     <button className="icon-btn" title="Edit"
                       style={{width:28,height:28,fontSize:13}}
-                      disabled={isArchived || isViewer} onClick={() => { setEditing(e); setShowAdd(true); }}>✎</button>
+                      disabled={isArchived || isViewer} onClick={() => { setEditing(e); setShowAdd(true); }}><Icon name="pencil" context="badge" /></button>
                     <button className="icon-btn" title="Delete"
                       style={{width:28,height:28,fontSize:13,color:"var(--red)"}}
-                      disabled={isArchived || isViewer} onClick={() => setDeleteConfirm(e)}>✕</button>
+                      disabled={isArchived || isViewer} onClick={() => setDeleteConfirm(e)}><Icon name="x" context="badge" /></button>
                   </div>
                   {pendingPaidId === (e.id || e._rowId) && pendingPaidIdx === eIdx && (
                     <div style={{gridColumn:"1/-1",display:"flex",alignItems:"center",gap:8,flexWrap:"wrap",marginTop:6,padding:"10px 12px",background:"var(--green-light)",border:"1px solid var(--green)",borderRadius:"var(--radius-sm)"}}>
-                      <span style={{fontSize:12,fontWeight:600,color:"var(--green)",flexShrink:0}}>📅 Payment date:</span>
+                      <span style={{fontSize:12,fontWeight:600,color:"var(--green)",flexShrink:0}}><Icon name="calendarCheck" context="badge" style={{ marginRight: 3 }} /> Payment date:</span>
                       <input className="form-input" type="date" value={pendingPaidDate}
                         onChange={e2 => setPendingPaidDate(e2.target.value)}
                         style={{width:150,fontSize:12,padding:"4px 8px"}} />
@@ -903,14 +904,14 @@ export function BudgetTab({ eventId, event, adminConfig, showToast, isArchived, 
                         <div className="expense-row-actions">
                           <button className="icon-btn" title="Edit"
                             style={{width:28,height:28,fontSize:13}}
-                            disabled={isArchived || isViewer} onClick={() => { setEditing(e); setShowAdd(true); }}>✎</button>
+                            disabled={isArchived || isViewer} onClick={() => { setEditing(e); setShowAdd(true); }}><Icon name="pencil" context="badge" /></button>
                           <button className="icon-btn" title="Delete"
                             style={{width:28,height:28,fontSize:13,color:"var(--red)"}}
-                            disabled={isArchived || isViewer} onClick={() => setDeleteConfirm(e)}>✕</button>
+                            disabled={isArchived || isViewer} onClick={() => setDeleteConfirm(e)}><Icon name="x" context="badge" /></button>
                         </div>
                         {pendingPaidId === (e.id || e._rowId) && pendingPaidIdx === eIdx && (
                           <div style={{gridColumn:"1/-1",display:"flex",alignItems:"center",gap:8,flexWrap:"wrap",marginTop:6,padding:"10px 12px",background:"var(--green-light)",border:"1px solid var(--green)",borderRadius:"var(--radius-sm)"}}>
-                            <span style={{fontSize:12,fontWeight:600,color:"var(--green)",flexShrink:0}}>📅 Payment date:</span>
+                            <span style={{fontSize:12,fontWeight:600,color:"var(--green)",flexShrink:0}}><Icon name="calendarCheck" context="badge" style={{ marginRight: 3 }} /> Payment date:</span>
                             <input className="form-input" type="date" value={pendingPaidDate}
                               onChange={e2 => setPendingPaidDate(e2.target.value)}
                               style={{width:150,fontSize:12,padding:"4px 8px"}} />
@@ -946,7 +947,7 @@ export function BudgetTab({ eventId, event, adminConfig, showToast, isArchived, 
                     <div style={{flex:1,minWidth:0}}>
                       <div style={{display:"flex",alignItems:"center",gap:8,flexWrap:"wrap"}}>
                         <span style={{fontSize:14,fontWeight:700,color:"var(--text-primary)"}}>
-                          {group.key === "" ? "📋 All Events" : `📅 ${group.label}`}
+                          {group.key === "" ? <><Icon name="clipboardList" context="inline" style={{ marginRight: 4 }} /> All Events</> : <><Icon name="calendar" context="inline" style={{ marginRight: 4 }} /> {group.label}</>}
                         </span>
                         <span style={{fontSize:11,color:"var(--text-muted)"}}>
                           {group.items.length} item{group.items.length!==1?"s":""}
@@ -1016,13 +1017,13 @@ export function BudgetTab({ eventId, event, adminConfig, showToast, isArchived, 
                             </div>
                             <div className="expense-row-actions">
                               <button className="icon-btn" title="Edit" disabled={isArchived}
-                                onClick={() => { setEditing(e); setShowAdd(true); }}>✎</button>
+                                onClick={() => { setEditing(e); setShowAdd(true); }}><Icon name="pencil" context="badge" /></button>
                               <button className="icon-btn" title="Delete" disabled={isArchived}
-                                onClick={() => setDeleteConfirm(e)}>✕</button>
+                                onClick={() => setDeleteConfirm(e)}><Icon name="x" context="badge" /></button>
                             </div>
                             {pendingPaidId === (e.id || e._rowId) && pendingPaidIdx === eIdx && (
                               <div style={{gridColumn:"1/-1",display:"flex",alignItems:"center",gap:8,flexWrap:"wrap",marginTop:6,padding:"10px 12px",background:"var(--green-light)",border:"1px solid var(--green)",borderRadius:"var(--radius-sm)"}}>
-                                <span style={{fontSize:12,fontWeight:600,color:"var(--green)",flexShrink:0}}>📅 Payment date:</span>
+                                <span style={{fontSize:12,fontWeight:600,color:"var(--green)",flexShrink:0}}><Icon name="calendarCheck" context="badge" style={{ marginRight: 3 }} /> Payment date:</span>
                                 <input className="form-input" type="date" value={pendingPaidDate}
                                   onChange={e2 => setPendingPaidDate(e2.target.value)}
                                   style={{width:150,fontSize:12,padding:"4px 8px"}} />
@@ -1047,7 +1048,7 @@ export function BudgetTab({ eventId, event, adminConfig, showToast, isArchived, 
           <div className="modal" style={{ maxWidth: 380 }} onClick={e => e.stopPropagation()}>
             <div className="modal-header">
               <div className="modal-title">Delete Expense</div>
-              <button className="icon-btn" title="Close" onClick={() => setDeleteConfirm(null)}>✕</button>
+              <button className="icon-btn" title="Close" onClick={() => setDeleteConfirm(null)}><Icon name="x" context="button" /></button>
             </div>
             <div className="modal-body">
               <p style={{ fontSize: 14, color: "var(--text-primary)", marginBottom: 4 }}>
@@ -1111,7 +1112,7 @@ export function ExpenseModal({ expense, vendors, adminConfig, onSave, onClose, i
       <div className="modal modal-lg">
         <div className="modal-header">
           <div className="modal-title">{expense ? "Edit Expense" : "Add Expense"}</div>
-          <button className="icon-btn" onClick={onClose}>✕</button>
+          <button className="icon-btn" onClick={onClose}><Icon name="x" context="button" /></button>
         </div>
         <div className="modal-body">
           <div className="form-group">
@@ -1269,7 +1270,7 @@ export function GratuityCalculator({ expenses, vendors, onAddExpense, isArchived
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", cursor: "pointer" }}
         onClick={() => setOpen(o => !o)}>
         <div>
-          <div className="card-title" style={{ marginBottom: 0 }}>💵 Gratuity Calculator</div>
+          <div className="card-title" style={{ marginBottom: 0 }}><Icon name="banknote" context="inline" style={{ marginRight: 6 }} /> Gratuity Calculator</div>
           {!open && (
             <div className="card-subtitle" style={{ marginBottom: 0, marginTop: 4 }}>
               {groups.length} tippable vendor{groups.length !== 1 ? "s" : ""} · click to expand
@@ -1359,7 +1360,7 @@ export function GratuityCalculator({ expenses, vendors, onAddExpense, isArchived
                       {g.category}
                       {alreadyLogged && (
                         <span style={{ marginLeft: 8, color: "var(--green)", fontWeight: 600 }}>
-                          ✓ tip already logged
+                          <Icon name="check" context="badge" style={{ marginRight: 3 }} /> tip already logged
                         </span>
                       )}
                     </div>
@@ -1399,7 +1400,7 @@ export function GratuityCalculator({ expenses, vendors, onAddExpense, isArchived
                     disabled={isArchived || tip <= 0 || isAdded}
                     onClick={() => handleAddOne(g)}
                     style={{ flexShrink: 0, minWidth: 90 }}>
-                    {isAdded ? "✓ Added" : "+ Add to Budget"}
+                    {isAdded ? <><Icon name="check" context="badge" /> Added</> : "+ Add to Budget"}
                   </button>
                 </div>
               );
