@@ -10,6 +10,7 @@ import { useSearchHighlight } from "@/hooks/useSearchHighlight.js";
 import { CAL_SOURCES }        from "@/constants/ui.js";
 import { buildCalendarEvents, generateICS } from "@/utils/calendar.js";
 import { ArchivedNotice }     from "@/components/shared/ArchivedNotice.jsx";
+import { Icon }               from "@/utils/iconMap.jsx";
 
 export function CalendarTab({ eventId, event, adminConfig, showToast, isArchived, setActiveTab, searchHighlight, clearSearchHighlight, onNavigateToSource }) {
   const { items: tasks    } = useEventData(eventId, "tasks");
