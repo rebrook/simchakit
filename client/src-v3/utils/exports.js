@@ -2,6 +2,7 @@ import { sortTimeline, formatEntryMeta } from "./dates.js";
 import { getHouseholdAttending, formatAddress, migrateCityStateZip } from "./guests.js";
 import { computeVendorFinancials, fmt$ } from "./vendors.js";
 import { PALETTES } from "@/constants/theme.js";
+import { iconSvg } from "@/utils/iconSvg.js";
 
 // Export and print HTML generators for all tabs
 
