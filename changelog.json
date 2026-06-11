@@ -1,10 +1,22 @@
 {
-  "current": "V4.0.6",
+  "current": "V4.0.7",
   "whatsNew": [
-    "Lucide icons applied to all shared components: GetStartedCard, PaywallGate, CreateEventForm, sign-in and callback pages, and delete confirmation.",
-    "Magic link success screen now shows a MailCheck icon instead of the mailbox emoji."
+    "Q1 Lucide icon migration complete. Every UI icon across all tabs, overlays, modals, and print exports now renders as a consistent SVG line icon.",
+    "Day-of overlay and print brief converted using the new iconSvg.js raw-HTML helper.",
+    "Domain content glyphs (event types, clergy, task templates) remain as emoji by design."
   ],
   "changelog": [
+    {
+      "version": "V4.0.7",
+      "date": "2026-06-11",
+      "type": "patch",
+      "title": "Lucide Icons: Day-of Overlay and Print/Export HTML",
+      "changes": [
+        "DayOfOverlay.jsx: replaced all UI chrome emoji with Lucide icons in both the on-screen overlay (JSX) and the print brief generator (raw HTML via iconSvg). Panel title, section titles (timeline, hot sheet, checklist, notes), close buttons, print buttons, edit/delete checklist items, timeline and checklist checkmarks, phone contact icon, vendor confirmed/pending badges, and print brief section heads. Ceremony Roles title left as domain content (Star of David). Print brief uses iconSvg.js for consistent SVG rendering in generated HTML.",
+        "exports.js: replaced all UI chrome emoji with iconSvg in generated HTML. Print buttons, written/mailed thank-you badges, overdue warning, venue map pin, and event brief section heads (timeline, attendance, guest summary, vendors, tasks, notes). Ceremony Roles section head left as domain content. Timeline entry icons left as domain content (e.icon from admin_config).",
+        "This completes the Q1 Lucide icon migration across all V3 components. Every functional UI icon now renders as a Lucide SVG via the Icon component (JSX) or iconSvg helper (raw HTML). Domain content glyphs (event types, clergy, task templates, timeline icons) remain as emoji by design."
+      ]
+    },
     {
       "version": "V4.0.6",
       "date": "2026-06-11",

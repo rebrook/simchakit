@@ -223,7 +223,7 @@ function generateSeatingPrintHTML(tables, people, households, eventName, eventDa
 
 <button class="no-print" onclick="window.print()"
   style="margin-bottom:20px;padding:8px 18px;background:${pal.accent};color:${pal["accent-text"]};border:none;border-radius:6px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer">
-  🖨 Print
+  ${iconSvg("printer", "inline", { style: "display:inline-block;vertical-align:middle;margin-right:4px" })} Print
 </button>
 
 ${tableCards}
@@ -287,9 +287,9 @@ function generateGiftPrintHTML(gifts, households, eventName, eventDate, theme) {
     const addr    = getAddress(g);
     const amt     = g.amount != null ? `<span style="font-weight:700;color:#2d6a4f">$${parseFloat(g.amount).toLocaleString()}</span>` : "";
     const writtenBadge = g.thankYouWritten
-      ? `<span style="background:#d8f3dc;color:#2d6a4f;font-size:10px;font-weight:700;padding:2px 7px;border-radius:99px;margin-left:6px">✓ Written</span>` : "";
+      ? `<span style="background:#d8f3dc;color:#2d6a4f;font-size:10px;font-weight:700;padding:2px 7px;border-radius:99px;margin-left:6px">${iconSvg("check", "badge", { color: "#2d6a4f", style: "display:inline-block;vertical-align:middle;margin-right:2px" })} Written</span>` : "";
     const mailedBadge  = g.thankYouMailed
-      ? `<span style="background:#dbeafe;color:#1e4d8c;font-size:10px;font-weight:700;padding:2px 7px;border-radius:99px;margin-left:4px">✓ Mailed</span>` : "";
+      ? `<span style="background:#dbeafe;color:#1e4d8c;font-size:10px;font-weight:700;padding:2px 7px;border-radius:99px;margin-left:4px">${iconSvg("check", "badge", { color: "#1e4d8c", style: "display:inline-block;vertical-align:middle;margin-right:2px" })} Mailed</span>` : "";
     const pendingBadge = (!g.thankYouWritten)
       ? `<span style="background:#fde8e8;color:#9b2335;font-size:10px;font-weight:700;padding:2px 7px;border-radius:99px;margin-left:6px">Pending</span>` : "";
     const attendedStr  = g.attended === true ? "Attended" : g.attended === false ? "Did not attend" : "";
@@ -345,7 +345,7 @@ function generateGiftPrintHTML(gifts, households, eventName, eventDate, theme) {
 
 <button class="no-print" onclick="window.print()"
   style="margin-bottom:20px;padding:8px 18px;background:${pal.accent};color:${pal["accent-text"]};border:none;border-radius:6px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer">
-  🖨 Print
+  ${iconSvg("printer", "inline", { style: "display:inline-block;vertical-align:middle;margin-right:4px" })} Print
 </button>
 
 ${donorBlocks || '<p style="color:#9c9188;font-style:italic">No gifts recorded yet.</p>'}
@@ -476,7 +476,7 @@ function generateFavorPrintHTML(favors, favorConfig, eventName, eventDate, theme
     <div style="font-size:11px;color:#9c9188;margin-top:2px">Generated ${new Date().toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"})}</div>
   </div>
 </div>
-<button class="no-print" onclick="window.print()" style="margin-bottom:20px;padding:8px 18px;background:${pal.accent};color:${pal["accent-text"]};border:none;border-radius:6px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer">🖨 Print</button>
+<button class="no-print" onclick="window.print()" style="margin-bottom:20px;padding:8px 18px;background:${pal.accent};color:${pal["accent-text"]};border:none;border-radius:6px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer">${iconSvg("printer", "inline", { style: "display:inline-block;vertical-align:middle;margin-right:4px" })} Print</button>
 ${sizeSummaryHTML}
 ${bodyHTML}
 <div style="margin-top:32px;padding-top:12px;border-top:1px solid ${pal["accent-medium"]};font-size:11px;color:#9c9188">SimchaKit by Brook Creative LLC · Favor List Export</div>
@@ -678,7 +678,7 @@ function generateEventBriefHTML(state, adminConfig) {
 
   const overdueSection = overdue.length > 0
     ? `<div style="margin-bottom:16px">
-        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:#9b2335;margin-bottom:6px">⚠ Overdue (${overdue.length})</div>
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:#9b2335;margin-bottom:6px">${iconSvg("alertTriangle", "badge", { color: "#9b2335", style: "display:inline-block;vertical-align:middle;margin-right:3px" })} Overdue (${overdue.length})</div>
         <table style="width:100%;border-collapse:collapse">${overdue.map(t => taskRow(t, true)).join("")}</table>
       </div>` : "";
 
@@ -739,7 +739,7 @@ function generateEventBriefHTML(state, adminConfig) {
 <div style="padding:20px 24px;background:linear-gradient(135deg,${pal["header-bg"]},${pal["accent"]});border-radius:10px;color:white;margin-bottom:8px">
   <div style="font-family:'Cormorant Garamond',Georgia,serif;font-size:30px;font-weight:700;line-height:1.1">${eventName}</div>
   ${dateStr ? `<div style="font-size:14px;opacity:0.9;margin-top:4px">${dateStr}</div>` : ""}
-  ${eventVenue ? `<div style="font-size:13px;opacity:0.8;margin-top:2px">📍 ${eventVenue}</div>` : ""}
+  ${eventVenue ? `<div style="font-size:13px;opacity:0.8;margin-top:2px">${iconSvg("mapPin", "badge", { style: "display:inline-block;vertical-align:middle;margin-right:3px" })} ${eventVenue}</div>` : ""}
 </div>
 <div style="text-align:right;font-size:11px;color:#9c9188;margin-bottom:4px">
   Event brief generated ${generatedAt} · SimchaKit by Brook Creative LLC
@@ -747,11 +747,11 @@ function generateEventBriefHTML(state, adminConfig) {
 
 <button class="no-print" onclick="window.print()"
   style="margin-bottom:20px;padding:8px 18px;background:${pal["accent"]};color:white;border:none;border-radius:6px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer">
-  🖨 Print / Save as PDF
+  ${iconSvg("printer", "inline", { style: "display:inline-block;vertical-align:middle;margin-right:4px" })} Print / Save as PDF
 </button>
 
 <!-- Timeline -->
-${sectionHead("📅 Event Timeline")}
+${sectionHead(`${iconSvg("calendar", "inline")} Event Timeline`)}
 ${timeline.length > 0
   ? `<table style="width:100%;border-collapse:collapse;border:1px solid #e2ddd5;border-radius:8px;overflow:hidden">
       <thead>
@@ -769,12 +769,12 @@ ${timeline.length > 0
 
 ${subEventAttendance.length > 0 ? `
 <!-- Sub-Event Attendance -->
-${sectionHead("📊 Sub-Event Attendance")}
+${sectionHead(`${iconSvg("barChart3", "inline")} Sub-Event Attendance`)}
 ${subEventHTML}
 ` : ""}
 
 <!-- Guest Summary -->
-${sectionHead("👥 Guest Summary")}
+${sectionHead(`${iconSvg("guests", "inline")} Guest Summary`)}
 <div class="stat-row">
   ${statBox("Invited", totalPeople, "#1c1614")}
   ${statBox("Confirmed", confirmedPpl, "#2d6a4f")}
@@ -786,13 +786,13 @@ ${sectionHead("👥 Guest Summary")}
 ${dietaryRows}
 
 <!-- Vendors -->
-${sectionHead("🏪 Confirmed Vendors")}
+${sectionHead(`${iconSvg("vendors", "inline")} Confirmed Vendors`)}
 ${confirmedVendors.length > 0
   ? `<div class="vendor-grid">${vendorCards}</div>${unconfirmedNote}`
   : `<div style="color:#9c9188;font-size:13px;font-style:italic">No confirmed vendors yet.</div>`}
 
 <!-- Open Tasks -->
-${sectionHead("✅ Open Tasks")}
+${sectionHead(`${iconSvg("tasks", "inline")} Open Tasks`)}
 ${overdueSection}${upcomingSection}${noTasksMsg}
 ${realTasks.filter(t=>!t.done&&!t.due).length > 0
   ? `<div style="margin-top:10px;font-size:12px;color:#9c9188;font-style:italic">
@@ -807,7 +807,7 @@ ${ceremonyHTML}
 
 ${config.notes && config.notes.trim() ? `
 <!-- Organizer Notes -->
-${sectionHead("📝 Organizer Notes")}
+${sectionHead(`${iconSvg("pencil", "inline")} Organizer Notes`)}
 <div style="background:#faf8f5;border:1px solid #e2ddd5;border-radius:8px;padding:14px 16px;font-size:13px;color:#1c1614;line-height:1.7;white-space:pre-wrap">${config.notes.trim()}</div>
 ` : ""}
 

@@ -11,6 +11,8 @@ import { supabase }           from "@/lib/supabase.js";
 import { useEventData }       from "@/hooks/useEventData.js";
 import { DAY_OF_TIME_BLOCKS } from "@/constants/events.js";
 import { formatTimeRange, sortTimeline } from "@/utils/dates.js";
+import { Icon } from "@/utils/iconMap.jsx";
+import { iconSvg } from "@/utils/iconSvg.js";
 
 // ── Print Brief HTML generator ────────────────────────────────────────────────
 function generatePrintBriefHTML({ adminConfig, timeline, households, people, vendors, expenses, tasks, ceremonyRoles }) {
@@ -69,8 +71,8 @@ function generatePrintBriefHTML({ adminConfig, timeline, households, people, ven
   const sortedRoles = [...ceremonyRoles].sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
 
   // ── HTML ──────────────────────────────────────────────────────────────────
-  const sectionHead = (emoji, title) =>
-    `<div class="section-head"><span>${emoji}</span> ${title}</div>`;
+  const sectionHead = (iconKey, title) =>
+    `<div class="section-head"><span>${iconSvg(iconKey, "inline") || iconKey}</span> ${title}</div>`;
 
   const timelineRows = timeline.map(entry => {
     const time  = formatTimeRange(entry.startTime, entry.endTime);
@@ -102,7 +104,7 @@ function generatePrintBriefHTML({ adminConfig, timeline, households, people, ven
       <td>${v.type || ""}</td>
       <td class="money">${vTotal > 0 ? fmt$(vTotal) : "—"}</td>
       <td class="money green">${vPaid > 0 ? fmt$(vPaid) : "—"}</td>
-      <td class="money ${vBalance > 0 ? "red" : ""}">${vBalance > 0 ? fmt$(vBalance) : "✓"}</td>
+      <td class="money ${vBalance > 0 ? "red" : ""}">${vBalance > 0 ? fmt$(vBalance) : iconSvg("check", "badge", { color: "#2d6a4f" })}</td>
     </tr>`;
   }).join("");
 
@@ -142,7 +144,7 @@ function generatePrintBriefHTML({ adminConfig, timeline, households, people, ven
         const name = [p.firstName, p.lastName].filter(Boolean).join(" ") || p.name || "Guest";
         const isConf = confirmedHHIds.has(p.householdId);
         return `<tr>
-          <td><span class="${isConf ? "badge-green" : "badge-gold"}">${isConf ? "✓" : "?"}</span> ${name}</td>
+          <td><span class="${isConf ? "badge-green" : "badge-gold"}">${isConf ? iconSvg("check", "badge", { color: "#2d6a4f" }) : "?"}</span> ${name}</td>
           <td>${p.dietary}</td>
         </tr>`;
       }).join("")
@@ -195,12 +197,12 @@ function generatePrintBriefHTML({ adminConfig, timeline, households, people, ven
 <h1>${eventName}</h1>
 <div class="event-meta">${eventDate ? eventDate + " · " : ""}Event Brief · Generated ${new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}</div>
 
-${sectionHead("📅", "Event Timeline")}
+${sectionHead("calendar", "Event Timeline")}
 ${timeline.length === 0
   ? `<p class="meta">No timeline entries configured.</p>`
   : `<table><thead><tr><th style="width:36px"></th><th>Event</th><th style="width:130px">Date</th></tr></thead><tbody>${timelineRows}</tbody></table>`}
 
-${sectionHead("👥", "Guest Summary")}
+${sectionHead("guests", "Guest Summary")}
 <div class="stat-row">
   <div class="stat-box"><div class="stat-num">${totalConfirmed}</div><div class="stat-lbl">Confirmed</div></div>
   <div class="stat-box"><div class="stat-num">${totalInvited}</div><div class="stat-lbl">Invited</div></div>
@@ -213,7 +215,7 @@ ${dietaryPeople.length > 0 ? `
 <table><thead><tr><th>Guest</th><th>Dietary Requirement</th></tr></thead><tbody>${dietaryRows}</tbody></table>
 ` : ""}
 
-${sectionHead("🏪", "Confirmed Vendors")}
+${sectionHead("vendors", "Confirmed Vendors")}
 ${confirmedVendors.length === 0
   ? `<p class="meta">No confirmed vendors.</p>`
   : `<table><thead><tr><th>Vendor</th><th>Type</th><th class="money">Total</th><th class="money">Paid</th><th class="money">Balance</th></tr></thead><tbody>${vendorRows}</tbody></table>`}
@@ -223,15 +225,15 @@ ${unpaidExpenses.length > 0 ? `
 <p class="meta" style="text-align:right">Total budget: ${fmt$(totalBudget)} · Paid: ${fmt$(totalPaid)} · Outstanding: ${fmt$(totalBudget - totalPaid)}</p>
 ` : ""}
 
-${sectionHead("✅", `Tasks — ${tasksDone} of ${tasksTotal} complete`)}
+${sectionHead("tasks", `Tasks — ${tasksDone} of ${tasksTotal} complete`)}
 ${overdueTasks.length > 0 ? `
-<div class="sub-section-label">⚠ Overdue (${overdueTasks.length})</div>
+<div class="sub-section-label">${iconSvg("alertTriangle", "badge", { color: "#9b2335" })} Overdue (${overdueTasks.length})</div>
 <table><thead><tr><th style="width:20px"></th><th>Task</th><th>Category</th><th>Due</th></tr></thead><tbody>${taskRows(overdueTasks)}</tbody></table>
 ` : ""}
 ${upcomingTasks.length > 0 ? `
 <div class="sub-section-label">Upcoming (${upcomingTasks.length})</div>
 <table><thead><tr><th style="width:20px"></th><th>Task</th><th>Category</th><th>Due</th></tr></thead><tbody>${taskRows(upcomingTasks)}</tbody></table>
-` : upcomingTasks.length === 0 && overdueTasks.length === 0 ? `<p class="meta">All tasks complete! 🎉</p>` : ""}
+` : upcomingTasks.length === 0 && overdueTasks.length === 0 ? `<p class="meta">All tasks complete! ${iconSvg("partyPopper", "inline")}</p>` : ""}
 
 ${ceremonyRoles.length > 0 ? `
 ${sectionHead("✡", `Ceremony Roles — ${ceremonyRoles.filter(r => r.assignee?.trim()).length} of ${ceremonyRoles.length} assigned`)}
@@ -257,7 +259,7 @@ export function DayOfItemModal({ item, onSave, onClose }) {
       <div className="modal" onClick={e => e.stopPropagation()}>
         <div className="modal-header">
           <div className="modal-title">{isEdit ? "Edit Item" : "Add Day-of Item"}</div>
-          <button className="icon-btn" title="Close" onClick={onClose}>✕</button>
+          <button className="icon-btn" title="Close" onClick={onClose}><Icon name="x" context="button" /></button>
         </div>
         <div className="modal-body">
           <div className="form-group">
@@ -420,11 +422,11 @@ export function DayOfOverlay({ eventId, event, adminConfig, onClose, onPrintBrie
         {/* Header */}
         <div className="dayof-panel-header">
           <div>
-            <div className="dayof-panel-title">📋 Day-of Mode</div>
+            <div className="dayof-panel-title"><Icon name="clipboardList" context="menu" style={{ marginRight: 6 }} /> Day-of Mode</div>
             {eventDate && <div className="dayof-panel-meta">{eventDate}</div>}
           </div>
           <button onClick={onClose} style={{ background:"rgba(255,255,255,0.2)", border:"1px solid rgba(255,255,255,0.35)", color:"#fff", padding:"5px 14px", borderRadius:"var(--radius-sm)", cursor:"pointer", fontSize:13, fontWeight:600, fontFamily:"var(--font-body)" }}>
-            ✕ Close
+            <Icon name="x" context="inline" style={{ marginRight: 4 }} /> Close
           </button>
         </div>
 
@@ -432,7 +434,7 @@ export function DayOfOverlay({ eventId, event, adminConfig, onClose, onPrintBrie
 
           {/* Print Brief */}
           <button onClick={handlePrintBrief} style={{ width:"100%", display:"flex", alignItems:"center", gap:12, background:"var(--accent-light)", border:"1px solid var(--accent-medium)", borderRadius:"var(--radius-md)", padding:"12px 16px", cursor:"pointer", textAlign:"left", fontFamily:"var(--font-body)", flexShrink:0 }}>
-            <span style={{ fontSize:20, lineHeight:1, flexShrink:0 }}>🖨</span>
+            <span style={{ fontSize:20, lineHeight:1, flexShrink:0 }}><Icon name="printer" context="button" /></span>
             <div>
               <div style={{ fontSize:13, fontWeight:700, color:"var(--accent-primary)" }}>Print Event Brief</div>
               <div style={{ fontSize:11, color:"var(--accent-primary)", opacity:0.8, marginTop:1 }}>Generate a printable summary to share with your team</div>
@@ -442,7 +444,7 @@ export function DayOfOverlay({ eventId, event, adminConfig, onClose, onPrintBrie
           {/* 1. Timeline */}
           <div className="dayof-section">
             <div className="dayof-section-header">
-              <div className="dayof-section-title">📅 Event Timeline</div>
+              <div className="dayof-section-title"><Icon name="calendar" context="inline" style={{ marginRight: 6 }} /> Event Timeline</div>
               <div style={{ fontSize:11, color:"var(--text-muted)" }}>{checkedCount}/{timeline.length} confirmed</div>
             </div>
             {timeline.length === 0 ? (
@@ -452,7 +454,7 @@ export function DayOfOverlay({ eventId, event, adminConfig, onClose, onPrintBrie
               const timeStr = formatTimeRange(entry.startTime, entry.endTime);
               return (
                 <div key={entry.id} className={`dayof-timeline-row ${checked?"done":""}`} onClick={() => toggleTimeline(entry.id)}>
-                  <div className={`dayof-check ${checked?"checked":""}`}>{checked?"✓":""}</div>
+                  <div className={`dayof-check ${checked?"checked":""}`}>{checked?<Icon name="check" context="badge" />:""}</div>
                   <div style={{ flex:1, minWidth:0 }}>
                     <div style={{ display:"flex", alignItems:"center", gap:8 }}>
                       {entry.icon && <span style={{ fontSize:15 }}>{entry.icon}</span>}
@@ -470,7 +472,7 @@ export function DayOfOverlay({ eventId, event, adminConfig, onClose, onPrintBrie
 
           {/* 2. Hot Sheet */}
           <div className="dayof-section">
-            <div className="dayof-section-header"><div className="dayof-section-title">🔥 Hot Sheet</div></div>
+            <div className="dayof-section-header"><div className="dayof-section-title"><Icon name="bellRing" context="inline" style={{ marginRight: 6 }} /> Hot Sheet</div></div>
 
             {/* Key numbers */}
             <div style={{ padding:"12px 14px", borderBottom:"1px solid var(--border)" }}>
@@ -495,7 +497,7 @@ export function DayOfOverlay({ eventId, event, adminConfig, onClose, onPrintBrie
                     const isConf = confirmedHHIds.has(p.householdId);
                     return (
                       <div key={p.id} style={{ display:"flex", alignItems:"center", gap:8, padding:"4px 0", borderTop:"1px solid var(--border)", fontSize:12 }}>
-                        <span style={{ fontSize:10, fontWeight:700, padding:"1px 6px", borderRadius:99, flexShrink:0, background:isConf?"var(--green-light)":"var(--gold-light)", color:isConf?"var(--green)":"var(--gold)" }}>{isConf?"✓":"?"}</span>
+                        <span style={{ fontSize:10, fontWeight:700, padding:"1px 6px", borderRadius:99, flexShrink:0, background:isConf?"var(--green-light)":"var(--gold-light)", color:isConf?"var(--green)":"var(--gold)" }}>{isConf?<Icon name="check" context="badge" />:"?"}</span>
                         <span style={{ fontWeight:600, color:"var(--text-primary)" }}>{name}</span>
                         <span style={{ color:"var(--orange)", marginLeft:"auto", fontSize:11 }}>{p.dietary}</span>
                       </div>
@@ -516,7 +518,7 @@ export function DayOfOverlay({ eventId, event, adminConfig, onClose, onPrintBrie
                   {v.contactName && <div style={{ fontSize:11, color:"var(--text-muted)", marginTop:1 }}>{v.contactName}</div>}
                 </div>
                 {v.phone && (
-                  <a href={`tel:${v.phone}`} className="dayof-hotsheet-phone" onClick={e => e.stopPropagation()}>📞 {v.phone}</a>
+                  <a href={`tel:${v.phone}`} className="dayof-hotsheet-phone" onClick={e => e.stopPropagation()}><Icon name="phone" context="badge" style={{ marginRight: 3 }} /> {v.phone}</a>
                 )}
               </div>
             ))}
@@ -558,7 +560,7 @@ export function DayOfOverlay({ eventId, event, adminConfig, onClose, onPrintBrie
           {/* 4. Day-of Checklist */}
           <div className="dayof-section">
             <div className="dayof-section-header">
-              <div className="dayof-section-title">✅ Day-of Checklist</div>
+              <div className="dayof-section-title"><Icon name="tasks" context="inline" style={{ marginRight: 6 }} /> Day-of Checklist</div>
               <button className="btn btn-secondary btn-sm" onClick={e => { e.stopPropagation(); setShowAddItem(true); }}>+ Add Item</button>
             </div>
             {checklist.length === 0 ? (
@@ -575,11 +577,11 @@ export function DayOfOverlay({ eventId, event, adminConfig, onClose, onPrintBrie
                   <div className="dayof-block-heading">{block} — {done}/{items.length}</div>
                   {items.map(c => (
                     <div key={c.id} className={`dayof-checklist-row ${c.done?"done":""}`}>
-                      <div className={`dayof-check ${c.done?"checked":""}`} onClick={e => { e.stopPropagation(); toggleItem(c.id); }}>{c.done&&"✓"}</div>
+                      <div className={`dayof-check ${c.done?"checked":""}`} onClick={e => { e.stopPropagation(); toggleItem(c.id); }}>{c.done&&<Icon name="check" context="badge" />}</div>
                       <div className="dayof-task-text" onClick={e => { e.stopPropagation(); toggleItem(c.id); }}>{c.task}</div>
                       <div style={{ display:"flex", gap:3, flexShrink:0 }}>
-                        <button className="icon-btn" style={{ width:26, height:26 }} onClick={e => { e.stopPropagation(); setEditItem(c); }}>✎</button>
-                        <button className="icon-btn" style={{ width:26, height:26 }} onClick={e => { e.stopPropagation(); handleDeleteItem(c.id); }}>✕</button>
+                        <button className="icon-btn" style={{ width:26, height:26 }} onClick={e => { e.stopPropagation(); setEditItem(c); }}><Icon name="pencil" context="badge" /></button>
+                        <button className="icon-btn" style={{ width:26, height:26 }} onClick={e => { e.stopPropagation(); handleDeleteItem(c.id); }}><Icon name="x" context="button" /></button>
                       </div>
                     </div>
                   ))}
@@ -591,7 +593,7 @@ export function DayOfOverlay({ eventId, event, adminConfig, onClose, onPrintBrie
           {/* 5. Notes */}
           <div className="dayof-section">
             <div className="dayof-section-header">
-              <div className="dayof-section-title">📝 Notes</div>
+              <div className="dayof-section-title"><Icon name="pencil" context="inline" style={{ marginRight: 6 }} /> Notes</div>
               <div style={{ fontSize:11, color:"var(--text-muted)" }}>Synced in real time</div>
             </div>
             <div style={{ padding:14 }}>
@@ -626,7 +628,7 @@ export function DayOfOverlay({ eventId, event, adminConfig, onClose, onPrintBrie
           {/* Preview header */}
           <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"14px 20px", borderBottom:"1px solid var(--border)", flexShrink:0 }}>
             <div style={{ fontFamily:"var(--font-display)", fontSize:17, fontWeight:700, color:"var(--text-primary)" }}>
-              🖨 Print Event Brief
+              <Icon name="printer" context="inline" style={{ marginRight: 4 }} /> Print Event Brief
             </div>
             <div style={{ display:"flex", gap:8 }}>
               <button
@@ -637,9 +639,9 @@ export function DayOfOverlay({ eventId, event, adminConfig, onClose, onPrintBrie
                   if (frame && frame.contentWindow) frame.contentWindow.print();
                 }}
               >
-                🖨 Print / Save PDF
+                <Icon name="printer" context="inline" style={{ marginRight: 4 }} /> Print / Save PDF
               </button>
-              <button className="icon-btn" title="Close" onClick={() => setPrintHTML(null)}>✕</button>
+              <button className="icon-btn" title="Close" onClick={() => setPrintHTML(null)}><Icon name="x" context="button" /></button>
             </div>
           </div>
           {/* Preview iframe */}
