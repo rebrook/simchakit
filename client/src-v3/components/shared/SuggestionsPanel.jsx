@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Icon } from "@/utils/iconMap.jsx";
 
 export function SuggestionsPanel({ suggestions, onAdd, onDismiss, dismissedCount, onRestore, onNavigate }) {
   const [open, setOpen] = useState(false);
@@ -9,11 +10,11 @@ export function SuggestionsPanel({ suggestions, onAdd, onDismiss, dismissedCount
     <div className="suggestions-panel">
       <div className="suggestions-header" onClick={() => setOpen(o => !o)}>
         <div className="suggestions-title">
-          <span>💡</span>
+          <span><Icon name="lightbulb" context="inline" /></span>
           <span>Suggested Tasks</span>
           {suggestions.length > 0 && <span className="suggestions-count">{suggestions.length}</span>}
         </div>
-        <span className="suggestions-caret">{open ? "▴ collapse" : "▾ expand"}</span>
+        <span className="suggestions-caret">{open ? <><Icon name="chevronUp" context="inline" /> collapse</> : <><Icon name="chevronDown" context="inline" /> expand</>}</span>
       </div>
       {open && (
         <div>
@@ -35,20 +36,20 @@ export function SuggestionsPanel({ suggestions, onAdd, onDismiss, dismissedCount
               </div>
               {s.sourceTab && onNavigate && (
                 <button className="btn btn-secondary btn-sm"
-                  style={{flexShrink:0,fontSize:12,padding:"4px 10px"}}
+                  style={{flexShrink:0,fontSize:12,padding:"4px 10px",display:"inline-flex",alignItems:"center",gap:4}}
                   onClick={() => onNavigate(s.sourceTab, s.sourceId, s.sourceCollection)}>
-                  → View
+                  <Icon name="arrowRight" context="badge" /> View
                 </button>
               )}
               <button className="btn btn-secondary btn-sm"
-                style={{flexShrink:0,fontSize:12,padding:"4px 10px"}}
+                style={{flexShrink:0,fontSize:12,padding:"4px 10px",display:"inline-flex",alignItems:"center",gap:4}}
                 onClick={() => onAdd(s)}>
-                + Add
+                <Icon name="plus" context="badge" /> Add
               </button>
               <button className="icon-btn" title="Dismiss suggestion"
                 style={{flexShrink:0,width:26,height:26,fontSize:12,color:"var(--text-muted)"}}
                 onClick={() => onDismiss(s)}>
-                ✕
+                <Icon name="x" context="badge" />
               </button>
             </div>
           ))}

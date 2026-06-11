@@ -13,6 +13,7 @@ import { computeVendorFinancials, getLastContacted, fmt$ } from "@/utils/vendors
 import { ArchivedNotice }    from "@/components/shared/ArchivedNotice.jsx";
 import { VendorQuickView }   from "@/components/shared/VendorQuickView.jsx";
 import { VendorModal }       from "@/components/shared/VendorModal.jsx";
+import { Icon }              from "@/utils/iconMap.jsx";
 
 export function VendorsTab({ eventId, event, adminConfig, showToast, isArchived, isViewer, searchHighlight, clearSearchHighlight }) {
   const { items: vendors, loading, save, remove } = useEventData(eventId, "vendors");
@@ -159,14 +160,14 @@ export function VendorsTab({ eventId, event, adminConfig, showToast, isArchived,
           className={`btn ${filterFollowUp ? "btn-primary" : "btn-secondary"} btn-sm`}
           onClick={() => setFilterFollowUp(f => !f)}
           title="Show only confirmed vendors needing follow-up (60+ days or never contacted)">
-          🔔 Needs Follow-up{filterFollowUp ? " ✕" : needsFollowUp > 0 ? ` (${needsFollowUp})` : ""}
+          <Icon name="bellRing" context="inline" style={{ marginRight: 4 }} /> Needs Follow-up{filterFollowUp ? <> <Icon name="x" context="badge" /></> : needsFollowUp > 0 ? ` (${needsFollowUp})` : ""}
         </button>
       </div>
 
       {/* Empty state */}
       {vendors.length === 0 && (
         <div style={{textAlign:"center",padding:"64px 24px",color:"var(--text-muted)"}}>
-          <div style={{fontSize:40,marginBottom:12,opacity:0.4}}>🏪</div>
+          <div style={{fontSize:40,marginBottom:12,opacity:0.4}}><Icon name="vendors" context="empty" /></div>
           <div style={{fontFamily:"var(--font-display)",fontSize:18,marginBottom:6,color:"var(--text-primary)"}}>No vendors yet</div>
           <div style={{fontSize:13,marginBottom:20}}>Add your first vendor to start tracking contracts and payments.</div>
           {!isViewer && <button className="btn btn-primary" onClick={() => { setEditing(null); setShowAdd(true); }}>+ Add Vendor</button>}
@@ -209,25 +210,25 @@ export function VendorsTab({ eventId, event, adminConfig, showToast, isArchived,
                   <div className="vendor-card-contacts">
                     {v.contactName && (
                       <div className="vendor-contact-row">
-                        <span style={{fontSize:12}}>👤</span>
+                        <span style={{fontSize:12}}><Icon name="people" context="badge" /></span>
                         <span>{v.contactName}</span>
                       </div>
                     )}
                     {v.phone && (
                       <div className="vendor-contact-row">
-                        <span style={{fontSize:12}}>📞</span>
+                        <span style={{fontSize:12}}><Icon name="phone" context="badge" /></span>
                         <a href={`tel:${v.phone}`}>{formatPhone(v.phone)}</a>
                       </div>
                     )}
                     {v.email && (
                       <div className="vendor-contact-row">
-                        <span style={{fontSize:12}}>✉</span>
+                        <span style={{fontSize:12}}><Icon name="mail" context="badge" /></span>
                         <a href={`mailto:${v.email}`}>{v.email}</a>
                       </div>
                     )}
                     {v.website && (
                       <div className="vendor-contact-row">
-                        <span style={{fontSize:12}}>🌐</span>
+                        <span style={{fontSize:12}}><Icon name="globe" context="badge" /></span>
                         <a href={v.website} target="_blank" rel="noopener noreferrer">
                           {v.website.replace(/^https?:\/\/(www\.)?/,"")}
                         </a>
@@ -303,7 +304,7 @@ export function VendorsTab({ eventId, event, adminConfig, showToast, isArchived,
                   const label = date
                     ? `Last contact: ${fmt(date)} (${daysAgo}d ago)`
                     : isPaidStatus ? "No contact log" : "Never contacted";
-                  const icon = noLog && isPaidStatus ? "📋" : stale ? "🔔" : warm ? "✓" : "⏱";
+                  const icon = noLog && isPaidStatus ? <Icon name="clipboardList" context="badge" /> : stale ? <Icon name="bellRing" context="badge" /> : warm ? <Icon name="check" context="badge" /> : <Icon name="clock" context="badge" />;
                   return (
                     <div style={{ fontSize:11, color, fontWeight:600, marginTop:6,
                       display:"flex", alignItems:"center", gap:5 }}>
@@ -322,19 +323,19 @@ export function VendorsTab({ eventId, event, adminConfig, showToast, isArchived,
                     {v.contractUrl && (
                       <a href={v.contractUrl} target="_blank" rel="noopener noreferrer"
                         className="btn btn-secondary btn-sm"
-                        style={{fontSize:11,padding:"3px 10px",gap:4}}
+                        style={{fontSize:11,padding:"3px 10px",gap:4,display:"inline-flex",alignItems:"center"}}
                         title="Open contract in new tab">
-                        📄 Contract
+                        <Icon name="fileText" context="badge" /> Contract
                       </a>
                     )}
                     <button className="icon-btn" title="Edit"
                       style={{width:28,height:28,fontSize:13}}
                       disabled={isArchived || isViewer}
-                      onClick={() => { setEditing(v); setShowAdd(true); }}>✎</button>
+                      onClick={() => { setEditing(v); setShowAdd(true); }}><Icon name="pencil" context="badge" /></button>
                     <button className="icon-btn" title="Delete"
                       style={{width:28,height:28,fontSize:13,color:"var(--red)"}}
                       disabled={isArchived || isViewer}
-                      onClick={() => setDeleteConfirm(v._rowId || v.id)}>✕</button>
+                      onClick={() => setDeleteConfirm(v._rowId || v.id)}><Icon name="x" context="badge" /></button>
                   </div>
                 </div>
               </div>
@@ -370,7 +371,7 @@ export function VendorsTab({ eventId, event, adminConfig, showToast, isArchived,
           <div className="modal" style={{maxWidth:400}} onClick={e => e.stopPropagation()}>
             <div className="modal-header">
               <div className="modal-title">Delete Vendor</div>
-              <button className="icon-btn" onClick={() => setDeleteConfirm(null)}>✕</button>
+              <button className="icon-btn" onClick={() => setDeleteConfirm(null)}><Icon name="x" context="button" /></button>
             </div>
             <div className="modal-body">
               <p style={{fontSize:14,color:"var(--text-primary)",marginBottom:4,lineHeight:1.6}}>

@@ -15,6 +15,7 @@ import { newTaskId }          from "@/utils/ids.js";
 import { getTaskDueStatus, computeSuggestions, getSmartTaskTemplates } from "@/utils/tasks.js";
 import { ArchivedNotice }     from "@/components/shared/ArchivedNotice.jsx";
 import { SuggestionsPanel }   from "@/components/shared/SuggestionsPanel.jsx";
+import { Icon }               from "@/utils/iconMap.jsx";
 
 export function TaskModal({ task, prefilled, onSave, onClose, isArchived }) {
   const isEdit = !!task && !prefilled;
@@ -29,7 +30,7 @@ export function TaskModal({ task, prefilled, onSave, onClose, isArchived }) {
       <div className="modal" onClick={e => e.stopPropagation()}>
         <div className="modal-header">
           <div className="modal-title">{isEdit ? "Edit Task" : prefilled ? "Add Suggested Task" : "Add Task"}</div>
-          <button className="icon-btn" title="Close" onClick={onClose}>✕</button>
+          <button className="icon-btn" title="Close" onClick={onClose}><Icon name="x" context="button" /></button>
         </div>
         <div className="modal-body">
           <div className="form-group">
@@ -212,13 +213,13 @@ function TaskInsights({ realTasks }) {
     <div className="card budget-insights" style={{ marginBottom: 20 }}>
       <div className="budget-insights-header" onClick={() => setOpen(o => !o)}>
         <div>
-          <div className="card-title" style={{ marginBottom: 0 }}>📊 Task Insights</div>
+          <div className="card-title" style={{ marginBottom: 0 }}><Icon name="barChart3" context="inline" style={{ marginRight: 6 }} /> Task Insights</div>
           <div className="card-subtitle" style={{ marginBottom: 0, marginTop: 4 }}>
             {collapsedSummary}{!open && " · click to expand"}
           </div>
         </div>
         <button className="budget-insights-toggle" aria-label={open ? "Collapse" : "Expand"}>
-          {open ? "▴" : "▾"}
+          {open ? <Icon name="chevronUp" context="inline" /> : <Icon name="chevronDown" context="inline" />}
         </button>
       </div>
 
@@ -559,14 +560,14 @@ export function TasksTab({ eventId, event, adminConfig, showToast, isArchived, i
             {ds && (
               <span className={`task-due ${ds.cls}`}
                 title={t.due ? new Date(t.due+"T00:00:00").toLocaleDateString("en-US",{weekday:"short",month:"short",day:"numeric",year:"numeric"}) : undefined}>
-                {ds.cls==="overdue" ? "⚠ " : ""}{ds.label}
+                {ds.cls==="overdue" ? <><Icon name="alertTriangle" context="badge" style={{ marginRight: 2 }} /> </> : ""}{ds.label}
               </span>
             )}
             {hasNotes && (
               <button style={{background:"none",border:"none",cursor:"pointer",
                 fontSize:11,color:"var(--text-muted)",padding:0}}
                 onClick={() => toggleNotes(t.id)}>
-                {notesOpen ? "▴ hide notes" : "▾ notes"}
+                {notesOpen ? <><Icon name="chevronUp" context="badge" /> hide notes</> : <><Icon name="chevronDown" context="badge" /> notes</>}
               </button>
             )}
           </div>
@@ -577,10 +578,10 @@ export function TasksTab({ eventId, event, adminConfig, showToast, isArchived, i
         <div className="task-actions">
           <button className="icon-btn" title="Edit"
             style={{width:26,height:26,fontSize:12}}
-            disabled={isArchived || isViewer} onClick={() => setEditTask(t)}>✎</button>
+            disabled={isArchived || isViewer} onClick={() => setEditTask(t)}><Icon name="pencil" context="badge" /></button>
           <button className="icon-btn" title="Delete"
             style={{width:26,height:26,fontSize:12,color:"var(--red)"}}
-            disabled={isArchived || isViewer} onClick={() => setDeleteConfirm(t.id)}>✕</button>
+            disabled={isArchived || isViewer} onClick={() => setDeleteConfirm(t.id)}><Icon name="x" context="badge" /></button>
         </div>
       </div>
     );
@@ -605,7 +606,7 @@ export function TasksTab({ eventId, event, adminConfig, showToast, isArchived, i
             const mainEvt = (adminConfig?.timeline || []).find(e => e.isMainEvent);
             return mainEvt?.startDate && !isArchived ? (
               <button className="btn btn-secondary btn-sm" onClick={() => setShowSmartTasks(true)}>
-                ✨ Smart Tasks
+                <Icon name="sparkles" context="inline" style={{ marginRight: 4 }} /> Smart Tasks
               </button>
             ) : null;
           })()}
@@ -693,7 +694,7 @@ export function TasksTab({ eventId, event, adminConfig, showToast, isArchived, i
       {/* Empty state */}
       {tasks.length === 0 && (
         <div style={{textAlign:"center",padding:"64px 24px",color:"var(--text-muted)"}}>
-          <div style={{fontSize:40,marginBottom:12,opacity:0.4}}>✅</div>
+          <div style={{fontSize:40,marginBottom:12,opacity:0.4}}><Icon name="tasks" context="empty" /></div>
           <div style={{fontFamily:"var(--font-display)",fontSize:18,marginBottom:6,color:"var(--text-primary)"}}>
             No tasks yet
           </div>
@@ -748,7 +749,7 @@ export function TasksTab({ eventId, event, adminConfig, showToast, isArchived, i
           <div className="modal" style={{maxWidth:380}} onClick={e => e.stopPropagation()}>
             <div className="modal-header">
               <div className="modal-title">Delete Task</div>
-              <button className="icon-btn" title="Close" onClick={() => setDeleteConfirm(null)}>✕</button>
+              <button className="icon-btn" title="Close" onClick={() => setDeleteConfirm(null)}><Icon name="x" context="button" /></button>
             </div>
             <div className="modal-body">
               <p style={{fontSize:14,color:"var(--text-primary)",marginBottom:4,lineHeight:1.6}}>
@@ -769,9 +770,9 @@ export function TasksTab({ eventId, event, adminConfig, showToast, isArchived, i
           <div className="modal" style={{maxWidth:420}} onClick={e => e.stopPropagation()}>
             <div className="modal-header">
               <div className="modal-title">
-                {linkConfirm.action === "markPaid" ? "💳 Mark Payment Paid?" : "📖 Update Prep Item?"}
+                {linkConfirm.action === "markPaid" ? <><Icon name="banknote" context="inline" style={{ marginRight: 4 }} /> Mark Payment Paid?</> : <><Icon name="prep" context="inline" style={{ marginRight: 4 }} /> Update Prep Item?</>}
               </div>
-              <button className="icon-btn" title="Close" onClick={() => setLinkConfirm(null)}>✕</button>
+              <button className="icon-btn" title="Close" onClick={() => setLinkConfirm(null)}><Icon name="x" context="button" /></button>
             </div>
             <div className="modal-body">
               <p style={{fontSize:14,color:"var(--text-primary)",marginBottom:12,lineHeight:1.6}}>
@@ -871,7 +872,7 @@ export function SmartTasksModal({ adminConfig, tasks, onAdd, onClose, newTaskId:
         {/* Header */}
         <div style={{ padding:"20px 24px 16px", borderBottom:"1px solid var(--border)", flexShrink:0 }}>
           <div style={{ fontFamily:"var(--font-display)", fontSize:18, fontWeight:700, color:"var(--text-primary)", marginBottom:4 }}>
-            ✨ Smart Tasks
+            <Icon name="sparkles" context="menu" style={{ marginRight: 6 }} /> Smart Tasks
           </div>
           <div style={{ fontSize:13, color:"var(--text-secondary)" }}>
             Suggested planning milestones for <strong>{eventName}</strong> on <strong>{fmt(eventDate)}</strong>. Select the tasks you'd like to add.
@@ -906,7 +907,7 @@ export function SmartTasksModal({ adminConfig, tasks, onAdd, onClose, newTaskId:
                     opacity: t.alreadyCovered ? 0.6 : 1,
                   }}>
                     {t.alreadyCovered ? (
-                      <span style={{ fontSize:12, color:"var(--green)", fontWeight:600, marginTop:2, flexShrink:0 }}>✓</span>
+                      <span style={{ fontSize:12, color:"var(--green)", fontWeight:600, marginTop:2, flexShrink:0 }}><Icon name="check" context="badge" /></span>
                     ) : (
                       <input type="checkbox" checked={!!checked[t.id]} onChange={() => toggle(t.id)}
                         style={{ marginTop:3, cursor:"pointer", accentColor:"var(--accent-primary)", flexShrink:0 }} />

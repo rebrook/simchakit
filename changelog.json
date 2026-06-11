@@ -1,11 +1,21 @@
 {
-  "current": "V4.0.0",
+  "current": "V4.0.1",
   "whatsNew": [
-    "Replaced all functional emoji with Lucide React line icons for consistent rendering across every device and browser.",
-    "New centralized Icon component with context-aware sizing presets.",
-    "Guide, search overlay, and What's New modal updated to use the new icon system."
+    "Lucide icon system extended to Tasks, Suggestions Panel, and Vendors tabs.",
+    "Contact icons, follow-up indicators, and all action buttons now use consistent line icons."
   ],
   "changelog": [
+    {
+      "version": "V4.0.1",
+      "date": "2026-06-11",
+      "type": "patch",
+      "title": "Lucide Icons: Tasks, Suggestions, Vendors",
+      "changes": [
+        "TasksTab.jsx: replaced all emoji with Lucide icons. Task Insights header, Smart Tasks button and modal header, overdue warning indicators, edit/delete buttons, empty state, delete confirm and link confirm close buttons, notes toggle arrows, already-covered checkmarks in Smart Tasks modal.",
+        "SuggestionsPanel.jsx: replaced lightbulb emoji with Lucide icon, collapse/expand arrows with chevrons, View/Add buttons with icon+text, dismiss button with X icon.",
+        "VendorsTab.jsx: replaced all emoji with Lucide icons. Contact icons (person, phone, email, website), follow-up bell and status indicators, empty state, contract link, edit/delete buttons, delete confirm close button."
+      ]
+    },
     {
       "version": "V4.0.0",
       "date": "2026-06-11",
