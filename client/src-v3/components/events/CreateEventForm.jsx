@@ -199,7 +199,7 @@ export function CreateEventForm({ userId, userEmail, onCreated, onCancel }) {
         marginTop:    12,
         lineHeight:   1.6,
       }}>
-        <Icon name="lock" context="badge" style={{ marginRight: 4 }} /> Once inside your dashboard, use the settings icon to configure your event. Your default access code is <strong>admin</strong> and you can change it anytime.
+        <Icon name="lock" context="inline" style={{ marginRight: 4 }} /> Once inside your dashboard, use the settings icon to configure your event. Your default access code is <strong>admin</strong> and you can change it anytime.
       </div>
     </div>
   );

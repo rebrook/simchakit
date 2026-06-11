@@ -243,7 +243,7 @@ export function PaywallGate({ session, onFreeEventGranted, onCancel }) {
 
       {/* Trust note */}
       <div style={styles.trustNote}>
-        <Icon name="lock" context="badge" style={{ marginRight: 4 }} /> Payments are processed securely by Stripe. SimchaKit never stores your payment details.
+        <Icon name="lock" context="inline" style={{ marginRight: 4 }} /> Payments are processed securely by Stripe. SimchaKit never stores your payment details.
       </div>
 
       {/* Support contact */}

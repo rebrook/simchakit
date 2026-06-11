@@ -200,7 +200,7 @@ export function AuthPage() {
                       Sending…
                     </>
                   ) : (
-                    "Send Magic Link →"
+                    <>Send Magic Link <Icon name="arrowRight" context="inline" /></>
                   )}
                 </button>
                 <div style={{
@@ -209,7 +209,7 @@ export function AuthPage() {
                   textAlign:   "center",
                   lineHeight:  1.5,
                 }}>
-                  <Icon name="lock" context="badge" style={{ marginRight: 4 }} /> Your data is private, secure, and never shared.
+                  <Icon name="lock" context="inline" style={{ marginRight: 4 }} /> Your data is private, secure, and never shared.
                 </div>
               </form>
             </>
