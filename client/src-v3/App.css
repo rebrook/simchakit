@@ -109,14 +109,18 @@
       background: var(--bg-base);
       color: var(--text-primary);
       font-family: var(--font-body);
-      font-size: 14px;
+      font-size: 15px;
       line-height: 1.5;
       -webkit-font-smoothing: antialiased;
     }
 
-    button, input, select, textarea {
+    button {
       font-family: var(--font-body);
-      font-size: 14px;
+      font-size: 15px;
+    }
+    input, select, textarea {
+      font-family: var(--font-body);
+      font-size: 16px;
     }
 
     a { color: var(--accent-primary); text-decoration: none; }
@@ -312,7 +316,7 @@
       border-bottom-color: var(--accent-primary);
       font-weight: 600;
     }
-    .nav-tab .tab-icon { font-size: 14px; }
+    .nav-tab .tab-icon { font-size: 15px; }
     .nav-tab .tab-badge {
       font-size: 10px;
       font-weight: 700;
@@ -372,12 +376,12 @@
       box-shadow: var(--shadow-md);
     }
     .stat-label {
-      font-size: 11px;
+      font-size: 12px;
       font-weight: 600;
       text-transform: uppercase;
       letter-spacing: 0.06em;
       color: var(--text-muted);
-      margin-bottom: 8px;
+      margin-bottom: 6px;
     }
     .stat-value {
       font-family: var(--font-body);
@@ -388,8 +392,9 @@
     }
     .stat-sub {
       font-size: 12px;
+      font-weight: 400;
       color: var(--text-muted);
-      margin-top: 4px;
+      margin-top: 8px;
     }
     .stat-accent { color: var(--accent-primary); }
     .stat-gold   { color: var(--gold); }
@@ -485,7 +490,7 @@
     .timeline-content { flex: 1; }
     .timeline-title {
       font-weight: 600;
-      font-size: 14px;
+      font-size: 15px;
       color: var(--text-primary);
     }
     .timeline-meta {
@@ -815,7 +820,7 @@
     .hh-row-name { flex: 1; min-width: 0; }
     .hh-row-name-primary {
       font-weight: 600;
-      font-size: 14px;
+      font-size: 15px;
       color: var(--text-primary);
       white-space: nowrap;
       overflow: hidden;
@@ -907,7 +912,7 @@
       margin-bottom: 8px;
     }
     .placeholder-desc {
-      font-size: 14px;
+      font-size: 15px;
       color: var(--text-muted);
       max-width: 360px;
       line-height: 1.6;
@@ -985,7 +990,7 @@
       color: white;
     }
     .btn-sm { padding: 5px 12px; font-size: 12px; }
-    .btn-lg { padding: 11px 24px; font-size: 15px; }
+    .btn-lg { padding: 11px 24px; font-size: 16px; }
 
     .modal-title {
       font-family: var(--font-display);
@@ -1245,7 +1250,7 @@
     .admin-section { margin-bottom: 24px; }
     .admin-section:last-child { margin-bottom: 0; }
     .admin-section-title {
-      font-size: 11px;
+      font-size: 12px;
       font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 0.06em;
@@ -1336,12 +1341,13 @@
     }
     .section-title {
       font-family: var(--font-display);
-      font-size: 24px;
+      font-size: 26px;
+      line-height: 1.15;
       font-weight: 600;
       color: var(--text-primary);
     }
     .section-subtitle {
-      font-size: 13px;
+      font-size: 14px;
       color: var(--text-muted);
       margin-top: 2px;
     }
@@ -2231,8 +2237,9 @@
       margin-bottom: 28px;
     }
     .cal-month-heading {
-      font-size: 16px;
+      font-size: 17px;
       font-weight: 700;
+      line-height: 1.2;
       color: var(--text-primary);
       padding: 8px 0 10px;
       border-bottom: 2px solid var(--border);
@@ -2437,7 +2444,7 @@
     @media (max-width: 640px) {
       .cal-grid-cell { min-height: 54px; padding: 3px; }
       .cal-grid-chip { font-size: 9px; padding: 1px 3px; }
-      .cal-grid-month-label { font-size: 15px; min-width: 140px; }
+      .cal-grid-month-label { font-size: 16px; min-width: 140px; }
     }
 
     /* ── Calendar event popover ──────────────────────────────────────────── */
@@ -2463,8 +2470,9 @@
       to   { opacity: 1; transform: translateY(0);   }
     }
     .cal-popover-title {
-      font-size: 15px;
+      font-size: 16px;
       font-weight: 700;
+      line-height: 1.2;
       color: var(--text-primary);
       margin-bottom: 4px;
       line-height: 1.3;
