@@ -1,10 +1,33 @@
 {
-  "current": "V4.1.0",
+  "current": "V4.2.0",
   "whatsNew": [
-    "Typography refinement: serif reserved for event names, countdown, and page titles. All functional UI text (nav, buttons, stat cards, chart headers, calendar labels) now uses the sans-serif body font for better legibility at small sizes.",
-    "Event name in the header bumped from 17px to 18px for improved serif rendering."
+    "Overview stat cards now show progress bars for fractional values (RSVPs, budget, tasks, vendors) with percent captions. Four focused primary cards lead the dashboard, with secondary counts below."
   ],
   "changelog": [
+    {
+      "version": "V4.2.0",
+      "date": "2026-06-11",
+      "type": "minor",
+      "title": "Overview Stat Cards: Progress Bars and Focused Layout",
+      "changes": [
+        "New shared component: StatCard.jsx. Renders a clickable stat card with optional progress bar for fractional values. Props include value, total, tone (green/accent/gold), sub (verb caption), and subFallback (empty-state caption). Supports numericValue for formatted string values. Progress bar includes role=progressbar and full ARIA attributes. Zero/undefined totals are guarded: 0% bar, graceful fallback caption. Bar animation respects prefers-reduced-motion.",
+        "OverviewTab.jsx: replaced six flat stat cards with four primary cards (RSVPs Confirmed, Budget Paid, Tasks Done, Vendors Booked) each showing a fraction value (e.g. 98 / 142), a thin 6px progress bar in semantic color, and a percent caption (e.g. 69% confirmed). Guests Invited and Out of Town moved to a lighter secondary row below.",
+        "App.css: added .stat-denom (muted denominator style), .stat-progress and .stat-progress-fill (6px bar with 3px radius), .stat-pct (percent caption), and .stat-card-secondary / .stat-grid-secondary (lighter secondary card treatment with no shadow, tighter padding). Mobile responsive: secondary grid at 2 columns."
+      ]
+    },
+    {
+      "version": "V4.1.1",
+      "date": "2026-06-11",
+      "type": "patch",
+      "title": "Type Scale: 15px Base, iOS-Safe Inputs, Wider Heading Steps",
+      "changes": [
+        "App.css: bumped root/body font-size from 14px to 15px for improved legibility. Split the global button/input rule: buttons at 15px, text-entry fields (input, select, textarea) at 16px to prevent iOS Safari auto-zoom on focus.",
+        "App.css: widened the heading scale so every heading clears the new 15px base. .section-title 24px to 26px (line-height 1.15), .section-subtitle 13px to 14px, .cal-month-heading 16px to 17px (line-height 1.2), .cal-popover-title 15px to 16px (line-height 1.2), .cal-grid-month-label mobile 15px to 16px, .btn-lg 15px to 16px, .vendor-card-name kept at 17px (already clear).",
+        "App.css: bumped structural uppercase labels from 11px to 12px: .stat-label and .admin-section-title. Letter-spacing and weight preserved. Mobile bottom-nav labels left at 11px.",
+        "App.css: strengthened stat card hierarchy. .stat-sub set to explicit font-weight 400. .stat-label margin-bottom 8px to 6px (tighter above value). .stat-sub margin-top 4px to 8px (wider below value, letting the focal number breathe).",
+        "App.css: proportional nudges for elements hand-tuned to the old 14px base. .timeline-title, .hh-row-name-primary, and .placeholder-desc bumped from 14px to 15px. .countdown-date intentionally kept at 14px. .nav-tab .tab-icon 14px to 15px."
+      ]
+    },
     {
       "version": "V4.1.0",
       "date": "2026-06-11",

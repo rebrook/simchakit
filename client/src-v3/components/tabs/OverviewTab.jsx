@@ -12,6 +12,7 @@ import { getCountdown, formatDate, formatEntryMeta, sortTimeline } from "@/utils
 import { GetStartedCard }     from "@/components/shared/GetStartedCard.jsx";
 import { generateEventBriefHTML } from "@/utils/exports.js";
 import { Icon }               from "@/utils/iconMap.jsx";
+import { StatCard }          from "@/components/shared/StatCard.jsx";
 
 export function OverviewTab({ eventId, event, adminConfig, showToast, setActiveTab, onOpenAdmin, onOpenAdminTo, onOpenGuide, onPrintBrief, isViewer }) {
   const config    = adminConfig || {};
@@ -94,12 +95,6 @@ export function OverviewTab({ eventId, event, adminConfig, showToast, setActiveT
     return { invited: invitedPeople.length, confirmed: confirmedCount };
   };
 
-  const navCard = (tab) => ({
-    onClick:  () => setActiveTab && setActiveTab(tab),
-    style:    { cursor: "pointer", display: "block", textAlign: "left", font: "inherit" },
-    title:    `Go to ${tab} tab`,
-    type:     "button",
-  });
 
   // Stats
   const totalBudget  = expenses.reduce((s, e) => s + (parseFloat(e.amount) || 0), 0);
@@ -190,38 +185,72 @@ export function OverviewTab({ eventId, event, adminConfig, showToast, setActiveT
         </div>
       )}
 
-      {/* Stat cards */}
-      <div className="stat-grid" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))" }}>
-        <button type="button" className="stat-card" {...navCard("guests")}>
-          <div className="stat-label">Guests Invited</div>
-          <div className="stat-value stat-accent">{people.length}</div>
-          <div className="stat-sub">{households.length} households</div>
-        </button>
-        <button type="button" className="stat-card" {...navCard("guests")}>
-          <div className="stat-label">RSVPs Confirmed</div>
-          <div className="stat-value stat-green">{confirmedCount}</div>
-          <div className="stat-sub">of {people.length} invited</div>
-        </button>
-        <button type="button" className="stat-card" {...navCard("budget")}>
-          <div className="stat-label">Budget Paid</div>
-          <div className="stat-value stat-green">${totalPaid.toLocaleString()}</div>
-          <div className="stat-sub">of ${totalBudget.toLocaleString()} total</div>
-        </button>
-        <button type="button" className="stat-card" {...navCard("tasks")}>
-          <div className="stat-label">Tasks Done</div>
-          <div className="stat-value stat-gold">{tasksDone}</div>
-          <div className="stat-sub">of {tasksTotal} tasks</div>
-        </button>
-        <button type="button" className="stat-card" {...navCard("vendors")}>
-          <div className="stat-label">Vendors Booked</div>
-          <div className="stat-value">{vendorsBooked}</div>
-          <div className="stat-sub">of {vendors.length} vendors</div>
-        </button>
-        <button type="button" className="stat-card" {...navCard("accommodations")}>
-          <div className="stat-label">Out of Town</div>
-          <div className="stat-value stat-gold">{outOfTownCount}</div>
-          <div className="stat-sub">households travelling</div>
-        </button>
+      {/* Stat cards — primary (fractional with progress bars) */}
+      <div className="stat-grid" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))" }}>
+        <StatCard
+          label="RSVPs Confirmed"
+          value={confirmedCount}
+          total={people.length}
+          tone="green"
+          sub="confirmed"
+          subFallback="No guests added"
+          onClick={() => setActiveTab && setActiveTab("guests")}
+          title="Go to guests tab"
+        />
+        <StatCard
+          label="Budget Paid"
+          value={`$${totalPaid.toLocaleString()}`}
+          numericValue={totalPaid}
+          total={totalBudget}
+          totalDisplay={`$${totalBudget.toLocaleString()}`}
+          tone="accent"
+          sub="paid"
+          subFallback="No budget set"
+          onClick={() => setActiveTab && setActiveTab("budget")}
+          title="Go to budget tab"
+        />
+        <StatCard
+          label="Tasks Done"
+          value={tasksDone}
+          total={tasksTotal}
+          tone="gold"
+          sub="complete"
+          subFallback="No tasks yet"
+          onClick={() => setActiveTab && setActiveTab("tasks")}
+          title="Go to tasks tab"
+        />
+        <StatCard
+          label="Vendors Booked"
+          value={vendorsBooked}
+          total={vendors.length}
+          tone="accent"
+          sub="booked"
+          subFallback="No vendors yet"
+          onClick={() => setActiveTab && setActiveTab("vendors")}
+          title="Go to vendors tab"
+        />
+      </div>
+
+      {/* Stat cards — secondary (simple counts) */}
+      <div className="stat-grid-secondary">
+        <StatCard
+          label="Guests Invited"
+          value={people.length}
+          tone="accent"
+          sub={`${households.length} household${households.length !== 1 ? "s" : ""}`}
+          onClick={() => setActiveTab && setActiveTab("guests")}
+          title="Go to guests tab"
+          secondary
+        />
+        <StatCard
+          label="Out of Town"
+          value={outOfTownCount}
+          tone="gold"
+          sub={`household${outOfTownCount !== 1 ? "s" : ""} travelling`}
+          onClick={() => setActiveTab && setActiveTab("accommodations")}
+          title="Go to accommodations tab"
+          secondary
+        />
       </div>
 
       {/* Seating gap warning — one per enabled section that has a gap */}

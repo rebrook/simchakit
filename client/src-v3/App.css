@@ -401,6 +401,55 @@
     .stat-green  { color: var(--green); }
     .stat-red    { color: var(--red); }
 
+    /* ── Stat card progress bar ─────────────────────────────────────────── */
+    .stat-denom {
+      font-size: 60%;
+      font-weight: 600;
+      opacity: 0.45;
+    }
+    .stat-progress {
+      height: 6px;
+      border-radius: 3px;
+      background: var(--bg-muted);
+      overflow: hidden;
+      margin-top: 10px;
+    }
+    .stat-progress-fill {
+      height: 100%;
+      border-radius: 3px;
+    }
+    @media (prefers-reduced-motion: no-preference) {
+      .stat-progress-fill { transition: width 0.4s ease; }
+    }
+    .stat-pct {
+      font-size: 12px;
+      font-weight: 600;
+      margin-top: 6px;
+    }
+
+    /* ── Secondary stat row ─────────────────────────────────────────────── */
+    .stat-grid-secondary {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: 10px;
+      margin-bottom: 28px;
+    }
+    .stat-card-secondary {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 12px 16px;
+      box-shadow: none;
+      transition: transform var(--transition), box-shadow var(--transition);
+    }
+    .stat-card-secondary:hover {
+      transform: translateY(-1px);
+      box-shadow: var(--shadow-sm);
+    }
+    .stat-card-secondary .stat-value { font-size: 22px; }
+    .stat-card-secondary .stat-label { font-size: 11px; margin-bottom: 4px; }
+    .stat-card-secondary .stat-sub   { font-size: 11px; margin-top: 4px; }
+
     /* ── Countdown ───────────────────────────────────────────────────────── */
     .countdown-card {
       background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-dark) 100%);
@@ -781,6 +830,11 @@
       .stat-value { font-size: 22px; }
       .stat-label { font-size: 12px; }
       .stat-sub { font-size: 11px; }
+      .stat-grid-secondary {
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        margin-bottom: 20px;
+      }
 
       /* Section header — stack buttons below title on mobile */
       .section-header { flex-direction: column; align-items: flex-start; gap: 10px; }
