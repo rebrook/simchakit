@@ -47,6 +47,37 @@ const EVENT_TYPE_ICONS = {
 // ── Bottom bar tab IDs (fixed, matches V2 exactly) ───────────────────────────
 const BOTTOM_BAR_IDS = ["overview", "guests", "budget", "vendors", "tasks"];
 
+// ── Co-planner avatar helpers ────────────────────────────────────────────────
+// Brand-palette accent hues (from the 9 SimchaKit palettes), contrast-checked
+// for white text. Blush and gold darkened for readability.
+const AVATAR_FILLS = [
+  "#9b2335",  // rose
+  "#0d1b2e",  // navy
+  "#2d6a4f",  // forest
+  "#5b3a8c",  // purple
+  "#4a5568",  // slate
+  "#8b4c2a",  // copper
+  "#1a6b6b",  // teal
+  "#2d3748",  // charcoal
+  "#8c5a6e",  // blush (darkened from #d4a0a0)
+];
+
+function avatarColor(name) {
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) hash = ((hash << 5) - hash + name.charCodeAt(i)) | 0;
+  return AVATAR_FILLS[Math.abs(hash) % AVATAR_FILLS.length];
+}
+
+function avatarInitials(displayName, email) {
+  if (displayName) {
+    const parts = displayName.trim().split(/\s+/);
+    if (parts.length >= 2) return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+    return parts[0][0].toUpperCase();
+  }
+  if (email) return email[0].toUpperCase();
+  return "?";
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 import { displayNameWithEmail } from "@/utils/displayName.js";
 
@@ -71,6 +102,15 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false, display
     eventId,
     session?.user?.id ?? null
   );
+
+  // ── Co-planner list for avatar stack ────────────────────────────────────
+  const [coPlanners, setCoPlanners] = useState(null); // null = loading, [] = loaded empty
+  useEffect(() => {
+    if (!eventId || collaboratorRole === null) return;
+    if (collaboratorRole !== "owner") { setCoPlanners([]); return; }
+    supabase.rpc("get_event_collaborators", { p_event_id: eventId })
+      .then(({ data }) => setCoPlanners(data || []));
+  }, [eventId, collaboratorRole]);
 
   // ── Admin state ───────────────────────────────────────────────────────────
   const [showAdminLogin,  setShowAdminLogin]  = useState(false);
@@ -417,7 +457,7 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false, display
           {adminConfig?.name && (<>
             <div className="header-divider" />
             <div>
-              <div className="header-event-name">{adminConfig.name}</div>
+              <div className="header-event-name" title={adminConfig.name}>{adminConfig.name}</div>
               {adminConfig?.theme?.name && (
                 <div style={{ fontSize:11, color:"var(--text-muted)", marginTop:1 }}>
                   {adminConfig.theme.name}{adminConfig.theme.icon ? ` ${adminConfig.theme.icon}` : ""}
@@ -427,6 +467,40 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false, display
           </>)}
 
           <div className="header-spacer" />
+
+          {/* Co-planner avatar stack — owners only, hidden on mobile */}
+          {collaboratorRole === "owner" && coPlanners !== null && (
+            coPlanners.length > 0 ? (
+              <button
+                className="header-avatars"
+                onClick={() => openAdmin("collaborators")}
+                aria-label={`View ${coPlanners.length} co-planner${coPlanners.length !== 1 ? "s" : ""}`}
+                title={coPlanners.map(c => c.display_name || c.email).join(", ")}
+              >
+                {coPlanners.slice(0, 3).map((c, i) => (
+                  <div
+                    key={c.id || i}
+                    className="header-avatar"
+                    style={{ background: avatarColor(c.display_name || c.email || ""), zIndex: 3 - i }}
+                    aria-hidden="true"
+                  >
+                    {avatarInitials(c.display_name, c.email)}
+                  </div>
+                ))}
+                {coPlanners.length > 3 && (
+                  <div className="header-avatar-overflow" aria-hidden="true">+{coPlanners.length - 3}</div>
+                )}
+              </button>
+            ) : (
+              <button
+                className="header-invite-chip"
+                onClick={() => openAdmin("collaborators")}
+                aria-label="Invite co-planners"
+              >
+                <Icon name="userPlus" context="badge" /> Invite
+              </button>
+            )
+          )}
 
           {/* Collaborator role badge -- visible to editors and viewers only */}
           {collaboratorRole && collaboratorRole !== "owner" && (

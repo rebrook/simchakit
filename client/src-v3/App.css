@@ -191,12 +191,88 @@
       font-weight: 500;
       color: var(--accent-primary);
       font-style: italic;
+      max-width: 320px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
     .header-spacer { flex: 1; }
     .header-actions {
       display: flex;
       align-items: center;
       gap: 8px;
+    }
+
+    /* ── Co-planner avatar stack ────────────────────────────────────────── */
+    .header-avatars {
+      display: flex;
+      align-items: center;
+      flex-shrink: 0;
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 2px 4px;
+      border-radius: var(--radius-sm);
+      transition: background 0.15s ease;
+    }
+    .header-avatars:hover { background: var(--bg-subtle); }
+    .header-avatars:focus-visible {
+      outline: 2px solid var(--accent-primary);
+      outline-offset: 2px;
+    }
+    .header-avatar {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 700;
+      color: white;
+      border: 2px solid var(--bg-surface);
+      flex-shrink: 0;
+      letter-spacing: 0.02em;
+    }
+    .header-avatar + .header-avatar { margin-left: -8px; }
+    .header-avatar-overflow {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--text-muted);
+      background: var(--bg-muted);
+      border: 2px solid var(--bg-surface);
+      margin-left: -8px;
+      flex-shrink: 0;
+    }
+    .header-invite-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-muted);
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-pill, 999px);
+      padding: 4px 10px;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: all 0.15s ease;
+      font-family: var(--font-body);
+    }
+    .header-invite-chip:hover {
+      color: var(--accent-primary);
+      border-color: var(--accent-primary);
+    }
+    .header-invite-chip:focus-visible {
+      outline: 2px solid var(--accent-primary);
+      outline-offset: 2px;
     }
 
     /* ── Sync indicator ──────────────────────────────────────────────────── */
@@ -630,7 +706,9 @@
       .header-star { font-size: 18px; }
       .header-divider { display: none; }
       /* Event name — full width row below brand + actions */
-      .header-event-name { font-size: 13px; }
+      .header-event-name { font-size: 13px; max-width: 100%; }
+      /* Avatars — hide on mobile to preserve action button space */
+      .header-avatars, .header-invite-chip { display: none; }
       .header-inner > div:not(.header-brand):not(.header-actions):not(.header-spacer) {
         width: 100%;
         order: 3;

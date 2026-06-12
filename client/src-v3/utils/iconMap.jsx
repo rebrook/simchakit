@@ -76,6 +76,7 @@ import {
   Info,
   PartyPopper,
   Wand2,
+  UserPlus,
 } from "lucide-react";
 
 // ── String key → Lucide component ───────────────────────────────────────────
@@ -96,6 +97,7 @@ export const ICONS = {
 
   // Search group
   people:          UserRound,
+  userPlus:        UserPlus,
 
   // Header actions
   search:          Search,

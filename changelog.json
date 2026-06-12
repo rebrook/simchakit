@@ -1,9 +1,22 @@
 {
-  "current": "V4.2.0",
+  "current": "V4.2.1",
   "whatsNew": [
-    "Overview stat cards now show progress bars for fractional values (RSVPs, budget, tasks, vendors) with percent captions. Four focused primary cards lead the dashboard, with secondary counts below."
+    "Long event names now truncate cleanly in the header with a hover tooltip for the full name.",
+    "Co-planner avatars are visible in the header at a glance, with initials on brand-colored circles. Click to manage collaborators."
   ],
   "changelog": [
+    {
+      "version": "V4.2.1",
+      "date": "2026-06-11",
+      "type": "patch",
+      "title": "Header: Truncate Event Name + Co-Planner Avatar Stack",
+      "changes": [
+        "App.css: .header-event-name now truncates to a single line (max-width 320px, ellipsis) with a title tooltip for the full name. Mobile override sets max-width 100% for the full-width row.",
+        "AppShell.jsx: header now shows a co-planner avatar stack for event owners. Overlapping 30px circles with two-letter initials (first + last initial from display_name, fallback to email initial) on brand-palette accent fills (rose, navy, forest, purple, slate, copper, teal, charcoal, blush). Max 3 visible with a +N overflow chip. Clicking opens Admin Mode to the Collaborators section. Solo events show a small Invite chip instead. Avatars hidden on mobile to preserve action button space.",
+        "A11y: avatar stack button has aria-label ('View N co-planners'), focus-visible ring, and aria-hidden on each circle. Invite chip has aria-label.",
+        "iconMap.jsx: added UserPlus icon for the Invite chip."
+      ]
+    },
     {
       "version": "V4.2.0",
       "date": "2026-06-11",
