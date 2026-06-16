@@ -1,7 +1,18 @@
 {
-  "current": "V4.3.0",
+  "current": "V4.3.1",
   "whatsNew": "V4.3.0 replaces the horizontal tab bar with a fixed left sidebar on desktop, grouping all 12 tabs into Planning and Celebration sections. The top bar now shows the active tab title, sync status, search, and Print brief. Day-of Mode has its own prominent sidebar entry. Account controls, theme toggle, and sign-out live in a new account menu. Mobile keeps the bottom tab bar and More drawer, now activating at 900px.",
   "changelog": [
+    {
+      "version": "V4.3.1",
+      "date": "2026-06-16",
+      "type": "patch",
+      "title": "Sidebar: Account Menu Fix + Switcher Date Fix",
+      "changes": [
+        "App.css: removed overflow-y: auto from .app-sidebar so the account menu popover is not clipped by the sidebar scroll container. .sidebar-nav now has min-height: 0 (required for flex child overflow in a fixed-height column) and scrollbar-width: thin. .sidebar-footer gets position: relative and flex-shrink: 0 to anchor the absolute-positioned account menu popover.",
+        "AppShell.jsx: formatSwitcherDate now reads main?.startDate (falling back to main?.date) instead of main?.date. The admin_config timeline entries use startDate, not date. Added isNaN(d.getTime()) guard so a missing or invalid date returns null instead of rendering 'Invalid Date'.",
+        "AppShell.jsx: removed inline style={{ position: 'relative' }} from .sidebar-account div (now handled by .sidebar-footer CSS)."
+      ]
+    },
     {
       "version": "V4.3.0",
       "date": "2026-06-16",

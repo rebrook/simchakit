@@ -125,9 +125,10 @@ function avatarInitials(displayName, email) {
 function formatSwitcherDate(timeline) {
   if (!timeline || !timeline.length) return null;
   const main = timeline.find(e => e.isMainEvent) || timeline[0];
-  if (!main?.date) return null;
-  const d = new Date(main.date + "T12:00:00");
-  if (isNaN(d)) return null;
+  const raw = main?.startDate || main?.date;
+  if (!raw) return null;
+  const d = new Date(raw + "T12:00:00");
+  if (isNaN(d.getTime())) return null;
   const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
   const now = new Date();
   const diffMs = d.getTime() - now.getTime();
@@ -554,7 +555,7 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false, display
           )}
 
           {/* Account row */}
-          <div className="sidebar-account" onClick={() => setShowAccountMenu(s => !s)} style={{ position: "relative" }}>
+          <div className="sidebar-account" onClick={() => setShowAccountMenu(s => !s)}>
             <div className="sidebar-account-avatar" style={{ background: userBg }}>{userInit}</div>
             <div style={{ minWidth: 0, flex: 1 }}>
               <div className="sidebar-account-name">{userName}</div>

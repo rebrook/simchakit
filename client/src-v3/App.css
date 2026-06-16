@@ -167,9 +167,7 @@
         position: sticky;
         top: 0;
         height: 100vh;
-        overflow-y: auto;
         z-index: 100;
-        scrollbar-width: thin;
       }
     }
     .sidebar-brand {
@@ -239,8 +237,10 @@
     /* ── Sidebar navigation ── */
     .sidebar-nav {
       flex: 1;
+      min-height: 0;
       overflow-y: auto;
       overflow-x: hidden;
+      scrollbar-width: thin;
     }
     .sidebar-group-label {
       font-size: 11px;
@@ -320,6 +320,8 @@
       margin-top: auto;
       padding-top: 12px;
       border-top: 1px solid var(--border);
+      position: relative;
+      flex-shrink: 0;
     }
     .sidebar-team {
       display: flex;
