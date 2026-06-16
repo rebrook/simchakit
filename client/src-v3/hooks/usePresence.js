@@ -1,13 +1,13 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // SimchaKit V4.6.0 — usePresence.js (DEBUG BUILD — temporary logging)
 // Tracks which co-planners are currently viewing the event using Supabase
-// Realtime Presence on a private (RLS-enforced) channel.
+// Realtime Presence on a public channel.
 //
 // Channel:  presence:event:{eventId}
 // Payload:  { user_id, display_name }   (no email — no PII on the wire)
-// Security: realtime.messages RLS restricts channel to event collaborators.
-//           private:true + explicit setAuth ensures the JWT is sent on the
-//           WebSocket upgrade so the server can evaluate RLS policies.
+// Security: channel is public (no RLS). Privacy is enforced client-side:
+//           only users in the collaborator roster are shown in the UI.
+//           RLS-based channel authorization to be added in a future hardening pass.
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useState, useEffect, useRef } from "react";
@@ -30,40 +30,31 @@ export function usePresence(eventId, session, displayName, collaboratorIds) {
   console.warn("[SimchaKit/usePresence] guard check:", {
     hasEventId:        !!eventId,
     hasUserId:         !!session?.user?.id,
-    hasAccessToken:    !!session?.access_token,
     collaboratorIds:   collaboratorIds,
     collaboratorCount: collaboratorIds?.length ?? "null",
-    sessionKeys:       session ? Object.keys(session) : "no session",
   });
 
   useEffect(() => {
     // Guard: need an event, an authenticated user, and a loaded roster
-    if (!eventId || !session?.user?.id || !session?.access_token || !collaboratorIds) {
+    if (!eventId || !session?.user?.id || !collaboratorIds) {
       console.warn("[SimchaKit/usePresence] guard BLOCKED:", {
         eventId:        !!eventId,
         userId:         !!session?.user?.id,
-        accessToken:    !!session?.access_token,
         collaboratorIds: collaboratorIds === null ? "null" : collaboratorIds?.length,
       });
       return;
     }
 
-    const userId      = session.user.id;
-    const accessToken = session.access_token;
-    const topic       = `presence:event:${eventId}`;
+    const userId = session.user.id;
+    const topic  = `presence:event:${eventId}`;
 
     console.warn("[SimchaKit/usePresence] CONNECTING:", { topic, userId: userId.substring(0, 8), rosterSize: collaboratorIds.length });
 
     // Build a Set of known collaborator IDs for fast lookup
     const rosterSet = new Set(collaboratorIds);
 
-    // Explicitly set the Realtime auth token before creating the channel.
-    // private:true channels require a valid JWT for RLS policy evaluation.
-    supabase.realtime.setAuth(accessToken);
-
     const channel = supabase.channel(topic, {
       config: {
-        private: true,
         presence: { key: userId },
       },
     });
@@ -115,7 +106,7 @@ export function usePresence(eventId, session, displayName, collaboratorIds) {
       channel.untrack().catch(() => {});
       supabase.removeChannel(channel);
     };
-  }, [eventId, session?.user?.id, session?.access_token, displayName, collaboratorIds]);
+  }, [eventId, session?.user?.id, displayName, collaboratorIds]);
 
   return { onlineUsers };
 }
