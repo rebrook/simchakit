@@ -622,11 +622,19 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false, display
       {/* ── Main content column ── */}
       <div className="app-main">
 
-        {/* ── Top bar (desktop only, non-sticky) ── */}
+        {/* ── Top bar (desktop only, pinned) ── */}
         <div className="app-topbar">
           <div className="topbar-inner">
             <div>
               <h1 className="topbar-title">{TAB_LABELS[activeTab] || "SimchaKit"}</h1>
+              {/* TODO: per-tab subtitles */}
+              {activeTab === "overview" && (
+                <div className="topbar-sub">
+                  {userName
+                    ? `Welcome back, ${userName.split(/\s+/)[0]}. Here's where things stand.`
+                    : "Here's where things stand."}
+                </div>
+              )}
             </div>
             <div className="topbar-spacer" />
             <div className="topbar-actions">
@@ -650,6 +658,9 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false, display
             </div>
           </div>
         </div>
+
+        {/* ── Scrollable area (pinned topbar above, content + footer scroll) ── */}
+        <div className="app-main-scroll">
 
         {/* ── Page content ── */}
         <main className="page-content">
@@ -723,6 +734,7 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false, display
             <span>Supabase</span>
           </div>
         </footer>
+        </div>{/* /.app-main-scroll */}
       </div>
 
       {/* ── Mobile bottom bar (<=900px only) ── */}

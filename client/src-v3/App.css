@@ -538,12 +538,26 @@
       min-height: 100vh;
       min-height: 100dvh;
     }
+    @media (min-width: 901px) {
+      .app-main {
+        height: 100vh;
+        height: 100dvh;
+        min-height: 0;
+        overflow: hidden;
+      }
+      .app-main-scroll {
+        flex: 1;
+        min-height: 0;
+        overflow-y: auto;
+      }
+    }
 
-    /* ── Top bar (desktop only, non-sticky) ──────────────────────────── */
+    /* ── Top bar (desktop only, pinned) ─────────────────────────────── */
     .app-topbar { display: none; }
     @media (min-width: 901px) {
       .app-topbar {
         display: block;
+        flex-shrink: 0;
         border-bottom: 1px solid var(--border);
         background: var(--bg-surface);
       }
@@ -559,6 +573,11 @@
         font-weight: 600;
         color: var(--text-primary);
         line-height: 1.15;
+      }
+      .topbar-sub {
+        font-size: 12px;
+        color: var(--text-muted);
+        margin-top: 2px;
       }
       .topbar-spacer { flex: 1; }
       .topbar-actions {
