@@ -23,7 +23,7 @@
         "Fix: replaced missing 'copy' icon with 'link' icon in InviteModal email-fail fallback (copy is not in iconMap)",
         "Fix: solo-event prompt card and standard invite button no longer render simultaneously; solo prompt replaces the standard button when owner has zero collaborators",
         "Fix: get_event_collaborators RPC now includes the event owner as a row (role='owner') via UNION ALL with events + user_profiles, so the avatar stack, collaboratorIds roster, and presence filter all derive from one source",
-        "Fix: removed private:true from Realtime channel config; Supabase Realtime RLS authorization for private channels requires further investigation and is deferred to a future hardening pass. Channel is public; privacy is enforced client-side via the collaborator roster filter",
+        "Security debt (tracked): Realtime presence channel is public. Any authenticated user who knows the eventId can subscribe and read user_id + display_name of online co-planners for events they are not in. Roster filter is client-side (gates rendering, not channel emission). Low severity (names only, no email or PII). Retained is_event_member() + RLS policies on realtime.messages for planned private-channel retry. Two hardening options logged: (1) salt topic with per-event calendar_token hash so channel name is not guessable from URL, (2) re-test private:true with explicit supabase.realtime.setAuth() after login to rule out missing socket JWT",
         "Fix: removed debug logging from usePresence.js (production build)"
       ]
     },
