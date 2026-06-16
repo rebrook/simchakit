@@ -1,7 +1,20 @@
 {
-  "current": "V4.6.0",
-  "whatsNew": "V4.6.0 adds a frictionless Invite a co-planner flow. Invite directly from the sidebar or the mobile More menu without entering Admin Mode. Owners can invite any role; editors can invite viewers or coordinators. The invite modal shows remaining slots, validates emails, and confirms with 'They'll appear here once they accept.'",
+  "current": "V4.7.0",
+  "whatsNew": "V4.7.0 adds a visual capacity meter to the Seating tab showing confirmed guests vs. available seats at a glance, with color-coded fill and an over-capacity callout. Chart colors across all tabs now adapt to dark mode.",
   "changelog": [
+    {
+      "version": "V4.7.0",
+      "date": "Jun 16, 2026",
+      "type": "minor",
+      "title": "Seating Capacity Meter + Chart Palette Tokens",
+      "changes": [
+        "SeatingTab: new visual capacity meter below stat cards. Bar fills based on confirmed-guests-to-seats ratio with green (<90%), gold (90-100%), and red (>100%) color states. Shows 'X confirmed / Y seats' labels, a red over-capacity callout when demand exceeds supply, and a separate assignment line showing how many guests are seated. Per-section aware. Empty state: meter only renders when tables exist.",
+        "App.css: added --chart-1 through --chart-5 categorical chart palette tokens in both light and dark theme blocks. Non-semantic mid-tone hues (blue-gray, plum, teal, mauve, sienna) for multi-series charts that need more than the 7 primary semantic colors.",
+        "App.css: added .capacity-meter CSS component (track, fill, labels, over-capacity callout, assignment line).",
+        "BudgetTab: replaced 5 hardcoded hex overflow colors in CHART_COLORS with var(--chart-1) through var(--chart-5). All 12 chart colors now re-skin with palette and adapt to dark mode.",
+        "ui.js: added Capacity meter guide entry under Seating."
+      ]
+    },
     {
       "version": "V4.6.0",
       "date": "Jun 16, 2026",

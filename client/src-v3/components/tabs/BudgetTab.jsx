@@ -23,8 +23,9 @@ import { VendorModal }        from "@/components/shared/VendorModal.jsx";
 // ── Chart colors ──────────────────────────────────────────────────────────────
 const CHART_COLORS = [
   "var(--accent-primary)", "var(--gold)", "var(--green)", "var(--blue)",
-  "var(--orange)", "var(--accent-medium)", "var(--gold-medium)", "#82bca0",
-  "#a98fd4", "#70bcbc", "#e8a0b0", "#d4946a",
+  "var(--orange)", "var(--accent-medium)", "var(--gold-medium)",
+  "var(--chart-1)", "var(--chart-2)", "var(--chart-3)",
+  "var(--chart-4)", "var(--chart-5)",
 ];
 
 function fmt$(n) { return "$" + (parseFloat(n)||0).toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 }); }

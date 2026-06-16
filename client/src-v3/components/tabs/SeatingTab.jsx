@@ -433,6 +433,49 @@ export function SeatingTab({ eventId, event, adminConfig, showToast, isArchived,
           <div className="stat-card"><div className="stat-label">Unseated</div><div className="stat-value" style={{ color: unseated.length > 0 ? "var(--red)" : "var(--green)" }}>{unseated.length}</div>{tbdPeople.length > 0 && <div className="stat-sub">{tbdPeople.length} TBD</div>}</div>
         </div>
 
+        {/* Capacity meter — demand (confirmed) vs supply (seats) */}
+        {tables.length > 0 && (() => {
+          const demand     = totalPeople;
+          const supply     = totalSeats;
+          const ratio      = supply > 0 ? demand / supply : 0;
+          const fillPct    = Math.min(ratio * 100, 100);
+          const overCount  = demand > supply ? demand - supply : 0;
+          const meterColor = ratio > 1 ? "var(--red)"
+                           : ratio >= 0.9 ? "var(--gold)"
+                           : "var(--green)";
+          return (
+            <div className="capacity-meter">
+              <div className="capacity-meter-header">
+                <span>Seat Capacity</span>
+                <span style={{ color: meterColor, fontWeight: 700 }}>
+                  {supply > 0 ? Math.round(ratio * 100) + "%" : "0%"}
+                </span>
+              </div>
+              <div className="capacity-meter-track"
+                role="meter" aria-label="Seat capacity"
+                aria-valuenow={demand} aria-valuemin={0} aria-valuemax={supply || 1}>
+                <div className="capacity-meter-fill"
+                  style={{ width: `${fillPct}%`, background: meterColor }} />
+              </div>
+              <div className="capacity-meter-labels">
+                <span><strong>{demand}</strong> confirmed</span>
+                <span><strong>{supply}</strong> seat{supply !== 1 ? "s" : ""}</span>
+              </div>
+              {overCount > 0 && (
+                <div className="capacity-meter-over">
+                  <Icon name="alertTriangle" context="badge" />
+                  {overCount} more seat{overCount !== 1 ? "s" : ""} needed
+                </div>
+              )}
+              {seated > 0 && (
+                <div className="capacity-meter-assignment">
+                  {seated} of {demand} confirmed guest{demand !== 1 ? "s" : ""} assigned to tables
+                </div>
+              )}
+            </div>
+          );
+        })()}
+
         {/* Summary line */}
         {tables.length > 0 && (() => {
           const over = tables.filter(t => tableOccupants(t.id).length > (parseInt(t.capacity) || 0));
