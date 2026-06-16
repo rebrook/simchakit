@@ -1,14 +1,15 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// SimchaKit V4.3.0 — AppShell.jsx
+// SimchaKit V4.5.0 — AppShell.jsx
 // Sidebar navigation architecture.
 // Desktop (>900px): 248px left sidebar + top bar + main content grid.
 // Mobile (<=900px): existing bottom bar + More drawer (unchanged UX).
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { supabase }        from "@/lib/supabase.js";
 import { useDarkMode }     from "@/hooks/useDarkMode.js";
 import { useCollaboratorRole } from "@/hooks/useCollaboratorRole.js";
+import { usePresence }    from "@/hooks/usePresence.js";
 import { ThemeProvider }   from "@/components/shared/ThemeProvider.jsx";
 import { PlaceholderTab }  from "@/components/shared/PlaceholderTab.jsx";
 import { AdminLogin, AdminPanel } from "@/components/AdminPanel.jsx";
@@ -166,10 +167,25 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false, display
   const [coPlanners, setCoPlanners] = useState(null);
   useEffect(() => {
     if (!eventId || collaboratorRole === null) return;
-    if (collaboratorRole !== "owner") { setCoPlanners([]); return; }
+    // Fetch for all roles (not just owners) so presence + avatar stack works everywhere
     supabase.rpc("get_event_collaborators", { p_event_id: eventId })
       .then(({ data }) => setCoPlanners(data || []));
   }, [eventId, collaboratorRole]);
+
+  // ── Live presence (Supabase Realtime) ──────────────────────────────────
+  // Build a stable array of collaborator user_ids for the roster gate.
+  // useMemo avoids re-creating the array on every render.
+  const collaboratorIds = useMemo(
+    () => coPlanners ? coPlanners.map(c => c.user_id).filter(Boolean) : null,
+    [coPlanners]
+  );
+  const { onlineUsers } = usePresence(eventId, session, userDisplayName, collaboratorIds);
+
+  // Build a Set of online user_ids for O(1) lookup in the avatar stack
+  const onlineUserIds = useMemo(
+    () => new Set(onlineUsers.map(u => u.user_id)),
+    [onlineUsers]
+  );
 
   // ── Tab badge counts (lightweight Supabase counts) ────────────────────────
   // TODO: refresh counts on mutation (currently refreshes on tab change)
@@ -475,6 +491,13 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false, display
             <div className="mobile-header-event" title={adminConfig.name}>{adminConfig.name}</div>
           )}
           <div style={{ flex: 1 }} />
+          {/* Mobile presence badge — count of other online co-planners */}
+          {onlineUsers.length > 0 && (
+            <div className="mobile-presence-badge">
+              <span className="mobile-presence-dot" />
+              {onlineUsers.length}
+            </div>
+          )}
           <div className="mobile-header-actions">
             <button className="icon-btn" title="Search" onClick={() => setShowSearch(true)}>
               <Icon name="search" context="button" />
@@ -541,37 +564,46 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false, display
         <div className="sidebar-footer">
 
           {/* Co-planner row: avatars + gear */}
-          {collaboratorRole === "owner" && coPlanners !== null && (
-            <div className="sidebar-team">
-              {coPlanners.length > 0 ? (
-                <button type="button" className="sidebar-avatars" onClick={() => openAdmin("collaborators")} aria-label={`View ${coPlanners.length} co-planner${coPlanners.length !== 1 ? "s" : ""}`}>
-                  {coPlanners.slice(0, 3).map((c, i) => (
-                    <div
-                      key={c.id || i}
-                      className="sidebar-avatar"
-                      style={{ background: avatarColor(c.display_name || c.email || ""), zIndex: 3 - i }}
-                      aria-hidden="true"
-                    >
-                      {avatarInitials(c.display_name, c.email)}
-                    </div>
-                  ))}
-                  {coPlanners.length > 3 && (
-                    <div className="sidebar-avatar sidebar-avatar-more" aria-hidden="true">+{coPlanners.length - 3}</div>
-                  )}
-                </button>
-              ) : null}
-              <button
-                className="sidebar-gear"
-                onClick={() => openAdmin("event")}
-                title="Event settings"
-              >
-                <Icon name="settings" context="inline" />
-              </button>
-            </div>
-          )}
+          {coPlanners !== null && (() => {
+            // Filter self out of the display list
+            const others = coPlanners.filter(c => c.user_id !== session?.user?.id);
+            return (
+              <div className="sidebar-team">
+                {others.length > 0 ? (
+                  <button type="button" className="sidebar-avatars" onClick={() => openAdmin("collaborators")} aria-label={`View ${others.length} co-planner${others.length !== 1 ? "s" : ""}`}>
+                    {others.slice(0, 3).map((c, i) => (
+                      <div
+                        key={c.user_id || c.id || i}
+                        className="sidebar-avatar"
+                        style={{ background: avatarColor(c.display_name || c.email || ""), zIndex: 3 - i }}
+                        aria-hidden="true"
+                      >
+                        {avatarInitials(c.display_name, c.email)}
+                        {onlineUserIds.has(c.user_id) && (
+                          <span className="sidebar-avatar-online" aria-label="Online" />
+                        )}
+                      </div>
+                    ))}
+                    {others.length > 3 && (
+                      <div className="sidebar-avatar sidebar-avatar-more" aria-hidden="true">+{others.length - 3}</div>
+                    )}
+                  </button>
+                ) : null}
+                {collaboratorRole === "owner" && (
+                  <button
+                    className="sidebar-gear"
+                    onClick={() => openAdmin("event")}
+                    title="Event settings"
+                  >
+                    <Icon name="settings" context="inline" />
+                  </button>
+                )}
+              </div>
+            );
+          })()}
 
-          {/* Invite button (owners only) */}
-          {collaboratorRole === "owner" && (
+          {/* Invite button (owners and editors) */}
+          {(collaboratorRole === "owner" || collaboratorRole === "editor") && (
             <button className="sidebar-invite" onClick={() => openAdmin("collaborators")}>
               <Icon name="userPlus" context="inline" /> Invite a co-planner
             </button>
