@@ -1,6 +1,12 @@
 {
   "current": "V4.3.1",
-  "whatsNew": "V4.3.0 replaces the horizontal tab bar with a fixed left sidebar on desktop, grouping all 12 tabs into Planning and Celebration sections. The top bar now shows the active tab title, sync status, search, and Print brief. Day-of Mode has its own prominent sidebar entry. Account controls, theme toggle, and sign-out live in a new account menu. Mobile keeps the bottom tab bar and More drawer, now activating at 900px.",
+  "whatsNew": [
+    "The horizontal tab bar is now a fixed left sidebar on desktop, with tabs grouped into Planning and The Celebration sections.",
+    "A new top bar shows the active tab title, sync status, search, and Print brief.",
+    "Day-of Mode has its own prominent gold-tinted entry in the sidebar.",
+    "Account controls, theme toggle, Guide, and sign-out live in a new account menu in the sidebar footer.",
+    "On mobile (900px and under), the bottom tab bar and More drawer are unchanged."
+  ],
   "changelog": [
     {
       "version": "V4.3.1",
