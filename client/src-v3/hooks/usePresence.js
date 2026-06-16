@@ -1,5 +1,5 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// SimchaKit V4.6.0 — usePresence.js
+// SimchaKit V4.6.0 — usePresence.js (DEBUG BUILD — temporary logging)
 // Tracks which co-planners are currently viewing the event using Supabase
 // Realtime Presence on a private (RLS-enforced) channel.
 //
@@ -26,21 +26,39 @@ export function usePresence(eventId, session, displayName, collaboratorIds) {
   const [onlineUsers, setOnlineUsers] = useState([]);
   const channelRef = useRef(null);
 
+  // ── DEBUG: log guard values on every render ─────────────────────────────
+  console.warn("[SimchaKit/usePresence] guard check:", {
+    hasEventId:        !!eventId,
+    hasUserId:         !!session?.user?.id,
+    hasAccessToken:    !!session?.access_token,
+    collaboratorIds:   collaboratorIds,
+    collaboratorCount: collaboratorIds?.length ?? "null",
+    sessionKeys:       session ? Object.keys(session) : "no session",
+  });
+
   useEffect(() => {
     // Guard: need an event, an authenticated user, and a loaded roster
-    if (!eventId || !session?.user?.id || !session?.access_token || !collaboratorIds) return;
+    if (!eventId || !session?.user?.id || !session?.access_token || !collaboratorIds) {
+      console.warn("[SimchaKit/usePresence] guard BLOCKED:", {
+        eventId:        !!eventId,
+        userId:         !!session?.user?.id,
+        accessToken:    !!session?.access_token,
+        collaboratorIds: collaboratorIds === null ? "null" : collaboratorIds?.length,
+      });
+      return;
+    }
 
     const userId      = session.user.id;
     const accessToken = session.access_token;
     const topic       = `presence:event:${eventId}`;
+
+    console.warn("[SimchaKit/usePresence] CONNECTING:", { topic, userId: userId.substring(0, 8), rosterSize: collaboratorIds.length });
 
     // Build a Set of known collaborator IDs for fast lookup
     const rosterSet = new Set(collaboratorIds);
 
     // Explicitly set the Realtime auth token before creating the channel.
     // private:true channels require a valid JWT for RLS policy evaluation.
-    // The Supabase client may not always push the token automatically on
-    // the WebSocket upgrade in all versions, so this is a safety measure.
     supabase.realtime.setAuth(accessToken);
 
     const channel = supabase.channel(topic, {
@@ -55,6 +73,7 @@ export function usePresence(eventId, session, displayName, collaboratorIds) {
     // On any presence state change, rebuild the online users list
     channel.on("presence", { event: "sync" }, () => {
       const state = channel.presenceState();
+      console.warn("[SimchaKit/usePresence] sync event, state keys:", Object.keys(state));
       const users = [];
 
       for (const [key, presences] of Object.entries(state)) {
@@ -78,17 +97,20 @@ export function usePresence(eventId, session, displayName, collaboratorIds) {
     });
 
     // Subscribe and track once connected
-    channel.subscribe(async (status) => {
+    channel.subscribe(async (status, err) => {
+      console.warn("[SimchaKit/usePresence] subscribe status:", status, err || "");
       if (status === "SUBSCRIBED") {
         await channel.track({
           user_id:      userId,
           display_name: displayName || null,
         });
+        console.warn("[SimchaKit/usePresence] tracked successfully");
       }
     });
 
     // Cleanup on unmount or dependency change
     return () => {
+      console.warn("[SimchaKit/usePresence] cleanup");
       channelRef.current = null;
       channel.untrack().catch(() => {});
       supabase.removeChannel(channel);
