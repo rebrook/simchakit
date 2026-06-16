@@ -48,10 +48,10 @@ export function computeFocusItems(data, adminConfig) {
 
   // ── Tasks (collapsed: pick the most urgent signal) ──────────────────────
   const activeTasks = tasks.filter(t => !t.done && !t.dismissed);
-  const overdueTasks = activeTasks.filter(t => t.dueDate && new Date(t.dueDate + "T00:00:00") < today);
+  const overdueTasks = activeTasks.filter(t => t.due && new Date(t.due + "T00:00:00") < today);
   const dueThisWeek = activeTasks.filter(t => {
-    if (!t.dueDate) return false;
-    const d = new Date(t.dueDate + "T00:00:00");
+    if (!t.due) return false;
+    const d = new Date(t.due + "T00:00:00");
     return d >= today && d <= endOfWeek;
   });
 
@@ -197,6 +197,25 @@ export function computeFocusItems(data, adminConfig) {
           : `${unbooked.slice(0, 2).map(v => v.name || "Unnamed").join(", ")}${unbooked.length > 2 ? ", ..." : ""}`,
         tab: "vendors",
         priority: 7,
+      });
+    }
+  }
+
+  // ── Guests missing addresses ────────────────────────────────────────────
+  if (households.length > 0) {
+    const missingAddr = households.filter(h => !h.address1 || !h.address1.trim());
+    if (missingAddr.length > 0) {
+      items.push({
+        id: "addresses",
+        domain: "addresses",
+        tone: "accent",
+        icon: "guests",
+        title: `${missingAddr.length} household${missingAddr.length !== 1 ? "s" : ""} missing address`,
+        detail: missingAddr.length === 1
+          ? truncate(missingAddr[0].name || missingAddr[0].formalName || "Unnamed household", 60)
+          : `${missingAddr.length} of ${households.length} households have no address on file`,
+        tab: "guests",
+        priority: 8,
       });
     }
   }

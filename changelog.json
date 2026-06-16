@@ -1,7 +1,17 @@
 {
-  "current": "V4.4.0",
-  "whatsNew": "V4.4.0 adds 'What Needs You Next,' a focus panel beside the countdown on Overview that surfaces the top 3 time-sensitive items across tasks, payments, RSVPs, seating, and vendors. Each row deep-links to the relevant tab. The standalone seating-gap warning has been consolidated into the focus panel.",
+  "current": "V4.4.1",
+  "whatsNew": "V4.4.1 fixes the focus panel to correctly surface overdue tasks and tasks due this week (field name mismatch). Also adds a new 'guests missing addresses' category that flags households without a street address on file.",
   "changelog": [
+    {
+      "version": "V4.4.1",
+      "date": "2026-06-16",
+      "type": "patch",
+      "title": "Focus Panel: Fix Task Field + Add Missing Addresses",
+      "changes": [
+        "focus.js: fixed task due date field from t.dueDate to t.due, matching the actual data shape in TasksTab. Overdue tasks and tasks due this week now surface correctly.",
+        "focus.js: added 'guests missing addresses' category. Surfaces households where address1 is empty, with accent tone, linking to the Guests tab. Priority 8 (below vendors)."
+      ]
+    },
     {
       "version": "V4.4.0",
       "date": "2026-06-16",
