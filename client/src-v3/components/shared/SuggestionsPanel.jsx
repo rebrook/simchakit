@@ -10,7 +10,7 @@ export function SuggestionsPanel({ suggestions, onAdd, onDismiss, dismissedCount
     <div className="suggestions-panel">
       <div className="suggestions-header" onClick={() => setOpen(o => !o)}>
         <div className="suggestions-title">
-          <span><Icon name="lightbulb" context="inline" /></span>
+          <span><Icon name="tips" context="inline" /></span>
           <span>Suggested Tasks</span>
           {suggestions.length > 0 && <span className="suggestions-count">{suggestions.length}</span>}
         </div>

@@ -1,7 +1,17 @@
 {
-  "current": "V4.4.2",
-  "whatsNew": "V4.4.2 fixes focus panel icons (tasks and addresses rows now show the correct Lucide icon in the chip) and updates the guide to document the focus panel.",
+  "current": "V4.4.3",
+  "whatsNew": "V4.4.3 fixes the lightbulb icon in the focus panel header and the Suggested Tasks header (both used a nonexistent 'lightbulb' key instead of 'tips').",
   "changelog": [
+    {
+      "version": "V4.4.3",
+      "date": "2026-06-16",
+      "type": "patch",
+      "title": "Focus Panel: Fix Header Icon Key",
+      "changes": [
+        "FocusPanel.jsx: fixed header icon key from lightbulb (nonexistent in iconMap) to tips (maps to Lucide Lightbulb). The lightbulb icon now renders in the 'What needs you next' header.",
+        "SuggestionsPanel.jsx: same fix — lightbulb changed to tips. The Suggested Tasks header in the Tasks tab now shows the lightbulb icon."
+      ]
+    },
     {
       "version": "V4.4.2",
       "date": "2026-06-16",

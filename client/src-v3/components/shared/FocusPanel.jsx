@@ -44,7 +44,7 @@ export function FocusPanel({ items, loading, onNavigate }) {
   return (
     <div className="focus-panel">
       <div className="focus-panel-header">
-        <Icon name="lightbulb" context="inline" />
+        <Icon name="tips" context="inline" />
         <span>What needs you next</span>
       </div>
 
