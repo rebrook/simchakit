@@ -1,7 +1,18 @@
 {
-  "current": "V4.7.0",
-  "whatsNew": "V4.7.0 adds a visual capacity meter to the Seating tab showing confirmed guests vs. available seats at a glance, with color-coded fill and an over-capacity callout. Chart colors across all tabs now adapt to dark mode.",
+  "current": "V4.8.0",
+  "whatsNew": "V4.8.0 replaces the Overview stat card progress bars with conic-gradient completion rings. Each ring shows the percentage at a glance with the numeric value beside it. Rings re-skin with the event palette and work in dark mode.",
   "changelog": [
+    {
+      "version": "V4.8.0",
+      "date": "Jun 16, 2026",
+      "type": "minor",
+      "title": "Overview Completion Rings",
+      "changes": [
+        "StatCard: new display='ring' prop renders a conic-gradient completion ring instead of a progress bar. Ring shows percentage inside (in --text-primary for contrast), value and denominator beside it. Static render (no animation), role=progressbar with full ARIA attributes. Ring is opt-in per call site; all other StatCard usage unchanged.",
+        "OverviewTab: four primary stat cards (RSVPs, Budget, Tasks, Vendors) now render with completion rings matching the hero-bold design direction. Grid minmax bumped from 150px to 200px to give rings room. Secondary count cards unchanged.",
+        "App.css: new .stat-card-ring, .stat-ring, .stat-ring-layout, .stat-ring-pct, .stat-ring-text classes. Mobile overrides: ring shrinks from 58px to 48px at 640px breakpoint. Ring inner cutout uses --bg-surface for dark-mode compatibility."
+      ]
+    },
     {
       "version": "V4.7.0",
       "date": "Jun 16, 2026",

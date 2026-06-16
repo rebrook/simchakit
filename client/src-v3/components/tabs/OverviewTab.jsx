@@ -209,13 +209,14 @@ export function OverviewTab({ eventId, event, adminConfig, showToast, setActiveT
         />
       </div>
 
-      {/* Stat cards — primary (fractional with progress bars) */}
-      <div className="stat-grid" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))" }}>
+      {/* Stat cards — primary (fractional with completion rings) */}
+      <div className="stat-grid" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))" }}>
         <StatCard
           label="RSVPs Confirmed"
           value={confirmedCount}
           total={people.length}
           tone="green"
+          display="ring"
           sub="confirmed"
           subFallback="No guests added"
           onClick={() => setActiveTab && setActiveTab("guests")}
@@ -228,6 +229,7 @@ export function OverviewTab({ eventId, event, adminConfig, showToast, setActiveT
           total={totalBudget}
           totalDisplay={`$${totalBudget.toLocaleString()}`}
           tone={completionTone(totalPaid, totalBudget, "accent")}
+          display="ring"
           sub="paid"
           subFallback="No budget set"
           onClick={() => setActiveTab && setActiveTab("budget")}
@@ -238,6 +240,7 @@ export function OverviewTab({ eventId, event, adminConfig, showToast, setActiveT
           value={tasksDone}
           total={tasksTotal}
           tone={completionTone(tasksDone, tasksTotal, "gold")}
+          display="ring"
           sub="complete"
           subFallback="No tasks yet"
           onClick={() => setActiveTab && setActiveTab("tasks")}
@@ -248,6 +251,7 @@ export function OverviewTab({ eventId, event, adminConfig, showToast, setActiveT
           value={vendorsBooked}
           total={vendors.length}
           tone={completionTone(vendorsBooked, vendors.length, "accent")}
+          display="ring"
           sub="booked"
           subFallback="No vendors yet"
           onClick={() => setActiveTab && setActiveTab("vendors")}
