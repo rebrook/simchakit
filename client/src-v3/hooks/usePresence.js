@@ -1,11 +1,13 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// SimchaKit V4.5.0 — usePresence.js
+// SimchaKit V4.6.0 — usePresence.js
 // Tracks which co-planners are currently viewing the event using Supabase
 // Realtime Presence on a private (RLS-enforced) channel.
 //
 // Channel:  presence:event:{eventId}
 // Payload:  { user_id, display_name }   (no email — no PII on the wire)
-// Security: realtime.messages RLS restricts channel to event collaborators
+// Security: realtime.messages RLS restricts channel to event collaborators.
+//           private:true + explicit setAuth ensures the JWT is sent on the
+//           WebSocket upgrade so the server can evaluate RLS policies.
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useState, useEffect, useRef } from "react";
@@ -26,13 +28,20 @@ export function usePresence(eventId, session, displayName, collaboratorIds) {
 
   useEffect(() => {
     // Guard: need an event, an authenticated user, and a loaded roster
-    if (!eventId || !session?.user?.id || !collaboratorIds) return;
+    if (!eventId || !session?.user?.id || !session?.access_token || !collaboratorIds) return;
 
-    const userId = session.user.id;
-    const topic  = `presence:event:${eventId}`;
+    const userId      = session.user.id;
+    const accessToken = session.access_token;
+    const topic       = `presence:event:${eventId}`;
 
     // Build a Set of known collaborator IDs for fast lookup
     const rosterSet = new Set(collaboratorIds);
+
+    // Explicitly set the Realtime auth token before creating the channel.
+    // private:true channels require a valid JWT for RLS policy evaluation.
+    // The Supabase client may not always push the token automatically on
+    // the WebSocket upgrade in all versions, so this is a safety measure.
+    supabase.realtime.setAuth(accessToken);
 
     const channel = supabase.channel(topic, {
       config: {
@@ -84,7 +93,7 @@ export function usePresence(eventId, session, displayName, collaboratorIds) {
       channel.untrack().catch(() => {});
       supabase.removeChannel(channel);
     };
-  }, [eventId, session?.user?.id, displayName, collaboratorIds]);
+  }, [eventId, session?.user?.id, session?.access_token, displayName, collaboratorIds]);
 
   return { onlineUsers };
 }

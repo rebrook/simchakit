@@ -611,24 +611,27 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false, display
             );
           })()}
 
-          {/* Solo-event prompt (owner with no collaborators) */}
-          {collaboratorRole === "owner" && coPlanners !== null && (() => {
-            const others = coPlanners.filter(c => c.user_id !== session?.user?.id);
-            if (others.length > 0) return null;
+          {/* Solo-event prompt OR standard invite button (never both) */}
+          {(() => {
+            const isInviter = collaboratorRole === "owner" || collaboratorRole === "editor";
+            if (!isInviter) return null;
+            const isSoloOwner = collaboratorRole === "owner"
+              && coPlanners !== null
+              && coPlanners.filter(c => c.user_id !== session?.user?.id).length === 0;
+            if (isSoloOwner) {
+              return (
+                <button className="sidebar-solo-invite" onClick={() => setShowInviteModal(true)}>
+                  <Icon name="userPlus" context="inline" />
+                  <span>Planning with someone? Invite a co-planner.</span>
+                </button>
+              );
+            }
             return (
-              <button className="sidebar-solo-invite" onClick={() => setShowInviteModal(true)}>
-                <Icon name="userPlus" context="inline" />
-                <span>Planning with someone? Invite a co-planner.</span>
+              <button className="sidebar-invite" onClick={() => setShowInviteModal(true)}>
+                <Icon name="userPlus" context="inline" /> Invite a co-planner
               </button>
             );
           })()}
-
-          {/* Invite button (owners and editors) */}
-          {(collaboratorRole === "owner" || collaboratorRole === "editor") && (
-            <button className="sidebar-invite" onClick={() => setShowInviteModal(true)}>
-              <Icon name="userPlus" context="inline" /> Invite a co-planner
-            </button>
-          )}
 
           {/* Collaborator role badge (editors, viewers, coordinators) */}
           {collaboratorRole && collaboratorRole !== "owner" && (
@@ -1027,7 +1030,7 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false, display
           eventName={adminConfig?.name || ""}
           userId={session?.user?.id}
           collaboratorRole={collaboratorRole}
-          currentCollabCount={coPlanners ? coPlanners.filter(c => c.user_id !== session?.user?.id).length : 0}
+          currentCollabCount={coPlanners ? coPlanners.filter(c => c.user_id !== session?.user?.id && c.role !== "coordinator").length : 0}
           onClose={() => setShowInviteModal(false)}
           onInviteSent={refreshCollaborators}
         />

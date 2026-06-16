@@ -188,7 +188,7 @@ export function InviteModal({
                         navigator.clipboard.writeText(success.inviteUrl);
                       }}
                     >
-                      <Icon name="copy" context="inline" /> Copy invite link
+                      <Icon name="link" context="inline" /> Copy invite link
                     </button>
                   )}
                 </div>
