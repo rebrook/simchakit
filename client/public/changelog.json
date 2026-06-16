@@ -1,6 +1,10 @@
 {
   "current": "V4.8.1",
-  "whatsNew": "V4.8.0 replaces the Overview stat card progress bars with conic-gradient completion rings. Each ring shows the percentage at a glance with the numeric value beside it. Rings re-skin with the event palette and work in dark mode.",
+  "whatsNew": [
+    "Conic-gradient completion rings on the four primary Overview stat cards (RSVPs, Budget, Tasks, Vendors).",
+    "New seating capacity meter showing confirmed guests vs. available seats with color-coded fill.",
+    "Chart colors across all tabs now adapt to dark mode via new categorical palette tokens."
+  ],
   "changelog": [
     {
       "version": "V4.8.1",
