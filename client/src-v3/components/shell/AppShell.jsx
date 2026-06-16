@@ -127,12 +127,12 @@ function formatSwitcherDate(timeline) {
   const main = timeline.find(e => e.isMainEvent) || timeline[0];
   const raw = main?.startDate || main?.date;
   if (!raw) return null;
-  const d = new Date(raw + "T12:00:00");
+  const d = new Date(raw + "T00:00:00");
   if (isNaN(d.getTime())) return null;
   const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
   const now = new Date();
   const diffMs = d.getTime() - now.getTime();
-  const diffDays = Math.ceil(diffMs / 86400000);
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
   const dateStr = `${months[d.getMonth()]} ${d.getDate()}`;
   if (diffDays < 0) return `${dateStr} \u00b7 ${Math.abs(diffDays)}d ago`;
   if (diffDays === 0) return `${dateStr} \u00b7 Today`;
