@@ -1,5 +1,5 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// SimchaKit V4.5.0 — AppShell.jsx
+// SimchaKit V4.6.0 — AppShell.jsx
 // Sidebar navigation architecture.
 // Desktop (>900px): 248px left sidebar + top bar + main content grid.
 // Mobile (<=900px): existing bottom bar + More drawer (unchanged UX).
@@ -16,6 +16,7 @@ import { AdminLogin, AdminPanel } from "@/components/AdminPanel.jsx";
 import { SearchOverlay }         from "@/components/SearchOverlay.jsx";
 import { GuideModal, ActivityLogModal, WhatsNewModal } from "@/components/Modals.jsx";
 import { DayOfOverlay }          from "@/components/DayOfOverlay.jsx";
+import { InviteModal }           from "@/components/shared/InviteModal.jsx";
 import { Icon }                  from "@/utils/iconMap.jsx";
 
 // ── Tab components ──────────────────────────────────────────────────────────
@@ -172,6 +173,13 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false, display
       .then(({ data }) => setCoPlanners(data || []));
   }, [eventId, collaboratorRole]);
 
+  // Re-fetch collaborator list (called after invite is sent)
+  const refreshCollaborators = useCallback(() => {
+    if (!eventId) return;
+    supabase.rpc("get_event_collaborators", { p_event_id: eventId })
+      .then(({ data }) => setCoPlanners(data || []));
+  }, [eventId]);
+
   // ── Live presence (Supabase Realtime) ──────────────────────────────────
   // Build a stable array of collaborator user_ids for the roster gate.
   // useMemo avoids re-creating the array on every render.
@@ -218,6 +226,7 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false, display
   const [showActivityLog, setShowActivityLog] = useState(false);
   const [showWhatsNew,    setShowWhatsNew]    = useState(false);
   const [showDayOf,       setShowDayOf]       = useState(false);
+  const [showInviteModal, setShowInviteModal] = useState(false);
   const [searchHighlight, setSearchHighlight] = useState(null);
 
   const toastTimer  = useRef(null);
@@ -602,9 +611,21 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false, display
             );
           })()}
 
+          {/* Solo-event prompt (owner with no collaborators) */}
+          {collaboratorRole === "owner" && coPlanners !== null && (() => {
+            const others = coPlanners.filter(c => c.user_id !== session?.user?.id);
+            if (others.length > 0) return null;
+            return (
+              <button className="sidebar-solo-invite" onClick={() => setShowInviteModal(true)}>
+                <Icon name="userPlus" context="inline" />
+                <span>Planning with someone? Invite a co-planner.</span>
+              </button>
+            );
+          })()}
+
           {/* Invite button (owners and editors) */}
           {(collaboratorRole === "owner" || collaboratorRole === "editor") && (
-            <button className="sidebar-invite" onClick={() => openAdmin("collaborators")}>
+            <button className="sidebar-invite" onClick={() => setShowInviteModal(true)}>
               <Icon name="userPlus" context="inline" /> Invite a co-planner
             </button>
           )}
@@ -904,6 +925,15 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false, display
             <span className="more-drawer-item-chevron"><Icon name="chevronRight" context="inline" /></span>
           </button>
         )}
+        {/* Invite a co-planner (mobile, owners and editors) */}
+        {(collaboratorRole === "owner" || collaboratorRole === "editor") && (
+          <button className="more-drawer-item"
+            onClick={() => { setShowMoreDrawer(false); setShowInviteModal(true); }}>
+            <span className="more-drawer-item-icon"><Icon name="userPlus" context="menu" /></span>
+            <span className="more-drawer-item-label">Invite a co-planner</span>
+            <span className="more-drawer-item-chevron"><Icon name="chevronRight" context="inline" /></span>
+          </button>
+        )}
         <button className="more-drawer-item"
           onClick={() => { setShowMoreDrawer(false); openAdmin("event"); }}>
           <span className="more-drawer-item-icon"><Icon name="settings" context="menu" /></span>
@@ -987,6 +1017,19 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false, display
           onClose={() => setShowAdminPanel(false)}
           onConfigSaved={onConfigSaved}
           initialSection={adminSection}
+        />
+      )}
+
+      {/* ── Invite Modal ── */}
+      {showInviteModal && (
+        <InviteModal
+          eventId={eventId}
+          eventName={adminConfig?.name || ""}
+          userId={session?.user?.id}
+          collaboratorRole={collaboratorRole}
+          currentCollabCount={coPlanners ? coPlanners.filter(c => c.user_id !== session?.user?.id).length : 0}
+          onClose={() => setShowInviteModal(false)}
+          onInviteSent={refreshCollaborators}
         />
       )}
 

@@ -1,7 +1,33 @@
 {
-  "current": "V4.5.0",
-  "whatsNew": "V4.5.0 adds live co-planner presence: see who is viewing your event right now with green online dots in the sidebar avatar stack. Presence is secured via Supabase Realtime with RLS-enforced private channels. Avatar stack and invite button now visible to all roles.",
+  "current": "V4.6.0",
+  "whatsNew": "V4.6.0 adds a frictionless Invite a co-planner flow. Invite directly from the sidebar or the mobile More menu without entering Admin Mode. Owners can invite any role; editors can invite viewers or coordinators. The invite modal shows remaining slots, validates emails, and confirms with 'They'll appear here once they accept.'",
   "changelog": [
+    {
+      "version": "V4.6.0",
+      "date": "Jun 16, 2026",
+      "summary": "B3 Patch 2: frictionless inline invite modal + server-side auth hardening",
+      "changes": [
+        "Feature: new InviteModal component (shared/InviteModal.jsx) for one-click co-planner invitations without entering Admin Mode",
+        "Feature: solo-event prompt card in sidebar footer when owner has no collaborators ('Planning with someone? Invite a co-planner.')",
+        "Feature: 'Invite a co-planner' added to the mobile More drawer for owners and editors",
+        "Feature: invite button in sidebar now opens InviteModal instead of Admin Mode",
+        "Feature: InviteModal shows collaborator slots used (X of 5), role picker as accessible radiogroup with arrow-key navigation, email validation, magic-link helper text, and inline error/success states",
+        "Feature: success state reads 'They'll appear here once they accept' (pending invites are not shown in the avatar stack)",
+        "Security: send-invite.js now allows editors (not just owners) to send invitations, enforced server-side via event_collaborators lookup",
+        "Security: editors can only invite viewers or coordinators (not editors); server returns ESCALATION_DENIED if attempted",
+        "Security: error code updated from NOT_OWNER to NOT_AUTHORIZED to reflect the owner-or-editor permission model",
+        "UI: InviteModal auto-focuses email input, closes on Escape, uses correct modal backdrop onMouseDown pattern",
+        "Guide: updated Collaborators entry to describe the sidebar invite flow, editor invite permissions, and Admin Mode as a secondary management path"
+      ]
+    },
+    {
+      "version": "V4.5.1",
+      "date": "Jun 16, 2026",
+      "summary": "Guide update for live presence",
+      "changes": [
+        "Guide: updated Collaborators entry in ui.js to describe the green online dot on co-planner avatars, the mobile presence badge, and automatic presence clearing"
+      ]
+    },
     {
       "version": "V4.5.0",
       "date": "Jun 16, 2026",

@@ -422,6 +422,29 @@
       background: var(--accent-light);
       border-color: var(--accent-medium);
     }
+    .sidebar-solo-invite {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      margin-top: 10px;
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: var(--radius-sm);
+      background: var(--accent-light);
+      border: 1px solid var(--accent-medium);
+      color: var(--accent-primary);
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      font-family: var(--font-body);
+      text-align: left;
+      line-height: 1.35;
+      transition: background 0.12s ease, border-color 0.12s ease;
+    }
+    .sidebar-solo-invite:hover {
+      background: var(--accent-medium);
+      border-color: var(--accent-primary);
+    }
     .sidebar-role-badge {
       display: flex;
       align-items: center;
