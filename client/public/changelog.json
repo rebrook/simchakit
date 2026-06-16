@@ -1,7 +1,17 @@
 {
-  "current": "V4.4.1",
-  "whatsNew": "V4.4.1 fixes the focus panel to correctly surface overdue tasks and tasks due this week (field name mismatch). Also adds a new 'guests missing addresses' category that flags households without a street address on file.",
+  "current": "V4.4.2",
+  "whatsNew": "V4.4.2 fixes focus panel icons (tasks and addresses rows now show the correct Lucide icon in the chip) and updates the guide to document the focus panel.",
   "changelog": [
+    {
+      "version": "V4.4.2",
+      "date": "2026-06-16",
+      "type": "patch",
+      "title": "Focus Panel: Icon Keys + Guide Update",
+      "changes": [
+        "focus.js: fixed task icon key from checkSquare (nonexistent) to tasks (CircleCheckBig). Both overdue and due-this-week rows now render the correct icon. All 5 icon keys verified against iconMap.jsx: tasks, banknote, guests, seating, vendors.",
+        "ui.js: updated seating gap warning guide text (Seating section) to reference the focus panel instead of standalone red banners. Added 'What Needs You Next' entry to Tips & Shortcuts describing the focus panel, its categories, color semantics, expand toggle, and empty state."
+      ]
+    },
     {
       "version": "V4.4.1",
       "date": "2026-06-16",

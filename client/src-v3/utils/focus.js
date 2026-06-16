@@ -60,7 +60,7 @@ export function computeFocusItems(data, adminConfig) {
       id: "tasks",
       domain: "tasks",
       tone: "red",
-      icon: "checkSquare",
+      icon: "tasks",
       title: `${overdueTasks.length} task${overdueTasks.length !== 1 ? "s" : ""} overdue`,
       detail: overdueTasks.length === 1
         ? truncate(overdueTasks[0].task || overdueTasks[0].title || "Untitled task", 60)
@@ -73,7 +73,7 @@ export function computeFocusItems(data, adminConfig) {
       id: "tasks",
       domain: "tasks",
       tone: "gold",
-      icon: "checkSquare",
+      icon: "tasks",
       title: `${dueThisWeek.length} task${dueThisWeek.length !== 1 ? "s" : ""} due this week`,
       detail: dueThisWeek.length === 1
         ? truncate(dueThisWeek[0].task || dueThisWeek[0].title || "Untitled task", 60)
