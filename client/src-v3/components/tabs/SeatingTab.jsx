@@ -453,7 +453,7 @@ export function SeatingTab({ eventId, event, adminConfig, showToast, isArchived,
               </div>
               <div className="capacity-meter-track"
                 role="meter" aria-label="Seat capacity"
-                aria-valuenow={demand} aria-valuemin={0} aria-valuemax={supply || 1}>
+                aria-valuenow={demand} aria-valuemin={0} aria-valuemax={Math.max(demand, supply) || 1}>
                 <div className="capacity-meter-fill"
                   style={{ width: `${fillPct}%`, background: meterColor }} />
               </div>
@@ -476,13 +476,16 @@ export function SeatingTab({ eventId, event, adminConfig, showToast, isArchived,
           );
         })()}
 
-        {/* Summary line */}
+        {/* Per-table over-capacity warning (unique info not in stat cards or meter) */}
         {tables.length > 0 && (() => {
           const over = tables.filter(t => tableOccupants(t.id).length > (parseInt(t.capacity) || 0));
+          if (over.length === 0) return null;
           return (
-            <div style={{ fontSize: 12, color: "var(--text-muted)", marginBottom: 16, display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-              <span>{tables.length} table{tables.length !== 1 ? "s" : ""} · {totalSeats} seat{totalSeats !== 1 ? "s" : ""} · {seated} seated · {unseated.length} unseated</span>
-              {over.length > 0 && <span style={{ color: "var(--red)", fontWeight: 600 }}>· <Icon name="alertTriangle" context="badge" style={{ marginRight: 2 }} /> {over.length === 1 ? `${over[0].name} is` : `${over.length} tables are`} over capacity</span>}
+            <div style={{ fontSize: 12, color: "var(--red)", fontWeight: 600, marginBottom: 16, display: "flex", alignItems: "center", gap: 6 }}>
+              <Icon name="alertTriangle" context="badge" style={{ marginRight: 2 }} />
+              {over.length === 1
+                ? `${over[0].name} is over capacity`
+                : `${over.length} tables are over capacity`}
             </div>
           );
         })()}

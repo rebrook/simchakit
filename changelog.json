@@ -1,7 +1,19 @@
 {
-  "current": "V4.8.0",
+  "current": "V4.8.1",
   "whatsNew": "V4.8.0 replaces the Overview stat card progress bars with conic-gradient completion rings. Each ring shows the percentage at a glance with the numeric value beside it. Rings re-skin with the event palette and work in dark mode.",
   "changelog": [
+    {
+      "version": "V4.8.1",
+      "date": "Jun 16, 2026",
+      "type": "patch",
+      "title": "Ring Contrast, Seating Trim, Meter ARIA",
+      "changes": [
+        "StatCard: ring sub-caption now uses --text-secondary instead of the tone color. Fixes low-contrast gold text on light backgrounds.",
+        "StatCard: ring text value gets overflow ellipsis to prevent layout blow-out on long currency values.",
+        "SeatingTab: trimmed summary line to only the per-table over-capacity warning. Seats/seated/unseated are already in stat cards and capacity meter.",
+        "SeatingTab: capacity meter aria-valuemax now uses Math.max(demand, supply) to stay valid when confirmed guests exceed seats."
+      ]
+    },
     {
       "version": "V4.8.0",
       "date": "Jun 16, 2026",

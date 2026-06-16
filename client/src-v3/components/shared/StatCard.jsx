@@ -87,7 +87,7 @@ export function StatCard({
               {value} <span className="stat-denom">/ {totalDisplay ?? total}</span>
             </div>
             {sub && (
-              <div className="stat-pct" style={{ color: fillColor }}>
+              <div className="stat-pct" style={{ color: "var(--text-secondary)" }}>
                 {pct}% {sub}
               </div>
             )}

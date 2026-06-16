@@ -1217,6 +1217,9 @@
     }
     .stat-ring-text .stat-value {
       font-size: 24px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
     .stat-ring-text .stat-denom {
       font-size: 13px;
