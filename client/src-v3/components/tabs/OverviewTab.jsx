@@ -13,6 +13,8 @@ import { GetStartedCard }     from "@/components/shared/GetStartedCard.jsx";
 import { generateEventBriefHTML } from "@/utils/exports.js";
 import { Icon }               from "@/utils/iconMap.jsx";
 import { StatCard }          from "@/components/shared/StatCard.jsx";
+import { FocusPanel }        from "@/components/shared/FocusPanel.jsx";
+import { computeFocusItems } from "@/utils/focus.js";
 
 export function OverviewTab({ eventId, event, adminConfig, showToast, setActiveTab, onOpenAdmin, onOpenAdminTo, onOpenGuide, onPrintBrief, isViewer }) {
   const config    = adminConfig || {};
@@ -50,11 +52,11 @@ export function OverviewTab({ eventId, event, adminConfig, showToast, setActiveT
     }, 600);
   }, [eventId]);
 
-  // Load aggregated data for stat cards and seating warning
+  // Load aggregated data for stat cards and focus panel
   const { items: households }  = useEventData(eventId, "households");
   const { items: people }      = useEventData(eventId, "people");
   const { items: expenses }    = useEventData(eventId, "expenses");
-  const { items: tasks }       = useEventData(eventId, "tasks");
+  const { items: tasks, loading: tasksLoading } = useEventData(eventId, "tasks");
   const { items: vendors }     = useEventData(eventId, "vendors");
   const { items: tables }      = useEventData(eventId, "tables");
   const { items: seatingRows } = useEventData(eventId, "seating");
@@ -105,7 +107,12 @@ export function OverviewTab({ eventId, event, adminConfig, showToast, setActiveT
   const confirmedCount = people.filter(p => (p.attendingSections || []).length > 0).length;
   const outOfTownCount = households.filter(h => h.outOfTown).length;
 
-  // seatingRows used inline in seating gap warning below
+  // Focus panel items — "What needs you next"
+  const focusItems = computeFocusItems(
+    { tasks, expenses, people, households, vendors, tables, seatingRows },
+    config,
+  );
+
   const STORAGE_KEY = `simchakit-getstarted-dismissed-${eventId || "default"}`;
   const [showChecklist, setShowChecklist] = useState(() => {
     try { return localStorage.getItem(STORAGE_KEY) !== "1"; } catch { return true; }
@@ -149,41 +156,51 @@ export function OverviewTab({ eventId, event, adminConfig, showToast, setActiveT
         />
       )}
 
-      {/* Countdown */}
-      {eventDate && countdown ? (
-        <div className="countdown-card">
-          <div style={{ position: "absolute", right: 28, top: "50%", transform: "translateY(-50%)", fontSize: 80, opacity: 0.08, lineHeight: 1, pointerEvents: "none", userSelect: "none" }}>
-            {/* TODO: event-type glyph — decide icon vs emoji separately (data model decision) */}
-            {EVENT_TYPE_ICONS[config.type] || "✡"}
+      {/* Hero row: countdown + focus panel */}
+      <div className="overview-hero-row">
+        {/* Countdown */}
+        {eventDate && countdown ? (
+          <div className="countdown-card">
+            <div style={{ position: "absolute", right: 28, top: "50%", transform: "translateY(-50%)", fontSize: 80, opacity: 0.08, lineHeight: 1, pointerEvents: "none", userSelect: "none" }}>
+              {/* TODO: event-type glyph — decide icon vs emoji separately (data model decision) */}
+              {EVENT_TYPE_ICONS[config.type] || "✡"}
+            </div>
+            <div className="countdown-label">Counting down to</div>
+            <div className="countdown-title">{mainEvent?.title || config.name || "The Big Day"}</div>
+            <div className="countdown-date">{formatDate(eventDate)}{eventVenue ? ` · ${eventVenue}` : ""}</div>
+            <div className="countdown-units">
+              {[
+                { num: countdown.days,    label: "Days" },
+                { num: countdown.hours,   label: "Hrs"  },
+                { num: countdown.minutes, label: "Min"  },
+                { num: countdown.seconds, label: "Sec"  },
+              ].map(u => (
+                <div className="countdown-unit" key={u.label}>
+                  <div className="countdown-num">{String(u.num).padStart(2, "0")}</div>
+                  <div className="countdown-unit-label">{u.label}</div>
+                </div>
+              ))}
+            </div>
           </div>
-          <div className="countdown-label">Counting down to</div>
-          <div className="countdown-title">{mainEvent?.title || config.name || "The Big Day"}</div>
-          <div className="countdown-date">{formatDate(eventDate)}{eventVenue ? ` · ${eventVenue}` : ""}</div>
-          <div className="countdown-units">
-            {[
-              { num: countdown.days,    label: "Days" },
-              { num: countdown.hours,   label: "Hrs"  },
-              { num: countdown.minutes, label: "Min"  },
-              { num: countdown.seconds, label: "Sec"  },
-            ].map(u => (
-              <div className="countdown-unit" key={u.label}>
-                <div className="countdown-num">{String(u.num).padStart(2, "0")}</div>
-                <div className="countdown-unit-label">{u.label}</div>
-              </div>
-            ))}
+        ) : (
+          <div className="countdown-card" style={{ textAlign: "center" }}>
+            <div className="countdown-title" style={{ marginBottom: 8 }}>Welcome to SimchaKit</div>
+            <div className="countdown-date">Add your event timeline and mark a main event in Admin Mode to start the countdown</div>
+            <div style={{ marginTop: 16 }}>
+              <span className="tag" style={{ background: "rgba(255,255,255,0.2)", color: "white", fontSize: 12, display: "inline-flex", alignItems: "center", gap: 6 }}>
+                <Icon name="settings" context="inline" /> Click the settings icon in the header to configure your event
+              </span>
+            </div>
           </div>
-        </div>
-      ) : (
-        <div className="countdown-card" style={{ textAlign: "center" }}>
-          <div className="countdown-title" style={{ marginBottom: 8 }}>Welcome to SimchaKit</div>
-          <div className="countdown-date">Add your event timeline and mark a main event in Admin Mode to start the countdown</div>
-          <div style={{ marginTop: 16 }}>
-            <span className="tag" style={{ background: "rgba(255,255,255,0.2)", color: "white", fontSize: 12, display: "inline-flex", alignItems: "center", gap: 6 }}>
-              <Icon name="settings" context="inline" /> Click the settings icon in the header to configure your event
-            </span>
-          </div>
-        </div>
-      )}
+        )}
+
+        {/* Focus panel — "What needs you next" */}
+        <FocusPanel
+          items={focusItems}
+          loading={tasksLoading}
+          onNavigate={setActiveTab}
+        />
+      </div>
 
       {/* Stat cards — primary (fractional with progress bars) */}
       <div className="stat-grid" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))" }}>
@@ -252,46 +269,6 @@ export function OverviewTab({ eventId, event, adminConfig, showToast, setActiveT
           secondary
         />
       </div>
-
-      {/* Seating gap warning — one per enabled section that has a gap */}
-      {(() => {
-        const seatingCfg = (seatingRows[0]) || {};
-        const hasSeat    = !!seatingCfg.hasSeating;
-        const sections   = seatingCfg.enabledSections || (seatingCfg.eventSectionId ? [seatingCfg.eventSectionId] : []);
-        if (!hasSeat || sections.length === 0 || tables.length === 0) return null;
-
-        const warnings = sections.map(sid => {
-          const sectionTables = tables.filter(t => t.sectionId === sid || !t.sectionId);
-          const totalSeats    = sectionTables.reduce((s, t) => s + (parseInt(t.capacity) || 0), 0);
-          const confirmed     = people.filter(p => (p.attendingSections||[]).includes(sid)).length;
-          const gap           = confirmed - totalSeats;
-          if (sectionTables.length === 0 || confirmed === 0 || gap <= 0) return null;
-          const entry = (config.timeline||[]).find(e => e.id === sid);
-          const label = entry ? `${entry.icon||"📅"} ${entry.title}` : sid;
-          // TODO: entry.icon is user-configured from admin_config timeline — leave as emoji for now
-          return { label, totalSeats, confirmed, gap };
-        }).filter(Boolean);
-
-        if (warnings.length === 0) return null;
-        return warnings.map((w, i) => (
-          <div key={i} style={{
-            display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap",
-            background: "var(--red-light)", border: "1px solid var(--red)",
-            borderRadius: "var(--radius-md)", padding: "12px 16px", marginBottom: 12,
-            fontSize: 13, color: "var(--red)",
-          }}>
-            <span style={{ fontSize: 16 }}><Icon name="alertTriangle" context="alert" /></span>
-            <span style={{ flex: 1 }}>
-              <strong>Seating gap ({w.label}) —</strong> {w.totalSeats} seat{w.totalSeats !== 1 ? "s" : ""} configured
-              for <strong>{w.confirmed}</strong> confirmed guest{w.confirmed !== 1 ? "s" : ""}. {w.gap} additional seat{w.gap !== 1 ? "s" : ""} needed.
-            </span>
-            <button className="btn btn-sm" onClick={() => setActiveTab && setActiveTab("seating")}
-              style={{ background: "var(--red)", color: "white", border: "none", flexShrink: 0, fontSize: 12, display: "inline-flex", alignItems: "center", gap: 4 }}>
-              <Icon name="arrowRight" context="inline" /> Seating
-            </button>
-          </div>
-        ));
-      })()}
 
       {/* Two-column: timeline + notes */}
       <div className="two-col">
