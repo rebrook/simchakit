@@ -107,6 +107,11 @@ export function OverviewTab({ eventId, event, adminConfig, showToast, setActiveT
   const confirmedCount = people.filter(p => (p.attendingSections || []).length > 0).length;
   const outOfTownCount = households.filter(h => h.outOfTown).length;
 
+  // Completion tone: green when done, baseTone otherwise.
+  // Uses >= and rounds to cents for currency (floats).
+  const completionTone = (done, total, baseTone) =>
+    total > 0 && Math.round(done * 100) >= Math.round(total * 100) ? "green" : baseTone;
+
   // Focus panel items — "What needs you next"
   const focusItems = computeFocusItems(
     { tasks, expenses, people, households, vendors, tables, seatingRows },
@@ -120,28 +125,18 @@ export function OverviewTab({ eventId, event, adminConfig, showToast, setActiveT
 
   return (
     <div>
-      {/* Section header */}
-      <div className="section-header" style={{ marginBottom: 20 }}>
-        <div>
-          <div className="section-title">Overview</div>
-          <div className="section-subtitle">Event summary and countdown</div>
-        </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          {!showChecklist && (
-            <button className="btn btn-ghost btn-sm" onClick={() => {
-              try { localStorage.removeItem(`simchakit-getstarted-dismissed-${eventId || "default"}`); } catch {}
-              setShowChecklist(true);
-            }}
-              style={{ fontSize: 12 }}>
-              <Icon name="hand" context="inline" style={{ marginRight: 4 }} /> Setup checklist
-            </button>
-          )}
-          <button className="btn btn-secondary btn-sm" onClick={handlePrintBrief}
-            style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0 }}>
-            <Icon name="printer" context="inline" /> Print Brief
+      {/* Setup checklist restore button (shown only when checklist is dismissed) */}
+      {!showChecklist && (
+        <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 12 }}>
+          <button className="btn btn-ghost btn-sm" onClick={() => {
+            try { localStorage.removeItem(`simchakit-getstarted-dismissed-${eventId || "default"}`); } catch {}
+            setShowChecklist(true);
+          }}
+            style={{ fontSize: 12 }}>
+            <Icon name="hand" context="inline" style={{ marginRight: 4 }} /> Setup checklist
           </button>
         </div>
-      </div>
+      )}
 
       {/* Get Started card */}
       {showChecklist && (
@@ -220,7 +215,7 @@ export function OverviewTab({ eventId, event, adminConfig, showToast, setActiveT
           numericValue={totalPaid}
           total={totalBudget}
           totalDisplay={`$${totalBudget.toLocaleString()}`}
-          tone="accent"
+          tone={completionTone(totalPaid, totalBudget, "accent")}
           sub="paid"
           subFallback="No budget set"
           onClick={() => setActiveTab && setActiveTab("budget")}
@@ -230,7 +225,7 @@ export function OverviewTab({ eventId, event, adminConfig, showToast, setActiveT
           label="Tasks Done"
           value={tasksDone}
           total={tasksTotal}
-          tone="gold"
+          tone={completionTone(tasksDone, tasksTotal, "gold")}
           sub="complete"
           subFallback="No tasks yet"
           onClick={() => setActiveTab && setActiveTab("tasks")}
@@ -240,7 +235,7 @@ export function OverviewTab({ eventId, event, adminConfig, showToast, setActiveT
           label="Vendors Booked"
           value={vendorsBooked}
           total={vendors.length}
-          tone="accent"
+          tone={completionTone(vendorsBooked, vendors.length, "accent")}
           sub="booked"
           subFallback="No vendors yet"
           onClick={() => setActiveTab && setActiveTab("vendors")}

@@ -60,7 +60,7 @@ export function computeFocusItems(data, adminConfig) {
       id: "tasks",
       domain: "tasks",
       tone: "red",
-      icon: "tasks",
+      icon: "alertTriangle",
       title: `${overdueTasks.length} task${overdueTasks.length !== 1 ? "s" : ""} overdue`,
       detail: overdueTasks.length === 1
         ? truncate(overdueTasks[0].task || overdueTasks[0].title || "Untitled task", 60)
@@ -97,7 +97,7 @@ export function computeFocusItems(data, adminConfig) {
       id: "payments",
       domain: "payments",
       tone: "red",
-      icon: "banknote",
+      icon: "alertTriangle",
       title: `$${total.toLocaleString()} in overdue payments`,
       detail: overduePayments.length === 1
         ? truncate(overduePayments[0].description || overduePayments[0].vendor || "Payment", 60)

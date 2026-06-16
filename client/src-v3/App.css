@@ -1203,6 +1203,7 @@
       display: flex;
       flex-direction: column;
       overflow: hidden;
+      align-self: start;
     }
     .focus-panel-header {
       display: flex;
@@ -1218,7 +1219,6 @@
     .focus-panel-list {
       display: flex;
       flex-direction: column;
-      flex: 1;
     }
     .focus-row {
       display: flex;
@@ -1240,6 +1240,23 @@
     .focus-row:focus-visible {
       outline: none;
       box-shadow: inset 0 0 0 2px var(--accent-primary), inset 0 0 0 4px var(--accent-light);
+    }
+    .focus-row-red {
+      background: var(--red-light);
+      border-left: 3px solid var(--red);
+    }
+    .focus-row-red:hover {
+      filter: brightness(0.97);
+    }
+    .focus-row-gold {
+      background: var(--gold-light);
+      border-left: 3px solid var(--gold);
+    }
+    .focus-row-gold:hover {
+      filter: brightness(0.97);
+    }
+    .focus-row-accent {
+      border-left: 3px solid transparent;
     }
     .focus-chip {
       display: flex;

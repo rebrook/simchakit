@@ -1,7 +1,19 @@
 {
-  "current": "V4.4.3",
-  "whatsNew": "V4.4.3 fixes the lightbulb icon in the focus panel header and the Suggested Tasks header (both used a nonexistent 'lightbulb' key instead of 'tips').",
+  "current": "V4.4.4",
+  "whatsNew": "V4.4.4 makes overdue items visually distinct in the focus panel (red tint, left border, alert triangle icon), removes the duplicate Overview heading and Print Brief button, switches stat cards to green at 100% completion (Budget, Tasks, Vendors), and sizes the focus panel to its content.",
   "changelog": [
+    {
+      "version": "V4.4.4",
+      "date": "2026-06-16",
+      "type": "patch",
+      "title": "Focus Panel Severity + Stat Card Completion Tones + Layout Cleanup",
+      "changes": [
+        "App.css: added .focus-row-red (red-light background + 3px red left border), .focus-row-gold (gold-light + gold border), .focus-row-accent (transparent border for consistent padding). Red and gold rows use filter:brightness(0.97) on hover instead of bg-subtle. Added align-self:start to .focus-panel so it sizes to content instead of stretching to match the countdown. Removed flex:1 from .focus-panel-list.",
+        "FocusPanel.jsx: each row button now gets a focus-row-{tone} class for background tinting.",
+        "focus.js: overdue tasks and overdue payments now use alertTriangle icon (non-color severity differentiator) instead of domain icons. Gold and accent rows keep their domain icons.",
+        "OverviewTab.jsx: removed the .section-header block (duplicate 'Overview' title and Print Brief button, both already in the top bar). Setup checklist restore button preserved as standalone element. Added completionTone(done, total, baseTone) helper that returns 'green' when done >= total (rounded to cents for currency). Applied to Budget Paid, Tasks Done, and Vendors Booked stat cards."
+      ]
+    },
     {
       "version": "V4.4.3",
       "date": "2026-06-16",

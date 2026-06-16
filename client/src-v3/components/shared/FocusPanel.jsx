@@ -52,7 +52,7 @@ export function FocusPanel({ items, loading, onNavigate }) {
         {visible.map(item => (
           <button
             key={item.id}
-            className="focus-row"
+            className={`focus-row focus-row-${item.tone}`}
             onClick={() => onNavigate && onNavigate(item.tab)}
             aria-label={`${item.title}. ${item.detail}. Go to ${item.tab}.`}
           >
