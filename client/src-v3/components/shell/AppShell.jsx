@@ -1,8 +1,8 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// SimchaKit V3.0.0 - AppShell.jsx
-// Full app shell rendered after an event is selected.
-// Loads event from Supabase, provides nav, header, tab routing, mobile nav.
-// Phase 5: shell + nav + stubs. Phase 6 will fill tabs with real data.
+// SimchaKit V4.3.0 — AppShell.jsx
+// Sidebar navigation architecture.
+// Desktop (>900px): 248px left sidebar + top bar + main content grid.
+// Mobile (<=900px): existing bottom bar + More drawer (unchanged UX).
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useState, useEffect, useRef, useCallback } from "react";
@@ -17,7 +17,7 @@ import { GuideModal, ActivityLogModal, WhatsNewModal } from "@/components/Modals
 import { DayOfOverlay }          from "@/components/DayOfOverlay.jsx";
 import { Icon }                  from "@/utils/iconMap.jsx";
 
-// ── Tab components (stubs in Phase 5, filled in Phase 6) ─────────────────────
+// ── Tab components ──────────────────────────────────────────────────────────
 import { OverviewTab }        from "@/components/tabs/OverviewTab.jsx";
 import { GuestsTab }          from "@/components/tabs/GuestsTab.jsx";
 import { BudgetTab }          from "@/components/tabs/BudgetTab.jsx";
@@ -31,7 +31,7 @@ import { AccommodationsTab }  from "@/components/tabs/AccommodationsTab.jsx";
 import { FavorsTab }          from "@/components/tabs/FavorsTab.jsx";
 import { CalendarTab }        from "@/components/tabs/CalendarTab.jsx";
 
-// ── Event type icons (mirrors V2 constants/events.js) ────────────────────────
+// ── Event type icons (domain content — intentionally emoji, not Lucide) ─────
 const EVENT_TYPE_ICONS = {
   "bat-mitzvah":  "✡",
   "bar-mitzvah":  "✡",
@@ -44,12 +44,55 @@ const EVENT_TYPE_ICONS = {
   "other":        "🎉",
 };
 
-// ── Bottom bar tab IDs (fixed, matches V2 exactly) ───────────────────────────
+// ── Tab labels for the top bar ──────────────────────────────────────────────
+const TAB_LABELS = {
+  overview:       "Overview",
+  guests:         "Guests",
+  budget:         "Budget",
+  vendors:        "Vendors",
+  tasks:          "Tasks",
+  prep:           "Prep",
+  ceremony:       "Ceremony",
+  seating:        "Seating",
+  gifts:          "Gifts",
+  accommodations: "Stay & Travel",
+  favors:         "Favors",
+  calendar:       "Calendar",
+};
+
+// ── Mobile bottom bar tab IDs (fixed, matches V2 exactly) ──────────────────
 const BOTTOM_BAR_IDS = ["overview", "guests", "budget", "vendors", "tasks"];
 
-// ── Co-planner avatar helpers ────────────────────────────────────────────────
-// Brand-palette accent hues (from the 9 SimchaKit palettes), contrast-checked
-// for white text. Blush and gold darkened for readability.
+// ── Sidebar nav groups ─────────────────────────────────────────────────────
+const SIDEBAR_GROUPS = [
+  {
+    label: "Planning",
+    tabs: [
+      { id: "overview",       icon: "overview",       label: "Overview"      },
+      { id: "guests",         icon: "guests",         label: "Guests"        },
+      { id: "budget",         icon: "budget",         label: "Budget"        },
+      { id: "vendors",        icon: "vendors",        label: "Vendors"       },
+      { id: "tasks",          icon: "tasks",          label: "Tasks"         },
+      { id: "prep",           icon: "prep",           label: "Prep"          },
+    ],
+  },
+  {
+    label: "The Celebration",
+    tabs: [
+      { id: "ceremony",       icon: "ceremony",       label: "Ceremony"      },
+      { id: "seating",        icon: "seating",        label: "Seating"       },
+      { id: "gifts",          icon: "gifts",          label: "Gifts"         },
+      { id: "accommodations", icon: "accommodations", label: "Stay & Travel" },
+      { id: "favors",         icon: "favors",         label: "Favors"        },
+      { id: "calendar",       icon: "calendar",       label: "Calendar"      },
+    ],
+  },
+];
+
+// Flat list of all tabs (derived from groups, used for filtering)
+const ALL_TABS = SIDEBAR_GROUPS.flatMap(g => g.tabs);
+
+// ── Co-planner avatar helpers ──────────────────────────────────────────────
 const AVATAR_FILLS = [
   "#9b2335",  // rose
   "#0d1b2e",  // navy
@@ -59,7 +102,7 @@ const AVATAR_FILLS = [
   "#8b4c2a",  // copper
   "#1a6b6b",  // teal
   "#2d3748",  // charcoal
-  "#8c5a6e",  // blush (darkened from #d4a0a0)
+  "#8c5a6e",  // blush
 ];
 
 function avatarColor(name) {
@@ -78,25 +121,40 @@ function avatarInitials(displayName, email) {
   return "?";
 }
 
+// ── Date helpers for sidebar event switcher ─────────────────────────────────
+function formatSwitcherDate(timeline) {
+  if (!timeline || !timeline.length) return null;
+  const main = timeline.find(e => e.isMainEvent) || timeline[0];
+  if (!main?.date) return null;
+  const d = new Date(main.date + "T12:00:00");
+  if (isNaN(d)) return null;
+  const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  const now = new Date();
+  const diffMs = d.getTime() - now.getTime();
+  const diffDays = Math.ceil(diffMs / 86400000);
+  const dateStr = `${months[d.getMonth()]} ${d.getDate()}`;
+  if (diffDays < 0) return `${dateStr} \u00b7 ${Math.abs(diffDays)}d ago`;
+  if (diffDays === 0) return `${dateStr} \u00b7 Today`;
+  return `${dateStr} \u00b7 ${diffDays}d out`;
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 import { displayNameWithEmail } from "@/utils/displayName.js";
 
 export function AppShell({ session, eventId, onBack, isDemoMode = false, displayName: userDisplayName = null }) {
   const [activeTab,       setActiveTab]       = useState("overview");
-  const [event,           setEvent]           = useState(null);   // raw events row
-  const [adminConfig,     setAdminConfig]     = useState(null);   // events.admin_config
+  const [event,           setEvent]           = useState(null);
+  const [adminConfig,     setAdminConfig]     = useState(null);
   const [loadStatus,      setLoadStatus]      = useState("loading");
-  const [showOverflow,    setShowOverflow]    = useState(false);
   const [showMoreDrawer,  setShowMoreDrawer]  = useState(false);
-  const [showNavMore,     setShowNavMore]     = useState(false);
-  const [navMoreAnchor,   setNavMoreAnchor]   = useState(null);
-  const [overflowFromIdx, setOverflowFromIdx] = useState(null);
-  const [headerCollapsed, setHeaderCollapsed] = useState(false);
   const [toastMsg,        setToastMsg]        = useState("");
   const [toastVisible,    setToastVisible]    = useState(false);
   const [darkMode,        setDarkMode]        = useDarkMode();
 
-  // ── Collaborator role (null until event loads; 'owner' | 'editor' | 'viewer') ──
+  // ── Account menu state (sidebar footer) ──────────────────────────────────
+  const [showAccountMenu, setShowAccountMenu] = useState(false);
+
+  // ── Collaborator role ────────────────────────────────────────────────────
   const collaboratorRole = useCollaboratorRole(
     event?.owner_id ?? null,
     eventId,
@@ -104,7 +162,7 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false, display
   );
 
   // ── Co-planner list for avatar stack ────────────────────────────────────
-  const [coPlanners, setCoPlanners] = useState(null); // null = loading, [] = loaded empty
+  const [coPlanners, setCoPlanners] = useState(null);
   useEffect(() => {
     if (!eventId || collaboratorRole === null) return;
     if (collaboratorRole !== "owner") { setCoPlanners([]); return; }
@@ -124,9 +182,8 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false, display
   const [showActivityLog, setShowActivityLog] = useState(false);
   const [showWhatsNew,    setShowWhatsNew]    = useState(false);
   const [showDayOf,       setShowDayOf]       = useState(false);
-  const [searchHighlight, setSearchHighlight] = useState(null); // { tab, itemId, collection, householdId }
+  const [searchHighlight, setSearchHighlight] = useState(null);
 
-  const navInnerRef = useRef(null);
   const toastTimer  = useRef(null);
 
   // ── Toast ─────────────────────────────────────────────────────────────────
@@ -137,7 +194,7 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false, display
     toastTimer.current = setTimeout(() => setToastVisible(false), 2500);
   }, []);
 
-  // ── Listen for audit log write failures from useEventData ─────────────────
+  // ── Audit log error listener ──────────────────────────────────────────────
   useEffect(() => {
     const handler = () => showToast("Activity log entry could not be saved");
     window.addEventListener("simchakit:audit-error", handler);
@@ -152,10 +209,6 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false, display
         .select("id, name, type, archived, admin_config, quick_notes, calendar_token, owner_id")
         .eq("id", eventId);
 
-      // RLS handles access control. No owner_id filter needed here.
-      // Collaborators have access via the "Collaborator can read event" SELECT policy.
-      // Demo mode uses the anon key which has its own scoped policy.
-
       const { data, error } = await query.single();
 
       if (error || !data) {
@@ -164,7 +217,6 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false, display
       }
 
       setEvent(data);
-      // Seed name/type into adminConfig from top-level columns if not already in jsonb
       const cfg = data.admin_config || {};
       setAdminConfig({
         ...cfg,
@@ -176,35 +228,14 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false, display
     load();
   }, [eventId, session?.user?.id]);
 
-  // ── Coordinators may only view Ceremony and Prep. The default activeTab is
-  // "overview", which they cannot access, so redirect to "ceremony" once the
-  // role resolves if the current tab is not one of the two permitted tabs. ──
+  // ── Coordinator redirect ──────────────────────────────────────────────────
   useEffect(() => {
     if (collaboratorRole === "coordinator" && activeTab !== "ceremony" && activeTab !== "prep") {
       setActiveTab("ceremony");
     }
   }, [collaboratorRole, activeTab]);
 
-  // ── Mobile header collapse on scroll ─────────────────────────────────────
-  useEffect(() => {
-    if (typeof window === "undefined" || window.innerWidth >= 640) return;
-    let lastY = window.scrollY;
-    let rafId = null;
-    const onScroll = () => {
-      if (rafId) return;
-      rafId = requestAnimationFrame(() => {
-        const y = window.scrollY;
-        if (y > lastY && y > 60)      setHeaderCollapsed(true);
-        else if (y < lastY)           setHeaderCollapsed(false);
-        lastY = y;
-        rafId = null;
-      });
-    };
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => { window.removeEventListener("scroll", onScroll); if (rafId) cancelAnimationFrame(rafId); };
-  }, []);
-
-  // ── ⌘K / Ctrl+K search shortcut (wired up in Phase 6) ────────────────────
+  // ── Cmd+K / Ctrl+K search shortcut ────────────────────────────────────────
   useEffect(() => {
     const handler = (e) => {
       if ((e.metaKey || e.ctrlKey) && e.key === "k") {
@@ -216,25 +247,18 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false, display
     return () => window.removeEventListener("keydown", handler);
   }, []);
 
-  // ── Close overflow menu on outside click ─────────────────────────────────
+  // ── Close account menu on outside click ───────────────────────────────────
   useEffect(() => {
-    if (!showOverflow) return;
-    const handler = (e) => { if (!e.target.closest(".header-overflow-wrap")) setShowOverflow(false); };
-    document.addEventListener("mousedown", handler);
-    document.addEventListener("touchstart", handler);
-    return () => { document.removeEventListener("mousedown", handler); document.removeEventListener("touchstart", handler); };
-  }, [showOverflow]);
-
-  // ── Close nav More dropdown on outside click ──────────────────────────────
-  useEffect(() => {
-    if (!showNavMore) return;
+    if (!showAccountMenu) return;
     const handler = (e) => {
-      if (!e.target.closest(".nav-more-wrap") && !e.target.closest(".nav-more-menu")) setShowNavMore(false);
+      if (!e.target.closest(".sidebar-account-menu") && !e.target.closest(".sidebar-account")) {
+        setShowAccountMenu(false);
+      }
     };
     document.addEventListener("mousedown", handler);
     document.addEventListener("touchstart", handler);
     return () => { document.removeEventListener("mousedown", handler); document.removeEventListener("touchstart", handler); };
-  }, [showNavMore]);
+  }, [showAccountMenu]);
 
   // ── Close More drawer on Escape ───────────────────────────────────────────
   useEffect(() => {
@@ -244,57 +268,30 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false, display
     return () => window.removeEventListener("keydown", handler);
   }, [showMoreDrawer]);
 
-  // ── ResizeObserver: compute nav overflow index ────────────────────────────
-  useEffect(() => {
-    const el = navInnerRef.current;
-    if (!el) return;
-    const compute = () => {
-      const children = Array.from(el.children).filter(c => c.classList.contains("nav-tab"));
-      if (!children.length) return;
-      const available = el.clientWidth - 92; // reserve ~88px for More button
-      let total = 0;
-      let cutoff = null;
-      for (let i = 0; i < children.length; i++) {
-        total += children[i].offsetWidth + 2;
-        if (total > available && cutoff === null) cutoff = i;
-      }
-      setOverflowFromIdx(cutoff);
-    };
-    compute();
-    const ro = new ResizeObserver(compute);
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, [loadStatus]); // re-run when tabs become available
-
-  // ── Build tab list from adminConfig.visibleTabs ───────────────────────────
-  const ALL_TABS = [
-    { id: "overview",       icon: "overview",       label: "Overview"      },
-    { id: "guests",         icon: "guests",         label: "Guests"        },
-    { id: "budget",         icon: "budget",         label: "Budget"        },
-    { id: "vendors",        icon: "vendors",        label: "Vendors"       },
-    { id: "tasks",          icon: "tasks",          label: "Tasks"         },
-    { id: "prep",           icon: "prep",           label: "Prep"          },
-    { id: "ceremony",       icon: "ceremony",       label: "Ceremony"      },
-    { id: "seating",        icon: "seating",        label: "Seating"       },
-    { id: "gifts",          icon: "gifts",          label: "Gifts"         },
-    { id: "accommodations", icon: "accommodations", label: "Stay & Travel" },
-    { id: "favors",         icon: "favors",         label: "Favors"        },
-    { id: "calendar",       icon: "calendar",       label: "Calendar"      },
-  ];
-
+  // ── Build visible tabs from adminConfig.visibleTabs ──────────────────────
   const visibleTabIds = adminConfig?.visibleTabs;
-  let tabs = (visibleTabIds && visibleTabIds.length > 0)
-    ? ALL_TABS.filter(t => t.id === "overview" || visibleTabIds.includes(t.id))
-    : ALL_TABS;
-
-  // Ritual Coordinators see only Ceremony and Prep. Applied only once the
-  // role has resolved to "coordinator" (never while null/loading), so owner and
-  // editor/viewer tab sets are never affected.
   const isCoordinator = collaboratorRole === "coordinator";
+
+  let tabs;
   if (isCoordinator) {
     tabs = ALL_TABS.filter(t => t.id === "ceremony" || t.id === "prep");
+  } else if (visibleTabIds && visibleTabIds.length > 0) {
+    tabs = ALL_TABS.filter(t => t.id === "overview" || visibleTabIds.includes(t.id));
+  } else {
+    tabs = ALL_TABS;
   }
 
+  const visibleTabIdSet = new Set(tabs.map(t => t.id));
+
+  // Sidebar groups filtered to visible tabs
+  const sidebarGroups = isCoordinator
+    ? [{ label: "Ceremony & Prep", tabs }]
+    : SIDEBAR_GROUPS.map(g => ({
+        ...g,
+        tabs: g.tabs.filter(t => visibleTabIdSet.has(t.id)),
+      })).filter(g => g.tabs.length > 0);
+
+  // Mobile bottom bar / More drawer splits
   const bottomBarTabs  = tabs.filter(t => BOTTOM_BAR_IDS.includes(t.id));
   const moreDrawerTabs = tabs.filter(t => !BOTTOM_BAR_IDS.includes(t.id));
   const moreIsActive   = moreDrawerTabs.some(t => t.id === activeTab);
@@ -303,13 +300,16 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false, display
   const navigateTo = (tabId) => {
     setActiveTab(tabId);
     setShowMoreDrawer(false);
-    setShowNavMore(false);
     window.scrollTo(0, 0);
   };
 
   // ── Palette from adminConfig ──────────────────────────────────────────────
   const palette     = adminConfig?.theme?.palette     || "rose";
   const customColor = adminConfig?.theme?.customColor || "";
+
+  // ── Event type icon + date for sidebar switcher ───────────────────────────
+  const eventTypeIcon = EVENT_TYPE_ICONS[adminConfig?.type] || "🎉";
+  const switcherDate  = formatSwitcherDate(adminConfig?.timeline);
 
   // ── Loading / error states ────────────────────────────────────────────────
   if (loadStatus === "loading") {
@@ -318,7 +318,7 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false, display
         <ThemeProvider palette="rose" customColor="" />
         <div style={{ display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", minHeight:"100vh", gap:16 }}>
           <img src="/apple-touch-icon.png" alt="SimchaKit" style={{ width: 48, height: 48, borderRadius: 10 }} />
-          <div style={{ fontFamily:"var(--font-display)", fontSize:20, color:"var(--text-primary)" }}>Loading…</div>
+          <div style={{ fontFamily:"var(--font-display)", fontSize:20, color:"var(--text-primary)" }}>Loading...</div>
           <div style={{ fontSize:13, color:"var(--text-muted)" }}>Connecting to SimchaKit</div>
         </div>
       </div>
@@ -339,9 +339,8 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false, display
     );
   }
 
-  // ── Open admin (from gear button or tab callbacks) ────────────────────────
+  // ── Open admin ────────────────────────────────────────────────────────────
   const openAdmin = (section = "event") => {
-    // Only the event owner can access Admin Mode
     if (collaboratorRole !== null && collaboratorRole !== "owner") {
       showToast("Admin Mode is only available to the event owner");
       return;
@@ -359,12 +358,10 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false, display
 
   const onConfigSaved = (newConfig) => {
     setAdminConfig(newConfig);
-    // Also refresh event row so name/type stay in sync
     setEvent(ev => ev ? { ...ev, name: newConfig.name || ev.name, type: newConfig.type || ev.type, admin_config: newConfig } : ev);
     showToast("Configuration saved");
   };
 
-  // Clergy/tutor update from PrepTab (owners + coordinators via /api/update-clergy)
   const onClergyUpdated = (clergyData) => {
     setAdminConfig(prev => {
       const updated = { ...prev, ...clergyData };
@@ -393,14 +390,20 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false, display
     setSearchHighlight,
   };
 
+  // ── User identity for account row ─────────────────────────────────────────
+  const userEmail = session?.user?.email || "";
+  const userName  = userDisplayName || userEmail.split("@")[0] || "";
+  const userInit  = avatarInitials(userDisplayName, userEmail);
+  const userBg    = avatarColor(userDisplayName || userEmail || "user");
+
   // ── Render ─────────────────────────────────────────────────────────────────
   return (
     <div className="app-shell">
       <ThemeProvider palette={palette} customColor={customColor} />
 
-      {/* ── Demo banner ── */}
+      {/* ── Demo banner (spans full width above the grid) ── */}
       {isDemoMode && (
-        <div className="archived-banner" style={{
+        <div className="archived-banner shell-banner" style={{
           background: "var(--accent-primary)",
           color: "white",
           display: "flex",
@@ -409,7 +412,7 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false, display
           gap: 12,
           flexWrap: "wrap",
         }}>
-          <span><Icon name="clipboardList" context="inline" style={{ marginRight: 6 }} />You're viewing the SimchaKit demo · Data resets nightly</span>
+          <span><Icon name="clipboardList" context="inline" style={{ marginRight: 6 }} />You are viewing the SimchaKit demo. Data resets nightly.</span>
           <a href="https://app.simcha-kit.com" style={{
             color: "white",
             fontWeight: 700,
@@ -421,344 +424,307 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false, display
 
       {/* ── Archived banner ── */}
       {event?.archived && (
-        <div className="archived-banner">
+        <div className="archived-banner shell-banner">
           <Icon name="lock" context="inline" style={{ marginRight: 6 }} /> This event is archived and read-only.
         </div>
       )}
 
-      {/* ── Header ── */}
-      <header className={`app-header${headerCollapsed ? " header-collapsed" : ""}`}>
-        <div className="header-inner">
-
-          {/* ← Events */}
-          <button
-            onClick={onBack}
-            style={{
-              display:"flex", alignItems:"center", gap:4,
-              fontSize:12, fontWeight:600, color:"var(--text-muted)",
-              background:"none", cursor:"pointer", flexShrink:0,
-              padding:"4px 8px", borderRadius:"var(--radius-sm)",
-              border:"1px solid var(--border)", fontFamily:"var(--font-body)",
-              transition:"all 0.15s ease",
-            }}
-            onMouseEnter={e => { e.currentTarget.style.color="var(--accent-primary)"; e.currentTarget.style.borderColor="var(--accent-primary)"; }}
-            onMouseLeave={e => { e.currentTarget.style.color="var(--text-muted)"; e.currentTarget.style.borderColor="var(--border)"; }}
-          ><Icon name="arrowLeft" context="inline" style={{ marginRight: 2 }} /> Events</button>
-
-          {/* Brand */}
-          <div className="header-brand">
-            <img src="/apple-touch-icon.png" alt="SimchaKit" className="header-star" style={{ width: 40, height: 40, borderRadius: 8, display: "block" }} />
-            <div>
-              <div className="header-title">SimchaKit</div>
-            </div>
+      {/* ── Mobile header (<=900px only) ── */}
+      <header className="mobile-header">
+        <div className="mobile-header-inner">
+          <button className="mobile-header-back" onClick={onBack}>
+            <Icon name="arrowLeft" context="inline" style={{ marginRight: 2 }} /> Events
+          </button>
+          <div className="mobile-header-brand">
+            <img src="/apple-touch-icon.png" alt="SimchaKit" style={{ width: 32, height: 32, borderRadius: 7 }} />
+            <span className="mobile-header-title">SimchaKit</span>
           </div>
+          {adminConfig?.name && (
+            <div className="mobile-header-event" title={adminConfig.name}>{adminConfig.name}</div>
+          )}
+          <div style={{ flex: 1 }} />
+          <div className="mobile-header-actions">
+            <button className="icon-btn" title="Search" onClick={() => setShowSearch(true)}>
+              <Icon name="search" context="button" />
+            </button>
+            <button className="icon-btn" title="Admin Mode" onClick={() => openAdmin("event")}>
+              <Icon name="settings" context="button" />
+            </button>
+          </div>
+        </div>
+      </header>
 
-          {/* Event name + theme */}
-          {adminConfig?.name && (<>
-            <div className="header-divider" />
-            <div>
-              <div className="header-event-name" title={adminConfig.name}>{adminConfig.name}</div>
-              {adminConfig?.theme?.name && (
-                <div style={{ fontSize:11, color:"var(--text-muted)", marginTop:1 }}>
-                  {adminConfig.theme.name}{adminConfig.theme.icon ? ` ${adminConfig.theme.icon}` : ""}
-                </div>
-              )}
+      {/* ── Sidebar (desktop only, >900px) ── */}
+      <aside className="app-sidebar">
+
+        {/* Brand */}
+        <div className="sidebar-brand">
+          <img src="/apple-touch-icon.png" alt="SimchaKit" style={{ width: 34, height: 34, borderRadius: 9 }} />
+          <span className="sidebar-wordmark">SimchaKit</span>
+        </div>
+
+        {/* Event switcher */}
+        <button className="sidebar-switcher" onClick={onBack} title="Back to Events">
+          <span className="sidebar-switcher-emoji">{eventTypeIcon}</span>
+          <div style={{ minWidth: 0, flex: 1 }}>
+            <div className="sidebar-switcher-name">{adminConfig?.name || "Untitled Event"}</div>
+            {switcherDate && <div className="sidebar-switcher-date">{switcherDate}</div>}
+          </div>
+          <span className="sidebar-switcher-chevron"><Icon name="chevronRight" context="inline" /></span>
+          {/* TODO: inline event switcher dropdown */}
+        </button>
+
+        {/* Nav items */}
+        <nav className="sidebar-nav">
+          {sidebarGroups.map(group => (
+            <div key={group.label}>
+              <div className="sidebar-group-label">{group.label}</div>
+              {group.tabs.map(tab => (
+                <button
+                  key={tab.id}
+                  className={`sidebar-item${activeTab === tab.id ? " active" : ""}`}
+                  onClick={() => navigateTo(tab.id)}
+                >
+                  <Icon name={tab.icon} context="nav" />
+                  <span className="sidebar-item-label">{tab.label}</span>
+                  {tab.badge != null && tab.badge > 0 && (
+                    <span className="sidebar-item-badge">{tab.badge}</span>
+                  )}
+                </button>
+              ))}
             </div>
-          </>)}
+          ))}
 
-          <div className="header-spacer" />
+          {/* Day-of Mode — standalone emphasized entry */}
+          {!isCoordinator && (
+            <button className="sidebar-dayof" onClick={() => setShowDayOf(true)}>
+              <Icon name="clipboardList" context="nav" />
+              <span className="sidebar-item-label">Day-of Mode</span>
+              <span className="sidebar-dayof-tag">Event day</span>
+            </button>
+          )}
+        </nav>
 
-          {/* Co-planner avatar stack — owners only, hidden on mobile */}
+        {/* Footer (pushed to bottom) */}
+        <div className="sidebar-footer">
+
+          {/* Co-planner row: avatars + gear */}
           {collaboratorRole === "owner" && coPlanners !== null && (
-            coPlanners.length > 0 ? (
+            <div className="sidebar-team">
+              {coPlanners.length > 0 ? (
+                <div className="sidebar-avatars" onClick={() => openAdmin("collaborators")} title={coPlanners.map(c => c.display_name || c.email).join(", ")}>
+                  {coPlanners.slice(0, 3).map((c, i) => (
+                    <div
+                      key={c.id || i}
+                      className="sidebar-avatar"
+                      style={{ background: avatarColor(c.display_name || c.email || ""), zIndex: 3 - i }}
+                    >
+                      {avatarInitials(c.display_name, c.email)}
+                    </div>
+                  ))}
+                  {coPlanners.length > 3 && (
+                    <div className="sidebar-avatar sidebar-avatar-more">+{coPlanners.length - 3}</div>
+                  )}
+                </div>
+              ) : null}
               <button
-                className="header-avatars"
-                onClick={() => openAdmin("collaborators")}
-                aria-label={`View ${coPlanners.length} co-planner${coPlanners.length !== 1 ? "s" : ""}`}
-                title={coPlanners.map(c => c.display_name || c.email).join(", ")}
+                className="sidebar-gear"
+                onClick={() => openAdmin("event")}
+                title="Event settings"
               >
-                {coPlanners.slice(0, 3).map((c, i) => (
-                  <div
-                    key={c.id || i}
-                    className="header-avatar"
-                    style={{ background: avatarColor(c.display_name || c.email || ""), zIndex: 3 - i }}
-                    aria-hidden="true"
-                  >
-                    {avatarInitials(c.display_name, c.email)}
-                  </div>
-                ))}
-                {coPlanners.length > 3 && (
-                  <div className="header-avatar-overflow" aria-hidden="true">+{coPlanners.length - 3}</div>
-                )}
+                <Icon name="settings" context="inline" />
               </button>
-            ) : (
-              <button
-                className="header-invite-chip"
-                onClick={() => openAdmin("collaborators")}
-                aria-label="Invite co-planners"
-              >
-                <Icon name="userPlus" context="badge" /> Invite
-              </button>
-            )
+            </div>
           )}
 
-          {/* Collaborator role badge -- visible to editors and viewers only */}
+          {/* Invite button (owners only) */}
+          {collaboratorRole === "owner" && (
+            <button className="sidebar-invite" onClick={() => openAdmin("collaborators")}>
+              <Icon name="userPlus" context="inline" /> Invite a co-planner
+            </button>
+          )}
+
+          {/* Collaborator role badge (editors, viewers, coordinators) */}
           {collaboratorRole && collaboratorRole !== "owner" && (
-            <div style={{
-              display:      "inline-flex",
-              alignItems:   "center",
-              gap:          4,
-              padding:      "3px 10px",
-              borderRadius: "var(--radius-pill, 999px)",
-              background:   "var(--accent-light)",
-              border:       "1px solid var(--accent-primary)",
-              fontSize:     11,
-              fontWeight:   600,
-              color:        "var(--accent-primary)",
-              flexShrink:   0,
-              whiteSpace:   "nowrap",
-            }}>
+            <div className="sidebar-role-badge">
               {collaboratorRole === "editor"      ? <><Icon name="pencil" context="badge" /> Editor</>
                : collaboratorRole === "coordinator" ? <><Icon name="ceremony" context="badge" /> Coordinator</>
                : <><Icon name="eye" context="badge" /> Viewer</>}
             </div>
           )}
 
-          {/* Header actions */}
-          <div className="header-actions">
-            {/* Search */}
-            <button className="icon-btn" title="Search (⌘K)" onClick={() => setShowSearch(true)}>
-              <Icon name="search" context="button" />
-            </button>
+          {/* Account row */}
+          <div className="sidebar-account" onClick={() => setShowAccountMenu(s => !s)} style={{ position: "relative" }}>
+            <div className="sidebar-account-avatar" style={{ background: userBg }}>{userInit}</div>
+            <div style={{ minWidth: 0, flex: 1 }}>
+              <div className="sidebar-account-name">{userName}</div>
+              <div className="sidebar-account-hint">Account, theme, sign out</div>
+            </div>
+            <span className="sidebar-account-chevron">
+              <Icon name={showAccountMenu ? "chevronDown" : "chevronRight"} context="inline" />
+            </span>
+          </div>
 
-            {/* Admin Mode */}
-            <button className="icon-btn" title="Admin Mode" onClick={() => openAdmin("event")}>
-              <Icon name="settings" context="button" />
-            </button>
-
-            {/* Overflow menu */}
-            <div className="header-overflow-wrap">
-              <button
-                className={`icon-btn ${showOverflow ? "active" : ""}`}
-                title="More options"
-                onClick={() => setShowOverflow(s => !s)}
-              ><Icon name="moreHorizontal" context="button" /></button>
-
-              {showOverflow && (
-                <div className="header-overflow-menu">
-                  {/* Theme switcher */}
-                  <div className="header-overflow-dark">
-                    <span className="header-overflow-dark-label">Theme</span>
-                    <div className="header-overflow-dark-btns">
-                      {[
-                        { mode:"light",  icon:"sun",     title:"Light"  },
-                        { mode:"dark",   icon:"moon",    title:"Dark"   },
-                        { mode:"system", icon:"monitor", title:"System" },
-                      ].map(({ mode, icon, title }) => (
-                        <button key={mode} title={title}
-                          onClick={() => setDarkMode(mode)}
-                          style={{
-                            width:30, height:30, border:"none", borderRadius:4,
-                            cursor:"pointer", fontSize:14, display:"flex",
-                            alignItems:"center", justifyContent:"center",
-                            transition:"all 0.15s ease",
-                            background: darkMode === mode ? "var(--accent-light)" : "var(--bg-subtle)",
-                            color:      darkMode === mode ? "var(--accent-primary)" : "var(--text-muted)",
-                          }}
-                        >{<Icon name={icon} context="inline" />}</button>
-                      ))}
-                    </div>
-                  </div>
-
-                  <button className="header-overflow-item"
-                    onClick={() => { setShowOverflow(false); setShowGuide(true); }}>
-                    <Icon name="bookOpen" context="menu" /> <span>Guide</span>
-                  </button>
-
-                  <button className="header-overflow-item"
-                    onClick={() => { setShowOverflow(false); setShowWhatsNew(true); }}>
-                    <Icon name="sparkles" context="menu" /> <span>What's New</span>
-                  </button>
-
-                  {!isCoordinator && (
-                    <button className="header-overflow-item"
-                      onClick={() => { setShowOverflow(false); setShowDayOf(true); }}>
-                      <Icon name="clipboardList" context="menu" /> <span>Day-of Mode</span>
+          {/* Account menu popover */}
+          {showAccountMenu && (
+            <div className="sidebar-account-menu">
+              {/* Theme switcher */}
+              <div className="sidebar-account-theme">
+                <span className="sidebar-account-theme-label">Theme</span>
+                <div className="sidebar-account-theme-btns">
+                  {[
+                    { mode: "light",  icon: "sun",     title: "Light"  },
+                    { mode: "dark",   icon: "moon",    title: "Dark"   },
+                    { mode: "system", icon: "monitor", title: "System" },
+                  ].map(({ mode, icon, title }) => (
+                    <button key={mode} title={title}
+                      onClick={() => setDarkMode(mode)}
+                      className={`sidebar-account-theme-btn${darkMode === mode ? " active" : ""}`}
+                    >
+                      <Icon name={icon} context="inline" />
                     </button>
-                  )}
-
-                  {!isCoordinator && (
-                    <button className="header-overflow-item"
-                      onClick={() => { setShowOverflow(false); setShowActivityLog(true); }}>
-                      <Icon name="barChart3" context="menu" /> <span>Activity Log</span>
-                    </button>
-                  )}
-
-                  <button className="header-overflow-item"
-                    onClick={() => { setShowOverflow(false); onBack(); }}>
-                    <Icon name="arrowLeft" context="menu" /> <span>Back to Events</span>
-                  </button>
-
-                  <button className="header-overflow-item"
-                    onClick={() => { setShowOverflow(false); supabase.auth.signOut(); }}>
-                    <Icon name="logOut" context="menu" /> <span>Sign out</span>
-                  </button>
+                  ))}
                 </div>
+              </div>
+
+              <button className="sidebar-account-item"
+                onClick={() => { setShowAccountMenu(false); setShowGuide(true); }}>
+                <Icon name="bookOpen" context="menu" /> Guide
+              </button>
+
+              <button className="sidebar-account-item"
+                onClick={() => { setShowAccountMenu(false); setShowWhatsNew(true); }}>
+                <Icon name="sparkles" context="menu" /> What's New
+              </button>
+
+              {!isCoordinator && (
+                <button className="sidebar-account-item"
+                  onClick={() => { setShowAccountMenu(false); setShowActivityLog(true); }}>
+                  <Icon name="barChart3" context="menu" /> Activity Log
+                </button>
               )}
+
+              <button className="sidebar-account-item"
+                onClick={() => { setShowAccountMenu(false); onBack(); }}>
+                <Icon name="arrowLeft" context="menu" /> Back to Events
+              </button>
+
+              <button className="sidebar-account-item"
+                onClick={() => { setShowAccountMenu(false); supabase.auth.signOut(); }}>
+                <Icon name="logOut" context="menu" /> Sign out
+              </button>
+            </div>
+          )}
+        </div>
+      </aside>
+
+      {/* ── Main content column ── */}
+      <div className="app-main">
+
+        {/* ── Top bar (desktop only, non-sticky) ── */}
+        <div className="app-topbar">
+          <div className="topbar-inner">
+            <div>
+              <h1 className="topbar-title">{TAB_LABELS[activeTab] || "SimchaKit"}</h1>
+            </div>
+            <div className="topbar-spacer" />
+            <div className="topbar-actions">
+              {/* Sync indicator */}
+              <span className="topbar-sync">
+                <span className="sync-dot connected" />
+                All changes synced
+              </span>
+
+              {/* Search */}
+              <button className="icon-btn" title="Search (⌘K)" onClick={() => setShowSearch(true)}>
+                <Icon name="search" context="button" />
+              </button>
+
+              {/* TODO: notifications */}
+
+              {/* Print Brief */}
+              <button className="topbar-print-btn" onClick={() => setShowDayOf(true)}>
+                <Icon name="printer" context="inline" /> Print brief
+              </button>
             </div>
           </div>
         </div>
-      </header>
 
-      {/* ── Desktop tab strip ── */}
-      <nav className="app-nav">
-        <div className="nav-inner" ref={navInnerRef}>
-          {tabs.map((tab, idx) => {
-            const isOverflow = overflowFromIdx !== null && idx >= overflowFromIdx;
-            const activeInOverflow = overflowFromIdx !== null &&
-              tabs.findIndex(t => t.id === activeTab) >= overflowFromIdx;
-            const lastVisibleIdx = overflowFromIdx !== null ? overflowFromIdx - 1 : null;
-            const isPromoted        = activeInOverflow && tab.id === activeTab;
-            const isHiddenByPromotion = activeInOverflow && lastVisibleIdx !== null && idx === lastVisibleIdx;
-            const hidden = (isOverflow && !isPromoted) || isHiddenByPromotion;
+        {/* ── Page content ── */}
+        <main className="page-content">
+          {/* Viewer read-only banner */}
+          {collaboratorRole === "viewer" && (
+            <div style={{
+              background:   "var(--accent-light)",
+              borderBottom: "1px solid var(--accent-primary)",
+              padding:      "8px 20px",
+              fontSize:     12,
+              color:        "var(--accent-primary)",
+              fontWeight:   600,
+              textAlign:    "center",
+            }}>
+              <Icon name="eye" context="inline" /> You have view-only access to this event.
+            </div>
+          )}
+          {/* Coordinator scoped-access banner */}
+          {collaboratorRole === "coordinator" && (
+            <div style={{
+              background:   "var(--accent-light)",
+              borderBottom: "1px solid var(--accent-primary)",
+              padding:      "8px 20px",
+              fontSize:     12,
+              color:        "var(--accent-primary)",
+              fontWeight:   600,
+              textAlign:    "center",
+            }}>
+              <Icon name="ceremony" context="inline" /> As Ritual Coordinator, you can view and edit Ceremony and Prep for this event.
+            </div>
+          )}
+          {activeTab === "overview"       && <OverviewTab       {...tabProps} />}
+          {activeTab === "guests"         && <GuestsTab         {...tabProps} />}
+          {activeTab === "budget"         && <BudgetTab         {...tabProps} />}
+          {activeTab === "vendors"        && <VendorsTab        {...tabProps} />}
+          {activeTab === "tasks"          && <TasksTab          {...tabProps} />}
+          {activeTab === "prep"           && <PrepTab           {...tabProps} />}
+          {activeTab === "ceremony"       && <CeremonyRolesTab  {...tabProps} />}
+          {activeTab === "seating"        && <SeatingTab        {...tabProps} />}
+          {activeTab === "gifts"          && <GiftsTab          {...tabProps} />}
+          {activeTab === "accommodations" && <AccommodationsTab {...tabProps} />}
+          {activeTab === "favors"         && <FavorsTab         {...tabProps} />}
+          {activeTab === "calendar"       && <CalendarTab       {...tabProps} />}
+        </main>
 
-            return (
-              <button key={tab.id}
-                className={`nav-tab ${activeTab === tab.id ? "active" : ""}`}
-                onClick={() => navigateTo(tab.id)}
-                style={hidden ? { visibility:"hidden", pointerEvents:"none", position:"absolute" } : {}}
-              >
-                <span className="tab-icon"><Icon name={tab.icon} context="nav" /></span>
-                {tab.label}
-                {tab.badge != null && tab.badge > 0 && (
-                  <span className="tab-badge">{tab.badge}</span>
-                )}
-              </button>
-            );
-          })}
-
-          {/* Desktop More dropdown trigger */}
-          {overflowFromIdx !== null && (() => {
-            const overflowTabs   = tabs.slice(overflowFromIdx).filter(t => t.id !== activeTab);
-            if (!overflowTabs.length) return null;
-            const overflowIsActive = overflowTabs.some(t => t.id === activeTab);
-            const overflowHasBadge = overflowTabs.some(t => t.badge != null && t.badge > 0);
-            return (
-              <div className="nav-more-wrap">
-                <button
-                  className={`nav-tab nav-more-btn ${overflowIsActive ? "active" : ""}`}
-                  onClick={(e) => {
-                    const rect = e.currentTarget.getBoundingClientRect();
-                    setNavMoreAnchor({ top: rect.bottom + 4, right: window.innerWidth - rect.right });
-                    setShowNavMore(s => !s);
-                  }}
-                >
-                  <Icon name="moreHorizontal" context="nav" /> More
-                  {overflowHasBadge && <span className="tab-badge">!</span>}
-                </button>
-              </div>
-            );
-          })()}
-        </div>
-      </nav>
-
-      {/* ── Desktop nav More dropdown (fixed position) ── */}
-      {showNavMore && overflowFromIdx !== null && navMoreAnchor && (
-        <div className="nav-more-menu" style={{
-          position: "fixed",
-          top:   navMoreAnchor.top,
-          right: navMoreAnchor.right,
-          zIndex: 300,
-        }}>
-          {tabs.slice(overflowFromIdx).filter(t => t.id !== activeTab).map(tab => (
-            <button key={tab.id}
-              className={`header-overflow-item ${activeTab === tab.id ? "active" : ""}`}
-              onClick={() => navigateTo(tab.id)}
-            >
-              <span><Icon name={tab.icon} context="menu" /></span>
-              {tab.label}
-              {tab.badge != null && tab.badge > 0 && (
-                <span className="tab-badge" style={{ marginLeft:"auto" }}>{tab.badge}</span>
-              )}
-            </button>
-          ))}
-        </div>
-      )}
-
-      {/* ── Page content ── */}
-      <main className="page-content">
-        {/* Viewer read-only banner */}
-        {collaboratorRole === "viewer" && (
-          <div style={{
-            background:   "var(--accent-light)",
-            borderBottom: "1px solid var(--accent-primary)",
-            padding:      "8px 20px",
-            fontSize:     12,
-            color:        "var(--accent-primary)",
-            fontWeight:   600,
-            textAlign:    "center",
-          }}>
-            <Icon name="eye" context="inline" /> You have view-only access to this event.
+        {/* ── Footer ── */}
+        <footer className="app-footer">
+          <span style={{ fontSize:11, color:"var(--text-muted)" }}>
+            Designed &amp; Built by{" "}
+            <a href="mailto:hello@simcha-kit.com" className="footer-link">Brook Creative LLC</a>
+          </span>
+          <span>&middot;</span>
+          <span style={{ fontSize:11, color:"var(--text-muted)" }}>Powered by Claude</span>
+          <span>&middot;</span>
+          <a href="https://about.simcha-kit.com" target="_blank" rel="noopener" className="footer-link" style={{ fontSize:11 }}>about.simcha-kit.com</a>
+          <span>&middot;</span>
+          <span className="footer-event-id" style={{ fontSize:11, color:"var(--text-muted)", fontFamily:"monospace" }}>
+            {eventId}
+          </span>
+          {session?.user?.email && (
+            <>
+              <span>&middot;</span>
+              <span style={{ fontSize:11, color:"var(--text-muted)" }}>
+                {displayNameWithEmail(userDisplayName, session.user.email)}
+              </span>
+            </>
+          )}
+          <span>&middot;</span>
+          <div className="footer-sync" title="Sync status">
+            <div className="sync-dot connected" />
+            <span>Supabase</span>
           </div>
-        )}
-        {/* Coordinator scoped-access banner */}
-        {collaboratorRole === "coordinator" && (
-          <div style={{
-            background:   "var(--accent-light)",
-            borderBottom: "1px solid var(--accent-primary)",
-            padding:      "8px 20px",
-            fontSize:     12,
-            color:        "var(--accent-primary)",
-            fontWeight:   600,
-            textAlign:    "center",
-          }}>
-            <Icon name="ceremony" context="inline" /> As Ritual Coordinator, you can view and edit Ceremony and Prep for this event.
-          </div>
-        )}
-        {activeTab === "overview"       && <OverviewTab       {...tabProps} />}
-        {activeTab === "guests"         && <GuestsTab         {...tabProps} />}
-        {activeTab === "budget"         && <BudgetTab         {...tabProps} />}
-        {activeTab === "vendors"        && <VendorsTab        {...tabProps} />}
-        {activeTab === "tasks"          && <TasksTab          {...tabProps} />}
-        {activeTab === "prep"           && <PrepTab           {...tabProps} />}
-        {activeTab === "ceremony"       && <CeremonyRolesTab  {...tabProps} />}
-        {activeTab === "seating"        && <SeatingTab        {...tabProps} />}
-        {activeTab === "gifts"          && <GiftsTab          {...tabProps} />}
-        {activeTab === "accommodations" && <AccommodationsTab {...tabProps} />}
-        {activeTab === "favors"         && <FavorsTab         {...tabProps} />}
-        {activeTab === "calendar"       && <CalendarTab       {...tabProps} />}
-      </main>
+        </footer>
+      </div>
 
-      {/* ── Footer ── */}
-      <footer className="app-footer">
-        <span style={{ fontSize:11, color:"var(--text-muted)" }}>
-          Designed &amp; Built by{" "}
-          <a href="mailto:hello@simcha-kit.com" className="footer-link">Brook Creative LLC</a>
-        </span>
-        <span>·</span>
-        <span style={{ fontSize:11, color:"var(--text-muted)" }}>Powered by Claude</span>
-        <span>·</span>
-        <a href="https://about.simcha-kit.com" target="_blank" rel="noopener" className="footer-link" style={{ fontSize:11 }}>about.simcha-kit.com</a>
-        <span>·</span>
-        <span className="footer-event-id" style={{ fontSize:11, color:"var(--text-muted)", fontFamily:"monospace" }}>
-          {eventId}
-        </span>
-        {session?.user?.email && (
-          <>
-            <span>·</span>
-            <span style={{ fontSize:11, color:"var(--text-muted)" }}>
-              {displayNameWithEmail(userDisplayName, session.user.email)}
-            </span>
-          </>
-        )}
-        <span>·</span>
-        <div className="footer-sync" title="Sync status">
-          <div className="sync-dot connected" />
-          <span>Supabase</span>
-        </div>
-      </footer>
-
-      {/* ── Mobile bottom bar ── */}
+      {/* ── Mobile bottom bar (<=900px only) ── */}
       <div className="bottom-nav">
         {bottomBarTabs.map(tab => (
           <button key={tab.id}
@@ -805,6 +771,82 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false, display
             <span className="more-drawer-item-chevron"><Icon name="chevronRight" context="inline" /></span>
           </button>
         ))}
+
+        {/* Day-of Mode in More drawer for mobile */}
+        {!isCoordinator && (
+          <button
+            className="more-drawer-item"
+            onClick={() => { setShowMoreDrawer(false); setShowDayOf(true); }}
+          >
+            <span className="more-drawer-item-icon"><Icon name="clipboardList" context="menu" /></span>
+            <span className="more-drawer-item-label">Day-of Mode</span>
+            <span className="more-drawer-item-chevron"><Icon name="chevronRight" context="inline" /></span>
+          </button>
+        )}
+
+        {/* Theme switcher in More drawer for mobile */}
+        <div style={{ padding: "10px 18px 4px", display: "flex", alignItems: "center", gap: 8, borderTop: "1px solid var(--border)" }}>
+          <span style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.04em", color: "var(--text-muted)" }}>Theme</span>
+          <div style={{ display: "flex", gap: 4, marginLeft: "auto" }}>
+            {[
+              { mode: "light",  icon: "sun",     title: "Light"  },
+              { mode: "dark",   icon: "moon",    title: "Dark"   },
+              { mode: "system", icon: "monitor", title: "System" },
+            ].map(({ mode, icon, title }) => (
+              <button key={mode} title={title}
+                onClick={() => setDarkMode(mode)}
+                style={{
+                  width: 30, height: 30, border: "none", borderRadius: 4,
+                  cursor: "pointer", display: "flex",
+                  alignItems: "center", justifyContent: "center",
+                  transition: "all 0.15s ease",
+                  background: darkMode === mode ? "var(--accent-light)" : "var(--bg-subtle)",
+                  color:      darkMode === mode ? "var(--accent-primary)" : "var(--text-muted)",
+                }}
+              ><Icon name={icon} context="inline" /></button>
+            ))}
+          </div>
+        </div>
+
+        {/* Mobile utility links */}
+        <button className="more-drawer-item"
+          onClick={() => { setShowMoreDrawer(false); setShowGuide(true); }}>
+          <span className="more-drawer-item-icon"><Icon name="bookOpen" context="menu" /></span>
+          <span className="more-drawer-item-label">Guide</span>
+          <span className="more-drawer-item-chevron"><Icon name="chevronRight" context="inline" /></span>
+        </button>
+        <button className="more-drawer-item"
+          onClick={() => { setShowMoreDrawer(false); setShowWhatsNew(true); }}>
+          <span className="more-drawer-item-icon"><Icon name="sparkles" context="menu" /></span>
+          <span className="more-drawer-item-label">What's New</span>
+          <span className="more-drawer-item-chevron"><Icon name="chevronRight" context="inline" /></span>
+        </button>
+        {!isCoordinator && (
+          <button className="more-drawer-item"
+            onClick={() => { setShowMoreDrawer(false); setShowActivityLog(true); }}>
+            <span className="more-drawer-item-icon"><Icon name="barChart3" context="menu" /></span>
+            <span className="more-drawer-item-label">Activity Log</span>
+            <span className="more-drawer-item-chevron"><Icon name="chevronRight" context="inline" /></span>
+          </button>
+        )}
+        <button className="more-drawer-item"
+          onClick={() => { setShowMoreDrawer(false); openAdmin("event"); }}>
+          <span className="more-drawer-item-icon"><Icon name="settings" context="menu" /></span>
+          <span className="more-drawer-item-label">Admin Mode</span>
+          <span className="more-drawer-item-chevron"><Icon name="chevronRight" context="inline" /></span>
+        </button>
+        <button className="more-drawer-item"
+          onClick={() => { setShowMoreDrawer(false); onBack(); }}>
+          <span className="more-drawer-item-icon"><Icon name="arrowLeft" context="menu" /></span>
+          <span className="more-drawer-item-label">Back to Events</span>
+          <span className="more-drawer-item-chevron"><Icon name="chevronRight" context="inline" /></span>
+        </button>
+        <button className="more-drawer-item"
+          onClick={() => { setShowMoreDrawer(false); supabase.auth.signOut(); }}>
+          <span className="more-drawer-item-icon"><Icon name="logOut" context="menu" /></span>
+          <span className="more-drawer-item-label">Sign out</span>
+          <span className="more-drawer-item-chevron"><Icon name="chevronRight" context="inline" /></span>
+        </button>
       </div>
 
       {/* ── Search Overlay ── */}
@@ -873,22 +915,7 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false, display
       )}
 
       {/* ── Toast ── */}
-      <div style={{
-        position:   "fixed",
-        bottom:     typeof window !== "undefined" && window.innerWidth < 640 ? 88 : 24,
-        left:       "50%",
-        background: "var(--text-primary)",
-        color:      "var(--bg-surface)",
-        padding:    "10px 20px",
-        borderRadius: "var(--radius-md)",
-        fontSize:   13,
-        fontWeight: 600,
-        fontFamily: "var(--font-body)",
-        boxShadow:  "var(--shadow-lg)",
-        zIndex:     9999,
-        whiteSpace: "nowrap",
-        pointerEvents: "none",
-        transition: "opacity 0.2s ease, transform 0.2s ease",
+      <div className="app-toast" style={{
         opacity:    toastVisible ? 1 : 0,
         transform:  toastVisible ? "translateX(-50%) translateY(0)" : "translateX(-50%) translateY(8px)",
       }}>
