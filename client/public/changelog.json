@@ -21,7 +21,10 @@
         "Security: usePresence now calls supabase.realtime.setAuth(accessToken) before channel creation to ensure the JWT is sent on the WebSocket upgrade for private channel RLS evaluation",
         "Fix: collaborator cap count in InviteModal now excludes coordinators (only editors + viewers count against the 5-slot limit)",
         "Fix: replaced missing 'copy' icon with 'link' icon in InviteModal email-fail fallback (copy is not in iconMap)",
-        "Fix: solo-event prompt card and standard invite button no longer render simultaneously; solo prompt replaces the standard button when owner has zero collaborators"
+        "Fix: solo-event prompt card and standard invite button no longer render simultaneously; solo prompt replaces the standard button when owner has zero collaborators",
+        "Fix: get_event_collaborators RPC now includes the event owner as a row (role='owner') via UNION ALL with events + user_profiles, so the avatar stack, collaboratorIds roster, and presence filter all derive from one source",
+        "Fix: removed private:true from Realtime channel config; Supabase Realtime RLS authorization for private channels requires further investigation and is deferred to a future hardening pass. Channel is public; privacy is enforced client-side via the collaborator roster filter",
+        "Fix: removed debug logging from usePresence.js (production build)"
       ]
     },
     {

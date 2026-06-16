@@ -1,13 +1,13 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// SimchaKit V4.6.0 — usePresence.js (DEBUG BUILD — temporary logging)
+// SimchaKit V4.6.0 — usePresence.js
 // Tracks which co-planners are currently viewing the event using Supabase
 // Realtime Presence on a public channel.
 //
 // Channel:  presence:event:{eventId}
 // Payload:  { user_id, display_name }   (no email — no PII on the wire)
-// Security: channel is public (no RLS). Privacy is enforced client-side:
-//           only users in the collaborator roster are shown in the UI.
-//           RLS-based channel authorization to be added in a future hardening pass.
+// Security: channel is public. Privacy is enforced client-side: only users
+//           in the collaborator roster (from get_event_collaborators) are
+//           shown in the UI. The roster includes the event owner.
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useState, useEffect, useRef } from "react";
@@ -26,29 +26,12 @@ export function usePresence(eventId, session, displayName, collaboratorIds) {
   const [onlineUsers, setOnlineUsers] = useState([]);
   const channelRef = useRef(null);
 
-  // ── DEBUG: log guard values on every render ─────────────────────────────
-  console.warn("[SimchaKit/usePresence] guard check:", {
-    hasEventId:        !!eventId,
-    hasUserId:         !!session?.user?.id,
-    collaboratorIds:   collaboratorIds,
-    collaboratorCount: collaboratorIds?.length ?? "null",
-  });
-
   useEffect(() => {
     // Guard: need an event, an authenticated user, and a loaded roster
-    if (!eventId || !session?.user?.id || !collaboratorIds) {
-      console.warn("[SimchaKit/usePresence] guard BLOCKED:", {
-        eventId:        !!eventId,
-        userId:         !!session?.user?.id,
-        collaboratorIds: collaboratorIds === null ? "null" : collaboratorIds?.length,
-      });
-      return;
-    }
+    if (!eventId || !session?.user?.id || !collaboratorIds) return;
 
     const userId = session.user.id;
     const topic  = `presence:event:${eventId}`;
-
-    console.warn("[SimchaKit/usePresence] CONNECTING:", { topic, userId: userId.substring(0, 8), rosterSize: collaboratorIds.length });
 
     // Build a Set of known collaborator IDs for fast lookup
     const rosterSet = new Set(collaboratorIds);
@@ -64,7 +47,6 @@ export function usePresence(eventId, session, displayName, collaboratorIds) {
     // On any presence state change, rebuild the online users list
     channel.on("presence", { event: "sync" }, () => {
       const state = channel.presenceState();
-      console.warn("[SimchaKit/usePresence] sync event, state keys:", Object.keys(state));
       const users = [];
 
       for (const [key, presences] of Object.entries(state)) {
@@ -88,20 +70,17 @@ export function usePresence(eventId, session, displayName, collaboratorIds) {
     });
 
     // Subscribe and track once connected
-    channel.subscribe(async (status, err) => {
-      console.warn("[SimchaKit/usePresence] subscribe status:", status, err || "");
+    channel.subscribe(async (status) => {
       if (status === "SUBSCRIBED") {
         await channel.track({
           user_id:      userId,
           display_name: displayName || null,
         });
-        console.warn("[SimchaKit/usePresence] tracked successfully");
       }
     });
 
     // Cleanup on unmount or dependency change
     return () => {
-      console.warn("[SimchaKit/usePresence] cleanup");
       channelRef.current = null;
       channel.untrack().catch(() => {});
       supabase.removeChannel(channel);
