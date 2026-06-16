@@ -759,6 +759,7 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false, display
           <span className="more-drawer-title">More</span>
           <button className="more-drawer-close" onClick={() => setShowMoreDrawer(false)}><Icon name="x" context="button" /></button>
         </div>
+        <div className="more-drawer-body">
         {moreDrawerTabs.map(tab => (
           <button key={tab.id}
             className={`more-drawer-item ${activeTab === tab.id ? "active" : ""}`}
@@ -848,6 +849,7 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false, display
           <span className="more-drawer-item-label">Sign out</span>
           <span className="more-drawer-item-chevron"><Icon name="chevronRight" context="inline" /></span>
         </button>
+        </div>
       </div>
 
       {/* ── Search Overlay ── */}
