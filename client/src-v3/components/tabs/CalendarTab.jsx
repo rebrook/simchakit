@@ -12,7 +12,7 @@ import { buildCalendarEvents, generateICS } from "@/utils/calendar.js";
 import { ArchivedNotice }     from "@/components/shared/ArchivedNotice.jsx";
 import { Icon }               from "@/utils/iconMap.jsx";
 
-export function CalendarTab({ eventId, event, adminConfig, showToast, isArchived, setActiveTab, searchHighlight, clearSearchHighlight, onNavigateToSource }) {
+export function CalendarTab({ eventId, event, adminConfig, showToast, isArchived, setActiveTab, searchHighlight, clearSearchHighlight, onNavigateToSource, setTopbarSubtitle }) {
   const { items: tasks    } = useEventData(eventId, "tasks");
   const { items: expenses } = useEventData(eventId, "expenses");
   const { items: vendors  } = useEventData(eventId, "vendors");
@@ -162,22 +162,21 @@ export function CalendarTab({ eventId, event, adminConfig, showToast, isArchived
       .catch(() => showToast("Could not copy. URL: " + url));
   };
 
+  // ── Topbar subtitle ──────────────────────────────────────────────────────
+  const subtitle = allEvents.length > 0
+    ? `${allEvents.length} event${allEvents.length !== 1 ? "s" : ""} across all sources${overdueCount > 0 ? ` · ${overdueCount} overdue` : ""}${upcomingCount > 0 ? ` · ${upcomingCount} due soon` : ""}`
+    : null;
+  useEffect(() => {
+    setTopbarSubtitle(subtitle);
+    return () => setTopbarSubtitle(null);
+  }, [subtitle, setTopbarSubtitle]);
+
   return (
     <div className="tab-content">
       {isArchived && <ArchivedNotice />}
 
-      <div className="section-header">
-        <div>
-          <div className="section-title">Planning Calendar</div>
-          <div className="section-subtitle">
-            {allEvents.length > 0
-              ? `${allEvents.length} event${allEvents.length !== 1 ? "s" : ""} across all sources`
-              : "All planning dates in one place"}
-            {overdueCount  > 0 && <span style={{ color: "var(--red)",  fontWeight: 600, marginLeft: 8 }}>· <Icon name="alertTriangle" context="badge" style={{ marginRight: 2 }} /> {overdueCount} overdue</span>}
-            {upcomingCount > 0 && <span style={{ color: "var(--gold)", fontWeight: 600, marginLeft: 8 }}>· {upcomingCount} due soon</span>}
-          </div>
-        </div>
-      </div>
+      {/* Mobile subtitle (≤900px only, where topbar is hidden) */}
+      {subtitle && <div className="mobile-tab-subtitle">{subtitle}</div>}
 
       {/* Stat cards */}
       {allEvents.length > 0 && (

@@ -31,7 +31,7 @@ import { CateringSummary }   from "@/components/shared/CateringSummary.jsx";
 import { Icon }              from "@/utils/iconMap.jsx";
 
 // ── GuestsTab ─────────────────────────────────────────────────────────────────
-export function GuestsTab({ eventId, event, adminConfig, showToast, isArchived, isViewer, searchHighlight, clearSearchHighlight }) {
+export function GuestsTab({ eventId, event, adminConfig, showToast, isArchived, isViewer, searchHighlight, clearSearchHighlight, setTopbarSubtitle }) {
   const { items: households, loading: hLoading, save: saveHouseholdRow, remove: removeHouseholdRow } = useEventData(eventId, "households");
   const { items: people,     loading: pLoading, save: savePersonRow,    remove: removePersonRow }     = useEventData(eventId, "people", { promoteColumns: peoplePromoteColumns });
   const { items: tables,     loading: tLoading }                                                       = useEventData(eventId, "tables");
@@ -226,24 +226,29 @@ export function GuestsTab({ eventId, event, adminConfig, showToast, isArchived, 
 
   if (hLoading || pLoading) return <div style={loadingStyle}>Loading guests…</div>;
 
+  // ── Topbar subtitle ──────────────────────────────────────────────────────
+  const subtitle = `${households.length} household${households.length!==1?"s":""} · ${totalPeople} individual${totalPeople!==1?"s":""}`;
+  useEffect(() => {
+    setTopbarSubtitle(subtitle);
+    return () => setTopbarSubtitle(null);
+  }, [subtitle, setTopbarSubtitle]);
+
   return (
     <div>
       {isArchived && <ArchivedNotice />}
 
-      <div className="section-header">
-        <div>
-          <div className="section-title">Guest List</div>
-          <div className="section-subtitle">{households.length} household{households.length!==1?"s":""} · {totalPeople} individual{totalPeople!==1?"s":""}</div>
-        </div>
-        <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
-          <button className="btn btn-secondary btn-sm" onClick={()=>setShowGuestExport(true)}>↓ Export Guests</button>
-          {!isViewer && (
-            <>
-              <button className="btn btn-secondary btn-sm" disabled={isArchived} onClick={()=>setShowImport(true)}>Import</button>
-              <button className="btn btn-primary btn-sm" disabled={isArchived} onClick={()=>setShowAdd(true)}>+ Add Household</button>
-            </>
-          )}
-        </div>
+      {/* Mobile subtitle (≤900px only, where topbar is hidden) */}
+      <div className="mobile-tab-subtitle">{subtitle}</div>
+
+      {/* Action row */}
+      <div style={{display:"flex",justifyContent:"flex-end",gap:8,flexWrap:"wrap",marginBottom:12}}>
+        <button className="btn btn-secondary btn-sm" onClick={()=>setShowGuestExport(true)}>↓ Export Guests</button>
+        {!isViewer && (
+          <>
+            <button className="btn btn-secondary btn-sm" disabled={isArchived} onClick={()=>setShowImport(true)}>Import</button>
+            <button className="btn btn-primary btn-sm" disabled={isArchived} onClick={()=>setShowAdd(true)}>+ Add Household</button>
+          </>
+        )}
       </div>
 
       {rsvpBanner && (

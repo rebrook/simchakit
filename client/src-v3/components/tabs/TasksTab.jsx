@@ -3,7 +3,7 @@
 // Ported from V2. Uses useEventData for Supabase persistence.
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { useState, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, Cell, LabelList,
@@ -336,7 +336,7 @@ function TaskInsights({ realTasks }) {
   );
 }
 
-export function TasksTab({ eventId, event, adminConfig, showToast, isArchived, isViewer, searchHighlight, clearSearchHighlight, setActiveTab, setSearchHighlight }) {
+export function TasksTab({ eventId, event, adminConfig, showToast, isArchived, isViewer, searchHighlight, clearSearchHighlight, setActiveTab, setSearchHighlight, setTopbarSubtitle }) {
   const { items: tasks,     loading,       save,        remove       } = useEventData(eventId, "tasks");
   const { items: expenses,  save: saveExpense                        } = useEventData(eventId, "expenses");
   const { items: prep,      save: savePrep                           } = useEventData(eventId, "prep");
@@ -589,31 +589,33 @@ export function TasksTab({ eventId, event, adminConfig, showToast, isArchived, i
 
   if (loading) return <div style={loadingStyle}>Loading tasks…</div>;
 
+  // ── Topbar subtitle ──────────────────────────────────────────────────────
+  const subtitle = `${total} task${total!==1?"s":""} · ${done} complete${overdue > 0 ? ` · ${overdue} overdue` : ""}`;
+  useEffect(() => {
+    setTopbarSubtitle(subtitle);
+    return () => setTopbarSubtitle(null);
+  }, [subtitle, setTopbarSubtitle]);
+
   return (
     <div>
       {isArchived && <ArchivedNotice />}
 
-      <div className="section-header">
-        <div>
-          <div className="section-title">Tasks</div>
-          <div className="section-subtitle">
-            {total} task{total!==1?"s":""} · {done} complete
-            {overdue > 0 && ` · ${overdue} overdue`}
-          </div>
-        </div>
-        <div style={{ display: "flex", gap: 8 }}>
-          {(() => {
-            const mainEvt = (adminConfig?.timeline || []).find(e => e.isMainEvent);
-            return mainEvt?.startDate && !isArchived ? (
-              <button className="btn btn-secondary btn-sm" onClick={() => setShowSmartTasks(true)}>
-                <Icon name="sparkles" context="inline" style={{ marginRight: 4 }} /> Smart Tasks
-              </button>
-            ) : null;
-          })()}
-          <button className="btn btn-primary btn-sm" disabled={isArchived || isViewer} onClick={() => setShowModal(true)}>
-            + Add Task
-          </button>
-        </div>
+      {/* Mobile subtitle (≤900px only, where topbar is hidden) */}
+      <div className="mobile-tab-subtitle">{subtitle}</div>
+
+      {/* Action row */}
+      <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, marginBottom: 12 }}>
+        {(() => {
+          const mainEvt = (adminConfig?.timeline || []).find(e => e.isMainEvent);
+          return mainEvt?.startDate && !isArchived ? (
+            <button className="btn btn-secondary btn-sm" onClick={() => setShowSmartTasks(true)}>
+              <Icon name="sparkles" context="inline" style={{ marginRight: 4 }} /> Smart Tasks
+            </button>
+          ) : null;
+        })()}
+        <button className="btn btn-primary btn-sm" disabled={isArchived || isViewer} onClick={() => setShowModal(true)}>
+          + Add Task
+        </button>
       </div>
 
       {/* Stat cards */}

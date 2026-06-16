@@ -5,7 +5,7 @@
 // Unified clergy edit modal replaces per-contact modals (V3.20.5).
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { supabase }           from "@/lib/supabase.js";
 import { useEventData }       from "@/hooks/useEventData.js";
 import { useSearchHighlight } from "@/hooks/useSearchHighlight.js";
@@ -50,7 +50,7 @@ const PREP_TEMPLATES = {
   "bnei-mitzvah": buildMitzvahPrepTemplate,
 };
 
-export function PrepTab({ eventId, event, adminConfig, showToast, isArchived, isViewer, collaboratorRole, onClergyUpdated, searchHighlight, clearSearchHighlight }) {
+export function PrepTab({ eventId, event, adminConfig, showToast, isArchived, isViewer, collaboratorRole, onClergyUpdated, searchHighlight, clearSearchHighlight, setTopbarSubtitle }) {
   const { items: prep, loading, save, remove } = useEventData(eventId, "prep");
 
   const [showModal,     setShowModal]     = useState(false);
@@ -162,16 +162,22 @@ export function PrepTab({ eventId, event, adminConfig, showToast, isArchived, is
   const hasTutor  = !!(tutor.name  || tutor.phone  || tutor.email);
   const hasAnyClergy = hasRabbi || hasCantor || hasTutor;
 
+  // ── Topbar subtitle ──────────────────────────────────────────────────────
+  const subtitle = total > 0 ? `${total} item${total!==1?"s":""} · ${Math.round((complete/total)*100)}% complete` : null;
+  useEffect(() => {
+    setTopbarSubtitle(subtitle);
+    return () => setTopbarSubtitle(null);
+  }, [subtitle, setTopbarSubtitle]);
+
   return (
     <div className="tab-content">
       {isArchived && <ArchivedNotice />}
 
-      {/* Section header */}
-      <div className="section-header">
-        <div>
-          <div className="section-title">Preparation Tracker</div>
-          <div className="section-sub">Track milestones, study progress, and key preparation items.</div>
-        </div>
+      {/* Mobile subtitle (≤900px only, where topbar is hidden) */}
+      {subtitle && <div className="mobile-tab-subtitle">{subtitle}</div>}
+
+      {/* Action row */}
+      <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, marginBottom: 12 }}>
         <button className="btn btn-primary" disabled={isArchived || isViewer} onClick={() => setShowModal(true)}>
           + Add Item
         </button>

@@ -1,5 +1,5 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// SimchaKit V4.6.0 — AppShell.jsx
+// SimchaKit V4.9.0 — AppShell.jsx
 // Sidebar navigation architecture.
 // Desktop (>900px): 248px left sidebar + top bar + main content grid.
 // Mobile (<=900px): existing bottom bar + More drawer (unchanged UX).
@@ -150,6 +150,7 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false, display
   const [adminConfig,     setAdminConfig]     = useState(null);
   const [loadStatus,      setLoadStatus]      = useState("loading");
   const [showMoreDrawer,  setShowMoreDrawer]  = useState(false);
+  const [topbarSubtitle,  setTopbarSubtitle]  = useState(null);
   const [toastMsg,        setToastMsg]        = useState("");
   const [toastVisible,    setToastVisible]    = useState(false);
   const [darkMode,        setDarkMode]        = useDarkMode();
@@ -445,6 +446,8 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false, display
     searchHighlight,
     clearSearchHighlight: () => setSearchHighlight(null),
     setSearchHighlight,
+    setTopbarSubtitle,
+    userName,
   };
 
   // ── User identity for account row ─────────────────────────────────────────
@@ -715,13 +718,8 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false, display
           <div className="topbar-inner">
             <div>
               <h1 className="topbar-title">{TAB_LABELS[activeTab] || "SimchaKit"}</h1>
-              {/* TODO: per-tab subtitles */}
-              {activeTab === "overview" && (
-                <div className="topbar-sub">
-                  {userName
-                    ? `Welcome back, ${userName.split(/\s+/)[0]}. Here's where things stand.`
-                    : "Here's where things stand."}
-                </div>
+              {topbarSubtitle && (
+                <div className="topbar-sub">{topbarSubtitle}</div>
               )}
             </div>
             <div className="topbar-spacer" />

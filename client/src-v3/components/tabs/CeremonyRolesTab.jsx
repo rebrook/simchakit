@@ -301,7 +301,7 @@ function SectionDragPreview({ name, count }) {
 }
 
 // ── CeremonyRolesTab ─────────────────────────────────────────────────────────
-export function CeremonyRolesTab({ eventId, event, adminConfig, showToast, isArchived, isViewer }) {
+export function CeremonyRolesTab({ eventId, event, adminConfig, showToast, isArchived, isViewer, setTopbarSubtitle }) {
   const [roles,         setRoles]         = useState([]);
   const [rowId,         setRowId]         = useState(null);
   const [loading,       setLoading]       = useState(true);
@@ -529,21 +529,26 @@ export function CeremonyRolesTab({ eventId, event, adminConfig, showToast, isArc
 
   if (loading) return <div style={loadingStyle}>Loading ceremony roles…</div>;
 
+  // ── Topbar subtitle ──────────────────────────────────────────────────────
+  const subtitle = roles.length > 0 ? `${roles.length} role${roles.length!==1?"s":""} · ${assignedCount} assigned` : null;
+  useEffect(() => {
+    setTopbarSubtitle(subtitle);
+    return () => setTopbarSubtitle(null);
+  }, [subtitle, setTopbarSubtitle]);
+
   return (
     <div>
       {isArchived && <ArchivedNotice />}
 
-      <div className="section-header">
-        <div>
-          <div className="section-title">Ceremony Roles</div>
-          <div className="section-subtitle">Assign family and friends to ceremony honors and service roles.</div>
-        </div>
-        <div style={{ display: "flex", gap: 8, flexWrap: "wrap", justifyContent: "flex-end" }}>
-          {roles.length === 0 && hasTemplate && (
-            <button className="btn btn-secondary" disabled={isReadOnly} onClick={loadTemplate}><Icon name="wand" context="inline" style={{ marginRight: 4 }} /> Load Template</button>
-          )}
-          <button className="btn btn-primary" disabled={isReadOnly} onClick={() => setShowModal(true)}>+ Add Role</button>
-        </div>
+      {/* Mobile subtitle (≤900px only, where topbar is hidden) */}
+      {subtitle && <div className="mobile-tab-subtitle">{subtitle}</div>}
+
+      {/* Action row */}
+      <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, flexWrap: "wrap", marginBottom: 12 }}>
+        {roles.length === 0 && hasTemplate && (
+          <button className="btn btn-secondary" disabled={isReadOnly} onClick={loadTemplate}><Icon name="wand" context="inline" style={{ marginRight: 4 }} /> Load Template</button>
+        )}
+        <button className="btn btn-primary" disabled={isReadOnly} onClick={() => setShowModal(true)}>+ Add Role</button>
       </div>
 
       {roles.length > 0 && (

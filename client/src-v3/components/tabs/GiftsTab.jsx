@@ -16,7 +16,7 @@ import { getAddressFields, formatAddress, migrateCityStateZip, COUNTRIES } from 
 import { ArchivedNotice }      from "@/components/shared/ArchivedNotice.jsx";
 import { Icon }                from "@/utils/iconMap.jsx";
 
-export function GiftsTab({ eventId, event, adminConfig, showToast, isArchived, isViewer, searchHighlight, clearSearchHighlight }) {
+export function GiftsTab({ eventId, event, adminConfig, showToast, isArchived, isViewer, searchHighlight, clearSearchHighlight, setTopbarSubtitle }) {
   const { items: gifts,      loading: gLoading, save, remove } = useEventData(eventId, "gifts");
   const { items: households, loading: hLoading }                = useEventData(eventId, "households");
 
@@ -123,22 +123,26 @@ export function GiftsTab({ eventId, event, adminConfig, showToast, isArchived, i
 
   if (gLoading || hLoading) return <div style={loadingStyle}>Loading gifts…</div>;
 
+  // ── Topbar subtitle ──────────────────────────────────────────────────────
+  const subtitle = gifts.length > 0 ? `${gifts.length} gift${gifts.length!==1?"s":""} · $${totalMonetary.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 })} monetary value` : null;
+  useEffect(() => {
+    setTopbarSubtitle(subtitle);
+    return () => setTopbarSubtitle(null);
+  }, [subtitle, setTopbarSubtitle]);
+
   return (
     <div className="tab-content">
       {isArchived && <ArchivedNotice />}
 
-      {/* Header */}
-      <div className="section-header">
-        <div>
-          <div className="section-title">Gift Tracker</div>
-          <div className="section-sub">Log gifts as they arrive and track thank-you letters.</div>
-        </div>
-        <div style={{ display: "flex", gap: 8 }}>
-          {gifts.length > 0 && (
-            <button className="btn btn-secondary" onClick={() => setShowExport(true)}>↓ Export</button>
-          )}
-          {!isViewer && <button className="btn btn-primary" disabled={isArchived} onClick={() => setShowModal(true)}>+ Add Gift</button>}
-        </div>
+      {/* Mobile subtitle (≤900px only, where topbar is hidden) */}
+      {subtitle && <div className="mobile-tab-subtitle">{subtitle}</div>}
+
+      {/* Action row */}
+      <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, marginBottom: 12 }}>
+        {gifts.length > 0 && (
+          <button className="btn btn-secondary" onClick={() => setShowExport(true)}>↓ Export</button>
+        )}
+        {!isViewer && <button className="btn btn-primary" disabled={isArchived} onClick={() => setShowModal(true)}>+ Add Gift</button>}
       </div>
 
       {/* Stat cards */}

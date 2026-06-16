@@ -4,7 +4,7 @@
 // Recharts used for Budget Insights charts (already installed as project dep).
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { useState, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, Cell, LabelList,
@@ -337,7 +337,7 @@ function BudgetInsights({ expenses, catRows, catPaid, catBudgeted, hasAnyBudgete
 }
 
 // ── BudgetTab ─────────────────────────────────────────────────────────────────
-export function BudgetTab({ eventId, event, adminConfig, showToast, isArchived, isViewer, searchHighlight, clearSearchHighlight }) {
+export function BudgetTab({ eventId, event, adminConfig, showToast, isArchived, isViewer, searchHighlight, clearSearchHighlight, setTopbarSubtitle }) {
   const { items: expenses, loading: eLoading, save, remove } = useEventData(eventId, "expenses");
   const { items: vendors,  loading: vLoading }                = useEventData(eventId, "vendors");
 
@@ -541,25 +541,30 @@ export function BudgetTab({ eventId, event, adminConfig, showToast, isArchived, 
 
   const vendorMap = Object.fromEntries(vendors.map(v => [v.id, v]));
 
+  // ── Topbar subtitle ──────────────────────────────────────────────────────
+  const subtitle = `${expenses.length} expense${expenses.length!==1?"s":""} · ${fmt$(totalPaid)} paid of ${fmt$(totalExpenses)}`;
+  useEffect(() => {
+    setTopbarSubtitle(subtitle);
+    return () => setTopbarSubtitle(null);
+  }, [subtitle, setTopbarSubtitle]);
+
   return (
     <div>
       {isArchived && <ArchivedNotice />}
 
-      <div className="section-header">
-        <div>
-          <div className="section-title">Budget</div>
-          <div className="section-subtitle">{expenses.length} expenses · {fmt$(totalPaid)} paid of {fmt$(totalExpenses)}</div>
-        </div>
-        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-          {expenses.length > 0 && (
-            <button className="btn btn-secondary btn-sm" onClick={handleExport}>↓ Export CSV</button>
-          )}
-          {!isArchived && !isViewer && (
-            <button className="btn btn-primary btn-sm" onClick={() => { setEditing(null); setShowAdd(true); }}>
-              + Add Expense
-            </button>
-          )}
-        </div>
+      {/* Mobile subtitle (≤900px only, where topbar is hidden) */}
+      <div className="mobile-tab-subtitle">{subtitle}</div>
+
+      {/* Action row */}
+      <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, flexWrap: "wrap", marginBottom: 12 }}>
+        {expenses.length > 0 && (
+          <button className="btn btn-secondary btn-sm" onClick={handleExport}>↓ Export CSV</button>
+        )}
+        {!isArchived && !isViewer && (
+          <button className="btn btn-primary btn-sm" onClick={() => { setEditing(null); setShowAdd(true); }}>
+            + Add Expense
+          </button>
+        )}
       </div>
 
       {/* Stat cards */}

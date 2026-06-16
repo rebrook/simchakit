@@ -649,6 +649,8 @@
         color: var(--text-muted);
         margin-top: 2px;
       }
+      /* Mobile-only subtitle line — hidden on desktop (topbar shows it), visible ≤900px */
+      .mobile-tab-subtitle { display: none; }
       .topbar-spacer { flex: 1; }
       .topbar-actions {
         display: flex;
@@ -784,6 +786,12 @@
         .mobile-presence-dot {
           animation: pulse-dot 2.5s ease-in-out infinite;
         }
+      }
+      .mobile-tab-subtitle {
+        display: block;
+        font-size: 12px;
+        color: var(--text-muted);
+        margin-bottom: 12px;
       }
     }
 

@@ -14,7 +14,7 @@ import { autoSeatByHousehold } from "@/utils/seating.js";
 import { ArchivedNotice }     from "@/components/shared/ArchivedNotice.jsx";
 import { Icon }               from "@/utils/iconMap.jsx";
 
-export function SeatingTab({ eventId, event, adminConfig, showToast, isArchived, isViewer, setActiveTab, searchHighlight, clearSearchHighlight }) {
+export function SeatingTab({ eventId, event, adminConfig, showToast, isArchived, isViewer, setActiveTab, searchHighlight, clearSearchHighlight, setTopbarSubtitle }) {
   const { items: tables,     loading: tLoading, save: saveTable, remove: removeTable } = useEventData(eventId, "tables");
   const { items: people,     loading: pLoading, save: savePerson }                     = useEventData(eventId, "people", { promoteColumns: peoplePromoteColumns });
   const { items: households, loading: hLoading, save: saveHousehold }                   = useEventData(eventId, "households");
@@ -297,34 +297,36 @@ export function SeatingTab({ eventId, event, adminConfig, showToast, isArchived,
 
   if (tLoading || pLoading || hLoading || configLoading) return <div style={loadingStyle}>Loading seating chart…</div>;
 
+  // ── Topbar subtitle (live: updates on selection / section change) ───────
+  const subtitle = selectedPerson
+    ? `${getPersonDisplayName(selectedPerson)} selected — click a table to assign`
+    : activeSection
+      ? `Seating for: ${activeSection.icon||"📅"} ${activeSection.title}`
+      : null;
+  useEffect(() => {
+    setTopbarSubtitle(subtitle);
+    return () => setTopbarSubtitle(null);
+  }, [subtitle, setTopbarSubtitle]);
+
   return (
     <div className="tab-content">
       {isArchived && <ArchivedNotice />}
 
-      {/* Header */}
-      <div className="section-header">
-        <div>
-          <div className="section-title">Seating Chart</div>
-          <div className="section-sub">
-            {selectedPerson
-              ? <span style={{ color: "var(--accent-primary)", fontWeight: 600 }}><Icon name="snowflake" context="inline" style={{ marginRight: 4 }} /> {getPersonDisplayName(selectedPerson)} selected — click a table to assign</span>
-              : activeSection
-                ? `Seating for: ${activeSection.icon||"📅"} ${activeSection.title}`
-                : "Configure seating setup below to get started."}
-          </div>
-        </div>
-        <div style={{ display: "flex", gap: 8 }}>
-          <button className="btn btn-ghost btn-sm" onClick={() => setSetupOpen(o => !o)} style={{ fontSize: 12 }}><Icon name="settings" context="badge" style={{ marginRight: 4 }} /> Setup</button>
-          {hasSeating && sectionId && (sortedTables.length > 0 || scopedPeople.length > 0) && (
-            <button className="btn btn-secondary" onClick={() => setShowExportModal(true)}>↓ Export Seating</button>
-          )}
-          {hasSeating && sectionId && unseated.length > 0 && sortedTables.length > 0 && !isArchived && !isViewer && (
-            <button className="btn btn-secondary" onClick={() => setShowAutoSeat(true)}><Icon name="sparkles" context="inline" style={{ marginRight: 4 }} /> Auto-Seat</button>
-          )}
-          {hasSeating && sectionId && (
-            <button className="btn btn-primary" disabled={isArchived || isViewer} onClick={() => setShowTableModal(true)}>+ Add Table</button>
-          )}
-        </div>
+      {/* Mobile subtitle (≤900px only, where topbar is hidden) */}
+      {subtitle && <div className="mobile-tab-subtitle">{subtitle}</div>}
+
+      {/* Action row */}
+      <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, marginBottom: 12 }}>
+        <button className="btn btn-ghost btn-sm" onClick={() => setSetupOpen(o => !o)} style={{ fontSize: 12 }}><Icon name="settings" context="badge" style={{ marginRight: 4 }} /> Setup</button>
+        {hasSeating && sectionId && (sortedTables.length > 0 || scopedPeople.length > 0) && (
+          <button className="btn btn-secondary" onClick={() => setShowExportModal(true)}>↓ Export Seating</button>
+        )}
+        {hasSeating && sectionId && unseated.length > 0 && sortedTables.length > 0 && !isArchived && !isViewer && (
+          <button className="btn btn-secondary" onClick={() => setShowAutoSeat(true)}><Icon name="sparkles" context="inline" style={{ marginRight: 4 }} /> Auto-Seat</button>
+        )}
+        {hasSeating && sectionId && (
+          <button className="btn btn-primary" disabled={isArchived || isViewer} onClick={() => setShowTableModal(true)}>+ Add Table</button>
+        )}
       </div>
 
       {/* Setup panel */}

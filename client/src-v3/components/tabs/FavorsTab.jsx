@@ -36,7 +36,7 @@ const DEFAULT_CONFIG = {
 export function FavorsTab({
   eventId, event, adminConfig, showToast,
   isArchived, isViewer, searchHighlight, clearSearchHighlight,
-  setActiveTab, onConfigSaved,
+  setActiveTab, onConfigSaved, setTopbarSubtitle,
 }) {
   const { items: favors,     loading: fLoading, save, remove } = useEventData(eventId, "favors");
   const { items: people,     loading: pLoading }                = useEventData(eventId, "people");
@@ -321,29 +321,29 @@ export function FavorsTab({
 
   const { givingFavors } = localConfig;
 
+  // ── Topbar subtitle ──────────────────────────────────────────────────────
+  const subtitle = givingFavors && favorTypes.length > 0 ? `${totalFavors} favor${totalFavors !== 1 ? "s" : ""} tracked` : null;
+  useEffect(() => {
+    setTopbarSubtitle(subtitle);
+    return () => setTopbarSubtitle(null);
+  }, [subtitle, setTopbarSubtitle]);
+
   return (
     <div className="tab-content">
       {isArchived && <ArchivedNotice />}
 
-      {/* ── Section header — always visible ── */}
-      <div className="section-header">
-        <div>
-          <div className="section-title">{activeType?.description || "Favors"}</div>
-          <div className="section-subtitle">
-            {givingFavors && favorTypes.length > 0
-              ? `${totalFavors} favor${totalFavors !== 1 ? "s" : ""} tracked`
-              : "Set up your favor tracker below"}
-          </div>
+      {/* Mobile subtitle (≤900px only, where topbar is hidden) */}
+      {subtitle && <div className="mobile-tab-subtitle">{subtitle}</div>}
+
+      {/* Action row */}
+      {givingFavors && activeType && (
+        <div style={{ display:"flex", justifyContent:"flex-end", gap:8, marginBottom: 12 }}>
+          {typeFavors.length > 0 && (
+            <button className="btn btn-secondary" onClick={() => setShowExport(true)}>↓ Export</button>
+          )}
+          {!isViewer && <button className="btn btn-primary" disabled={isArchived} onClick={() => setShowModal(true)}>+ Add Manually</button>}
         </div>
-        {givingFavors && activeType && (
-          <div style={{ display:"flex", gap:8 }}>
-            {typeFavors.length > 0 && (
-              <button className="btn btn-secondary" onClick={() => setShowExport(true)}>↓ Export</button>
-            )}
-            {!isViewer && <button className="btn btn-primary" disabled={isArchived} onClick={() => setShowModal(true)}>+ Add Manually</button>}
-          </div>
-        )}
-      </div>
+      )}
 
       {/* Favor Setup card */}
       <div className="card" style={{ marginBottom: 20 }}>

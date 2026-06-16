@@ -1,11 +1,27 @@
 {
-  "current": "V4.8.1",
+  "current": "V4.9.0",
   "whatsNew": [
+    "Tab stats now appear in the pinned top bar on desktop, giving every tab a clean, consistent header.",
     "Conic-gradient completion rings on the four primary Overview stat cards (RSVPs, Budget, Tasks, Vendors).",
-    "New seating capacity meter showing confirmed guests vs. available seats with color-coded fill.",
-    "Chart colors across all tabs now adapt to dark mode via new categorical palette tokens."
+    "New seating capacity meter showing confirmed guests vs. available seats with color-coded fill."
   ],
   "changelog": [
+    {
+      "version": "V4.9.0",
+      "date": "Jun 16, 2026",
+      "type": "minor",
+      "title": "Unified Tab Subtitles in Pinned Top Bar",
+      "changes": [
+        "AppShell: topbar subtitle is now tab-driven via setTopbarSubtitle state, replacing the hardcoded Overview-only welcome message.",
+        "All 12 tabs push a computed stats string to the topbar subtitle on mount and clear it on unmount. No tab renders its own title or section-header.",
+        "OverviewTab welcome message now flows through the same setTopbarSubtitle path as every other tab.",
+        "SeatingTab subtitle updates live as person selection and active section change.",
+        "Tabs with no meaningful stat (empty Prep, empty Ceremony, unconfigured Favors, empty Calendar) set no subtitle, leaving just the title.",
+        "Mobile (900px or less): each tab renders its subtitle as a slim stats line at the top of content, since the pinned topbar is hidden.",
+        "Action buttons (Add, Export, Smart Tasks, etc.) survive in a right-aligned action row matching Overview's existing pattern.",
+        "Tabs that have no actions do not render an empty action row."
+      ]
+    },
     {
       "version": "V4.8.1",
       "date": "Jun 16, 2026",

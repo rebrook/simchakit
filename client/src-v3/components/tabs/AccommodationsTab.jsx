@@ -4,14 +4,14 @@
 // Updates accommodation fields by saving the whole household record.
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useEventData }       from "@/hooks/useEventData.js";
 import { useSearchHighlight } from "@/hooks/useSearchHighlight.js";
 import { formatAddress, migrateCityStateZip, formatPhone } from "@/utils/guests.js";
 import { ArchivedNotice }     from "@/components/shared/ArchivedNotice.jsx";
 import { Icon }               from "@/utils/iconMap.jsx";
 
-export function AccommodationsTab({ eventId, event, adminConfig, showToast, isArchived, isViewer, setActiveTab, searchHighlight, clearSearchHighlight }) {
+export function AccommodationsTab({ eventId, event, adminConfig, showToast, isArchived, isViewer, setActiveTab, searchHighlight, clearSearchHighlight, setTopbarSubtitle }) {
   const { items: households, loading: hLoading, save: saveHousehold } = useEventData(eventId, "households");
   const { items: people,     loading: pLoading }                       = useEventData(eventId, "people");
 
@@ -100,19 +100,19 @@ export function AccommodationsTab({ eventId, event, adminConfig, showToast, isAr
 
   if (hLoading || pLoading) return <div style={loadingStyle}>Loading accommodations…</div>;
 
+  // ── Topbar subtitle ──────────────────────────────────────────────────────
+  const subtitle = `${totalOOT} out-of-town household${totalOOT !== 1 ? "s" : ""}${totalBooked > 0 ? ` · ${totalBooked} booked` : ""}`;
+  useEffect(() => {
+    setTopbarSubtitle(subtitle);
+    return () => setTopbarSubtitle(null);
+  }, [subtitle, setTopbarSubtitle]);
+
   return (
     <div>
       {isArchived && <ArchivedNotice />}
 
-      <div className="section-header">
-        <div>
-          <div className="section-title">Stay &amp; Travel</div>
-          <div className="section-subtitle">
-            {totalOOT} out-of-town household{totalOOT !== 1 ? "s" : ""}
-            {totalBooked > 0 ? ` · ${totalBooked} booked` : ""}
-          </div>
-        </div>
-      </div>
+      {/* Mobile subtitle (≤900px only, where topbar is hidden) */}
+      <div className="mobile-tab-subtitle">{subtitle}</div>
 
       {/* Hotel block info */}
       {hotelBlocks.length > 0 && (

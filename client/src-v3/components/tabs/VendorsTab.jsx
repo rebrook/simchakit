@@ -3,7 +3,7 @@
 // Ported from V2. Uses useEventData for Supabase persistence.
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useEventData }       from "@/hooks/useEventData.js";
 import { useSearchHighlight } from "@/hooks/useSearchHighlight.js";
 import { formatAddress, formatPhone } from "@/utils/guests.js";
@@ -15,7 +15,7 @@ import { VendorQuickView }   from "@/components/shared/VendorQuickView.jsx";
 import { VendorModal }       from "@/components/shared/VendorModal.jsx";
 import { Icon }              from "@/utils/iconMap.jsx";
 
-export function VendorsTab({ eventId, event, adminConfig, showToast, isArchived, isViewer, searchHighlight, clearSearchHighlight }) {
+export function VendorsTab({ eventId, event, adminConfig, showToast, isArchived, isViewer, searchHighlight, clearSearchHighlight, setTopbarSubtitle }) {
   const { items: vendors, loading, save, remove } = useEventData(eventId, "vendors");
   const { items: expenses }                        = useEventData(eventId, "expenses");
 
@@ -83,26 +83,29 @@ export function VendorsTab({ eventId, event, adminConfig, showToast, isArchived,
 
   if (loading) return <div style={loadingStyle}>Loading vendors…</div>;
 
+  // ── Topbar subtitle ──────────────────────────────────────────────────────
+  const subtitle = `${vendors.length} vendor${vendors.length!==1?"s":""} tracked${booked > 0 ? ` · ${booked} confirmed` : ""}`;
+  useEffect(() => {
+    setTopbarSubtitle(subtitle);
+    return () => setTopbarSubtitle(null);
+  }, [subtitle, setTopbarSubtitle]);
+
   return (
     <div>
       {isArchived && <ArchivedNotice />}
 
-      {/* Section header */}
-      <div className="section-header">
-        <div>
-          <div className="section-title">Vendors</div>
-          <div className="section-subtitle">
-            {vendors.length} vendor{vendors.length!==1?"s":""} tracked
-            {booked > 0 && ` · ${booked} confirmed`}
-          </div>
-        </div>
-        {!isViewer && (
+      {/* Mobile subtitle (≤900px only, where topbar is hidden) */}
+      <div className="mobile-tab-subtitle">{subtitle}</div>
+
+      {/* Action row */}
+      {!isViewer && (
+        <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, marginBottom: 12 }}>
           <button className="btn btn-primary btn-sm" disabled={isArchived}
             onClick={() => { setEditing(null); setShowAdd(true); }}>
             + Add Vendor
           </button>
-        )}
-      </div>
+        </div>
+      )}
 
       {/* Stat cards */}
       <div className="budget-stat-grid">

@@ -16,7 +16,7 @@ import { StatCard }          from "@/components/shared/StatCard.jsx";
 import { FocusPanel }        from "@/components/shared/FocusPanel.jsx";
 import { computeFocusItems } from "@/utils/focus.js";
 
-export function OverviewTab({ eventId, event, adminConfig, showToast, setActiveTab, onOpenAdmin, onOpenAdminTo, onOpenGuide, onPrintBrief, isViewer }) {
+export function OverviewTab({ eventId, event, adminConfig, showToast, setActiveTab, onOpenAdmin, onOpenAdminTo, onOpenGuide, onPrintBrief, isViewer, setTopbarSubtitle, userName }) {
   const config    = adminConfig || {};
   const mainEvent = (config.timeline || []).find(e => e.isMainEvent) || null;
   const eventDate = mainEvent?.startDate || null;
@@ -131,8 +131,20 @@ export function OverviewTab({ eventId, event, adminConfig, showToast, setActiveT
     try { return localStorage.getItem(STORAGE_KEY) !== "1"; } catch { return true; }
   });
 
+  // ── Topbar subtitle ──────────────────────────────────────────────────────
+  const subtitle = userName
+    ? `Welcome back, ${userName.split(/\s+/)[0]}. Here's where things stand.`
+    : "Here's where things stand.";
+  useEffect(() => {
+    setTopbarSubtitle(subtitle);
+    return () => setTopbarSubtitle(null);
+  }, [subtitle, setTopbarSubtitle]);
+
   return (
     <div>
+      {/* Mobile subtitle (≤900px only, where topbar is hidden) */}
+      <div className="mobile-tab-subtitle">{subtitle}</div>
+
       {/* Action row */}
       <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, marginBottom: 12 }}>
         {!showChecklist && (
