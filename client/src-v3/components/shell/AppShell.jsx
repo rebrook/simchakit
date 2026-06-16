@@ -171,6 +171,25 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false, display
       .then(({ data }) => setCoPlanners(data || []));
   }, [eventId, collaboratorRole]);
 
+  // ── Tab badge counts (lightweight Supabase counts) ────────────────────────
+  // TODO: refresh counts on mutation (currently refreshes on tab change)
+  const [badgeCounts, setBadgeCounts] = useState({});
+  useEffect(() => {
+    if (!eventId || loadStatus !== "ready") return;
+    async function fetchCounts() {
+      const [ppl, tsk] = await Promise.all([
+        supabase.from("people").select("*", { count: "exact", head: true }).eq("event_id", eventId),
+        supabase.from("tasks").select("*", { count: "exact", head: true }).eq("event_id", eventId)
+          .or("data->>completed.is.null,data->>completed.neq.true"),
+      ]);
+      setBadgeCounts({
+        guests: ppl.count ?? null,
+        tasks:  tsk.count ?? null,
+      });
+    }
+    fetchCounts();
+  }, [eventId, loadStatus, activeTab]);
+
   // ── Admin state ───────────────────────────────────────────────────────────
   const [showAdminLogin,  setShowAdminLogin]  = useState(false);
   const [showAdminPanel,  setShowAdminPanel]  = useState(false);
@@ -284,17 +303,29 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false, display
 
   const visibleTabIdSet = new Set(tabs.map(t => t.id));
 
+  // Merge live badge counts onto tab objects
+  const BADGE_MAP = { guests: "guests", tasks: "tasks" };
+  const tabsWithBadges = tabs.map(t => {
+    const countKey = BADGE_MAP[t.id];
+    const count = countKey ? badgeCounts[countKey] : undefined;
+    return count != null && count > 0 ? { ...t, badge: count } : t;
+  });
+
   // Sidebar groups filtered to visible tabs
   const sidebarGroups = isCoordinator
-    ? [{ label: "Ceremony & Prep", tabs }]
+    ? [{ label: "Ceremony & Prep", tabs: tabsWithBadges }]
     : SIDEBAR_GROUPS.map(g => ({
         ...g,
-        tabs: g.tabs.filter(t => visibleTabIdSet.has(t.id)),
+        tabs: g.tabs.filter(t => visibleTabIdSet.has(t.id)).map(t => {
+          const countKey = BADGE_MAP[t.id];
+          const count = countKey ? badgeCounts[countKey] : undefined;
+          return count != null && count > 0 ? { ...t, badge: count } : t;
+        }),
       })).filter(g => g.tabs.length > 0);
 
   // Mobile bottom bar / More drawer splits
-  const bottomBarTabs  = tabs.filter(t => BOTTOM_BAR_IDS.includes(t.id));
-  const moreDrawerTabs = tabs.filter(t => !BOTTOM_BAR_IDS.includes(t.id));
+  const bottomBarTabs  = tabsWithBadges.filter(t => BOTTOM_BAR_IDS.includes(t.id));
+  const moreDrawerTabs = tabsWithBadges.filter(t => !BOTTOM_BAR_IDS.includes(t.id));
   const moreIsActive   = moreDrawerTabs.some(t => t.id === activeTab);
 
   // ── Navigate to tab ───────────────────────────────────────────────────────
@@ -513,20 +544,21 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false, display
           {collaboratorRole === "owner" && coPlanners !== null && (
             <div className="sidebar-team">
               {coPlanners.length > 0 ? (
-                <div className="sidebar-avatars" onClick={() => openAdmin("collaborators")} title={coPlanners.map(c => c.display_name || c.email).join(", ")}>
+                <button type="button" className="sidebar-avatars" onClick={() => openAdmin("collaborators")} aria-label={`View ${coPlanners.length} co-planner${coPlanners.length !== 1 ? "s" : ""}`}>
                   {coPlanners.slice(0, 3).map((c, i) => (
                     <div
                       key={c.id || i}
                       className="sidebar-avatar"
                       style={{ background: avatarColor(c.display_name || c.email || ""), zIndex: 3 - i }}
+                      aria-hidden="true"
                     >
                       {avatarInitials(c.display_name, c.email)}
                     </div>
                   ))}
                   {coPlanners.length > 3 && (
-                    <div className="sidebar-avatar sidebar-avatar-more">+{coPlanners.length - 3}</div>
+                    <div className="sidebar-avatar sidebar-avatar-more" aria-hidden="true">+{coPlanners.length - 3}</div>
                   )}
-                </div>
+                </button>
               ) : null}
               <button
                 className="sidebar-gear"
@@ -555,8 +587,8 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false, display
           )}
 
           {/* Account row */}
-          <div className="sidebar-account" onClick={() => setShowAccountMenu(s => !s)}>
-            <div className="sidebar-account-avatar" style={{ background: userBg }}>{userInit}</div>
+          <button type="button" className="sidebar-account" onClick={() => setShowAccountMenu(s => !s)} aria-label="Account menu">
+            <div className="sidebar-account-avatar" style={{ background: userBg }} aria-hidden="true">{userInit}</div>
             <div style={{ minWidth: 0, flex: 1 }}>
               <div className="sidebar-account-name">{userName}</div>
               <div className="sidebar-account-hint">Account, theme, sign out</div>
@@ -564,7 +596,7 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false, display
             <span className="sidebar-account-chevron">
               <Icon name={showAccountMenu ? "chevronDown" : "chevronRight"} context="inline" />
             </span>
-          </div>
+          </button>
 
           {/* Account menu popover */}
           {showAccountMenu && (
@@ -651,10 +683,7 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false, display
 
               {/* TODO: notifications */}
 
-              {/* Print Brief */}
-              <button className="topbar-print-btn" onClick={() => setShowDayOf(true)}>
-                <Icon name="printer" context="inline" /> Print brief
-              </button>
+              {/* TODO: standalone Print brief */}
             </div>
           </div>
         </div>

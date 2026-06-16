@@ -335,8 +335,15 @@
       padding: 2px;
       border-radius: var(--radius-sm);
       transition: background 0.12s ease;
+      background: none;
+      border: none;
+      font-family: var(--font-body);
     }
     .sidebar-avatars:hover { background: var(--bg-subtle); }
+    .sidebar-avatars:focus-visible {
+      outline: 2px solid var(--accent-primary);
+      outline-offset: 2px;
+    }
     .sidebar-avatar {
       width: 30px;
       height: 30px;
@@ -422,8 +429,17 @@
       border-radius: var(--radius-sm);
       cursor: pointer;
       transition: background 0.12s ease;
+      background: none;
+      border: none;
+      width: 100%;
+      text-align: left;
+      font-family: var(--font-body);
     }
     .sidebar-account:hover { background: var(--bg-subtle); }
+    .sidebar-account:focus-visible {
+      outline: 2px solid var(--accent-primary);
+      outline-offset: 2px;
+    }
     .sidebar-account-avatar {
       width: 30px;
       height: 30px;
