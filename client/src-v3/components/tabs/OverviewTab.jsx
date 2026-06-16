@@ -4,7 +4,7 @@
 // Notes are saved directly to events.quick_notes.
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { supabase }           from "@/lib/supabase.js";
 import { useEventData }       from "@/hooks/useEventData.js";
 import { EVENT_TYPE_ICONS }   from "@/constants/events.js";
@@ -53,13 +53,16 @@ export function OverviewTab({ eventId, event, adminConfig, showToast, setActiveT
   }, [eventId]);
 
   // Load aggregated data for stat cards and focus panel
-  const { items: households }  = useEventData(eventId, "households");
-  const { items: people }      = useEventData(eventId, "people");
-  const { items: expenses }    = useEventData(eventId, "expenses");
-  const { items: tasks, loading: tasksLoading } = useEventData(eventId, "tasks");
-  const { items: vendors }     = useEventData(eventId, "vendors");
-  const { items: tables }      = useEventData(eventId, "tables");
-  const { items: seatingRows } = useEventData(eventId, "seating");
+  const { items: households, loading: householdsLoading }  = useEventData(eventId, "households");
+  const { items: people, loading: peopleLoading }          = useEventData(eventId, "people");
+  const { items: expenses, loading: expensesLoading }      = useEventData(eventId, "expenses");
+  const { items: tasks, loading: tasksLoading }             = useEventData(eventId, "tasks");
+  const { items: vendors, loading: vendorsLoading }         = useEventData(eventId, "vendors");
+  const { items: tables, loading: tablesLoading }           = useEventData(eventId, "tables");
+  const { items: seatingRows, loading: seatingLoading }     = useEventData(eventId, "seating");
+
+  const dataLoading = householdsLoading || peopleLoading || expensesLoading
+    || tasksLoading || vendorsLoading || tablesLoading || seatingLoading;
 
   // Ceremony roles — single document, needed for Print Brief
   const [ceremonyRoles, setCeremonyRoles] = useState([]);
@@ -98,24 +101,29 @@ export function OverviewTab({ eventId, event, adminConfig, showToast, setActiveT
   };
 
 
-  // Stats
-  const totalBudget  = expenses.reduce((s, e) => s + (parseFloat(e.amount) || 0), 0);
-  const totalPaid    = expenses.filter(e => e.paid).reduce((s, e) => s + (parseFloat(e.amount) || 0), 0);
-  const tasksDone    = tasks.filter(t => t.done && !t.dismissed).length;
-  const tasksTotal   = tasks.filter(t => !t.dismissed).length;
-  const vendorsBooked = vendors.filter(v => ["Booked","Deposit Paid","Paid in Full"].includes(v.status)).length;
-  const confirmedCount = people.filter(p => (p.attendingSections || []).length > 0).length;
-  const outOfTownCount = households.filter(h => h.outOfTown).length;
+  // Stats — memoized so the 1s countdown tick doesn't refilter
+  const {
+    totalBudget, totalPaid, tasksDone, tasksTotal,
+    vendorsBooked, confirmedCount, outOfTownCount,
+  } = useMemo(() => ({
+    totalBudget:    expenses.reduce((s, e) => s + (parseFloat(e.amount) || 0), 0),
+    totalPaid:      expenses.filter(e => e.paid).reduce((s, e) => s + (parseFloat(e.amount) || 0), 0),
+    tasksDone:      tasks.filter(t => t.done && !t.dismissed).length,
+    tasksTotal:     tasks.filter(t => !t.dismissed).length,
+    vendorsBooked:  vendors.filter(v => ["Booked","Deposit Paid","Paid in Full"].includes(v.status)).length,
+    confirmedCount: people.filter(p => (p.attendingSections || []).length > 0).length,
+    outOfTownCount: households.filter(h => h.outOfTown).length,
+  }), [expenses, tasks, vendors, people, households]);
 
   // Completion tone: green when done, baseTone otherwise.
   // Uses >= and rounds to cents for currency (floats).
   const completionTone = (done, total, baseTone) =>
     total > 0 && Math.round(done * 100) >= Math.round(total * 100) ? "green" : baseTone;
 
-  // Focus panel items — "What needs you next"
-  const focusItems = computeFocusItems(
-    { tasks, expenses, people, households, vendors, tables, seatingRows },
-    config,
+  // Focus panel items — memoized
+  const focusItems = useMemo(
+    () => computeFocusItems({ tasks, expenses, people, households, vendors, tables, seatingRows }, config),
+    [tasks, expenses, people, households, vendors, tables, seatingRows, config],
   );
 
   const STORAGE_KEY = `simchakit-getstarted-dismissed-${eventId || "default"}`;
@@ -125,9 +133,9 @@ export function OverviewTab({ eventId, event, adminConfig, showToast, setActiveT
 
   return (
     <div>
-      {/* Setup checklist restore button (shown only when checklist is dismissed) */}
-      {!showChecklist && (
-        <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 12 }}>
+      {/* Action row */}
+      <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, marginBottom: 12 }}>
+        {!showChecklist && (
           <button className="btn btn-ghost btn-sm" onClick={() => {
             try { localStorage.removeItem(`simchakit-getstarted-dismissed-${eventId || "default"}`); } catch {}
             setShowChecklist(true);
@@ -135,8 +143,12 @@ export function OverviewTab({ eventId, event, adminConfig, showToast, setActiveT
             style={{ fontSize: 12 }}>
             <Icon name="hand" context="inline" style={{ marginRight: 4 }} /> Setup checklist
           </button>
-        </div>
-      )}
+        )}
+        <button className="btn btn-secondary btn-sm" onClick={handlePrintBrief}
+          style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0, fontSize: 12 }}>
+          <Icon name="printer" context="inline" /> Print Brief
+        </button>
+      </div>
 
       {/* Get Started card */}
       {showChecklist && (
@@ -192,7 +204,7 @@ export function OverviewTab({ eventId, event, adminConfig, showToast, setActiveT
         {/* Focus panel — "What needs you next" */}
         <FocusPanel
           items={focusItems}
-          loading={tasksLoading}
+          loading={dataLoading}
           onNavigate={setActiveTab}
         />
       </div>

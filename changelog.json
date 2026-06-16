@@ -1,7 +1,20 @@
 {
-  "current": "V4.4.4",
-  "whatsNew": "V4.4.4 makes overdue items visually distinct in the focus panel (red tint, left border, alert triangle icon), removes the duplicate Overview heading and Print Brief button, switches stat cards to green at 100% completion (Budget, Tasks, Vendors), and sizes the focus panel to its content.",
+  "current": "V4.4.5",
+  "whatsNew": "V4.4.5 reconnects Print Brief (button restored in Overview action row), gates the focus panel on all 7 data collections loading, fixes RSVP wording to use household rsvpStatus (people count, excludes declined), memoizes stats and focus items against the countdown tick, and fixes seating table double-count for multi-section events.",
   "changelog": [
+    {
+      "version": "V4.4.5",
+      "date": "2026-06-16",
+      "type": "patch",
+      "title": "Print Brief, Loading Gate, RSVP Fix, Memoize, Seating Fix",
+      "changes": [
+        "OverviewTab.jsx: Print Brief button restored in a dedicated action row (alongside Setup checklist), calling handlePrintBrief directly. No event bus or prop threading needed since the modal and data live in OverviewTab.",
+        "OverviewTab.jsx: loading flags captured from all 7 useEventData hooks, combined into dataLoading boolean, passed to FocusPanel. Prevents flash of 'all caught up' or partial results before data loads.",
+        "OverviewTab.jsx: stats (totalBudget, totalPaid, tasksDone, tasksTotal, vendorsBooked, confirmedCount, outOfTownCount) wrapped in useMemo keyed on collection arrays. focusItems similarly memoized. The 1s countdown tick no longer refilters 7 collections every second.",
+        "focus.js: RSVP row now uses household rsvpStatus field via a Map join. Counts people in households that have not responded (status is Invited, Pending, or Maybe). Excludes declined households. Matches the people-count unit of the RSVP stat card. Title changed to 'N guests awaiting RSVP'.",
+        "focus.js: seating gap table filter now includes unassigned tables (no sectionId) only when a single section is enabled. Multi-section events require explicit sectionId on tables to avoid double-counting seats."
+      ]
+    },
     {
       "version": "V4.4.4",
       "date": "2026-06-16",

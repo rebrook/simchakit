@@ -124,17 +124,24 @@ export function computeFocusItems(data, adminConfig) {
   }
 
   // ── RSVP gap (only surface when event is within 60 days) ────────────────
-  if (daysToEvent !== null && daysToEvent <= 60 && daysToEvent > 0) {
-    const confirmedCount = people.filter(p => (p.attendingSections || []).length > 0).length;
-    const pendingCount = people.length - confirmedCount;
-    if (pendingCount > 0 && people.length > 0) {
+  // Uses household rsvpStatus to identify non-responders. Counts people (not
+  // households) to match the RSVP stat card unit. Excludes declined.
+  if (daysToEvent !== null && daysToEvent <= 60 && daysToEvent > 0 && people.length > 0) {
+    const RESPONDED = new Set(["RSVP Yes", "RSVP No"]);
+    const hhStatusMap = new Map(households.map(h => [h.id, h.rsvpStatus || "Invited"]));
+    const awaitingPeople = people.filter(p => {
+      const status = hhStatusMap.get(p.householdId) || "Invited";
+      return !RESPONDED.has(status);
+    });
+    const respondedCount = people.length - awaitingPeople.length;
+    if (awaitingPeople.length > 0) {
       items.push({
         id: "rsvps",
         domain: "rsvps",
         tone: "accent",
         icon: "guests",
-        title: `${pendingCount} guest${pendingCount !== 1 ? "s" : ""} haven't responded`,
-        detail: `${confirmedCount} of ${people.length} confirmed with ${daysToEvent} day${daysToEvent !== 1 ? "s" : ""} to go`,
+        title: `${awaitingPeople.length} guest${awaitingPeople.length !== 1 ? "s" : ""} awaiting RSVP`,
+        detail: `${respondedCount} of ${people.length} responded with ${daysToEvent} day${daysToEvent !== 1 ? "s" : ""} to go`,
         tab: "guests",
         priority: 5,
       });
@@ -152,7 +159,9 @@ export function computeFocusItems(data, adminConfig) {
     let totalGap = 0;
 
     sections.forEach(sid => {
-      const sectionTables = tables.filter(t => t.sectionId === sid || !t.sectionId);
+      const sectionTables = tables.filter(t =>
+        t.sectionId === sid || (sections.length === 1 && !t.sectionId)
+      );
       const totalSeats = sectionTables.reduce((s, t) => s + (parseInt(t.capacity) || 0), 0);
       const confirmed = people.filter(p => (p.attendingSections || []).includes(sid)).length;
       const gap = confirmed - totalSeats;
