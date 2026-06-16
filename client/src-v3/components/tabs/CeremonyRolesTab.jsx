@@ -527,14 +527,14 @@ export function CeremonyRolesTab({ eventId, event, adminConfig, showToast, isArc
   const activeDragRole = !isDraggingSection && activeDragId ? roles.find(r => r.id === activeDragId) : null;
   const activeDragSectionName = isDraggingSection ? activeDragId.slice(4) : null;
 
-  if (loading) return <div style={loadingStyle}>Loading ceremony roles…</div>;
-
-  // ── Topbar subtitle ──────────────────────────────────────────────────────
+  // ── Topbar subtitle (must be before loading guard — hooks can't follow conditional returns) ──
   const subtitle = roles.length > 0 ? `${roles.length} role${roles.length!==1?"s":""} · ${assignedCount} assigned` : null;
   useEffect(() => {
     setTopbarSubtitle(subtitle);
     return () => setTopbarSubtitle(null);
   }, [subtitle, setTopbarSubtitle]);
+
+  if (loading) return <div style={loadingStyle}>Loading ceremony roles…</div>;
 
   return (
     <div>

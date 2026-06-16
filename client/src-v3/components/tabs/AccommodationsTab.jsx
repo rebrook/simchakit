@@ -98,14 +98,14 @@ export function AccommodationsTab({ eventId, event, adminConfig, showToast, isAr
     setEditingHH(null);
   };
 
-  if (hLoading || pLoading) return <div style={loadingStyle}>Loading accommodations…</div>;
-
-  // ── Topbar subtitle ──────────────────────────────────────────────────────
+  // ── Topbar subtitle (must be before loading guard — hooks can't follow conditional returns) ──
   const subtitle = `${totalOOT} out-of-town household${totalOOT !== 1 ? "s" : ""}${totalBooked > 0 ? ` · ${totalBooked} booked` : ""}`;
   useEffect(() => {
     setTopbarSubtitle(subtitle);
     return () => setTopbarSubtitle(null);
   }, [subtitle, setTopbarSubtitle]);
+
+  if (hLoading || pLoading) return <div style={loadingStyle}>Loading accommodations…</div>;
 
   return (
     <div>

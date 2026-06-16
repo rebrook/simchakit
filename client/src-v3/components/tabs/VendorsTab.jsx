@@ -81,14 +81,14 @@ export function VendorsTab({ eventId, event, adminConfig, showToast, isArchived,
     showToast("Vendor removed");
   };
 
-  if (loading) return <div style={loadingStyle}>Loading vendors…</div>;
-
-  // ── Topbar subtitle ──────────────────────────────────────────────────────
+  // ── Topbar subtitle (must be before loading guard — hooks can't follow conditional returns) ──
   const subtitle = `${vendors.length} vendor${vendors.length!==1?"s":""} tracked${booked > 0 ? ` · ${booked} confirmed` : ""}`;
   useEffect(() => {
     setTopbarSubtitle(subtitle);
     return () => setTopbarSubtitle(null);
   }, [subtitle, setTopbarSubtitle]);
+
+  if (loading) return <div style={loadingStyle}>Loading vendors…</div>;
 
   return (
     <div>

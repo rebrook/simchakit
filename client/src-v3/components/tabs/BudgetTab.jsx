@@ -537,16 +537,16 @@ export function BudgetTab({ eventId, event, adminConfig, showToast, isArchived, 
     navigator.clipboard.writeText(csv).then(() => showToast("CSV copied to clipboard"));
   };
 
-  if (eLoading || vLoading) return <div style={loadingStyle}>Loading budget…</div>;
-
-  const vendorMap = Object.fromEntries(vendors.map(v => [v.id, v]));
-
-  // ── Topbar subtitle ──────────────────────────────────────────────────────
+  // ── Topbar subtitle (must be before loading guard — hooks can't follow conditional returns) ──
   const subtitle = `${expenses.length} expense${expenses.length!==1?"s":""} · ${fmt$(totalPaid)} paid of ${fmt$(totalExpenses)}`;
   useEffect(() => {
     setTopbarSubtitle(subtitle);
     return () => setTopbarSubtitle(null);
   }, [subtitle, setTopbarSubtitle]);
+
+  if (eLoading || vLoading) return <div style={loadingStyle}>Loading budget…</div>;
+
+  const vendorMap = Object.fromEntries(vendors.map(v => [v.id, v]));
 
   return (
     <div>

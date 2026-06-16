@@ -295,9 +295,8 @@ export function SeatingTab({ eventId, event, adminConfig, showToast, isArchived,
     "Mixed": { bg: "var(--green-light)", color: "var(--green)" },
   };
 
-  if (tLoading || pLoading || hLoading || configLoading) return <div style={loadingStyle}>Loading seating chart…</div>;
-
   // ── Topbar subtitle (live: updates on selection / section change) ───────
+  // Must be before loading guard — hooks can't follow conditional returns.
   const subtitle = selectedPerson
     ? `${getPersonDisplayName(selectedPerson)} selected — click a table to assign`
     : activeSection
@@ -307,6 +306,8 @@ export function SeatingTab({ eventId, event, adminConfig, showToast, isArchived,
     setTopbarSubtitle(subtitle);
     return () => setTopbarSubtitle(null);
   }, [subtitle, setTopbarSubtitle]);
+
+  if (tLoading || pLoading || hLoading || configLoading) return <div style={loadingStyle}>Loading seating chart…</div>;
 
   return (
     <div className="tab-content">

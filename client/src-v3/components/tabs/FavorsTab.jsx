@@ -317,16 +317,16 @@ export function FavorsTab({
     [people]
   );
 
-  if (fLoading || pLoading || hLoading) return <div style={loadingStyle}>Loading favors…</div>;
-
   const { givingFavors } = localConfig;
 
-  // ── Topbar subtitle ──────────────────────────────────────────────────────
+  // ── Topbar subtitle (must be before loading guard — hooks can't follow conditional returns) ──
   const subtitle = givingFavors && favorTypes.length > 0 ? `${totalFavors} favor${totalFavors !== 1 ? "s" : ""} tracked` : null;
   useEffect(() => {
     setTopbarSubtitle(subtitle);
     return () => setTopbarSubtitle(null);
   }, [subtitle, setTopbarSubtitle]);
+
+  if (fLoading || pLoading || hLoading) return <div style={loadingStyle}>Loading favors…</div>;
 
   return (
     <div className="tab-content">

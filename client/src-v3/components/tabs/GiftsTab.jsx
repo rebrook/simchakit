@@ -121,14 +121,14 @@ export function GiftsTab({ eventId, event, adminConfig, showToast, isArchived, i
     "Other":                      { bg: "var(--bg-muted)",     color: "var(--text-muted)"      },
   };
 
-  if (gLoading || hLoading) return <div style={loadingStyle}>Loading gifts…</div>;
-
-  // ── Topbar subtitle ──────────────────────────────────────────────────────
+  // ── Topbar subtitle (must be before loading guard — hooks can't follow conditional returns) ──
   const subtitle = gifts.length > 0 ? `${gifts.length} gift${gifts.length!==1?"s":""} · $${totalMonetary.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 })} monetary value` : null;
   useEffect(() => {
     setTopbarSubtitle(subtitle);
     return () => setTopbarSubtitle(null);
   }, [subtitle, setTopbarSubtitle]);
+
+  if (gLoading || hLoading) return <div style={loadingStyle}>Loading gifts…</div>;
 
   return (
     <div className="tab-content">

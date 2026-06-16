@@ -587,14 +587,14 @@ export function TasksTab({ eventId, event, adminConfig, showToast, isArchived, i
     );
   };
 
-  if (loading) return <div style={loadingStyle}>Loading tasks…</div>;
-
-  // ── Topbar subtitle ──────────────────────────────────────────────────────
+  // ── Topbar subtitle (must be before loading guard — hooks can't follow conditional returns) ──
   const subtitle = `${total} task${total!==1?"s":""} · ${done} complete${overdue > 0 ? ` · ${overdue} overdue` : ""}`;
   useEffect(() => {
     setTopbarSubtitle(subtitle);
     return () => setTopbarSubtitle(null);
   }, [subtitle, setTopbarSubtitle]);
+
+  if (loading) return <div style={loadingStyle}>Loading tasks…</div>;
 
   return (
     <div>

@@ -428,6 +428,10 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false, display
     });
   };
 
+  // ── User identity (needed by tabProps and account row) ─────────────────
+  const userEmail = session?.user?.email || "";
+  const userName  = userDisplayName || userEmail.split("@")[0] || "";
+
   // ── Shared props passed to every tab ─────────────────────────────────────
   const tabProps = {
     eventId,
@@ -451,8 +455,6 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false, display
   };
 
   // ── User identity for account row ─────────────────────────────────────────
-  const userEmail = session?.user?.email || "";
-  const userName  = userDisplayName || userEmail.split("@")[0] || "";
   const userInit  = avatarInitials(userDisplayName, userEmail);
   const userBg    = avatarColor(userDisplayName || userEmail || "user");
 

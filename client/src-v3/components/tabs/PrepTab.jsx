@@ -149,6 +149,13 @@ export function PrepTab({ eventId, event, adminConfig, showToast, isArchived, is
 
   const today = new Date(); today.setHours(0, 0, 0, 0);
 
+  // ── Topbar subtitle (must be before loading guard — hooks can't follow conditional returns) ──
+  const subtitle = total > 0 ? `${total} item${total!==1?"s":""} · ${Math.round((complete/total)*100)}% complete` : null;
+  useEffect(() => {
+    setTopbarSubtitle(subtitle);
+    return () => setTopbarSubtitle(null);
+  }, [subtitle, setTopbarSubtitle]);
+
   if (loading) return <div style={loadingStyle}>Loading preparation items…</div>;
 
   // ── Clergy data ──────────────────────────────────────────────────────────────
@@ -161,13 +168,6 @@ export function PrepTab({ eventId, event, adminConfig, showToast, isArchived, is
   const hasCantor = !!(cantor.name || cantor.phone || cantor.email);
   const hasTutor  = !!(tutor.name  || tutor.phone  || tutor.email);
   const hasAnyClergy = hasRabbi || hasCantor || hasTutor;
-
-  // ── Topbar subtitle ──────────────────────────────────────────────────────
-  const subtitle = total > 0 ? `${total} item${total!==1?"s":""} · ${Math.round((complete/total)*100)}% complete` : null;
-  useEffect(() => {
-    setTopbarSubtitle(subtitle);
-    return () => setTopbarSubtitle(null);
-  }, [subtitle, setTopbarSubtitle]);
 
   return (
     <div className="tab-content">

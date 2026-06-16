@@ -224,14 +224,14 @@ export function GuestsTab({ eventId, event, adminConfig, showToast, isArchived, 
     "Maybe":    { bg:"var(--gold-light)",   color:"var(--gold)"   },
   };
 
-  if (hLoading || pLoading) return <div style={loadingStyle}>Loading guests…</div>;
-
-  // ── Topbar subtitle ──────────────────────────────────────────────────────
+  // ── Topbar subtitle (must be before loading guard — hooks can't follow conditional returns) ──
   const subtitle = `${households.length} household${households.length!==1?"s":""} · ${totalPeople} individual${totalPeople!==1?"s":""}`;
   useEffect(() => {
     setTopbarSubtitle(subtitle);
     return () => setTopbarSubtitle(null);
   }, [subtitle, setTopbarSubtitle]);
+
+  if (hLoading || pLoading) return <div style={loadingStyle}>Loading guests…</div>;
 
   return (
     <div>
