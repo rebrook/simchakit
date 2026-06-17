@@ -1,10 +1,17 @@
 {
-  "current": "V4.12.2",
+  "current": "V4.12.3",
   "whatsNew": [
-    "Star of David emoji now renders consistently as color emoji on all platforms",
-    "Event-type icon definitions consolidated into a single shared source"
+    "Star of David glyph reverted to plain rendering (line-icon replacement coming soon)"
   ],
   "changelog": [
+    {
+      "version": "V4.12.3",
+      "date": "2026-06-17",
+      "summary": "Revert: remove emoji variation selector (U+FE0F) from Star of David entries",
+      "details": [
+        "Reverted the three Star of David entries in EVENT_TYPE_ICONS and the OverviewTab countdown watermark fallback back to plain U+2721 (no variation selector), restoring monochrome glyph rendering pending the line-icon replacement"
+      ]
+    },
     {
       "version": "V4.12.2",
       "date": "2026-06-17",

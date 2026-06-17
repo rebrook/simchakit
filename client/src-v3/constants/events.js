@@ -19,9 +19,9 @@ const EVENT_TYPE_LABELS_MAP = {
 // and in the database. Converting them to Lucide icons requires a data model
 // decision and migration — handle separately from the Q1 icon system swap.
 const EVENT_TYPE_ICONS = {
-  "bat-mitzvah":  "✡️",
-  "bar-mitzvah":  "✡️",
-  "bnei-mitzvah": "✡️",
+  "bat-mitzvah":  "✡",
+  "bar-mitzvah":  "✡",
+  "bnei-mitzvah": "✡",
   "wedding":      "💍",
   "baby-naming":  "👶",
   "graduation":   "🎓",
