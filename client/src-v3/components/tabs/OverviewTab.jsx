@@ -114,17 +114,26 @@ export function OverviewTab({ eventId, event, adminConfig, showToast, setActiveT
     return () => window.removeEventListener("simchakit:print-brief", handler);
   }, [handlePrintBrief]);
 
-  // Share brief (mobile) — text+link via OS share sheet, fallback to print modal
+  // Share brief (mobile) — text summary + deep link via OS share sheet,
+  // fallback to print modal when navigator.share is unavailable.
   const handleShareBrief = async () => {
     const eventName = config.name || "My Event";
+    const deepLink = `${window.location.origin}/e/${eventId}`;
+
+    // Build a concise text summary from the same data the brief uses
+    const lines = [eventName];
+    if (eventDate) lines.push(formatDate(eventDate));
+    if (eventVenue) lines.push(eventVenue);
+    if (people.length > 0) lines.push(`${confirmedCount} of ${people.length} guests confirmed`);
+    lines.push("", deepLink);
+
     try {
       if (navigator.share) {
         await navigator.share({
           title: `${eventName} — Event Brief`,
-          text: `${eventName} event brief on SimchaKit`,
-          url: window.location.href,
+          text: lines.join("\n"),
         });
-        return; // success or user completed
+        return;
       }
     } catch (err) {
       if (err.name === "AbortError") return; // user cancelled — no-op
