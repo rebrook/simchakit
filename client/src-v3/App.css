@@ -3863,14 +3863,17 @@
 
     .dayof-m-body {
       flex: 1;
+      min-height: 0;
       overflow-y: auto;
       -webkit-overflow-scrolling: touch;
+      overscroll-behavior: contain;
       padding: 14px 14px;
       padding-bottom: calc(80px + env(safe-area-inset-bottom));
       display: flex;
       flex-direction: column;
       gap: 14px;
     }
+    .dayof-m-body > * { flex-shrink: 0; }
 
     /* ── Now card ── */
     .dayof-m-now {
