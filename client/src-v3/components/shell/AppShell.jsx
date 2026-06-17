@@ -770,7 +770,15 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false, display
                 )}
               </button>
 
-              {/* TODO: standalone Print brief */}
+              {/* Print Brief — Overview tab only */}
+              {activeTab === "overview" && (
+                <button
+                  className="topbar-print-btn"
+                  onClick={() => window.dispatchEvent(new CustomEvent("simchakit:print-brief"))}
+                >
+                  <Icon name="printer" context="inline" /> Print Brief
+                </button>
+              )}
             </div>
           </div>
         </div>

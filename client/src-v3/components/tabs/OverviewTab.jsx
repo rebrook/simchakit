@@ -102,9 +102,35 @@ export function OverviewTab({ eventId, event, adminConfig, showToast, setActiveT
   const [briefHTML,    setBriefHTML]    = useState(null);
   const printFrameRef = useRef(null);
 
-  const handlePrintBrief = () => {
+  const handlePrintBrief = useCallback(() => {
     const state = { people, households, expenses, vendors, tasks, ceremonyRoles };
     setBriefHTML(generateEventBriefHTML(state, adminConfig));
+  }, [people, households, expenses, vendors, tasks, ceremonyRoles, adminConfig]);
+
+  // Listen for top-bar Print Brief trigger (desktop)
+  useEffect(() => {
+    const handler = () => handlePrintBrief();
+    window.addEventListener("simchakit:print-brief", handler);
+    return () => window.removeEventListener("simchakit:print-brief", handler);
+  }, [handlePrintBrief]);
+
+  // Share brief (mobile) — text+link via OS share sheet, fallback to print modal
+  const handleShareBrief = async () => {
+    const eventName = config.name || "My Event";
+    try {
+      if (navigator.share) {
+        await navigator.share({
+          title: `${eventName} — Event Brief`,
+          text: `${eventName} event brief on SimchaKit`,
+          url: window.location.href,
+        });
+        return; // success or user completed
+      }
+    } catch (err) {
+      if (err.name === "AbortError") return; // user cancelled — no-op
+      // any other error — fall through to print
+    }
+    handlePrintBrief();
   };
 
   const timelineEntries = sortTimeline(config.timeline || []);
@@ -175,10 +201,13 @@ export function OverviewTab({ eventId, event, adminConfig, showToast, setActiveT
             <Icon name="hand" context="inline" style={{ marginRight: 4 }} /> Setup checklist
           </button>
         )}
-        <button className="btn btn-secondary btn-sm" onClick={handlePrintBrief}
-          style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0, fontSize: 12 }}>
-          <Icon name="printer" context="inline" /> Print Brief
-        </button>
+        {/* Mobile only — desktop uses the top-bar Print Brief */}
+        {isMobile && (
+          <button className="btn btn-secondary btn-sm" onClick={handleShareBrief}
+            style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0, fontSize: 12 }}>
+            <Icon name="share" context="inline" /> Share brief
+          </button>
+        )}
       </div>
 
       {/* Get Started card */}

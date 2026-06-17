@@ -84,6 +84,7 @@ import {
   Cake,
   Baby,
   Wine,
+  Share2,
 } from "lucide-react";
 
 // ── Custom Star of David (hexagram) ─────────────────────────────────────────
@@ -146,6 +147,7 @@ export const ICONS = {
   search:          Search,
   settings:        Settings,
   printer:         Printer,
+  share:           Share2,
   plus:            Plus,
   arrowLeft:       ArrowLeft,
   arrowRight:      ArrowRight,

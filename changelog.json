@@ -1,11 +1,24 @@
 {
-  "current": "V4.13.3",
+  "current": "V4.13.4",
   "whatsNew": [
-    "Event picker buttons now match the brand accent color",
-    "Cleaner brand header for signed-in users",
-    "Event cards align to equal height with pinned footers"
+    "Print Brief now lives in the desktop top bar as a themed accent button (Overview tab only), eliminating the duplicate in the content area",
+    "On mobile, the button becomes \"Share brief\" and opens the native OS share sheet (text + link) so you can AirDrop, message, email, or save the brief without a print dialog",
+    "Share icon (Share2) added to the icon system"
   ],
   "changelog": [
+    {
+      "version": "V4.13.4",
+      "date": "2026-06-17",
+      "changes": [
+        "Moved Print Brief to the desktop top bar as a primary accent-colored button, shown only on the Overview tab",
+        "Removed the duplicate Print Brief from the Overview content area on desktop",
+        "On mobile, replaced Print Brief with Share brief that uses navigator.share() for native OS sharing (text + URL), with graceful fallback to the print preview modal",
+        "Share cascade: file share if supported, then text+URL share, then print modal; AbortError (user cancel) is a silent no-op",
+        "Added Share2 (share) icon to iconMap.jsx",
+        "Top-bar button uses existing .topbar-print-btn CSS class, themed via --accent-primary / --accent-dark / --shadow-accent (re-skins across all palettes and dark mode)",
+        "Cross-component wiring uses simchakit:print-brief custom DOM event (same pattern as audit-error)"
+      ]
+    },
     {
       "version": "V4.13.3",
       "date": "2026-06-17",
