@@ -1,5 +1,5 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// SimchaKit V4.9.0 — AppShell.jsx
+// SimchaKit V4.11.0 — AppShell.jsx
 // Sidebar navigation architecture.
 // Desktop (>900px): 248px left sidebar + top bar + main content grid.
 // Mobile (<=900px): existing bottom bar + More drawer (unchanged UX).
@@ -10,6 +10,7 @@ import { supabase }        from "@/lib/supabase.js";
 import { useDarkMode }     from "@/hooks/useDarkMode.js";
 import { useCollaboratorRole } from "@/hooks/useCollaboratorRole.js";
 import { usePresence }    from "@/hooks/usePresence.js";
+import { useNotifications } from "@/hooks/useNotifications.js";
 import { ThemeProvider }   from "@/components/shared/ThemeProvider.jsx";
 import { PlaceholderTab }  from "@/components/shared/PlaceholderTab.jsx";
 import { AdminLogin, AdminPanel } from "@/components/AdminPanel.jsx";
@@ -17,6 +18,7 @@ import { SearchOverlay }         from "@/components/SearchOverlay.jsx";
 import { GuideModal, ActivityLogModal, WhatsNewModal } from "@/components/Modals.jsx";
 import { DayOfOverlay }          from "@/components/DayOfOverlay.jsx";
 import { InviteModal }           from "@/components/shared/InviteModal.jsx";
+import { NotificationPanel }     from "@/components/shared/NotificationPanel.jsx";
 import { Icon }                  from "@/utils/iconMap.jsx";
 
 // ── Tab components ──────────────────────────────────────────────────────────
@@ -196,6 +198,16 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false, display
     [onlineUsers]
   );
 
+  // ── Notifications (per-user unread layer over audit_log) ──────────────
+  const {
+    unreadCount,
+    entries: notifEntries,
+    loading: notifLoading,
+    markAllRead,
+    refreshCount: refreshNotifCount,
+  } = useNotifications(eventId, session);
+  const [showNotifPanel, setShowNotifPanel] = useState(false);
+
   // ── Tab badge counts (lightweight Supabase counts) ────────────────────────
   // TODO: refresh counts on mutation (currently refreshes on tab change)
   const [badgeCounts, setBadgeCounts] = useState({});
@@ -360,6 +372,8 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false, display
     setActiveTab(tabId);
     setShowMoreDrawer(false);
     window.scrollTo(0, 0);
+    // Refresh notification count on tab change (lightweight count-only query)
+    refreshNotifCount();
   };
 
   // ── Palette from adminConfig ──────────────────────────────────────────────
@@ -514,6 +528,12 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false, display
             </div>
           )}
           <div className="mobile-header-actions">
+            <button className="icon-btn notif-bell-btn" title="Notifications" onClick={() => setShowNotifPanel(s => !s)} style={{ position: "relative" }}>
+              <Icon name="bell" context="button" />
+              {unreadCount > 0 && (
+                <span className="notif-badge">{unreadCount > 99 ? "99+" : unreadCount}</span>
+              )}
+            </button>
             <button className="icon-btn" title="Search" onClick={() => setShowSearch(true)}>
               <Icon name="search" context="button" />
             </button>
@@ -738,7 +758,30 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false, display
                 <Icon name="search" context="button" />
               </button>
 
-              {/* TODO: notifications */}
+              {/* Notification bell */}
+              <div style={{ position: "relative" }}>
+                <button
+                  className="icon-btn notif-bell-btn"
+                  title="Notifications"
+                  onClick={() => setShowNotifPanel(s => !s)}
+                >
+                  <Icon name="bell" context="button" />
+                  {unreadCount > 0 && (
+                    <span className="notif-badge">{unreadCount > 99 ? "99+" : unreadCount}</span>
+                  )}
+                </button>
+                {showNotifPanel && (
+                  <NotificationPanel
+                    entries={notifEntries}
+                    loading={notifLoading}
+                    unreadCount={unreadCount}
+                    onMarkAllRead={markAllRead}
+                    onSeeAllActivity={() => setShowActivityLog(true)}
+                    onNavigateToTab={navigateTo}
+                    onClose={() => setShowNotifPanel(false)}
+                  />
+                )}
+              </div>
 
               {/* TODO: standalone Print brief */}
             </div>
@@ -849,6 +892,21 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false, display
       {/* ── More drawer backdrop ── */}
       {showMoreDrawer && (
         <div className="more-drawer-backdrop" onClick={() => setShowMoreDrawer(false)} />
+      )}
+
+      {/* ── Mobile notification panel (positioned fixed for mobile) ── */}
+      {showNotifPanel && (
+        <div className="notif-panel-mobile-wrapper">
+          <NotificationPanel
+            entries={notifEntries}
+            loading={notifLoading}
+            unreadCount={unreadCount}
+            onMarkAllRead={markAllRead}
+            onSeeAllActivity={() => setShowActivityLog(true)}
+            onNavigateToTab={navigateTo}
+            onClose={() => setShowNotifPanel(false)}
+          />
+        </div>
       )}
 
       {/* ── More drawer ── */}

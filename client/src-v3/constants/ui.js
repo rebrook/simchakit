@@ -229,11 +229,26 @@ const GUIDE_SECTIONS = [
     color: "var(--blue)",
     colorLight: "var(--blue-light)",
     items: [
-      { heading: "What the Activity Log tracks", body: "The Activity Log records meaningful changes across the app — households added, updated, or deleted; RSVP status changes; expenses added or marked paid; vendors added or deleted; tasks completed; and gifts added. Minor edits (notes, field tweaks) are not logged to keep the history clean and readable." },
-      { heading: "Opening the Activity Log", body: "Open the account menu in the sidebar footer and select Activity Log. On mobile, tap More and select Activity Log. The log opens as an overlay and shows all entries newest first." },
+      { heading: "What the Activity Log tracks", body: "The Activity Log records meaningful changes across the app: households added, updated, or deleted; RSVP status changes; expenses added or marked paid; vendors added or deleted; tasks completed; and gifts added. Minor edits (notes, field tweaks) are not logged to keep the history clean and readable." },
+      { heading: "Actor attribution", body: "New entries show who made the change (the actor's display name followed by the action). Legacy entries from before attribution was added show the action only, without a name." },
+      { heading: "Opening the Activity Log", body: "Open the account menu in the sidebar footer and select Activity Log, or tap See all activity at the bottom of the Notifications panel. On mobile, tap More and select Activity Log. The log opens as an overlay and shows all entries newest first." },
       { heading: "Filtering entries", body: "Use the filter buttons at the top of the overlay to show only Added, Updated, Deleted, or Completed entries. Select All to see the full history." },
       { heading: "Clearing the log", body: "The Clear Log button (visible to the right of the filters) wipes all entries. A confirmation prompt appears before clearing. This action cannot be undone. The button is hidden when the event is archived." },
       { heading: "Archiving and resetting", body: "When an event is archived, the Activity Log is preserved as part of the historical record and becomes read-only. When event data is reset via Admin Mode, the Activity Log is cleared along with all other collections." },
+    ],
+  },
+  {
+    id: "notifications",
+    icon: "bellRing",
+    title: "Notifications",
+    color: "var(--accent-primary)",
+    colorLight: "var(--accent-light)",
+    items: [
+      { heading: "What notifications show", body: "The notification bell in the top bar shows a live count of unread activity from your co-planners. Each entry shows who made the change, what they did, and when. Your own actions are excluded from the unread count." },
+      { heading: "Opening the panel", body: "Click the bell icon in the desktop top bar or the mobile header. A dropdown panel shows recent activity newest first, with unread entries highlighted. Tap an entry to jump to the relevant tab (guests, budget, vendors, and so on). Legacy entries without a tab link are shown but not clickable." },
+      { heading: "Mark all read", body: "The Mark all read button at the top of the panel clears the unread badge. This only updates your personal read marker. It does not delete any entries or affect what other co-planners see." },
+      { heading: "See all activity", body: "At the bottom of the panel, See all activity opens the full Activity Log overlay with filtering, search, and the complete event history." },
+      { heading: "Solo events", body: "If you are the only planner on an event, the bell will always show zero unread because your own actions are excluded. The bell still opens the panel and you can use it to review recent changes or jump to the full Activity Log." },
     ],
   },
   {

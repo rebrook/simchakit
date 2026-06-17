@@ -1,5 +1,5 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// SimchaKit V3.0.0 — Modals.jsx
+// SimchaKit V4.11.0 — Modals.jsx
 // GuideModal: unchanged from V2.
 // ActivityLogModal: reads from Supabase audit_log table directly.
 // WhatsNewModal: fetches /changelog.json (Vercel static) instead of /simcha/changelog.
@@ -94,6 +94,7 @@ export function ActivityLogModal({ eventId, isArchived, onClose }) {
         id:         row.id,
         action:     row.data?.action || "Updated",
         detail:     row.data?.detail || "",
+        actorName:  row.data?.actorName || null,
         created_at: row.created_at,
       })));
       setLoading(false);
@@ -170,7 +171,10 @@ export function ActivityLogModal({ eventId, isArchived, onClose }) {
                   <div key={entry.id} style={{ display:"flex", gap:12, alignItems:"flex-start", padding:"10px 12px", background:i%2===0?"var(--bg-surface)":"var(--bg-subtle)", borderRadius:"var(--radius-sm)", border:"1px solid var(--border)" }}>
                     <span style={{ fontSize:10, fontWeight:700, padding:"3px 8px", borderRadius:99, flexShrink:0, marginTop:2, background:ac.bg, color:ac.color, whiteSpace:"nowrap" }}>{entry.action}</span>
                     <div style={{ flex:1, minWidth:0 }}>
-                      <div style={{ fontSize:13, color:"var(--text-primary)", lineHeight:1.5 }}>{entry.detail}</div>
+                      <div style={{ fontSize:13, color:"var(--text-primary)", lineHeight:1.5 }}>
+                        {entry.actorName && <span style={{ fontWeight:600 }}>{entry.actorName} &middot; </span>}
+                        {entry.detail}
+                      </div>
                       <div style={{ fontSize:11, color:"var(--text-muted)", marginTop:3 }}>{fmt(entry.created_at)}</div>
                     </div>
                   </div>

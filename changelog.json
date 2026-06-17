@@ -1,12 +1,27 @@
 {
-  "current": "V4.10.2",
+  "current": "V4.11.0",
   "whatsNew": [
-    "Mobile Day-of Mode: full-screen phone layout with live now/next, one-tap contacts, and running-late notifications",
-    "Offline caching for event day data on flaky venue wifi",
-    "Budget values no longer overflow on mobile Overview",
-    "Multi-day timelines show date-grouped run-of-show with Today highlighting"
+    "Notification bell with live unread count from co-planner activity",
+    "Notification panel with actor attribution, tab deep-links, and Mark all read",
+    "Activity Log entries now show who made each change",
+    "See all activity opens the full event history"
   ],
   "changelog": [
+    {
+      "version": "V4.11.0",
+      "date": "2026-06-17",
+      "changes": [
+        "Feature: notification bell in the top bar and mobile header with a live per-user unread badge computed over the existing audit_log, excluding the viewer's own actions",
+        "Feature: notification panel (popover) shows recent activity with actor attribution, action badges, and deep-links to the relevant tab; Mark all read advances a per-user cursor without touching the shared log",
+        "Feature: See all activity link in the panel opens the existing ActivityLogModal (full history, filtering, and clear)",
+        "Feature: audit_log entries now include actor attribution (actorId, actorName, collection) in the data jsonb; legacy un-attributed entries render as 'Someone' in both the panel and the Activity Log",
+        "Feature: ActivityLogModal entries now show the actor name when available (e.g. 'Ryan Added a guest in People')",
+        "Database: notification_reads table with per-user read cursor (RLS: own rows only); index on audit_log (event_id, created_at DESC)",
+        "Reliability: unread count refetches on window focus and on tab navigation; Supabase Realtime on audit_log INSERTs as an optional live enhancement (requires publication setup)",
+        "UI: notification entries deep-link to tabs based on the collection field; legacy entries without a collection are shown but not clickable",
+        "Guide: new Notifications section added; Activity Log section updated with actor attribution documentation"
+      ]
+    },
     {
       "version": "V4.10.2",
       "date": "2026-06-16",

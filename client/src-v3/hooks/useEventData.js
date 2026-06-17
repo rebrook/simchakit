@@ -1,5 +1,5 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// SimchaKit V3.0.0 — useEventData.js
+// SimchaKit V4.11.0 — useEventData.js
 // Core data hook. Provides fetch-on-mount, optimistic save, and delete
 // for any collection table in Supabase.
 //
@@ -32,15 +32,33 @@ const AUDIT_LABELS = {
 };
 
 // ── Fire-and-forget audit log writer ─────────────────────────────────────────
+// Writes { action, detail, collection, actorId, actorName } into data jsonb.
+// Actor comes from the cached Supabase session (no network call).
+// If session is null (demo/anon/refresh race), the row is written un-attributed.
 async function writeAuditLog(eventId, collection, action, item) {
   try {
     const labelFn = AUDIT_LABELS[collection] || (() => `a ${collection} item`);
     const label   = labelFn(item || {});
     const collectionLabel = collection.charAt(0).toUpperCase() + collection.slice(1);
     const detail  = `${action} ${label} in ${collectionLabel}`;
+
+    // Resolve actor from cached session — never blocks, never throws
+    let actorId   = null;
+    let actorName = null;
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const user = sessionData?.session?.user;
+      if (user) {
+        actorId   = user.id;
+        actorName = user.user_metadata?.display_name
+                 || user.email?.split("@")[0]
+                 || null;
+      }
+    } catch (_) { /* session unavailable — write un-attributed */ }
+
     const { error } = await supabase.from("audit_log").insert({
-      event_id:   eventId,
-      data:       { action, detail },
+      event_id: eventId,
+      data:     { action, detail, collection, actorId, actorName },
     });
     if (error) throw new Error(error.message);
   } catch (e) {
