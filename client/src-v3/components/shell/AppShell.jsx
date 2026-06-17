@@ -1,5 +1,5 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// SimchaKit V4.11.0 — AppShell.jsx
+// SimchaKit V4.12.0 — AppShell.jsx
 // Sidebar navigation architecture.
 // Desktop (>900px): 248px left sidebar + top bar + main content grid.
 // Mobile (<=900px): existing bottom bar + More drawer (unchanged UX).
@@ -506,40 +506,44 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false, display
         </div>
       )}
 
-      {/* ── Mobile header (<=900px only) ── */}
+      {/* ── Mobile header (<=900px only, two-row) ── */}
       <header className="mobile-header">
         <div className="mobile-header-inner">
-          <button className="mobile-header-back" onClick={onBack}>
-            <Icon name="arrowLeft" context="inline" style={{ marginRight: 2 }} /> Events
-          </button>
-          <div className="mobile-header-brand">
-            <img src="/apple-touch-icon.png" alt="SimchaKit" style={{ width: 32, height: 32, borderRadius: 7 }} />
-            <span className="mobile-header-title">SimchaKit</span>
-          </div>
-          {adminConfig?.name && (
-            <div className="mobile-header-event" title={adminConfig.name}>{adminConfig.name}</div>
-          )}
-          <div style={{ flex: 1 }} />
-          {/* Mobile presence badge — count of other online co-planners */}
-          {onlineUsers.length > 0 && (
-            <div className="mobile-presence-badge">
-              <span className="mobile-presence-dot" />
-              {onlineUsers.length}
+          {/* Row 1: back · spacer · presence · bell + search */}
+          <div className="mobile-header-row1">
+            <button className="mobile-header-back" onClick={onBack}>
+              <Icon name="arrowLeft" context="inline" style={{ marginRight: 2 }} /> Events
+            </button>
+            <div style={{ flex: 1 }} />
+            {onlineUsers.length > 0 && (
+              <div className="mobile-presence-badge">
+                <span className="mobile-presence-dot" />
+                {onlineUsers.length}
+              </div>
+            )}
+            <div className="mobile-header-actions">
+              <button className="icon-btn notif-bell-btn" title="Notifications" onClick={() => setShowNotifPanel(s => !s)}>
+                <Icon name="bell" context="button" />
+                {unreadCount > 0 && (
+                  <span className="notif-badge">{unreadCount > 99 ? "99+" : unreadCount}</span>
+                )}
+              </button>
+              <button className="icon-btn" title="Search" onClick={() => setShowSearch(true)}>
+                <Icon name="search" context="button" />
+              </button>
             </div>
-          )}
-          <div className="mobile-header-actions">
-            <button className="icon-btn notif-bell-btn" title="Notifications" onClick={() => setShowNotifPanel(s => !s)}>
-              <Icon name="bell" context="button" />
-              {unreadCount > 0 && (
-                <span className="notif-badge">{unreadCount > 99 ? "99+" : unreadCount}</span>
+          </div>
+          {/* Row 2: event-type chip + event name + theme line */}
+          <div className="mobile-header-row2">
+            <span className="mobile-identity-chip">{eventTypeIcon}</span>
+            <div style={{ minWidth: 0, flex: 1 }}>
+              <div className="mobile-identity-name" title={adminConfig?.name || ""}>{adminConfig?.name || "Untitled Event"}</div>
+              {adminConfig?.theme?.name && (
+                <div className="mobile-identity-theme">
+                  {adminConfig.theme.icon ? `${adminConfig.theme.icon} ${adminConfig.theme.name}` : adminConfig.theme.name}
+                </div>
               )}
-            </button>
-            <button className="icon-btn" title="Search" onClick={() => setShowSearch(true)}>
-              <Icon name="search" context="button" />
-            </button>
-            <button className="icon-btn" title="Admin Mode" onClick={() => openAdmin("event")}>
-              <Icon name="settings" context="button" />
-            </button>
+            </div>
           </div>
         </div>
       </header>
@@ -558,7 +562,13 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false, display
           <span className="sidebar-switcher-emoji">{eventTypeIcon}</span>
           <div style={{ minWidth: 0, flex: 1 }}>
             <div className="sidebar-switcher-name">{adminConfig?.name || "Untitled Event"}</div>
-            {switcherDate && <div className="sidebar-switcher-date">{switcherDate}</div>}
+            <div className="sidebar-switcher-meta">
+              {adminConfig?.theme?.name && (
+                <>{adminConfig.theme.icon ? `${adminConfig.theme.icon} ${adminConfig.theme.name}` : adminConfig.theme.name}</>
+              )}
+              {adminConfig?.theme?.name && switcherDate && " · "}
+              {switcherDate}
+            </div>
           </div>
           <span className="sidebar-switcher-chevron"><Icon name="chevronRight" context="inline" /></span>
           {/* TODO: inline event switcher dropdown */}
