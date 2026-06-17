@@ -153,8 +153,9 @@
     .app-shell {
       display: flex;
       flex-direction: column;
-      min-height: 100vh;
-      min-height: 100dvh;
+      height: 100vh;
+      height: 100dvh;
+      overflow: hidden;
     }
     @media (min-width: 901px) {
       .app-shell {
@@ -604,21 +605,20 @@
     .app-main {
       display: flex;
       flex-direction: column;
+      flex: 1;
       min-width: 0;
-      min-height: 100vh;
-      min-height: 100dvh;
+      min-height: 0;
+      overflow: hidden;
+    }
+    .app-main-scroll {
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
     }
     @media (min-width: 901px) {
       .app-main {
         height: 100vh;
         height: 100dvh;
-        min-height: 0;
-        overflow: hidden;
-      }
-      .app-main-scroll {
-        flex: 1;
-        min-height: 0;
-        overflow-y: auto;
       }
     }
 
@@ -1601,27 +1601,23 @@
     /* ── Navigation collapse (<=900px): bottom bar + More drawer ──────── */
     @media (max-width: 900px) {
 
-      /* Page content — extra bottom padding to clear the fixed bottom bar */
-      .page-content { padding: 16px 14px calc(88px + env(safe-area-inset-bottom, 0px)); }
+      /* Page content — no extra bottom padding needed, bottom-nav is in-flow */
+      .page-content { padding: 16px 14px 24px; }
 
       /* ── Bottom nav bar ── */
       .bottom-nav {
         display: flex;
-        position: fixed;
-        bottom: 0;
-        left: 0;
-        right: 0;
+        flex-shrink: 0;
         height: 60px;
         padding-bottom: env(safe-area-inset-bottom, 0px);
         box-sizing: content-box;
         background: var(--bg-surface);
         border-top: 1px solid var(--border);
-        box-shadow: 0 -2px 12px rgba(0,0,0,0.08);
-        z-index: 400;
         align-items: center;
       }
       .bottom-nav-tab {
         flex: 1;
+        min-width: 0;
         display: flex;
         flex-direction: column;
         align-items: center;
@@ -1638,7 +1634,7 @@
       }
       .bottom-nav-tab.active { color: var(--accent-primary); }
       .bottom-nav-icon { font-size: 18px; line-height: 1; }
-      .bottom-nav-label { font-size: 11px; font-weight: 500; white-space: nowrap; }
+      .bottom-nav-label { font-size: 11px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
       .bottom-nav-tab.active .bottom-nav-label { font-weight: 700; }
       .bottom-nav-badge {
         position: absolute;
@@ -1769,8 +1765,8 @@
         flex-shrink: 0;
       }
 
-      /* Footer — push above bottom bar */
-      .app-footer { margin-bottom: calc(60px + env(safe-area-inset-bottom, 0px)); }
+      /* Footer — no extra margin needed, bottom-nav is in-flow */
+      .app-footer { margin-bottom: 0; }
     }
 
     /* ── Fine-grained mobile sizing (<=640px) ─────────────────────────── */
@@ -3792,6 +3788,7 @@
       .dayof-panel-body { padding: 14px; gap: 12px; }
     }
 
+
     /* ── Mobile Day-of Mode (<=900px, V3 only) ──────────────────────────────── */
     .dayof-m-root {
       position: fixed;
@@ -3800,7 +3797,6 @@
       display: flex;
       flex-direction: column;
       background: var(--bg-base);
-      /* Use dvh so the scroll area accounts for Safari's toolbar */
       height: 100dvh;
     }
 
@@ -3867,6 +3863,7 @@
       overflow-y: auto;
       -webkit-overflow-scrolling: touch;
       overscroll-behavior: contain;
+      position: relative;
       padding: 14px 14px;
       padding-bottom: calc(80px + env(safe-area-inset-bottom));
       display: flex;
@@ -4143,4 +4140,3 @@
       cursor: pointer;
     }
     .dayof-m-notify:active { filter: brightness(0.9); }
-

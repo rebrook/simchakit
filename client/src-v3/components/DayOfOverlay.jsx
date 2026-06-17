@@ -12,6 +12,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useState, useEffect, useRef, useMemo } from "react";
+import { createPortal }       from "react-dom";
 import { supabase }           from "@/lib/supabase.js";
 import { useEventData }       from "@/hooks/useEventData.js";
 import { DAY_OF_TIME_BLOCKS } from "@/constants/events.js";
@@ -359,6 +360,7 @@ function MobileDayOf({ timeline, adminConfig, confirmedVendors, ceremonyRoles, c
   const [clock, setClock] = useState(formatClock);
   const [nowMinutes, setNowMinutes] = useState(getNowMinutes);
   const nowRef = useRef(null);
+  const bodyRef = useRef(null);
 
   // Clock + now-detection interval (every 30s)
   useEffect(() => {
@@ -370,12 +372,15 @@ function MobileDayOf({ timeline, adminConfig, confirmedVendors, ceremonyRoles, c
     return () => clearInterval(id);
   }, []);
 
-  // Scroll to "now" entry on mount
+  // Scroll to "now" entry after timeline renders
   useEffect(() => {
-    if (nowRef.current) {
-      nowRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
-    }
-  }, []);
+    if (!nowRef.current || !bodyRef.current) return;
+    requestAnimationFrame(() => {
+      if (nowRef.current && bodyRef.current) {
+        bodyRef.current.scrollTop = nowRef.current.offsetTop - 80;
+      }
+    });
+  }, [timeline]);
 
   // Determine now/next from timeline
   const { nowEntry, nextEntry, progress } = useMemo(() => {
@@ -473,7 +478,7 @@ function MobileDayOf({ timeline, adminConfig, confirmedVendors, ceremonyRoles, c
       </div>
 
       {/* ── Scrollable body ── */}
-      <div className="dayof-m-body">
+      <div className="dayof-m-body" ref={bodyRef}>
 
         {/* ── Now card ── */}
         {nowEntry ? (
@@ -836,9 +841,9 @@ export function DayOfOverlay({ eventId, event, adminConfig, onClose, onPrintBrie
     kosherCount, totalConfirmed, totalInvited, eventName, eventDate, adminConfig,
   };
 
-  // ── Mobile: render dedicated mobile layout ────────────────────────────────
+  // ── Mobile: render via portal to document.body (escapes .app-shell stacking) ──
   if (isMobile) {
-    return (
+    return createPortal(
       <>
       <MobileDayOf
         timeline={effectiveData.timeline}
@@ -862,7 +867,8 @@ export function DayOfOverlay({ eventId, event, adminConfig, onClose, onPrintBrie
           onClose={() => { setShowAddItem(false); setEditItem(null); }}
         />
       )}
-      </>
+      </>,
+      document.body
     );
   }
 
@@ -961,7 +967,7 @@ export function DayOfOverlay({ eventId, event, adminConfig, onClose, onPrintBrie
             </div>
 
             {/* Vendor contacts */}
-            <div style={{ padding:"6px 14px 4px", fontSize:10, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.05em", color:"var(--text-muted)", borderBottom:"1px solid var(--border)", background:"var(--bg-page)" }}>Vendor Contacts</div>
+            <div style={{ padding:"6px 14px 4px", fontSize:10, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.05em", color:"var(--text-muted)", borderBottom:"1px solid var(--border)", background:"var(--bg-base)" }}>Vendor Contacts</div>
             {confirmedVendors.length === 0 ? (
               <div style={{ padding:"12px 14px", fontSize:13, color:"var(--text-muted)", fontStyle:"italic" }}>No confirmed vendors yet.</div>
             ) : confirmedVendors.map(v => (
