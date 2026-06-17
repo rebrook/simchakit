@@ -55,25 +55,6 @@ export function NotificationPanel({
 }) {
   const panelRef = useRef(null);
 
-  // Close on outside click
-  useEffect(() => {
-    const handler = (e) => {
-      if (
-        panelRef.current &&
-        !panelRef.current.contains(e.target) &&
-        !e.target.closest(".notif-bell-btn")
-      ) {
-        onClose();
-      }
-    };
-    document.addEventListener("mousedown", handler);
-    document.addEventListener("touchstart", handler);
-    return () => {
-      document.removeEventListener("mousedown", handler);
-      document.removeEventListener("touchstart", handler);
-    };
-  }, [onClose]);
-
   // Close on Escape
   useEffect(() => {
     const handler = (e) => { if (e.key === "Escape") onClose(); };
@@ -82,7 +63,10 @@ export function NotificationPanel({
   }, [onClose]);
 
   return (
-    <div className="notif-panel" ref={panelRef}>
+    <>
+      {/* Transparent backdrop catches outside clicks (fixed, escapes overflow:hidden) */}
+      <div className="notif-backdrop" onMouseDown={onClose} />
+      <div className="notif-panel" ref={panelRef}>
       {/* Header */}
       <div className="notif-panel-header">
         <span className="notif-panel-title">Notifications</span>
@@ -112,10 +96,7 @@ export function NotificationPanel({
                 key={entry.id}
                 className={`notif-entry${entry.isUnread ? " unread" : ""}${canNavigate ? " navigable" : ""}`}
                 onClick={() => {
-                  if (canNavigate) {
-                    onNavigateToTab(entry.tab);
-                    onClose();
-                  }
+                  if (canNavigate) onNavigateToTab(entry.tab);
                 }}
                 disabled={!canNavigate}
                 title={canNavigate ? `Go to ${entry.tab.charAt(0).toUpperCase() + entry.tab.slice(1)}` : undefined}
@@ -152,10 +133,11 @@ export function NotificationPanel({
 
       {/* Footer */}
       <div className="notif-panel-footer">
-        <button className="notif-see-all" onClick={() => { onSeeAllActivity(); onClose(); }}>
+        <button className="notif-see-all" onClick={onSeeAllActivity}>
           <Icon name="clipboardList" context="inline" /> See all activity
         </button>
       </div>
-    </div>
+      </div>
+    </>
   );
 }

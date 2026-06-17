@@ -528,7 +528,7 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false, display
             </div>
           )}
           <div className="mobile-header-actions">
-            <button className="icon-btn notif-bell-btn" title="Notifications" onClick={() => setShowNotifPanel(s => !s)} style={{ position: "relative" }}>
+            <button className="icon-btn notif-bell-btn" title="Notifications" onMouseDown={e => e.stopPropagation()} onClick={() => setShowNotifPanel(s => !s)}>
               <Icon name="bell" context="button" />
               {unreadCount > 0 && (
                 <span className="notif-badge">{unreadCount > 99 ? "99+" : unreadCount}</span>
@@ -759,29 +759,17 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false, display
               </button>
 
               {/* Notification bell */}
-              <div style={{ position: "relative" }}>
-                <button
-                  className="icon-btn notif-bell-btn"
-                  title="Notifications"
-                  onClick={() => setShowNotifPanel(s => !s)}
-                >
-                  <Icon name="bell" context="button" />
-                  {unreadCount > 0 && (
-                    <span className="notif-badge">{unreadCount > 99 ? "99+" : unreadCount}</span>
-                  )}
-                </button>
-                {showNotifPanel && (
-                  <NotificationPanel
-                    entries={notifEntries}
-                    loading={notifLoading}
-                    unreadCount={unreadCount}
-                    onMarkAllRead={markAllRead}
-                    onSeeAllActivity={() => setShowActivityLog(true)}
-                    onNavigateToTab={navigateTo}
-                    onClose={() => setShowNotifPanel(false)}
-                  />
+              <button
+                className="icon-btn notif-bell-btn"
+                title="Notifications"
+                onMouseDown={e => e.stopPropagation()}
+                onClick={() => setShowNotifPanel(s => !s)}
+              >
+                <Icon name="bell" context="button" />
+                {unreadCount > 0 && (
+                  <span className="notif-badge">{unreadCount > 99 ? "99+" : unreadCount}</span>
                 )}
-              </div>
+              </button>
 
               {/* TODO: standalone Print brief */}
             </div>
@@ -892,21 +880,6 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false, display
       {/* ── More drawer backdrop ── */}
       {showMoreDrawer && (
         <div className="more-drawer-backdrop" onClick={() => setShowMoreDrawer(false)} />
-      )}
-
-      {/* ── Mobile notification panel (positioned fixed for mobile) ── */}
-      {showNotifPanel && (
-        <div className="notif-panel-mobile-wrapper">
-          <NotificationPanel
-            entries={notifEntries}
-            loading={notifLoading}
-            unreadCount={unreadCount}
-            onMarkAllRead={markAllRead}
-            onSeeAllActivity={() => setShowActivityLog(true)}
-            onNavigateToTab={navigateTo}
-            onClose={() => setShowNotifPanel(false)}
-          />
-        </div>
       )}
 
       {/* ── More drawer ── */}
@@ -1038,6 +1011,19 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false, display
 
       {/* ── What's New Modal ── */}
       {showWhatsNew && <WhatsNewModal onClose={() => setShowWhatsNew(false)} />}
+
+      {/* ── Notification Panel (single instance, position:fixed) ── */}
+      {showNotifPanel && (
+        <NotificationPanel
+          entries={notifEntries}
+          loading={notifLoading}
+          unreadCount={unreadCount}
+          onMarkAllRead={markAllRead}
+          onSeeAllActivity={() => { setShowNotifPanel(false); setShowActivityLog(true); }}
+          onNavigateToTab={(tab) => { setShowNotifPanel(false); navigateTo(tab); }}
+          onClose={() => setShowNotifPanel(false)}
+        />
+      )}
 
       {/* ── Activity Log Modal ── */}
       {showActivityLog && (

@@ -708,19 +708,42 @@
     }
 
     .notif-panel {
-      position: absolute;
-      top: calc(100% + 8px);
-      right: 0;
+      position: fixed;
+      top: 62px;
+      right: 24px;
       width: 380px;
       max-height: 480px;
       background: var(--bg-surface);
       border: 1px solid var(--border);
       border-radius: var(--radius-md);
       box-shadow: var(--shadow-lg);
-      z-index: 500;
+      z-index: 700;
       display: flex;
       flex-direction: column;
       overflow: hidden;
+    }
+    @media (max-width: 900px) {
+      .notif-panel {
+        top: 56px;
+        left: 8px;
+        right: 8px;
+        width: auto;
+        max-height: calc(100dvh - 130px);
+        border-radius: var(--radius-lg);
+      }
+    }
+
+    .notif-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 699;
+    }
+    @media (max-width: 900px) {
+      .notif-backdrop {
+        background: rgba(28, 22, 20, 0.55);
+        backdrop-filter: blur(4px);
+        -webkit-backdrop-filter: blur(4px);
+      }
     }
 
     .notif-panel-header {
@@ -875,35 +898,6 @@
     }
     .notif-see-all:hover {
       background: var(--accent-light);
-    }
-
-    /* Mobile notification panel wrapper — fixed overlay, full-width */
-    .notif-panel-mobile-wrapper { display: none; }
-    @media (max-width: 900px) {
-      .notif-panel-mobile-wrapper {
-        display: block;
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        z-index: 600;
-        background: rgba(28, 22, 20, 0.55);
-        backdrop-filter: blur(4px);
-        -webkit-backdrop-filter: blur(4px);
-      }
-      .notif-panel-mobile-wrapper .notif-panel {
-        position: fixed;
-        top: 56px;
-        left: 8px;
-        right: 8px;
-        width: auto;
-        max-height: calc(100dvh - 130px);
-        border-radius: var(--radius-lg);
-      }
-    }
-    @media (min-width: 901px) {
-      .notif-panel-mobile-wrapper { display: none; }
     }
 
     /* ── Mobile header (<=900px only) ────────────────────────────────── */
