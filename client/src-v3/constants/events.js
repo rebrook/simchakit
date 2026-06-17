@@ -32,9 +32,25 @@ const EVENT_TYPE_ICONS = {
 
 const MITZVAH_TYPES = new Set(["bat-mitzvah", "bar-mitzvah", "bnei-mitzvah"]);
 
+// Line-icon keys for the event-type chip (maps type → iconMap.jsx key).
+// Replaces emoji rendering in the identity chip for cross-platform consistency.
+// The emoji map (EVENT_TYPE_ICONS) is kept for other consumers (timeline, exports).
+const EVENT_TYPE_ICON_KEYS = {
+  "bat-mitzvah":  "starOfDavid",
+  "bar-mitzvah":  "starOfDavid",
+  "bnei-mitzvah": "starOfDavid",
+  "wedding":      "rings",
+  "baby-naming":  "baby",
+  "graduation":   "graduationCap",
+  "anniversary":  "champagne",
+  "birthday":     "cake",
+  "other":        "partyPopper",
+};
+
 export {
   DAY_OF_TIME_BLOCKS,
   EVENT_TYPE_LABELS_MAP,
   EVENT_TYPE_ICONS,
+  EVENT_TYPE_ICON_KEYS,
   MITZVAH_TYPES,
 };

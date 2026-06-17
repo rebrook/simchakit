@@ -1,5 +1,5 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// SimchaKit V4.0.0 — iconMap.js
+// SimchaKit V4.13.0 — iconMap.js
 // Centralized icon map: string key → Lucide component.
 // All icons render via <Icon name="key" context="nav|button|..." />.
 // Color is always inherited via currentColor — never set inline.
@@ -79,7 +79,38 @@ import {
   PartyPopper,
   Wand2,
   UserPlus,
+  Gem,
+  GraduationCap,
+  Cake,
+  Baby,
+  Wine,
 } from "lucide-react";
+
+// ── Custom Star of David (hexagram) ─────────────────────────────────────────
+// Lucide has no hexagram glyph. This component matches Lucide's API so it
+// drops into the Icon component seamlessly: 24×24 viewBox, stroke currentColor,
+// fill none, round caps/joins. Single-outline hexagram (12-point star path)
+// reads cleanly at chip size without the muddied center of two-triangle overlap.
+function StarOfDavid({ size = 24, strokeWidth = 2, color = "currentColor", style, className, ...rest }) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke={color}
+      strokeWidth={strokeWidth}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      style={{ display: "inline-block", verticalAlign: "middle", flexShrink: 0, ...style }}
+      className={className}
+      {...rest}
+    >
+      <path d="M12 2L15.5 7.5H22L18.5 12L22 16.5H15.5L12 22L8.5 16.5H2L5.5 12L2 7.5H8.5Z" />
+    </svg>
+  );
+}
 
 // ── String key → Lucide component ───────────────────────────────────────────
 export const ICONS = {
@@ -96,6 +127,15 @@ export const ICONS = {
   accommodations:  Luggage,
   favors:          Star,
   calendar:        Calendar,
+
+  // Event-type glyphs (line icons replacing emoji for cross-platform consistency)
+  starOfDavid:     StarOfDavid,
+  rings:           Gem,
+  baby:            Baby,
+  graduationCap:   GraduationCap,
+  champagne:       Wine,
+  cake:            Cake,
+  // partyPopper (below) doubles as the "other" event-type glyph
 
   // Search group
   people:          UserRound,
@@ -191,6 +231,7 @@ const PRESET = {
   badge:     { size: 14, strokeWidth: 2.5 },     // icon inside a small role pill
   alert:     { size: 18, strokeWidth: 2 },       // start of a warning line
   empty:     { size: 44, strokeWidth: 1.25 },    // large centered empty-state
+  chip:      { size: 18, strokeWidth: 2 },       // event-type identity chip (34px bg)
 };
 
 // ── Icon component ──────────────────────────────────────────────────────────

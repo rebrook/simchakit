@@ -1,9 +1,25 @@
 {
-  "current": "V4.12.3",
+  "current": "V4.13.0",
   "whatsNew": [
-    "Star of David glyph reverted to plain rendering (line-icon replacement coming soon)"
+    "Event-type glyphs are now crisp line icons instead of emoji, identical on every device",
+    "Custom Star of David hexagram for B'nei Mitzvah events",
+    "Countdown watermark uses the matching line icon for consistency"
   ],
   "changelog": [
+    {
+      "version": "V4.13.0",
+      "date": "2026-06-17",
+      "summary": "Event-type glyphs replaced with single-color line icons for cross-platform consistency",
+      "details": [
+        "All 7 event-type glyphs (Bat/Bar/Bnei Mitzvah, Wedding, Baby Naming, Graduation, Anniversary, Birthday, Other) are now rendered as SVG line icons instead of emoji, ensuring identical appearance on iPhone, Android, Mac, and Windows",
+        "Custom Star of David hexagram icon added to iconMap (single-outline 12-point star path, stroke currentColor, no external dependency)",
+        "5 Lucide icons added for the remaining types: Gem (wedding), Baby (baby naming), GraduationCap (graduation), Wine (anniversary), Cake (birthday); PartyPopper (other) was already present",
+        "New EVENT_TYPE_ICON_KEYS map in constants/events.js provides the type-to-icon-key mapping; the existing emoji EVENT_TYPE_ICONS map is preserved for other consumers",
+        "New \"chip\" context preset in iconMap (18px, strokeWidth 2) optimized for the 34px accent-colored identity chip",
+        "Countdown watermark on Overview switched from emoji to the matching line glyph at 80px with 10% opacity",
+        "Icons inherit currentColor so the white glyph on the accent chip re-skins automatically with all 9 palettes and custom colors in both light and dark mode"
+      ]
+    },
     {
       "version": "V4.12.3",
       "date": "2026-06-17",

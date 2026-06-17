@@ -7,7 +7,7 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { supabase }           from "@/lib/supabase.js";
 import { useEventData }       from "@/hooks/useEventData.js";
-import { EVENT_TYPE_ICONS }   from "@/constants/events.js";
+import { EVENT_TYPE_ICON_KEYS } from "@/constants/events.js";
 import { getCountdown, formatDate, formatEntryMeta, sortTimeline } from "@/utils/dates.js";
 import { GetStartedCard }     from "@/components/shared/GetStartedCard.jsx";
 import { generateEventBriefHTML } from "@/utils/exports.js";
@@ -199,9 +199,8 @@ export function OverviewTab({ eventId, event, adminConfig, showToast, setActiveT
         {/* Countdown */}
         {eventDate && countdown ? (
           <div className="countdown-card">
-            <div style={{ position: "absolute", right: 28, top: "50%", transform: "translateY(-50%)", fontSize: 80, opacity: 0.08, lineHeight: 1, pointerEvents: "none", userSelect: "none" }}>
-              {/* TODO: event-type glyph — decide icon vs emoji separately (data model decision) */}
-              {EVENT_TYPE_ICONS[config.type] || "✡"}
+            <div style={{ position: "absolute", right: 28, top: "50%", transform: "translateY(-50%)", opacity: 0.10, pointerEvents: "none", userSelect: "none", color: "currentColor" }}>
+              <Icon name={EVENT_TYPE_ICON_KEYS[config.type] || "sparkles"} size={80} strokeWidth={1.25} />
             </div>
             <div className="countdown-label">Counting down to</div>
             <div className="countdown-title">{config.name || mainEvent?.title || "The Big Day"}</div>

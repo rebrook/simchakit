@@ -1,5 +1,5 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// SimchaKit V4.12.2 — AppShell.jsx
+// SimchaKit V4.13.0 — AppShell.jsx
 // Sidebar navigation architecture.
 // Desktop (>900px): 248px left sidebar + top bar + main content grid.
 // Mobile (<=900px): existing bottom bar + More drawer (unchanged UX).
@@ -36,7 +36,7 @@ import { FavorsTab }          from "@/components/tabs/FavorsTab.jsx";
 import { CalendarTab }        from "@/components/tabs/CalendarTab.jsx";
 
 // ── Event type icons — imported from shared constants ─────────────────────
-import { EVENT_TYPE_ICONS } from "@/constants/events.js";
+import { EVENT_TYPE_ICON_KEYS } from "@/constants/events.js";
 
 // ── Tab labels for the top bar ──────────────────────────────────────────────
 const TAB_LABELS = {
@@ -371,7 +371,7 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false, display
   const customColor = adminConfig?.theme?.customColor || "";
 
   // ── Event type icon + date for sidebar switcher ───────────────────────────
-  const eventTypeIcon = EVENT_TYPE_ICONS[adminConfig?.type] || "🎉";
+  const eventTypeIconKey = EVENT_TYPE_ICON_KEYS[adminConfig?.type] || "sparkles";
   const switcherDate  = formatSwitcherDate(adminConfig?.timeline);
 
   // ── Loading / error states ────────────────────────────────────────────────
@@ -525,7 +525,7 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false, display
           </div>
           {/* Row 2: event-type chip + event name + theme line */}
           <div className="mobile-header-row2">
-            <span className="mobile-identity-chip">{eventTypeIcon}</span>
+            <span className="mobile-identity-chip"><Icon name={eventTypeIconKey} context="chip" /></span>
             <div style={{ minWidth: 0, flex: 1 }}>
               <div className="mobile-identity-name" title={adminConfig?.name || ""}>{adminConfig?.name || "Untitled Event"}</div>
               {adminConfig?.theme?.name && (
@@ -549,7 +549,7 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false, display
 
         {/* Event switcher */}
         <button className="sidebar-switcher" onClick={onBack} title="Back to Events">
-          <span className="sidebar-switcher-emoji">{eventTypeIcon}</span>
+          <span className="sidebar-switcher-emoji"><Icon name={eventTypeIconKey} context="chip" /></span>
           <div style={{ minWidth: 0, flex: 1 }}>
             <div className="sidebar-switcher-name">{adminConfig?.name || "Untitled Event"}</div>
             <div className="sidebar-switcher-meta">
