@@ -199,7 +199,7 @@ export function OverviewTab({ eventId, event, adminConfig, showToast, setActiveT
         {/* Countdown */}
         {eventDate && countdown ? (
           <div className="countdown-card">
-            <div style={{ position: "absolute", right: 28, top: "50%", transform: "translateY(-50%)", opacity: 0.10, pointerEvents: "none", userSelect: "none", color: "currentColor" }}>
+            <div style={{ position: "absolute", right: -10, top: "50%", transform: "translateY(-50%)", opacity: 0.10, pointerEvents: "none", userSelect: "none", color: "currentColor" }}>
               <Icon name={EVENT_TYPE_ICON_KEYS[config.type] || "sparkles"} size={80} strokeWidth={1.25} />
             </div>
             <div className="countdown-label">Counting down to</div>

@@ -1,11 +1,19 @@
 {
-  "current": "V4.13.0",
+  "current": "V4.13.1",
   "whatsNew": [
-    "Event-type glyphs are now crisp line icons instead of emoji, identical on every device",
-    "Custom Star of David hexagram for B'nei Mitzvah events",
-    "Countdown watermark uses the matching line icon for consistency"
+    "Star of David is now a proper two-triangle hexagram matching the Lucide outline style",
+    "Countdown watermark repositioned to avoid mid-shape clipping"
   ],
   "changelog": [
+    {
+      "version": "V4.13.1",
+      "date": "2026-06-17",
+      "summary": "Fix: Star of David replaced with proper two-triangle stroked hexagram; countdown watermark repositioned to bleed cleanly off card edge",
+      "details": [
+        "Star of David glyph replaced with the two-triangle stroked hexagram from the event-glyphs mockup (two overlapping equilateral triangles, stroke currentColor, fill none) for a proper Magen David at all sizes",
+        "Countdown watermark repositioned from right: 28 to right: -10 so the glyph bleeds cleanly off the card edge (clipped by overflow: hidden) instead of getting cut mid-shape"
+      ]
+    },
     {
       "version": "V4.13.0",
       "date": "2026-06-17",

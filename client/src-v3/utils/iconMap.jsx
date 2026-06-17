@@ -1,5 +1,5 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// SimchaKit V4.13.0 — iconMap.js
+// SimchaKit V4.13.1 — iconMap.js
 // Centralized icon map: string key → Lucide component.
 // All icons render via <Icon name="key" context="nav|button|..." />.
 // Color is always inherited via currentColor — never set inline.
@@ -89,8 +89,8 @@ import {
 // ── Custom Star of David (hexagram) ─────────────────────────────────────────
 // Lucide has no hexagram glyph. This component matches Lucide's API so it
 // drops into the Icon component seamlessly: 24×24 viewBox, stroke currentColor,
-// fill none, round caps/joins. Single-outline hexagram (12-point star path)
-// reads cleanly at chip size without the muddied center of two-triangle overlap.
+// fill none, round caps/joins. Two overlapping equilateral triangles from the
+// event-glyphs.html mockup — a proper Magen David that reads cleanly at all sizes.
 function StarOfDavid({ size = 24, strokeWidth = 2, color = "currentColor", style, className, ...rest }) {
   return (
     <svg
@@ -107,7 +107,8 @@ function StarOfDavid({ size = 24, strokeWidth = 2, color = "currentColor", style
       className={className}
       {...rest}
     >
-      <path d="M12 2L15.5 7.5H22L18.5 12L22 16.5H15.5L12 22L8.5 16.5H2L5.5 12L2 7.5H8.5Z" />
+      <path d="M12 2.5 L20.5 17 L3.5 17 Z" />
+      <path d="M12 21.5 L3.5 7 L20.5 7 Z" />
     </svg>
   );
 }
