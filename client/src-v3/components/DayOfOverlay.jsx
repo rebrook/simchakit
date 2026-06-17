@@ -1,18 +1,87 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// SimchaKit V3.0.0 — DayOfOverlay.jsx
-// Ported from V2. Collections loaded via useEventData.
+// SimchaKit V4.10.0 — DayOfOverlay.jsx
+// V3 only. Collections loaded via useEventData.
 // dayOf config (checklist + timelineChecks) stored as single doc in supabase.
 // Print Brief: fully self-contained — generates printable HTML, opens iframe
 // preview modal. No AppShell involvement needed.
+//
+// Mobile Day-of Mode (<=900px):
+//   Full-screen, phone-optimized layout with auto-advancing now/next,
+//   one-tap vendor contacts, ceremony roles, and "Running late" CTA.
+//   Caches event data to localStorage for flaky venue wifi.
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { supabase }           from "@/lib/supabase.js";
 import { useEventData }       from "@/hooks/useEventData.js";
 import { DAY_OF_TIME_BLOCKS } from "@/constants/events.js";
 import { formatTimeRange, sortTimeline } from "@/utils/dates.js";
 import { Icon } from "@/utils/iconMap.jsx";
 import { iconSvg } from "@/utils/iconSvg.js";
+
+// ── Cache helpers ────────────────────────────────────────────────────────────
+const CACHE_VERSION = "v1";
+function cacheKey(eventId) { return `simchakit-dayof-cache-${CACHE_VERSION}-${eventId}`; }
+
+function readCache(eventId) {
+  try {
+    const raw = localStorage.getItem(cacheKey(eventId));
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    // Sanity: must have a timeline array
+    if (!parsed || !Array.isArray(parsed.timeline)) return null;
+    return parsed;
+  } catch { return null; }
+}
+
+function writeCache(eventId, data) {
+  try { localStorage.setItem(cacheKey(eventId), JSON.stringify(data)); } catch { /* quota exceeded, ignore */ }
+}
+
+// ── Time helpers for now/next detection ──────────────────────────────────────
+function parseTimeToMinutes(timeStr) {
+  if (!timeStr) return null;
+  // Accepts "HH:MM", "H:MM AM/PM", "HH:MM AM/PM"
+  const cleaned = timeStr.trim().toUpperCase();
+  let hours, minutes;
+
+  const ampmMatch = cleaned.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/);
+  if (ampmMatch) {
+    hours = parseInt(ampmMatch[1], 10);
+    minutes = parseInt(ampmMatch[2], 10);
+    if (ampmMatch[3] === "PM" && hours !== 12) hours += 12;
+    if (ampmMatch[3] === "AM" && hours === 12) hours = 0;
+  } else {
+    const match24 = cleaned.match(/^(\d{1,2}):(\d{2})$/);
+    if (!match24) return null;
+    hours = parseInt(match24[1], 10);
+    minutes = parseInt(match24[2], 10);
+  }
+  if (isNaN(hours) || isNaN(minutes)) return null;
+  return hours * 60 + minutes;
+}
+
+function getNowMinutes() {
+  const now = new Date();
+  return now.getHours() * 60 + now.getMinutes();
+}
+
+function formatClock() {
+  return new Date().toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+}
+
+// ── Mobile detection (matches AppShell 900px breakpoint) ─────────────────────
+function useIsMobile() {
+  const [isMobile, setIsMobile] = useState(() => window.innerWidth <= 900);
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 900px)");
+    const handler = (e) => setIsMobile(e.matches);
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, []);
+  return isMobile;
+}
+
 
 // ── Print Brief HTML generator ────────────────────────────────────────────────
 function generatePrintBriefHTML({ adminConfig, timeline, households, people, vendors, expenses, tasks, ceremonyRoles }) {
@@ -284,8 +353,321 @@ export function DayOfItemModal({ item, onSave, onClose }) {
   );
 }
 
+
+// ── Mobile Day-of View ────────────────────────────────────────────────────────
+function MobileDayOf({ timeline, adminConfig, confirmedVendors, ceremonyRoles, confirmedPeople, dietaryPeople, kosherCount, totalConfirmed, totalInvited, eventName, eventDate, coPlanners, onClose }) {
+  const [clock, setClock] = useState(formatClock);
+  const [nowMinutes, setNowMinutes] = useState(getNowMinutes);
+  const nowRef = useRef(null);
+
+  // Clock + now-detection interval (every 30s)
+  useEffect(() => {
+    const tick = () => {
+      setClock(formatClock());
+      setNowMinutes(getNowMinutes());
+    };
+    const id = setInterval(tick, 30000);
+    return () => clearInterval(id);
+  }, []);
+
+  // Scroll to "now" entry on mount
+  useEffect(() => {
+    if (nowRef.current) {
+      nowRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  }, []);
+
+  // Determine now/next from timeline
+  const { nowEntry, nextEntry, progress } = useMemo(() => {
+    let now = null, next = null, prog = 0;
+    const mins = nowMinutes;
+
+    for (let i = 0; i < timeline.length; i++) {
+      const entry = timeline[i];
+      const start = parseTimeToMinutes(entry.startTime);
+      const end   = parseTimeToMinutes(entry.endTime);
+
+      if (start !== null && end !== null && mins >= start && mins < end) {
+        now = entry;
+        prog = Math.round(((mins - start) / (end - start)) * 100);
+        if (i + 1 < timeline.length) next = timeline[i + 1];
+        break;
+      }
+    }
+
+    // If nothing is "now", find the next upcoming
+    if (!now) {
+      for (const entry of timeline) {
+        const start = parseTimeToMinutes(entry.startTime);
+        if (start !== null && start > mins) {
+          next = entry;
+          break;
+        }
+      }
+    }
+
+    return { nowEntry: now, nextEntry: next, progress: prog };
+  }, [timeline, nowMinutes]);
+
+  // Clergy from adminConfig
+  const clergyContacts = useMemo(() => {
+    const cfg = adminConfig || {};
+    const contacts = [];
+    if (cfg.clergyName)     contacts.push({ name: cfg.clergyName,     role: cfg.clergyTitle || "Clergy",     phone: cfg.clergyPhone,     email: cfg.clergyEmail });
+    if (cfg.clergy2Name)    contacts.push({ name: cfg.clergy2Name,    role: cfg.clergy2Title || "Clergy",    phone: cfg.clergy2Phone,    email: cfg.clergy2Email });
+    if (cfg.tutorName)      contacts.push({ name: cfg.tutorName,      role: cfg.tutorTitle || "Tutor",       phone: cfg.tutorPhone,      email: cfg.tutorEmail });
+    if (cfg.coordinatorName) contacts.push({ name: cfg.coordinatorName, role: "Day-of coordinator", phone: cfg.coordinatorPhone, email: cfg.coordinatorEmail });
+    return contacts;
+  }, [adminConfig]);
+
+  // Notify CTA: mailto to co-planners (excluding current user, but we don't have userId here so include all)
+  const notifyHref = useMemo(() => {
+    const emails = (coPlanners || []).filter(c => c.email && c.role !== "owner").map(c => c.email);
+    // Also include the owner for notification
+    const ownerEmail = (coPlanners || []).find(c => c.role === "owner")?.email;
+    const allEmails = ownerEmail ? [ownerEmail, ...emails] : emails;
+    if (allEmails.length === 0) return null;
+
+    const name = eventName || "the event";
+    const subject = encodeURIComponent(`Running late - ${name}`);
+    const body = encodeURIComponent(`Hi team,\n\nI'm running a few minutes late to ${name}. Will update when I'm close.\n\nSent from SimchaKit`);
+    return `mailto:${allEmails.join(",")}?subject=${subject}&body=${body}`;
+  }, [coPlanners, eventName]);
+
+  // Ceremony roles: show section matching current "now" entry, or all sections if no match
+  const ceremonyDisplay = useMemo(() => {
+    if (!ceremonyRoles || ceremonyRoles.length === 0) return null;
+    const sorted = [...ceremonyRoles].sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
+    const allSections = [...new Set(sorted.map(r => r.section).filter(Boolean))];
+
+    // Try to match now entry title to a ceremony section
+    if (nowEntry) {
+      const nowTitle = nowEntry.title?.toLowerCase() || "";
+      const matchedSection = allSections.find(s => nowTitle.includes(s.toLowerCase()) || s.toLowerCase().includes(nowTitle));
+      if (matchedSection) {
+        return { sections: [matchedSection], roles: sorted };
+      }
+    }
+
+    // No match: show all sections
+    return { sections: allSections, roles: sorted };
+  }, [ceremonyRoles, nowEntry]);
+
+  const nextTimeStr = nextEntry ? formatTimeRange(nextEntry.startTime, nextEntry.endTime)?.split("–")[0]?.trim() || "" : "";
+
+  return (
+    <div className="dayof-m-root">
+      {/* ── Sticky header ── */}
+      <div className="dayof-m-header">
+        <div className="dayof-m-header-row">
+          <div className="dayof-m-mode">
+            <Icon name="clipboardList" context="badge" style={{ marginRight: 4 }} />
+            Day-of mode
+          </div>
+          <button className="dayof-m-exit" onClick={onClose}>Exit</button>
+        </div>
+        <div className="dayof-m-header-row" style={{ marginTop: 6 }}>
+          <div className="dayof-m-event-name">{eventName}</div>
+          <div className="dayof-m-clock">{clock}</div>
+        </div>
+      </div>
+
+      {/* ── Scrollable body ── */}
+      <div className="dayof-m-body">
+
+        {/* ── Now card ── */}
+        {nowEntry ? (
+          <div className="dayof-m-now">
+            <div className="dayof-m-now-tag">
+              <Icon name="clock" context="badge" style={{ marginRight: 4 }} />
+              Happening now
+            </div>
+            <div className="dayof-m-now-title">{nowEntry.title}</div>
+            <div className="dayof-m-now-meta">
+              <Icon name="mapPin" context="badge" style={{ marginRight: 4 }} />
+              {[nowEntry.venue, formatTimeRange(nowEntry.startTime, nowEntry.endTime)].filter(Boolean).join(" · ")}
+            </div>
+            <div className="dayof-m-progress">
+              <div className="dayof-m-progress-fill" style={{ width: `${progress}%` }} />
+            </div>
+            {nextEntry && (
+              <div className="dayof-m-now-next">
+                Next: {nextEntry.title}{nextTimeStr ? ` at ${nextTimeStr}` : ""}
+              </div>
+            )}
+          </div>
+        ) : nextEntry ? (
+          <div className="dayof-m-now" style={{ background: "var(--bg-surface)", border: "1px solid var(--border)" }}>
+            <div className="dayof-m-now-tag" style={{ background: "var(--bg-subtle)", color: "var(--text-muted)" }}>
+              <Icon name="clock" context="badge" style={{ marginRight: 4 }} />
+              Coming up next
+            </div>
+            <div className="dayof-m-now-title" style={{ color: "var(--text-primary)" }}>{nextEntry.title}</div>
+            <div className="dayof-m-now-meta" style={{ color: "var(--text-secondary)" }}>
+              <Icon name="mapPin" context="badge" style={{ marginRight: 4 }} />
+              {[nextEntry.venue, formatTimeRange(nextEntry.startTime, nextEntry.endTime)].filter(Boolean).join(" · ")}
+            </div>
+          </div>
+        ) : null}
+
+        {/* ── Run of show ── */}
+        <div className="dayof-m-card">
+          <div className="dayof-m-card-label">
+            <Icon name="calendar" context="badge" style={{ marginRight: 5 }} />
+            Run of show
+          </div>
+          {timeline.length === 0 ? (
+            <div className="dayof-m-empty">No timeline entries configured.</div>
+          ) : timeline.map((entry, i) => {
+            const start = parseTimeToMinutes(entry.startTime);
+            const end   = parseTimeToMinutes(entry.endTime);
+            const isNow  = start !== null && end !== null && nowMinutes >= start && nowMinutes < end;
+            const isPast = end !== null && nowMinutes >= end;
+            const timeStr = entry.startTime ? entry.startTime.replace(/^0/, "") : "";
+            return (
+              <div
+                key={entry.id || i}
+                ref={isNow ? nowRef : null}
+                className={`dayof-m-run-row ${isNow ? "now" : ""} ${isPast ? "past" : ""}`}
+              >
+                <div className="dayof-m-run-time" style={isNow ? { color: "var(--accent-primary)", fontWeight: 700 } : undefined}>
+                  {timeStr}
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div className={`dayof-m-run-title ${isNow ? "now" : ""}`}>{entry.title}</div>
+                  {(entry.venue) && (
+                    <div className="dayof-m-run-venue">{entry.venue}{entry.isMainEvent ? "" : ""}</div>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* ── Key contacts ── */}
+        {(confirmedVendors.length > 0 || clergyContacts.length > 0) && (
+          <div className="dayof-m-card">
+            <div className="dayof-m-card-label">
+              <Icon name="bellRing" context="badge" style={{ marginRight: 5 }} />
+              Key contacts
+            </div>
+            {clergyContacts.map((c, i) => (
+              <div key={`clergy-${i}`} className="dayof-m-contact">
+                <div className="dayof-m-contact-icon">
+                  <Icon name="sparkles" context="button" />
+                </div>
+                <div className="dayof-m-contact-info">
+                  <div className="dayof-m-contact-name">{c.name}</div>
+                  <div className="dayof-m-contact-role">{c.role}</div>
+                </div>
+                <div className="dayof-m-contact-actions">
+                  {c.phone && (
+                    <a href={`tel:${c.phone}`} className="dayof-m-action-btn call" aria-label={`Call ${c.name}`}>
+                      <Icon name="phone" context="badge" />
+                    </a>
+                  )}
+                  {c.phone && (
+                    <a href={`sms:${c.phone}`} className="dayof-m-action-btn text" aria-label={`Text ${c.name}`}>
+                      <Icon name="messageSquare" context="badge" />
+                    </a>
+                  )}
+                  {!c.phone && c.email && (
+                    <a href={`mailto:${c.email}`} className="dayof-m-action-btn text" aria-label={`Email ${c.name}`}>
+                      <Icon name="mail" context="badge" />
+                    </a>
+                  )}
+                </div>
+              </div>
+            ))}
+            {confirmedVendors.map(v => (
+              <div key={v.id} className="dayof-m-contact">
+                <div className="dayof-m-contact-icon">
+                  <Icon name="store" context="button" />
+                </div>
+                <div className="dayof-m-contact-info">
+                  <div className="dayof-m-contact-name">{v.name}</div>
+                  <div className="dayof-m-contact-role">{v.type || "Vendor"}{v.contactName ? ` · ${v.contactName}` : ""}</div>
+                </div>
+                <div className="dayof-m-contact-actions">
+                  {v.phone && (
+                    <a href={`tel:${v.phone}`} className="dayof-m-action-btn call" aria-label={`Call ${v.name}`}>
+                      <Icon name="phone" context="badge" />
+                    </a>
+                  )}
+                  {v.phone && (
+                    <a href={`sms:${v.phone}`} className="dayof-m-action-btn text" aria-label={`Text ${v.name}`}>
+                      <Icon name="messageSquare" context="badge" />
+                    </a>
+                  )}
+                  {!v.phone && v.email && (
+                    <a href={`mailto:${v.email}`} className="dayof-m-action-btn text" aria-label={`Email ${v.name}`}>
+                      <Icon name="mail" context="badge" />
+                    </a>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* ── Ceremony roles ── */}
+        {ceremonyDisplay && ceremonyDisplay.sections.length > 0 && (
+          <div className="dayof-m-card">
+            <div className="dayof-m-card-label">
+              ✡ Ceremony roles
+            </div>
+            {ceremonyDisplay.sections.map(sec => {
+              const sectionRoles = ceremonyDisplay.roles.filter(r => r.section === sec);
+              return (
+                <div key={sec}>
+                  <div className="dayof-m-section-label">{sec}</div>
+                  {sectionRoles.map(role => (
+                    <div key={role.id} className="dayof-m-role-row">
+                      <div className="dayof-m-role-name">
+                        {role.role}
+                        {role.hebrewName && <span className="dayof-m-role-hebrew">{role.hebrewName}</span>}
+                      </div>
+                      <div className={`dayof-m-role-assignee ${role.assignee?.trim() ? "" : "empty"}`}>
+                        {role.assignee?.trim() || "Unassigned"}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {/* ── Quick numbers ── */}
+        <div className="dayof-m-card">
+          <div className="dayof-m-card-label">
+            <Icon name="users" context="badge" style={{ marginRight: 5 }} />
+            Guest snapshot
+          </div>
+          <div className="dayof-m-stats-grid">
+            <div className="dayof-m-stat"><div className="dayof-m-stat-value">{totalConfirmed}</div><div className="dayof-m-stat-label">Confirmed</div></div>
+            <div className="dayof-m-stat"><div className="dayof-m-stat-value">{totalInvited}</div><div className="dayof-m-stat-label">Invited</div></div>
+            <div className="dayof-m-stat"><div className="dayof-m-stat-value">{kosherCount}</div><div className="dayof-m-stat-label">Kosher</div></div>
+            <div className="dayof-m-stat"><div className="dayof-m-stat-value">{dietaryPeople.length}</div><div className="dayof-m-stat-label">Dietary</div></div>
+          </div>
+        </div>
+
+      </div>
+
+      {/* ── Sticky bottom CTA ── */}
+      {notifyHref && (
+        <a href={notifyHref} className="dayof-m-notify">
+          <Icon name="bellRing" context="button" style={{ marginRight: 8 }} />
+          Running late? Notify the team
+        </a>
+      )}
+    </div>
+  );
+}
+
+
 // ── DayOfOverlay ──────────────────────────────────────────────────────────────
-export function DayOfOverlay({ eventId, event, adminConfig, onClose, onPrintBrief }) {
+export function DayOfOverlay({ eventId, event, adminConfig, onClose, onPrintBrief, coPlanners }) {
   const { items: vendors }    = useEventData(eventId, "vendors");
   const { items: people }     = useEventData(eventId, "people");
   const { items: households } = useEventData(eventId, "households");
@@ -309,6 +691,9 @@ export function DayOfOverlay({ eventId, event, adminConfig, onClose, onPrintBrie
 
   const [showAddItem, setShowAddItem] = useState(false);
   const [editItem,    setEditItem]    = useState(null);
+
+  // Mobile detection
+  const isMobile = useIsMobile();
 
   // Load dayOf config
   useEffect(() => {
@@ -377,6 +762,7 @@ export function DayOfOverlay({ eventId, event, adminConfig, onClose, onPrintBrie
   const eventDate = mainEvent?.startDate
     ? new Date(mainEvent.startDate+"T00:00:00").toLocaleDateString("en-US", { weekday:"long", month:"long", day:"numeric", year:"numeric" })
     : "";
+  const eventName = adminConfig?.name || event?.name || "Event";
 
   const grouped = {};
   DAY_OF_TIME_BLOCKS.forEach(b => { grouped[b] = []; });
@@ -414,6 +800,73 @@ export function DayOfOverlay({ eventId, event, adminConfig, onClose, onPrintBrie
     setPrintHTML(html);
   };
 
+  // ── Offline cache: write on successful data load ──────────────────────────
+  const cachedData = useRef(null);
+  if (!cachedData.current && eventId) {
+    cachedData.current = readCache(eventId);
+  }
+
+  useEffect(() => {
+    // Only cache when we have meaningful data loaded (successful fetch)
+    if (!eventId || !timeline.length || (!vendors.length && !people.length)) return;
+    const payload = {
+      timeline,
+      confirmedVendors,
+      ceremonyRoles,
+      confirmedPeople,
+      dietaryPeople,
+      kosherCount,
+      totalConfirmed,
+      totalInvited,
+      eventName,
+      eventDate,
+      adminConfig,
+    };
+    writeCache(eventId, payload);
+    cachedData.current = payload;
+  }, [eventId, timeline, confirmedVendors, ceremonyRoles, confirmedPeople, dietaryPeople, kosherCount, totalConfirmed, totalInvited, eventName, eventDate, adminConfig]);
+
+  // Determine if live data is still loading (hooks returned empty)
+  const liveDataReady = timeline.length > 0 || vendors.length > 0 || people.length > 0;
+  const effectiveData = liveDataReady ? {
+    timeline, confirmedVendors, ceremonyRoles, confirmedPeople, dietaryPeople,
+    kosherCount, totalConfirmed, totalInvited, eventName, eventDate, adminConfig,
+  } : cachedData.current || {
+    timeline, confirmedVendors, ceremonyRoles, confirmedPeople, dietaryPeople,
+    kosherCount, totalConfirmed, totalInvited, eventName, eventDate, adminConfig,
+  };
+
+  // ── Mobile: render dedicated mobile layout ────────────────────────────────
+  if (isMobile) {
+    return (
+      <>
+      <MobileDayOf
+        timeline={effectiveData.timeline}
+        adminConfig={effectiveData.adminConfig}
+        confirmedVendors={effectiveData.confirmedVendors}
+        ceremonyRoles={effectiveData.ceremonyRoles}
+        confirmedPeople={effectiveData.confirmedPeople}
+        dietaryPeople={effectiveData.dietaryPeople}
+        kosherCount={effectiveData.kosherCount}
+        totalConfirmed={effectiveData.totalConfirmed}
+        totalInvited={effectiveData.totalInvited}
+        eventName={effectiveData.eventName}
+        eventDate={effectiveData.eventDate}
+        coPlanners={coPlanners}
+        onClose={onClose}
+      />
+      {(showAddItem || editItem) && (
+        <DayOfItemModal
+          item={editItem}
+          onSave={handleSaveItem}
+          onClose={() => { setShowAddItem(false); setEditItem(null); }}
+        />
+      )}
+      </>
+    );
+  }
+
+  // ── Desktop: existing panel layout ────────────────────────────────────────
   return (
     <>
     <div className="modal-backdrop" onMouseDown={e => { if (e.target === e.currentTarget) onClose(); }}>

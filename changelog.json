@@ -1,11 +1,28 @@
 {
-  "current": "V4.9.0",
+  "current": "V4.10.0",
   "whatsNew": [
-    "Tab stats now appear in the pinned top bar on desktop, giving every tab a clean, consistent header.",
-    "Conic-gradient completion rings on the four primary Overview stat cards (RSVPs, Budget, Tasks, Vendors).",
-    "New seating capacity meter showing confirmed guests vs. available seats with color-coded fill."
+    "Mobile Day-of Mode: full-screen phone layout with live now/next, one-tap contacts, and running-late notifications",
+    "Offline caching for event day data on flaky venue wifi"
   ],
   "changelog": [
+    {
+      "version": "V4.10.0",
+      "date": "2026-06-16",
+      "type": "minor",
+      "title": "Mobile Day-of Mode",
+      "changes": [
+        "Dedicated full-screen mobile layout for Day-of Mode at 900px breakpoint (phones and tablets)",
+        "Live now/next detection with progress bar, auto-advancing against the event timeline",
+        "Run-of-show timeline with past/now/future styling and auto-scroll to current entry",
+        "One-tap call and text buttons for vendor and clergy contacts",
+        "Ceremony roles section with smart filtering to the current timeline entry",
+        "Guest snapshot stats grid (confirmed, invited, kosher, dietary)",
+        "Running late: notify the team CTA via mailto to co-planner roster with prefilled subject and body",
+        "Offline cache with versioned localStorage key for flaky venue wifi",
+        "Safe area inset support for notched devices (header, bottom CTA, scroll area)",
+        "Desktop Day-of panel unchanged"
+      ]
+    },
     {
       "version": "V4.9.0",
       "date": "Jun 16, 2026",
