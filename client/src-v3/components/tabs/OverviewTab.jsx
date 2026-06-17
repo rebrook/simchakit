@@ -16,8 +16,27 @@ import { StatCard }          from "@/components/shared/StatCard.jsx";
 import { FocusPanel }        from "@/components/shared/FocusPanel.jsx";
 import { computeFocusItems } from "@/utils/focus.js";
 
+// Abbreviate currency for mobile ring cards: $11,831.63 -> $11.8k
+function fmtCurrency(n, compact) {
+  if (!compact || n < 10000) return `$${n.toLocaleString()}`;
+  if (n < 1000000) return `$${(n / 1000).toFixed(1).replace(/\.0$/, "")}k`;
+  return `$${(n / 1000000).toFixed(1).replace(/\.0$/, "")}M`;
+}
+
+function useIsMobile() {
+  const [m, setM] = useState(() => window.innerWidth <= 900);
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 900px)");
+    const h = (e) => setM(e.matches);
+    mq.addEventListener("change", h);
+    return () => mq.removeEventListener("change", h);
+  }, []);
+  return m;
+}
+
 export function OverviewTab({ eventId, event, adminConfig, showToast, setActiveTab, onOpenAdmin, onOpenAdminTo, onOpenGuide, onPrintBrief, isViewer, setTopbarSubtitle, userName }) {
   const config    = adminConfig || {};
+  const isMobile  = useIsMobile();
   const mainEvent = (config.timeline || []).find(e => e.isMainEvent) || null;
   const eventDate = mainEvent?.startDate || null;
   const eventVenue = mainEvent?.venue || null;
@@ -236,10 +255,10 @@ export function OverviewTab({ eventId, event, adminConfig, showToast, setActiveT
         />
         <StatCard
           label="Budget Paid"
-          value={`$${totalPaid.toLocaleString()}`}
+          value={fmtCurrency(totalPaid, isMobile)}
           numericValue={totalPaid}
           total={totalBudget}
-          totalDisplay={`$${totalBudget.toLocaleString()}`}
+          totalDisplay={fmtCurrency(totalBudget, isMobile)}
           tone={completionTone(totalPaid, totalBudget, "accent")}
           display="ring"
           sub="paid"

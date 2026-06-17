@@ -1,10 +1,22 @@
 {
-  "current": "V4.10.0",
+  "current": "V4.10.1",
   "whatsNew": [
     "Mobile Day-of Mode: full-screen phone layout with live now/next, one-tap contacts, and running-late notifications",
-    "Offline caching for event day data on flaky venue wifi"
+    "Offline caching for event day data on flaky venue wifi",
+    "Budget values no longer overflow on mobile Overview"
   ],
   "changelog": [
+    {
+      "version": "V4.10.1",
+      "date": "2026-06-16",
+      "type": "patch",
+      "title": "Mobile stat grid overflow fix",
+      "changes": [
+        "Fix: budget value no longer overflows the Overview stat grid on narrow mobile screens",
+        "Grid tracks use minmax(0, 1fr) to allow shrinking below content width",
+        "Large currency values abbreviated on mobile ring cards ($11.8k instead of $11,831.63)"
+      ]
+    },
     {
       "version": "V4.10.0",
       "date": "2026-06-16",

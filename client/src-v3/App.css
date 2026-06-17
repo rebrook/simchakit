@@ -1777,12 +1777,12 @@
 
       /* Stat grid — always 2 columns on phone, tighter */
       .stat-grid {
-        grid-template-columns: 1fr 1fr !important;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
         gap: 10px;
         margin-bottom: 20px;
       }
-      .stat-card { padding: 14px 16px; }
-      .stat-card-ring { padding: 12px 14px; }
+      .stat-card { padding: 14px 16px; min-width: 0; }
+      .stat-card-ring { padding: 12px 14px; min-width: 0; }
       .stat-value { font-size: 22px; }
       .stat-label { font-size: 12px; }
       .stat-sub { font-size: 11px; }
