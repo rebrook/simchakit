@@ -1,11 +1,26 @@
 {
-  "current": "V4.13.5",
+  "current": "V4.14.0",
   "whatsNew": [
-    "Print Brief now lives in the desktop top bar as a themed accent button (Overview tab only), eliminating the duplicate in the content area",
-    "On mobile, the button becomes \"Share brief\" and opens the native OS share sheet with a text summary (event name, date, venue, guest count) and a deep link to the event",
-    "Share icon (Share2) added to the icon system"
+    "Share Brief on mobile now generates and shares a real PDF of your full event brief via the native OS share sheet",
+    "Two-tap pattern: tap Prepare brief to generate the PDF, then tap Share brief to open the share sheet with the document attached",
+    "Graceful fallback: if PDF generation or file sharing fails, falls back to a text summary share, then to the print preview modal",
+    "PDF generation is lazy-loaded (html2pdf.js) so it never impacts initial page load"
   ],
   "changelog": [
+    {
+      "version": "V4.14.0",
+      "date": "2026-06-17",
+      "changes": [
+        "Share Brief (mobile) now generates a multi-page PDF of the full event brief and shares the actual document via navigator.share({ files })",
+        "Two-tap iOS-safe pattern: tap 1 generates the PDF (button shows Generating...), tap 2 calls navigator.share in a fresh click gesture to avoid iOS Safari user-activation expiry",
+        "PDF generated via html2pdf.js, lazy-loaded on first use via dynamic import() so it adds zero bytes to the initial bundle",
+        "Offscreen render container uses 816px width (Letter at 96dpi minus margins) and relies on app-loaded fonts via document.fonts.ready rather than injecting a separate Google Fonts link",
+        "Fallback cascade: PDF file share, then text-only summary share, then print preview modal; AbortError (user cancel) is a silent no-op; generation errors restore the button and never stick on Generating",
+        "Added page-break-inside: avoid to the event brief sub-event attendance blocks, ceremony role sections, overdue task sections, vendor grid, and stat row for cleaner multi-page output",
+        "Button states: idle (Prepare brief with fileText icon), generating (disabled, Generating...), ready (Share brief with share icon, accent primary style), sharing (disabled, Sharing...)",
+        "Desktop Print Brief path unchanged (top-bar button opens print preview modal with browser Print/Save PDF)"
+      ]
+    },
     {
       "version": "V4.13.5",
       "date": "2026-06-17",

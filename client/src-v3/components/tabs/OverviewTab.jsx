@@ -114,15 +114,119 @@ export function OverviewTab({ eventId, event, adminConfig, showToast, setActiveT
     return () => window.removeEventListener("simchakit:print-brief", handler);
   }, [handlePrintBrief]);
 
-  // Share brief (mobile) — text summary via OS share sheet,
-  // fallback to print modal when navigator.share is unavailable.
-  // No URL included: the app uses state-based routing with no
-  // deep-linkable event URLs yet. The summary itself is the value.
-  // TODO: add deep link when URL routing ships
-  const handleShareBrief = async () => {
-    const eventName = config.name || "My Event";
+  // ── Share brief (mobile) — two-tap PDF pattern ──────────────────────────
+  // iOS Safari expires user-activation across async work, so we cannot
+  // await import() + fonts.ready + html2canvas and then call
+  // navigator.share in the same gesture — it throws NotAllowedError.
+  //
+  // Tap 1 ("Share brief"): generate the PDF blob and cache it.
+  //   Button becomes "Share brief" (ready state) when done.
+  // Tap 2 ("Share brief" in ready state): call navigator.share({ files })
+  //   directly inside the fresh click — gesture is intact.
+  //
+  // On any error during generation or sharing, restore the button and
+  // fall back to text-only share. Never stick on "Generating...".
 
-    // Build a concise text summary from the same data the brief uses
+  const [briefPdfState, setBriefPdfState] = useState("idle");
+  // "idle" | "generating" | "ready" | "sharing"
+  const briefPdfRef = useRef(null); // cached File object
+
+  // Sanitize event name for filename: strip non-alphanumeric except spaces/hyphens, collapse
+  const sanitizeName = (name) =>
+    (name || "Event").replace(/[^\w\s-]/g, "").replace(/\s+/g, "-").replace(/-+/g, "-").slice(0, 60);
+
+  // Tap 1: generate the PDF blob
+  const handleGenerateBriefPDF = async () => {
+    setBriefPdfState("generating");
+    try {
+      // Generate the brief HTML
+      const state = { people, households, expenses, vendors, tasks, ceremonyRoles };
+      const html = generateEventBriefHTML(state, adminConfig);
+
+      // Lazy-load html2pdf.js (code-split, ~190KB, downloaded once)
+      const html2pdf = (await import("html2pdf.js")).default;
+
+      // Create offscreen container — 816px = Letter width at 96dpi minus 1in margins
+      const container = document.createElement("div");
+      container.style.cssText = "position:fixed;left:-9999px;top:0;width:816px;overflow:hidden;";
+      document.body.appendChild(container);
+
+      // Extract <body> content from the full HTML document and inject.
+      // Do NOT inject the Google Fonts <link> — rely on the app's
+      // already-loaded fonts. Extract inline <style> block to preserve
+      // print/grid/stat-row classes.
+      const styleMatch = html.match(/<style>([\s\S]*?)<\/style>/);
+      const bodyMatch  = html.match(/<body[^>]*>([\s\S]*?)<\/body>/);
+      container.innerHTML =
+        (styleMatch ? `<style>${styleMatch[1]}</style>` : "") +
+        (bodyMatch  ? bodyMatch[1] : html);
+
+      // Wait for fonts (Cormorant Garamond + DM Sans already loaded by app)
+      await document.fonts.ready;
+
+      // Generate PDF blob
+      const blob = await html2pdf().set({
+        margin:      [10, 10, 10, 10],
+        filename:    `${sanitizeName(config.name)}-brief.pdf`,
+        image:       { type: "jpeg", quality: 0.95 },
+        html2canvas: { scale: 2, useCORS: true, logging: false, width: 816 },
+        jsPDF:       { unit: "mm", format: "letter", orientation: "portrait" },
+        pagebreak:   { mode: ["avoid-all", "css", "legacy"] },
+      }).from(container).outputPdf("blob");
+
+      // Cleanup offscreen container
+      document.body.removeChild(container);
+
+      // Cache the File for tap 2
+      const fileName = `${sanitizeName(config.name)}-brief.pdf`;
+      briefPdfRef.current = new File([blob], fileName, { type: "application/pdf" });
+      setBriefPdfState("ready");
+    } catch (err) {
+      console.warn("[SimchaKit] PDF generation failed:", err);
+      briefPdfRef.current = null;
+      setBriefPdfState("idle");
+      // Fall back to text share
+      fallbackTextShare();
+    }
+  };
+
+  // Tap 2: share the cached PDF file (called inside a fresh click gesture)
+  const handleShareCachedPDF = async () => {
+    const file = briefPdfRef.current;
+    if (!file) { setBriefPdfState("idle"); return; }
+
+    setBriefPdfState("sharing");
+    const eventName = config.name || "My Event";
+    try {
+      if (navigator.canShare?.({ files: [file] })) {
+        await navigator.share({
+          files: [file],
+          title: `${eventName} — Event Brief`,
+        });
+      } else {
+        // Device doesn't support file sharing — fall back to text
+        fallbackTextShare();
+      }
+    } catch (err) {
+      if (err.name === "AbortError") {
+        // User cancelled the share sheet — no-op, stay in ready state
+        setBriefPdfState("ready");
+        return;
+      }
+      // NotAllowedError or other — fall back to text share
+      console.warn("[SimchaKit] Share failed:", err);
+      fallbackTextShare();
+    }
+    // Reset after successful share (or fallback)
+    if (briefPdfRef.current) {
+      // Keep the cached PDF in case they want to share again
+      setBriefPdfState("ready");
+    }
+  };
+
+  // Text-only share fallback (no URL — no deep-linkable routes yet)
+  const fallbackTextShare = async () => {
+    const eventName = config.name || "My Event";
     const lines = [eventName];
     if (eventDate) lines.push(formatDate(eventDate));
     if (eventVenue) lines.push(eventVenue);
@@ -137,10 +241,20 @@ export function OverviewTab({ eventId, event, adminConfig, showToast, setActiveT
         return;
       }
     } catch (err) {
-      if (err.name === "AbortError") return; // user cancelled — no-op
-      // any other error — fall through to print
+      if (err.name === "AbortError") return;
     }
+    // Last resort: open the print preview modal
     handlePrintBrief();
+  };
+
+  // Button click handler: routes to the right tap based on state
+  const handleShareBriefClick = () => {
+    if (briefPdfState === "ready") {
+      handleShareCachedPDF();
+    } else if (briefPdfState === "idle") {
+      handleGenerateBriefPDF();
+    }
+    // "generating" and "sharing" states = button is disabled, no action
   };
 
   const timelineEntries = sortTimeline(config.timeline || []);
@@ -212,11 +326,22 @@ export function OverviewTab({ eventId, event, adminConfig, showToast, setActiveT
               <Icon name="hand" context="inline" style={{ marginRight: 4 }} /> Setup checklist
             </button>
           )}
-          {/* Mobile only — desktop uses the top-bar Print Brief */}
+          {/* Mobile only — two-tap PDF share: tap 1 generates, tap 2 shares */}
           {isMobile && (
-            <button className="btn btn-secondary btn-sm" onClick={handleShareBrief}
-              style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0, fontSize: 12 }}>
-              <Icon name="share" context="inline" /> Share brief
+            <button
+              className={`btn btn-sm ${briefPdfState === "ready" ? "btn-primary" : "btn-secondary"}`}
+              onClick={handleShareBriefClick}
+              disabled={briefPdfState === "generating" || briefPdfState === "sharing"}
+              style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0, fontSize: 12, opacity: (briefPdfState === "generating" || briefPdfState === "sharing") ? 0.6 : 1 }}>
+              {briefPdfState === "generating" ? (
+                "Generating\u2026"
+              ) : briefPdfState === "ready" ? (
+                <><Icon name="share" context="inline" /> Share brief</>
+              ) : briefPdfState === "sharing" ? (
+                "Sharing\u2026"
+              ) : (
+                <><Icon name="fileText" context="inline" /> Prepare brief</>
+              )}
             </button>
           )}
         </div>
