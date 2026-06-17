@@ -1,5 +1,5 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// SimchaKit V3.0.0 — EventPicker.jsx
+// SimchaKit V4.13.2 — EventPicker.jsx
 // Full-page event picker. Matches V2 index.html visual design exactly.
 // Lists user's events, handles create + delete, routes into selected event.
 // ─────────────────────────────────────────────────────────────────────────────
@@ -10,6 +10,7 @@ import { CreateEventForm }       from "./CreateEventForm.jsx";
 import { DeleteEventConfirm }    from "./DeleteEventConfirm.jsx";
 import { PaywallGate }           from "./PaywallGate.jsx";
 import { Icon }                  from "@/utils/iconMap.jsx";
+import { EVENT_TYPE_ICON_KEYS }  from "@/constants/events.js";
 
 // ── Palette + type maps (mirrors V2 index.html exactly) ──────────────────────
 const PALETTES = {
@@ -36,19 +37,6 @@ const EVENT_TYPE_LABELS = {
   "other":        "Celebration",
 };
 
-// TODO: Event-type glyphs carry meaning and brand identity — converting to
-// Lucide icons requires a data model decision. Handle separately.
-const EVENT_TYPE_ICONS = {
-  "bat-mitzvah":  "✡",
-  "bar-mitzvah":  "✡",
-  "bnei-mitzvah": "✡",
-  "wedding":      "💍",
-  "baby-naming":  "👶",
-  "graduation":   "🎓",
-  "anniversary":  "🥂",
-  "birthday":     "🎂",
-  "other":        "🎉",
-};
 
 function formatDate(d) {
   if (!d) return "";
@@ -220,11 +208,12 @@ export function EventPicker({ session, displayName: userDisplayName, onSelectEve
   function getEventMeta(ev) {
     const cfg      = ev.admin_config || {};
     const palette  = PALETTES[cfg.theme?.palette] || PALETTES["rose"];
-    const typeIcon = cfg.theme?.icon || EVENT_TYPE_ICONS[ev.type] || "🎉";
+    const typeIconKey = EVENT_TYPE_ICON_KEYS[ev.type] || "sparkles";
+    const themeIcon = cfg.theme?.icon || "";
     const timeline = cfg.timeline || [];
     const mainEntry = timeline.find(t => t.isMainEvent);
     const dateStr  = formatDate(mainEntry?.startDate || "");
-    return { palette, typeIcon, dateStr, themeName: cfg.theme?.name || "" };
+    return { palette, typeIconKey, themeIcon, dateStr, themeName: cfg.theme?.name || "" };
   }
 
   // ── Event created callback ────────────────────────────────────────────────
@@ -472,8 +461,7 @@ export function EventPicker({ session, displayName: userDisplayName, onSelectEve
 
         {loadStatus === "ready" && events.length === 0 && (
           <div style={styles.stateBox}>
-            {/* TODO: event-type glyph — decide icon vs emoji separately */}
-            <div style={styles.stateIcon}>✡</div>
+          <div style={styles.stateIcon}><Icon name="starOfDavid" context="empty" /></div>
             <div style={styles.stateTitle}>Welcome to SimchaKit</div>
             <div style={styles.stateDesc}>
               You're one step away from having everything in one place. Click <strong>+ New Event</strong> above to get started.
@@ -563,7 +551,7 @@ export function EventPicker({ session, displayName: userDisplayName, onSelectEve
 
 // ── EventCard ─────────────────────────────────────────────────────────────────
 function EventCard({ event, meta, onSelect, onDeleteClick, collaboratorRole = null, invitedByEmail = null, invitedByName = null, collaboratorCount = 0 }) {
-  const { palette, typeIcon, dateStr, themeName } = meta;
+  const { palette, typeIconKey, themeIcon, dateStr, themeName } = meta;
   const typeLabel = EVENT_TYPE_LABELS[event.type] || "Celebration";
   const isDark  = document.documentElement.getAttribute("data-theme") === "dark";
   const cardBg  = isDark ? "var(--bg-subtle)" : palette.light;
@@ -590,16 +578,16 @@ function EventCard({ event, meta, onSelect, onDeleteClick, collaboratorRole = nu
 
       {/* Card header */}
       <div style={{ padding: "20px 20px 16px", background: cardBg, position: "relative" }}>
-        {/* TODO: typeIcon is derived from EVENT_TYPE_ICONS — handle with event-type glyph migration */}
-        <span style={{ fontSize: 28, lineHeight: 1, display: "block", marginBottom: 10 }}>
-          {typeIcon}
+        {/* Event-type line icon */}
+        <span style={{ display: "block", marginBottom: 10, lineHeight: 1 }}>
+          <Icon name={typeIconKey} size={28} strokeWidth={1.5} style={{ color: palette.accent }} />
         </span>
         {event.name
           ? <div style={styles.cardName}>{event.name}</div>
           : <div style={styles.cardUnnamed}>Unnamed Event</div>
         }
         {themeName && (
-          <div style={styles.cardTheme}>{themeName}</div>
+          <div style={styles.cardTheme}>{themeIcon ? `${themeIcon} ${themeName}` : themeName}</div>
         )}
         <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 6 }}>
           <span className="sk-tag" style={{ background: "var(--bg-subtle)", color: "var(--text-muted)", border: "1px solid var(--border)" }}>

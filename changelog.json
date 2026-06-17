@@ -1,10 +1,21 @@
 {
-  "current": "V4.13.1",
+  "current": "V4.13.2",
   "whatsNew": [
-    "Star of David is now a proper two-triangle hexagram matching the Lucide outline style",
-    "Countdown watermark repositioned to avoid mid-shape clipping"
+    "Event picker cards now show consistent line-icon glyphs across all devices",
+    "Theme icon appears inline before the theme name on event cards"
   ],
   "changelog": [
+    {
+      "version": "V4.13.2",
+      "date": "2026-06-17",
+      "summary": "Event picker cards now use line-icon event-type glyphs, matching the dashboard",
+      "details": [
+        "EventPicker card glyph switched from emoji to the same line icons used in the dashboard identity chip (Star of David, Gem, Baby, GraduationCap, Wine, Cake, PartyPopper), tinted to the card's palette accent color",
+        "Theme icon (planner's emoji from Admin) now shows inline before the theme name on each card, matching the dashboard's identity treatment",
+        "Empty-state Star of David switched from emoji to the StarOfDavid line icon at the empty context size",
+        "Removed the local EVENT_TYPE_ICONS emoji map from EventPicker (consolidated in constants/events.js)"
+      ]
+    },
     {
       "version": "V4.13.1",
       "date": "2026-06-17",
