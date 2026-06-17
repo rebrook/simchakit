@@ -1,12 +1,34 @@
 {
-  "current": "V4.11.0",
+  "current": "V4.12.1",
   "whatsNew": [
-    "Notification bell with live unread count from co-planner activity",
-    "Notification panel with actor attribution, tab deep-links, and Mark all read",
-    "Activity Log entries now show who made each change",
-    "See all activity opens the full event history"
+    "Countdown title now shows the event name instead of the main timeline entry title",
+    "Sub-event name appears on the date line when it differs from the event name"
   ],
   "changelog": [
+    {
+      "version": "V4.12.1",
+      "date": "2026-06-17",
+      "summary": "Fix: Countdown title now shows the event name instead of the main timeline entry title",
+      "details": [
+        "Countdown title priority flipped from mainEvent.title to config.name so it reads the overall event name (e.g. \"Sydney's Bat Mitzvah\") instead of the sub-event (e.g. \"Shabbat Morning Service\")",
+        "The main timeline entry title now appears on the countdown date line when it differs from the event name, preserving that context"
+      ]
+    },
+    {
+      "version": "V4.12.0",
+      "date": "2026-06-17",
+      "summary": "Event identity in the chrome: event name, theme icon, theme name, and color scheme surface in both the mobile header and desktop sidebar switcher",
+      "details": [
+        "Mobile header redesigned as two-row layout: Row 1 has back button, presence badge, bell, and search; Row 2 is a dedicated event identity line with the event-type chip, event name, and theme icon + theme name",
+        "Removed SimchaKit wordmark from the mobile header (the back button and brand on sign-in/events list provide context)",
+        "Removed Admin Mode settings button from mobile header (already available in the More drawer via bottom nav)",
+        "Desktop sidebar event switcher now wraps the event name to two lines instead of truncating with ellipsis",
+        "Desktop sidebar switcher shows a new meta line with the theme icon (if set), theme name, and event date",
+        "Event-type chip (accent background, white text) always shows the event-type emoji (Bat Mitzvah, Wedding, etc.) on both mobile and desktop",
+        "Theme icon appears inline before the theme name when set by the planner in Admin; no glyph duplication with the type chip",
+        "All identity elements inherit the event color scheme via CSS variables and re-skin with all nine palettes plus custom colors"
+      ]
+    },
     {
       "version": "V4.11.0",
       "date": "2026-06-17",

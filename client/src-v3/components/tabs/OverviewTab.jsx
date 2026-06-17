@@ -204,8 +204,12 @@ export function OverviewTab({ eventId, event, adminConfig, showToast, setActiveT
               {EVENT_TYPE_ICONS[config.type] || "✡"}
             </div>
             <div className="countdown-label">Counting down to</div>
-            <div className="countdown-title">{mainEvent?.title || config.name || "The Big Day"}</div>
-            <div className="countdown-date">{formatDate(eventDate)}{eventVenue ? ` · ${eventVenue}` : ""}</div>
+            <div className="countdown-title">{config.name || mainEvent?.title || "The Big Day"}</div>
+            <div className="countdown-date">
+              {formatDate(eventDate)}
+              {mainEvent?.title && config.name && mainEvent.title.trim().toLowerCase() !== config.name.trim().toLowerCase() ? ` · ${mainEvent.title}` : ""}
+              {eventVenue ? ` · ${eventVenue}` : ""}
+            </div>
             <div className="countdown-units">
               {[
                 { num: countdown.days,    label: "Days" },
