@@ -528,7 +528,7 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false, display
             </div>
           )}
           <div className="mobile-header-actions">
-            <button className="icon-btn notif-bell-btn" title="Notifications" onMouseDown={e => e.stopPropagation()} onClick={() => setShowNotifPanel(s => !s)}>
+            <button className="icon-btn notif-bell-btn" title="Notifications" onClick={() => setShowNotifPanel(s => !s)}>
               <Icon name="bell" context="button" />
               {unreadCount > 0 && (
                 <span className="notif-badge">{unreadCount > 99 ? "99+" : unreadCount}</span>
@@ -762,7 +762,6 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false, display
               <button
                 className="icon-btn notif-bell-btn"
                 title="Notifications"
-                onMouseDown={e => e.stopPropagation()}
                 onClick={() => setShowNotifPanel(s => !s)}
               >
                 <Icon name="bell" context="button" />

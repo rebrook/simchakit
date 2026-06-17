@@ -55,6 +55,24 @@ export function NotificationPanel({
 }) {
   const panelRef = useRef(null);
 
+  // Close on outside click (document-level, excludes panel and bell button)
+  useEffect(() => {
+    const handler = (e) => {
+      if (
+        panelRef.current && !panelRef.current.contains(e.target) &&
+        !e.target.closest(".notif-bell-btn")
+      ) {
+        onClose();
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    document.addEventListener("touchstart", handler);
+    return () => {
+      document.removeEventListener("mousedown", handler);
+      document.removeEventListener("touchstart", handler);
+    };
+  }, [onClose]);
+
   // Close on Escape
   useEffect(() => {
     const handler = (e) => { if (e.key === "Escape") onClose(); };
@@ -64,8 +82,8 @@ export function NotificationPanel({
 
   return (
     <>
-      {/* Transparent backdrop catches outside clicks (fixed, escapes overflow:hidden) */}
-      <div className="notif-backdrop" onMouseDown={onClose} />
+      {/* Visual-only scrim (mobile gets tinted backdrop, desktop transparent) */}
+      <div className="notif-backdrop" />
       <div className="notif-panel" ref={panelRef}>
       {/* Header */}
       <div className="notif-panel-header">

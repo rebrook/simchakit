@@ -61,7 +61,7 @@ export function useNotifications(eventId, session) {
       actorName:  d.actorName || null,
       createdAt:  row.created_at,
       tab:        COLLECTION_TAB[d.collection] || null,
-      isUnread:   cursor ? row.created_at > cursor : false,
+      isUnread:   cursor ? new Date(row.created_at).getTime() > new Date(cursor).getTime() : false,
     };
   }
 
