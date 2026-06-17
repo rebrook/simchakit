@@ -1,11 +1,20 @@
 {
-  "current": "V4.13.4",
+  "current": "V4.13.5",
   "whatsNew": [
     "Print Brief now lives in the desktop top bar as a themed accent button (Overview tab only), eliminating the duplicate in the content area",
     "On mobile, the button becomes \"Share brief\" and opens the native OS share sheet with a text summary (event name, date, venue, guest count) and a deep link to the event",
     "Share icon (Share2) added to the icon system"
   ],
   "changelog": [
+    {
+      "version": "V4.13.5",
+      "date": "2026-06-17",
+      "changes": [
+        "Fixed Share brief to send text-only summary (event name, date, venue, guest count) with no URL (no deep-linkable event routes exist yet in state-based routing)",
+        "Added TODO comment for deep link when URL routing ships",
+        "Fixed empty action row rendering on desktop when the setup checklist is visible (row now only mounts when at least one child is visible)"
+      ]
+    },
     {
       "version": "V4.13.4",
       "date": "2026-06-17",

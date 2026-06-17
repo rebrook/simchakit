@@ -114,18 +114,19 @@ export function OverviewTab({ eventId, event, adminConfig, showToast, setActiveT
     return () => window.removeEventListener("simchakit:print-brief", handler);
   }, [handlePrintBrief]);
 
-  // Share brief (mobile) — text summary + deep link via OS share sheet,
+  // Share brief (mobile) — text summary via OS share sheet,
   // fallback to print modal when navigator.share is unavailable.
+  // No URL included: the app uses state-based routing with no
+  // deep-linkable event URLs yet. The summary itself is the value.
+  // TODO: add deep link when URL routing ships
   const handleShareBrief = async () => {
     const eventName = config.name || "My Event";
-    const deepLink = `${window.location.origin}/e/${eventId}`;
 
     // Build a concise text summary from the same data the brief uses
     const lines = [eventName];
     if (eventDate) lines.push(formatDate(eventDate));
     if (eventVenue) lines.push(eventVenue);
     if (people.length > 0) lines.push(`${confirmedCount} of ${people.length} guests confirmed`);
-    lines.push("", deepLink);
 
     try {
       if (navigator.share) {
@@ -199,25 +200,27 @@ export function OverviewTab({ eventId, event, adminConfig, showToast, setActiveT
       {/* Mobile subtitle (≤900px only, where topbar is hidden) */}
       <div className="mobile-tab-subtitle">{subtitle}</div>
 
-      {/* Action row */}
-      <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, marginBottom: 12 }}>
-        {!showChecklist && (
-          <button className="btn btn-ghost btn-sm" onClick={() => {
-            try { localStorage.removeItem(`simchakit-getstarted-dismissed-${eventId || "default"}`); } catch {}
-            setShowChecklist(true);
-          }}
-            style={{ fontSize: 12 }}>
-            <Icon name="hand" context="inline" style={{ marginRight: 4 }} /> Setup checklist
-          </button>
-        )}
-        {/* Mobile only — desktop uses the top-bar Print Brief */}
-        {isMobile && (
-          <button className="btn btn-secondary btn-sm" onClick={handleShareBrief}
-            style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0, fontSize: 12 }}>
-            <Icon name="share" context="inline" /> Share brief
-          </button>
-        )}
-      </div>
+      {/* Action row — only render when at least one child is visible */}
+      {(!showChecklist || isMobile) && (
+        <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, marginBottom: 12 }}>
+          {!showChecklist && (
+            <button className="btn btn-ghost btn-sm" onClick={() => {
+              try { localStorage.removeItem(`simchakit-getstarted-dismissed-${eventId || "default"}`); } catch {}
+              setShowChecklist(true);
+            }}
+              style={{ fontSize: 12 }}>
+              <Icon name="hand" context="inline" style={{ marginRight: 4 }} /> Setup checklist
+            </button>
+          )}
+          {/* Mobile only — desktop uses the top-bar Print Brief */}
+          {isMobile && (
+            <button className="btn btn-secondary btn-sm" onClick={handleShareBrief}
+              style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0, fontSize: 12 }}>
+              <Icon name="share" context="inline" /> Share brief
+            </button>
+          )}
+        </div>
+      )}
 
       {/* Get Started card */}
       {showChecklist && (
