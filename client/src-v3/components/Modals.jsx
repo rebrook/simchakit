@@ -20,12 +20,12 @@ export function GuideModal({ onClose }) {
 
   return (
     <div className="modal-backdrop" onMouseDown={e => { if (e.target === e.currentTarget) onClose(); }}>
-      <div className="modal modal-lg" style={{ maxWidth:700, maxHeight:"92vh" }} onClick={e => e.stopPropagation()}>
+      <div className="modal modal-lg" style={{ maxWidth:700, display:"flex", flexDirection:"column", overflow:"hidden" }} onClick={e => e.stopPropagation()}>
         <div className="modal-header">
           <div className="modal-title"><Icon name="bookOpen" context="menu" style={{ marginRight: 6 }} /> SimchaKit Guide</div>
           <button className="icon-btn" onClick={onClose}><Icon name="x" context="button" /></button>
         </div>
-        <div className="modal-body" style={{ overflowY:"auto", maxHeight:"calc(92vh - 80px)", paddingTop:16 }}>
+        <div className="modal-body" style={{ overflowY:"auto", flex:1, minHeight:0, paddingTop:16 }}>
 
           <div style={{ background:"linear-gradient(135deg, var(--accent-dark) 0%, var(--accent-primary) 100%)", borderRadius:"var(--radius-md)", padding:"20px 24px", marginBottom:24 }}>
             <div style={{ fontSize:15, fontWeight:800, color:"#fff", marginBottom:6 }}>Welcome to SimchaKit</div>
@@ -121,38 +121,41 @@ export function ActivityLogModal({ eventId, isArchived, onClose }) {
 
   return (
     <div className="modal-backdrop" onMouseDown={e => { if (e.target === e.currentTarget) onClose(); }}>
-      <div className="modal modal-lg" style={{ maxWidth:640, maxHeight:"92vh" }} onClick={e => e.stopPropagation()}>
+      <div className="modal modal-lg" style={{ maxWidth:640, display:"flex", flexDirection:"column", overflow:"hidden" }} onClick={e => e.stopPropagation()}>
         <div className="modal-header">
           <div className="modal-title"><Icon name="clipboardList" context="menu" style={{ marginRight: 6 }} /> Activity Log</div>
           <button className="icon-btn" onClick={onClose}><Icon name="x" context="button" /></button>
         </div>
-        <div className="modal-body" style={{ overflowY:"auto", maxHeight:"calc(92vh - 80px)", paddingTop:16 }}>
-          <div style={{ display:"flex", gap:8, marginBottom:16, flexWrap:"wrap", alignItems:"center", justifyContent:"space-between" }}>
-            <div style={{ display:"flex", gap:6, flexWrap:"wrap" }}>
-              {["All","Added","Updated","Deleted","Completed"].map(a => (
-                <button key={a} onClick={() => setFilterAction(a)} style={{ padding:"4px 12px", borderRadius:99, fontSize:12, fontWeight:600, cursor:"pointer", border:"none", transition:"all 0.15s", background:filterAction===a?"var(--accent-primary)":"var(--bg-subtle)", color:filterAction===a?"white":"var(--text-secondary)" }}>{a}</button>
-              ))}
-            </div>
-            {!isArchived && entries.length > 0 && (
-              <button onClick={() => setShowClearConfirm(true)} style={{ padding:"4px 12px", borderRadius:99, fontSize:12, fontWeight:600, cursor:"pointer", border:"1px solid var(--border)", background:"var(--bg-surface)", color:"var(--text-muted)" }}>Clear Log</button>
-            )}
-          </div>
 
-          {showClearConfirm && (
-            <div className="modal-backdrop" onMouseDown={e => { if (e.target === e.currentTarget) setShowClearConfirm(false); }}>
-              <div className="modal" style={{ maxWidth:380 }} onClick={e => e.stopPropagation()}>
-                <div className="modal-header"><div className="modal-title">Clear Activity Log?</div><button className="icon-btn" onClick={() => setShowClearConfirm(false)}><Icon name="x" context="button" /></button></div>
-                <div className="modal-body">
-                  <p style={{ fontSize:14, color:"var(--text-secondary)", marginBottom:0 }}>This will permanently wipe all activity log entries. This cannot be undone.</p>
-                </div>
-                <div className="modal-footer">
-                  <button className="btn btn-secondary" onClick={() => setShowClearConfirm(false)}>Cancel</button>
-                  <button className="btn btn-danger" onClick={handleClear}>Clear Log</button>
-                </div>
+        {/* Filter bar — pinned between header and scroll body */}
+        <div style={{ display:"flex", gap:8, padding:"0 24px 12px", flexWrap:"wrap", alignItems:"center", justifyContent:"space-between", flexShrink:0, borderBottom:"1px solid var(--border)" }}>
+          <div style={{ display:"flex", gap:6, flexWrap:"wrap" }}>
+            {["All","Added","Updated","Deleted","Completed"].map(a => (
+              <button key={a} onClick={() => setFilterAction(a)} style={{ padding:"4px 12px", borderRadius:99, fontSize:12, fontWeight:600, cursor:"pointer", border:"none", transition:"all 0.15s", background:filterAction===a?"var(--accent-primary)":"var(--bg-subtle)", color:filterAction===a?"white":"var(--text-secondary)" }}>{a}</button>
+            ))}
+          </div>
+          {!isArchived && entries.length > 0 && (
+            <button onClick={() => setShowClearConfirm(true)} style={{ padding:"4px 12px", borderRadius:99, fontSize:12, fontWeight:600, cursor:"pointer", border:"1px solid var(--border)", background:"var(--bg-surface)", color:"var(--text-muted)" }}>Clear Log</button>
+          )}
+        </div>
+
+        {/* Clear Log confirmation dialog */}
+        {showClearConfirm && (
+          <div className="modal-backdrop" onMouseDown={e => { if (e.target === e.currentTarget) setShowClearConfirm(false); }}>
+            <div className="modal" style={{ maxWidth:380 }} onClick={e => e.stopPropagation()}>
+              <div className="modal-header"><div className="modal-title">Clear Activity Log?</div><button className="icon-btn" onClick={() => setShowClearConfirm(false)}><Icon name="x" context="button" /></button></div>
+              <div className="modal-body">
+                <p style={{ fontSize:14, color:"var(--text-secondary)", marginBottom:0 }}>This will permanently wipe all activity log entries. This cannot be undone.</p>
+              </div>
+              <div className="modal-footer">
+                <button className="btn btn-secondary" onClick={() => setShowClearConfirm(false)}>Cancel</button>
+                <button className="btn btn-danger" onClick={handleClear}>Clear Log</button>
               </div>
             </div>
-          )}
+          </div>
+        )}
 
+        <div className="modal-body" style={{ overflowY:"auto", flex:1, minHeight:0, paddingTop:12 }}>
           {loading ? (
             <div style={{ textAlign:"center", padding:40, color:"var(--text-muted)", fontSize:14 }}>Loading…</div>
           ) : filtered.length === 0 ? (
@@ -239,7 +242,7 @@ export function WhatsNewModal({ onClose }) {
 
   return (
     <div className="modal-backdrop" onMouseDown={e => { if (e.target === e.currentTarget) onClose(); }}>
-      <div className="modal modal-lg" style={{ maxWidth:680, maxHeight:"88vh" }} onClick={e => e.stopPropagation()}>
+      <div className="modal modal-lg" style={{ maxWidth:680, display:"flex", flexDirection:"column", overflow:"hidden" }} onClick={e => e.stopPropagation()}>
         <div className="modal-header">
           <div className="modal-title"><Icon name="sparkles" context="menu" style={{ marginRight: 6 }} /> What's New</div>
           <div style={{ display:"flex", alignItems:"center", gap:8 }}>
@@ -249,7 +252,7 @@ export function WhatsNewModal({ onClose }) {
             <button className="icon-btn" onClick={onClose}><Icon name="x" context="button" /></button>
           </div>
         </div>
-        <div className="modal-body" style={{ overflowY:"auto", maxHeight:"calc(88vh - 80px)" }}>
+        <div className="modal-body" style={{ overflowY:"auto", flex:1, minHeight:0 }}>
           {error ? (
             <div className="alert alert-error">Could not load changelog. Make sure <code>changelog.json</code> is in the public folder.</div>
           ) : !data ? (
