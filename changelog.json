@@ -1,11 +1,25 @@
 {
-  "current": "V4.10.1",
+  "current": "V4.10.2",
   "whatsNew": [
     "Mobile Day-of Mode: full-screen phone layout with live now/next, one-tap contacts, and running-late notifications",
     "Offline caching for event day data on flaky venue wifi",
-    "Budget values no longer overflow on mobile Overview"
+    "Budget values no longer overflow on mobile Overview",
+    "Multi-day timelines show date-grouped run-of-show with Today highlighting"
   ],
   "changelog": [
+    {
+      "version": "V4.10.2",
+      "date": "2026-06-16",
+      "type": "patch",
+      "title": "Multi-day run-of-show date headers",
+      "changes": [
+        "Multi-day timelines show date group headers in both mobile and desktop Day-of Mode",
+        "Day headers display weekday and date, with Today highlighted in accent color",
+        "Past day groups are dimmed; today retains per-row now/past styling",
+        "Single-day events render unchanged (no date headers added)",
+        "Entries sorted by start timestamp within each day group"
+      ]
+    },
     {
       "version": "V4.10.1",
       "date": "2026-06-16",

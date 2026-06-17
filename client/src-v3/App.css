@@ -3779,6 +3779,18 @@
       white-space: nowrap;
     }
     .dayof-hotsheet-phone:hover { text-decoration: underline; }
+
+    /* ── Day-of date group headers (multi-day events, desktop + mobile) ── */
+    .dayof-day-header {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-muted);
+      padding: 10px 16px 6px;
+      border-bottom: 1px solid var(--border);
+    }
+
     @media (max-width: 640px) {
       .dayof-panel {
         height: 92vh;

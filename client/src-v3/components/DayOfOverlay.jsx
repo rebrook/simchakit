@@ -85,6 +85,41 @@ function entryTimestamps(entry, fallbackDate) {
   return { startMs, endMs };
 }
 
+// Group timeline entries by date for multi-day events.
+// Returns null for single-day events (callers render flat, unchanged).
+function groupTimelineByDate(timeline, fallbackDate, nowMs) {
+  const dateMap = {};
+  for (const entry of timeline) {
+    const d = entry.startDate || fallbackDate;
+    if (!d) continue; // skip entries with no resolvable date
+    if (!dateMap[d]) dateMap[d] = [];
+    dateMap[d].push(entry);
+  }
+
+  const dates = Object.keys(dateMap);
+  if (dates.length < 2) return null; // single-day: render unchanged
+
+  // Today in device-local YYYY-MM-DD
+  const now = new Date(nowMs);
+  const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+
+  // Sort groups by date ascending; entries within by start timestamp
+  return dates.sort().map(ds => {
+    const entries = dateMap[ds].sort((a, b) => {
+      const aMs = entryTimestamps(a, fallbackDate).startMs || 0;
+      const bMs = entryTimestamps(b, fallbackDate).startMs || 0;
+      return aMs - bMs;
+    });
+    const d = new Date(ds + "T12:00:00"); // noon avoids DST edge
+    const weekday = d.toLocaleDateString("en-US", { weekday: "long" });
+    const monthDay = d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+    const isToday = ds === todayStr;
+    const isDayPast = ds < todayStr;
+    const label = isToday ? `Today \u00b7 ${weekday}, ${monthDay}` : `${weekday}, ${monthDay}`;
+    return { dateStr: ds, label, isToday, isDayPast, entries };
+  });
+}
+
 function formatClock() {
   return new Date().toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
 }
@@ -559,29 +594,69 @@ function MobileDayOf({ timeline, adminConfig, confirmedVendors, ceremonyRoles, c
           </div>
           {timeline.length === 0 ? (
             <div className="dayof-m-empty">No timeline entries configured.</div>
-          ) : timeline.map((entry, i) => {
-            const { startMs, endMs } = entryTimestamps(entry, mainEventDate);
-            const isNow  = startMs !== null && endMs !== null && nowMs >= startMs && nowMs < endMs;
-            const isPast = endMs !== null && nowMs >= endMs;
-            const timeStr = entry.startTime ? entry.startTime.replace(/^0/, "") : "";
-            return (
-              <div
-                key={entry.id || i}
-                ref={isNow ? nowRef : null}
-                className={`dayof-m-run-row ${isNow ? "now" : ""} ${isPast ? "past" : ""}`}
-              >
-                <div className="dayof-m-run-time" style={isNow ? { color: "var(--accent-primary)", fontWeight: 700 } : undefined}>
-                  {timeStr}
+          ) : (() => {
+            const dayGroups = groupTimelineByDate(timeline, mainEventDate, nowMs);
+            if (!dayGroups) {
+              // Single-day: flat render (unchanged)
+              return timeline.map((entry, i) => {
+                const { startMs, endMs } = entryTimestamps(entry, mainEventDate);
+                const isNow  = startMs !== null && endMs !== null && nowMs >= startMs && nowMs < endMs;
+                const isPast = endMs !== null && nowMs >= endMs;
+                const timeStr = entry.startTime ? entry.startTime.replace(/^0/, "") : "";
+                return (
+                  <div
+                    key={entry.id || i}
+                    ref={isNow ? nowRef : null}
+                    className={`dayof-m-run-row ${isNow ? "now" : ""} ${isPast ? "past" : ""}`}
+                  >
+                    <div className="dayof-m-run-time" style={isNow ? { color: "var(--accent-primary)", fontWeight: 700 } : undefined}>
+                      {timeStr}
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div className={`dayof-m-run-title ${isNow ? "now" : ""}`}>{entry.title}</div>
+                      {entry.venue && (
+                        <div className="dayof-m-run-venue">{entry.venue}</div>
+                      )}
+                    </div>
+                  </div>
+                );
+              });
+            }
+            // Multi-day: grouped with date headers
+            return dayGroups.map(group => (
+              <div key={group.dateStr} style={group.isDayPast ? { opacity: 0.4 } : undefined}>
+                <div
+                  className="dayof-day-header"
+                  style={group.isToday ? { color: "var(--accent-primary)" } : undefined}
+                >
+                  {group.label}
                 </div>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div className={`dayof-m-run-title ${isNow ? "now" : ""}`}>{entry.title}</div>
-                  {(entry.venue) && (
-                    <div className="dayof-m-run-venue">{entry.venue}{entry.isMainEvent ? "" : ""}</div>
-                  )}
-                </div>
+                {group.entries.map((entry, i) => {
+                  const { startMs, endMs } = entryTimestamps(entry, mainEventDate);
+                  const isNow  = !group.isDayPast && startMs !== null && endMs !== null && nowMs >= startMs && nowMs < endMs;
+                  const isPast = !group.isDayPast && endMs !== null && nowMs >= endMs;
+                  const timeStr = entry.startTime ? entry.startTime.replace(/^0/, "") : "";
+                  return (
+                    <div
+                      key={entry.id || i}
+                      ref={isNow ? nowRef : null}
+                      className={`dayof-m-run-row ${isNow ? "now" : ""} ${isPast ? "past" : ""}`}
+                    >
+                      <div className="dayof-m-run-time" style={isNow ? { color: "var(--accent-primary)", fontWeight: 700 } : undefined}>
+                        {timeStr}
+                      </div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div className={`dayof-m-run-title ${isNow ? "now" : ""}`}>{entry.title}</div>
+                        {entry.venue && (
+                          <div className="dayof-m-run-venue">{entry.venue}</div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
-            );
-          })}
+            ));
+          })()}
         </div>
 
         {/* ── Key contacts ── */}
@@ -799,8 +874,9 @@ export function DayOfOverlay({ eventId, event, adminConfig, onClose, onPrintBrie
   const totalInvited    = people.length;
 
   const mainEvent = timeline.find(e => e.isMainEvent);
-  const eventDate = mainEvent?.startDate
-    ? new Date(mainEvent.startDate+"T00:00:00").toLocaleDateString("en-US", { weekday:"long", month:"long", day:"numeric", year:"numeric" })
+  const mainEventDate = mainEvent?.startDate || timeline[0]?.startDate || null;
+  const eventDate = mainEventDate
+    ? new Date(mainEventDate+"T00:00:00").toLocaleDateString("en-US", { weekday:"long", month:"long", day:"numeric", year:"numeric" })
     : "";
   const eventName = adminConfig?.name || event?.name || "Event";
 
@@ -943,25 +1019,61 @@ export function DayOfOverlay({ eventId, event, adminConfig, onClose, onPrintBrie
             </div>
             {timeline.length === 0 ? (
               <div style={{ padding:"14px 16px", fontSize:13, color:"var(--text-muted)", fontStyle:"italic" }}>No timeline entries — add them in Admin Mode.</div>
-            ) : timeline.map(entry => {
-              const checked = !!timelineChecks[entry.id];
-              const timeStr = formatTimeRange(entry.startTime, entry.endTime);
-              return (
-                <div key={entry.id} className={`dayof-timeline-row ${checked?"done":""}`} onClick={() => toggleTimeline(entry.id)}>
-                  <div className={`dayof-check ${checked?"checked":""}`}>{checked?<Icon name="check" context="badge" />:""}</div>
-                  <div style={{ flex:1, minWidth:0 }}>
-                    <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-                      {entry.icon && <span style={{ fontSize:15 }}>{entry.icon}</span>}
-                      <span style={{ fontWeight:600, color:"var(--text-primary)", fontSize:13 }}>{entry.title}</span>
-                      {entry.isMainEvent && <span style={{ fontSize:10, fontWeight:700, padding:"1px 6px", borderRadius:99, background:"var(--accent-light)", color:"var(--accent-primary)" }}>MAIN</span>}
+            ) : (() => {
+              const dayGroups = groupTimelineByDate(timeline, mainEventDate, Date.now());
+              if (!dayGroups) {
+                // Single-day: flat render (unchanged)
+                return timeline.map(entry => {
+                  const checked = !!timelineChecks[entry.id];
+                  const timeStr = formatTimeRange(entry.startTime, entry.endTime);
+                  return (
+                    <div key={entry.id} className={`dayof-timeline-row ${checked?"done":""}`} onClick={() => toggleTimeline(entry.id)}>
+                      <div className={`dayof-check ${checked?"checked":""}`}>{checked?<Icon name="check" context="badge" />:""}</div>
+                      <div style={{ flex:1, minWidth:0 }}>
+                        <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+                          {entry.icon && <span style={{ fontSize:15 }}>{entry.icon}</span>}
+                          <span style={{ fontWeight:600, color:"var(--text-primary)", fontSize:13 }}>{entry.title}</span>
+                          {entry.isMainEvent && <span style={{ fontSize:10, fontWeight:700, padding:"1px 6px", borderRadius:99, background:"var(--accent-light)", color:"var(--accent-primary)" }}>MAIN</span>}
+                        </div>
+                        {(timeStr || entry.venue) && (
+                          <div style={{ fontSize:11, color:"var(--text-muted)", marginTop:1 }}>{[timeStr, entry.venue].filter(Boolean).join(" · ")}</div>
+                        )}
+                      </div>
                     </div>
-                    {(timeStr || entry.venue) && (
-                      <div style={{ fontSize:11, color:"var(--text-muted)", marginTop:1 }}>{[timeStr, entry.venue].filter(Boolean).join(" · ")}</div>
-                    )}
+                  );
+                });
+              }
+              // Multi-day: grouped with date headers
+              return dayGroups.map(group => (
+                <div key={group.dateStr} style={group.isDayPast ? { opacity: 0.4 } : undefined}>
+                  <div
+                    className="dayof-day-header"
+                    style={group.isToday ? { color: "var(--accent-primary)" } : undefined}
+                  >
+                    {group.label}
                   </div>
+                  {group.entries.map(entry => {
+                    const checked = !!timelineChecks[entry.id];
+                    const timeStr = formatTimeRange(entry.startTime, entry.endTime);
+                    return (
+                      <div key={entry.id} className={`dayof-timeline-row ${checked?"done":""}`} onClick={() => toggleTimeline(entry.id)}>
+                        <div className={`dayof-check ${checked?"checked":""}`}>{checked?<Icon name="check" context="badge" />:""}</div>
+                        <div style={{ flex:1, minWidth:0 }}>
+                          <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+                            {entry.icon && <span style={{ fontSize:15 }}>{entry.icon}</span>}
+                            <span style={{ fontWeight:600, color:"var(--text-primary)", fontSize:13 }}>{entry.title}</span>
+                            {entry.isMainEvent && <span style={{ fontSize:10, fontWeight:700, padding:"1px 6px", borderRadius:99, background:"var(--accent-light)", color:"var(--accent-primary)" }}>MAIN</span>}
+                          </div>
+                          {(timeStr || entry.venue) && (
+                            <div style={{ fontSize:11, color:"var(--text-muted)", marginTop:1 }}>{[timeStr, entry.venue].filter(Boolean).join(" · ")}</div>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
-              );
-            })}
+              ));
+            })()}
           </div>
 
           {/* 2. Hot Sheet */}
