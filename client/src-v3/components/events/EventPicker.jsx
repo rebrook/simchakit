@@ -1,5 +1,5 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// SimchaKit V4.13.2 — EventPicker.jsx
+// SimchaKit V4.13.3 — EventPicker.jsx
 // Full-page event picker. Matches V2 index.html visual design exactly.
 // Lists user's events, handles create + delete, routes into selected event.
 // ─────────────────────────────────────────────────────────────────────────────
@@ -689,8 +689,8 @@ const styles = {
     alignItems:   "center",
     gap:          6,
     padding:      "8px 16px",
-    background:   "var(--text-primary)",
-    color:        "var(--bg-surface)",
+    background:   "var(--accent-primary)",
+    color:        "#fff",
     border:       "none",
     borderRadius: "var(--radius-md)",
     fontFamily:   "var(--font-body)",
@@ -720,6 +720,7 @@ const styles = {
     display:               "grid",
     gridTemplateColumns:   "repeat(auto-fill, minmax(280px, 1fr))",
     gap:                   20,
+    alignItems:            "stretch",
   },
   stateBox: {
     textAlign:  "center",
@@ -738,8 +739,8 @@ const styles = {
   btnRetry: {
     marginTop:    16,
     padding:      "8px 18px",
-    background:   "var(--text-primary)",
-    color:        "var(--bg-surface)",
+    background:   "var(--accent-primary)",
+    color:        "#fff",
     border:       "none",
     borderRadius: "var(--radius-sm)",
     fontFamily:   "var(--font-body)",

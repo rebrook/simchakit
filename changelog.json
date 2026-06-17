@@ -1,10 +1,21 @@
 {
-  "current": "V4.13.2",
+  "current": "V4.13.3",
   "whatsNew": [
-    "Event picker cards now show consistent line-icon glyphs across all devices",
-    "Theme icon appears inline before the theme name on event cards"
+    "Event picker buttons now match the brand accent color",
+    "Cleaner brand header for signed-in users",
+    "Event cards align to equal height with pinned footers"
   ],
   "changelog": [
+    {
+      "version": "V4.13.3",
+      "date": "2026-06-17",
+      "summary": "Event picker polish: accent-colored primary button, tighter brand header, equal-height cards",
+      "details": [
+        "New Event and Retry buttons now use the brand accent (rose) instead of near-black, matching primary buttons elsewhere in the app",
+        "Brand header tightened to app-chrome proportions (48px height, lighter shadow) with the marketing tagline removed for signed-in users",
+        "Event card grid now ensures equal-height cards with footers pinned to the bottom row via explicit stretch alignment"
+      ]
+    },
     {
       "version": "V4.13.2",
       "date": "2026-06-17",

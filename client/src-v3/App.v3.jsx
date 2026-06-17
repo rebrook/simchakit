@@ -241,10 +241,7 @@ function AppContent({ session, isCallback }) {
       <header style={headerStyles.header}>
         <div style={headerStyles.inner}>
           <img src="/apple-touch-icon.png" alt="SimchaKit" style={{ width: 40, height: 40, borderRadius: 8, display: "block", flexShrink: 0 }} />
-          <div>
-            <div style={headerStyles.title}>SimchaKit</div>
-            <div style={headerStyles.sub}>SimchaKit is the all-in-one planning hub for B&apos;nei Mitzvot, weddings, and every Jewish lifecycle celebration.</div>
-          </div>
+          <div style={headerStyles.title}>SimchaKit</div>
         </div>
       </header>
 
@@ -286,7 +283,7 @@ const headerStyles = {
     background:   "var(--bg-surface)",
     borderBottom: "1px solid var(--border)",
     padding:      "0 24px",
-    boxShadow:    "0 1px 3px rgba(28,22,20,0.08)",
+    boxShadow:    "0 1px 2px rgba(28,22,20,0.06)",
   },
   inner: {
     maxWidth:      1000,
@@ -294,20 +291,14 @@ const headerStyles = {
     display:       "flex",
     alignItems:    "center",
     gap:           10,
-    paddingTop:    12,
-    paddingBottom: 12,
-    minHeight:     60,
+    paddingTop:    8,
+    paddingBottom: 8,
+    minHeight:     48,
   },
   title: {
     fontFamily: "var(--font-display)",
-    fontSize:   22,
+    fontSize:   20,
     fontWeight: 600,
     color:      "var(--text-primary)",
-  },
-  sub: {
-    fontSize:   12,
-    color:      "var(--text-muted)",
-    marginLeft: 4,
-    marginTop:  2,
   },
 };
