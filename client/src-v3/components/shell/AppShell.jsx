@@ -1,5 +1,5 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// SimchaKit V4.12.0 — AppShell.jsx
+// SimchaKit V4.12.2 — AppShell.jsx
 // Sidebar navigation architecture.
 // Desktop (>900px): 248px left sidebar + top bar + main content grid.
 // Mobile (<=900px): existing bottom bar + More drawer (unchanged UX).
@@ -35,18 +35,8 @@ import { AccommodationsTab }  from "@/components/tabs/AccommodationsTab.jsx";
 import { FavorsTab }          from "@/components/tabs/FavorsTab.jsx";
 import { CalendarTab }        from "@/components/tabs/CalendarTab.jsx";
 
-// ── Event type icons (domain content — intentionally emoji, not Lucide) ─────
-const EVENT_TYPE_ICONS = {
-  "bat-mitzvah":  "✡",
-  "bar-mitzvah":  "✡",
-  "bnei-mitzvah": "✡",
-  "wedding":      "💍",
-  "baby-naming":  "👶",
-  "graduation":   "🎓",
-  "anniversary":  "🥂",
-  "birthday":     "🎂",
-  "other":        "🎉",
-};
+// ── Event type icons — imported from shared constants ─────────────────────
+import { EVENT_TYPE_ICONS } from "@/constants/events.js";
 
 // ── Tab labels for the top bar ──────────────────────────────────────────────
 const TAB_LABELS = {

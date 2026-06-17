@@ -201,7 +201,7 @@ export function OverviewTab({ eventId, event, adminConfig, showToast, setActiveT
           <div className="countdown-card">
             <div style={{ position: "absolute", right: 28, top: "50%", transform: "translateY(-50%)", fontSize: 80, opacity: 0.08, lineHeight: 1, pointerEvents: "none", userSelect: "none" }}>
               {/* TODO: event-type glyph — decide icon vs emoji separately (data model decision) */}
-              {EVENT_TYPE_ICONS[config.type] || "✡"}
+              {EVENT_TYPE_ICONS[config.type] || "✡️"}
             </div>
             <div className="countdown-label">Counting down to</div>
             <div className="countdown-title">{config.name || mainEvent?.title || "The Big Day"}</div>

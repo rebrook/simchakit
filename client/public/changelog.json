@@ -1,10 +1,20 @@
 {
-  "current": "V4.12.1",
+  "current": "V4.12.2",
   "whatsNew": [
-    "Countdown title now shows the event name instead of the main timeline entry title",
-    "Sub-event name appears on the date line when it differs from the event name"
+    "Star of David emoji now renders consistently as color emoji on all platforms",
+    "Event-type icon definitions consolidated into a single shared source"
   ],
   "changelog": [
+    {
+      "version": "V4.12.2",
+      "date": "2026-06-17",
+      "summary": "Fix: Star of David emoji renders consistently across platforms (iPhone, Android, Mac, Windows)",
+      "details": [
+        "Added emoji variation selector (U+FE0F) to the Star of David entries in EVENT_TYPE_ICONS so the glyph forces color-emoji presentation on all platforms instead of defaulting to monochrome text on some desktops",
+        "Consolidated EVENT_TYPE_ICONS: AppShell now imports from constants/events.js instead of maintaining a duplicate definition",
+        "Updated the OverviewTab countdown watermark fallback to include the variation selector"
+      ]
+    },
     {
       "version": "V4.12.1",
       "date": "2026-06-17",
