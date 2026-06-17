@@ -697,7 +697,7 @@ function MobileDayOf({ timeline, adminConfig, confirmedVendors, ceremonyRoles, c
             {confirmedVendors.map(v => (
               <div key={v.id} className="dayof-m-contact">
                 <div className="dayof-m-contact-icon">
-                  <Icon name="store" context="button" />
+                  <Icon name="vendors" context="button" />
                 </div>
                 <div className="dayof-m-contact-info">
                   <div className="dayof-m-contact-name">{v.name}</div>
@@ -756,7 +756,7 @@ function MobileDayOf({ timeline, adminConfig, confirmedVendors, ceremonyRoles, c
         {/* ── Quick numbers ── */}
         <div className="dayof-m-card">
           <div className="dayof-m-card-label">
-            <Icon name="users" context="badge" style={{ marginRight: 5 }} />
+            <Icon name="guests" context="badge" style={{ marginRight: 5 }} />
             Guest snapshot
           </div>
           <div className="dayof-m-stats-grid">
