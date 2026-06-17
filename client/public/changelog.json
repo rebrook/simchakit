@@ -1,5 +1,5 @@
 {
-  "current": "V4.14.0",
+  "current": "V4.14.1",
   "whatsNew": [
     "Share Brief on mobile now generates and shares a real PDF of your full event brief via the native OS share sheet",
     "Two-tap pattern: tap Prepare brief to generate the PDF, then tap Share brief to open the share sheet with the document attached",
@@ -7,6 +7,15 @@
     "PDF generation is lazy-loaded (html2pdf.js) so it never impacts initial page load"
   ],
   "changelog": [
+    {
+      "version": "V4.14.1",
+      "date": "2026-06-17",
+      "changes": [
+        "Fixed stale PDF bug: cached brief PDF is now invalidated when any underlying data changes (people, households, expenses, vendors, tasks, ceremony roles, admin config) via a useEffect that clears the ref and resets state from ready back to idle",
+        "Changed html2pdf.js pagebreak mode from avoid-all to css+legacy only, so long vendor/guest tables paginate naturally across pages instead of creating large whitespace gaps; explicit page-break-inside: avoid on marked sections still respected",
+        "Fixed potential stuck sharing state in handleShareCachedPDF: state now explicitly resets after each fallback path rather than relying on a trailing conditional check"
+      ]
+    },
     {
       "version": "V4.14.0",
       "date": "2026-06-17",

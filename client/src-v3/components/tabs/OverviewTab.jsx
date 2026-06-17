@@ -131,6 +131,17 @@ export function OverviewTab({ eventId, event, adminConfig, showToast, setActiveT
   // "idle" | "generating" | "ready" | "sharing"
   const briefPdfRef = useRef(null); // cached File object
 
+  // Invalidate cached PDF when any brief data changes so the user
+  // never shares a stale document. Only reset from "ready" → "idle";
+  // don't disturb "generating" or "sharing" in progress.
+  useEffect(() => {
+    if (briefPdfState === "ready") {
+      briefPdfRef.current = null;
+      setBriefPdfState("idle");
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [people, households, expenses, vendors, tasks, ceremonyRoles, adminConfig]);
+
   // Sanitize event name for filename: strip non-alphanumeric except spaces/hyphens, collapse
   const sanitizeName = (name) =>
     (name || "Event").replace(/[^\w\s-]/g, "").replace(/\s+/g, "-").replace(/-+/g, "-").slice(0, 60);
@@ -171,7 +182,7 @@ export function OverviewTab({ eventId, event, adminConfig, showToast, setActiveT
         image:       { type: "jpeg", quality: 0.95 },
         html2canvas: { scale: 2, useCORS: true, logging: false, width: 816 },
         jsPDF:       { unit: "mm", format: "letter", orientation: "portrait" },
-        pagebreak:   { mode: ["avoid-all", "css", "legacy"] },
+        pagebreak:   { mode: ["css", "legacy"] },
       }).from(container).outputPdf("blob");
 
       // Cleanup offscreen container
@@ -203,10 +214,13 @@ export function OverviewTab({ eventId, event, adminConfig, showToast, setActiveT
           files: [file],
           title: `${eventName} — Event Brief`,
         });
-      } else {
-        // Device doesn't support file sharing — fall back to text
-        fallbackTextShare();
+        // Successful share — keep cached PDF for re-sharing
+        setBriefPdfState("ready");
+        return;
       }
+      // Device doesn't support file sharing — fall back to text
+      fallbackTextShare();
+      setBriefPdfState(briefPdfRef.current ? "ready" : "idle");
     } catch (err) {
       if (err.name === "AbortError") {
         // User cancelled the share sheet — no-op, stay in ready state
@@ -216,11 +230,7 @@ export function OverviewTab({ eventId, event, adminConfig, showToast, setActiveT
       // NotAllowedError or other — fall back to text share
       console.warn("[SimchaKit] Share failed:", err);
       fallbackTextShare();
-    }
-    // Reset after successful share (or fallback)
-    if (briefPdfRef.current) {
-      // Keep the cached PDF in case they want to share again
-      setBriefPdfState("ready");
+      setBriefPdfState(briefPdfRef.current ? "ready" : "idle");
     }
   };
 

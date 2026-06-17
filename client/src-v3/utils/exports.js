@@ -586,7 +586,7 @@ function generateEventBriefHTML(state, adminConfig) {
 
   const subEventHTML = subEventAttendance.length > 0
     ? subEventAttendance.map(e => `
-        <div style="margin-bottom:14px;padding:12px 14px;background:#faf8f5;border:1px solid #e2ddd5;border-radius:8px">
+        <div style="margin-bottom:14px;padding:12px 14px;background:#faf8f5;border:1px solid #e2ddd5;border-radius:8px;page-break-inside:avoid">
           <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
             <span style="font-size:16px">${e.icon}</span>
             <span style="font-weight:600;font-size:14px;color:#1c1614">${e.title}</span>
@@ -678,7 +678,7 @@ function generateEventBriefHTML(state, adminConfig) {
   };
 
   const overdueSection = overdue.length > 0
-    ? `<div style="margin-bottom:16px">
+    ? `<div style="margin-bottom:16px;page-break-inside:avoid">
         <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:#9b2335;margin-bottom:6px">${iconSvg("alertTriangle", "badge", { color: "#9b2335", style: "display:inline-block;vertical-align:middle;margin-right:3px" })} Overdue (${overdue.length})</div>
         <table style="width:100%;border-collapse:collapse">${overdue.map(t => taskRow(t, true)).join("")}</table>
       </div>` : "";
@@ -703,7 +703,7 @@ function generateEventBriefHTML(state, adminConfig) {
       <td style="padding:7px 10px;border-bottom:1px solid #f0ece6;color:#5c5248;font-size:12px">${r.hebrewName || ""}</td>
       <td style="padding:7px 10px;border-bottom:1px solid #f0ece6;color:#9c9188;font-size:11px">${r.notes || ""}</td>
     </tr>`).join("");
-    return `<div style="margin-bottom:16px">
+    return `<div style="margin-bottom:16px;page-break-inside:avoid">
       <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:#9c9188;margin-bottom:6px">${sec}</div>
       <table style="width:100%;border-collapse:collapse;border:1px solid #e2ddd5;border-radius:8px;overflow:hidden">
         <thead><tr style="background:#faf8f5">
@@ -724,8 +724,8 @@ function generateEventBriefHTML(state, adminConfig) {
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: "DM Sans", sans-serif; color: #1c1614; background: white; padding: 28px 32px; font-size: 13px; }
-  .vendor-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-  .stat-row { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
+  .vendor-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; page-break-inside: avoid; }
+  .stat-row { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; page-break-inside: avoid; }
   @media print {
     body { padding: 16px; }
     .no-print { display: none !important; }
