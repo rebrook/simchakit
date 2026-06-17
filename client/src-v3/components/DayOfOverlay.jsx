@@ -62,9 +62,27 @@ function parseTimeToMinutes(timeStr) {
   return hours * 60 + minutes;
 }
 
-function getNowMinutes() {
-  const now = new Date();
-  return now.getHours() * 60 + now.getMinutes();
+// Build a epoch-ms timestamp from a date string + time string (device-local TZ)
+function buildTimestamp(dateStr, timeStr) {
+  if (!dateStr || !timeStr) return null;
+  const mins = parseTimeToMinutes(timeStr);
+  if (mins === null) return null;
+  const d = new Date(dateStr + "T00:00:00");
+  if (isNaN(d.getTime())) return null;
+  d.setHours(Math.floor(mins / 60), mins % 60, 0, 0);
+  return d.getTime();
+}
+
+// Build start/end timestamps for an entry, handling midnight crossing
+function entryTimestamps(entry, fallbackDate) {
+  const dateStr = entry.startDate || fallbackDate || null;
+  const startMs = buildTimestamp(dateStr, entry.startTime);
+  let endMs = buildTimestamp(dateStr, entry.endTime);
+  // endTime < startTime means midnight crossing: add 24h to end
+  if (startMs !== null && endMs !== null && endMs <= startMs) {
+    endMs += 24 * 60 * 60 * 1000;
+  }
+  return { startMs, endMs };
 }
 
 function formatClock() {
@@ -358,15 +376,21 @@ export function DayOfItemModal({ item, onSave, onClose }) {
 // ── Mobile Day-of View ────────────────────────────────────────────────────────
 function MobileDayOf({ timeline, adminConfig, confirmedVendors, ceremonyRoles, confirmedPeople, dietaryPeople, kosherCount, totalConfirmed, totalInvited, eventName, eventDate, coPlanners, onClose }) {
   const [clock, setClock] = useState(formatClock);
-  const [nowMinutes, setNowMinutes] = useState(getNowMinutes);
+  const [nowMs, setNowMs] = useState(() => Date.now());
   const nowRef = useRef(null);
   const bodyRef = useRef(null);
+
+  // Main event date as fallback for entries without their own startDate
+  const mainEventDate = useMemo(() => {
+    const main = timeline.find(e => e.isMainEvent);
+    return main?.startDate || timeline[0]?.startDate || null;
+  }, [timeline]);
 
   // Clock + now-detection interval (every 30s)
   useEffect(() => {
     const tick = () => {
       setClock(formatClock());
-      setNowMinutes(getNowMinutes());
+      setNowMs(Date.now());
     };
     const id = setInterval(tick, 30000);
     return () => clearInterval(id);
@@ -382,37 +406,38 @@ function MobileDayOf({ timeline, adminConfig, confirmedVendors, ceremonyRoles, c
     });
   }, [timeline]);
 
-  // Determine now/next from timeline
-  const { nowEntry, nextEntry, progress } = useMemo(() => {
+  // Determine now/next from timeline (date-aware, device-local TZ)
+  const { nowEntry, nextEntry, progress, allPast } = useMemo(() => {
     let now = null, next = null, prog = 0;
-    const mins = nowMinutes;
+    let hasFuture = false;
 
-    for (let i = 0; i < timeline.length; i++) {
-      const entry = timeline[i];
-      const start = parseTimeToMinutes(entry.startTime);
-      const end   = parseTimeToMinutes(entry.endTime);
+    for (const entry of timeline) {
+      const { startMs, endMs } = entryTimestamps(entry, mainEventDate);
+      if (startMs === null || endMs === null) continue;
 
-      if (start !== null && end !== null && mins >= start && mins < end) {
+      if (nowMs >= startMs && nowMs < endMs) {
         now = entry;
-        prog = Math.round(((mins - start) / (end - start)) * 100);
-        if (i + 1 < timeline.length) next = timeline[i + 1];
-        break;
+        const raw = ((nowMs - startMs) / (endMs - startMs)) * 100;
+        prog = Math.round(Math.max(0, Math.min(100, raw)));
       }
+      if (startMs > nowMs) hasFuture = true;
     }
 
-    // If nothing is "now", find the next upcoming
-    if (!now) {
+    // nextEntry = entry with minimum startMs where startMs > nowMs
+    if (!now || hasFuture) {
+      let minStart = Infinity;
       for (const entry of timeline) {
-        const start = parseTimeToMinutes(entry.startTime);
-        if (start !== null && start > mins) {
+        const { startMs } = entryTimestamps(entry, mainEventDate);
+        if (startMs !== null && startMs > nowMs && startMs < minStart) {
+          minStart = startMs;
           next = entry;
-          break;
         }
       }
     }
 
-    return { nowEntry: now, nextEntry: next, progress: prog };
-  }, [timeline, nowMinutes]);
+    const allPast = !now && !next;
+    return { nowEntry: now, nextEntry: next, progress: prog, allPast };
+  }, [timeline, nowMs, mainEventDate]);
 
   // Clergy from adminConfig
   const clergyContacts = useMemo(() => {
@@ -513,6 +538,17 @@ function MobileDayOf({ timeline, adminConfig, confirmedVendors, ceremonyRoles, c
               {[nextEntry.venue, formatTimeRange(nextEntry.startTime, nextEntry.endTime)].filter(Boolean).join(" · ")}
             </div>
           </div>
+        ) : allPast && timeline.length > 0 ? (
+          <div className="dayof-m-now" style={{ background: "var(--bg-surface)", border: "1px solid var(--border)" }}>
+            <div className="dayof-m-now-tag" style={{ background: "var(--bg-subtle)", color: "var(--text-muted)" }}>
+              <Icon name="check" context="badge" style={{ marginRight: 4 }} />
+              Complete
+            </div>
+            <div className="dayof-m-now-title" style={{ color: "var(--text-primary)" }}>Mazal tov!</div>
+            <div className="dayof-m-now-meta" style={{ color: "var(--text-secondary)" }}>
+              All events have wrapped up.
+            </div>
+          </div>
         ) : null}
 
         {/* ── Run of show ── */}
@@ -524,10 +560,9 @@ function MobileDayOf({ timeline, adminConfig, confirmedVendors, ceremonyRoles, c
           {timeline.length === 0 ? (
             <div className="dayof-m-empty">No timeline entries configured.</div>
           ) : timeline.map((entry, i) => {
-            const start = parseTimeToMinutes(entry.startTime);
-            const end   = parseTimeToMinutes(entry.endTime);
-            const isNow  = start !== null && end !== null && nowMinutes >= start && nowMinutes < end;
-            const isPast = end !== null && nowMinutes >= end;
+            const { startMs, endMs } = entryTimestamps(entry, mainEventDate);
+            const isNow  = startMs !== null && endMs !== null && nowMs >= startMs && nowMs < endMs;
+            const isPast = endMs !== null && nowMs >= endMs;
             const timeStr = entry.startTime ? entry.startTime.replace(/^0/, "") : "";
             return (
               <div
