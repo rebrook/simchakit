@@ -350,8 +350,9 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false, display
       })).filter(g => g.tabs.length > 0);
 
   // Mobile bottom bar / More drawer splits
-  const bottomBarTabs  = tabsWithBadges.filter(t => BOTTOM_BAR_IDS.includes(t.id));
-  const moreDrawerTabs = tabsWithBadges.filter(t => !BOTTOM_BAR_IDS.includes(t.id));
+  let bottomBarTabs = tabsWithBadges.filter(t => BOTTOM_BAR_IDS.includes(t.id));
+  if (bottomBarTabs.length === 0) bottomBarTabs = tabsWithBadges.slice(0, 5);
+  const moreDrawerTabs = tabsWithBadges.filter(t => !bottomBarTabs.includes(t));
   const moreIsActive   = moreDrawerTabs.some(t => t.id === activeTab);
 
   // ── Navigate to tab ───────────────────────────────────────────────────────
@@ -995,6 +996,7 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false, display
           eventId={eventId}
           event={event}
           adminConfig={adminConfig}
+          coPlanners={coPlanners}
           onClose={() => setShowDayOf(false)}
           onPrintBrief={() => showToast("Print brief coming soon")}
         />
