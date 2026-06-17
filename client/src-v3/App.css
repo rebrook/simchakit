@@ -3753,7 +3753,7 @@
       letter-spacing: 0.06em;
       color: var(--text-muted);
       padding: 6px 14px;
-      background: var(--bg-page);
+      background: var(--bg-base);
       border-bottom: 1px solid var(--border);
     }
     .dayof-hotsheet-row {
@@ -3799,7 +3799,7 @@
       z-index: 1000;
       display: flex;
       flex-direction: column;
-      background: var(--bg-page);
+      background: var(--bg-base);
       /* Use dvh so the scroll area accounts for Safari's toolbar */
       height: 100dvh;
     }
