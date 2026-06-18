@@ -1,12 +1,26 @@
 {
-  "current": "V4.14.1",
+  "current": "V4.15.0",
   "whatsNew": [
-    "Share Brief on mobile now generates and shares a real PDF of your full event brief via the native OS share sheet",
-    "Two-tap pattern: tap Prepare brief to generate the PDF, then tap Share brief to open the share sheet with the document attached",
-    "Graceful fallback: if PDF generation or file sharing fails, falls back to a text summary share, then to the print preview modal",
-    "PDF generation is lazy-loaded (html2pdf.js) so it never impacts initial page load"
+    "Guest list now shows a mobile-friendly card layout on phones: tap status chips to filter by Confirmed, Pending, or Declined",
+    "Expanded household details show stacked member cards instead of a wide table, with meal choice, dietary info, and sub-event pills",
+    "All touch targets on mobile meet the 44px minimum for comfortable one-handed use"
   ],
   "changelog": [
+    {
+      "version": "V4.15.0",
+      "date": "2026-06-17",
+      "summary": "Mobile card layout for GuestsTab: filter chips, stacked member cards, 44px touch targets",
+      "details": [
+        "GuestsTab now renders a mobile-optimized card layout below 760px: status filter chips (All, Confirmed, Pending, Declined with counts), sticky search bar with inline Add button, and group dropdown",
+        "Expanded household member details reflow from a 9-column table to stacked cards on mobile showing name, age tag, sub-event pills, meal choice, kosher badge, dietary notes, and shirt/pant sizes",
+        "Status filter chips use the same semantic color tokens as RsvpPill: green for Confirmed (RSVP Yes), orange for Pending (Invited + Pending + Maybe), red for Declined (RSVP No)",
+        "All mobile interactive controls meet the 44px minimum touch target: filter chips, Add Household button, and household row action buttons (edit/delete increased from 36px to 44px)",
+        "New shared useIsMobile hook (760px breakpoint) extracted to hooks/useIsMobile.js for table-to-card reflow across tabs; deliberately separate from the 900px shell/sidebar breakpoint",
+        "Empty state messaging is context-aware on mobile: shows which chip filter produced zero results rather than a generic message",
+        "Added UtensilsCrossed icon to iconMap under the utensils key for meal choice display in member cards and future catering contexts",
+        "Desktop layout is completely unchanged: all table views, filter dropdowns, bulk actions, and modals remain as-is above 760px"
+      ]
+    },
     {
       "version": "V4.14.1",
       "date": "2026-06-17",

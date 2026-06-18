@@ -85,6 +85,7 @@ import {
   Baby,
   Wine,
   Share2,
+  UtensilsCrossed,
 } from "lucide-react";
 
 // ── Custom Star of David (hexagram) ─────────────────────────────────────────
@@ -219,6 +220,7 @@ export const ICONS = {
   partyPopper:     PartyPopper,
   wand:            Wand2,
   chevronUp:       ChevronUp,
+  utensils:        UtensilsCrossed,
 };
 
 // ── Context presets ─────────────────────────────────────────────────────────

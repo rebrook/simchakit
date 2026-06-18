@@ -29,6 +29,7 @@ import { ArchivedNotice }    from "@/components/shared/ArchivedNotice.jsx";
 import { RsvpPill }          from "@/components/shared/RsvpPill.jsx";
 import { CateringSummary }   from "@/components/shared/CateringSummary.jsx";
 import { Icon }              from "@/utils/iconMap.jsx";
+import { useIsMobile }       from "@/hooks/useIsMobile.js";
 
 // ── GuestsTab ─────────────────────────────────────────────────────────────────
 export function GuestsTab({ eventId, event, adminConfig, showToast, isArchived, isViewer, searchHighlight, clearSearchHighlight, setTopbarSubtitle }) {
@@ -54,10 +55,13 @@ export function GuestsTab({ eventId, event, adminConfig, showToast, isArchived, 
   const [missingAddressFilter, setMissingAddressFilter] = useState(false);
   const [selectedHHIds,        setSelectedHHIds]        = useState(new Set());
   const [bulkStatus,           setBulkStatus]           = useState("RSVP Yes");
+  const [mobileChip,           setMobileChip]           = useState("All");
+
+  const isMobile = useIsMobile();
 
   useSearchHighlight(searchHighlight, clearSearchHighlight, "guests", { setExpandedHH });
 
-  useEffect(() => { setSelectedHHIds(new Set()); }, [search, groupFilter, statusFilter, outOfTownFilter, missingAddressFilter]);
+  useEffect(() => { setSelectedHHIds(new Set()); }, [search, groupFilter, statusFilter, mobileChip, outOfTownFilter, missingAddressFilter]);
 
   // ── Audit log ─────────────────────────────────────────────────────────────
   const appendAuditLog = async (action, detail) => {
@@ -195,10 +199,31 @@ export function GuestsTab({ eventId, event, adminConfig, showToast, isArchived, 
     return               { cls:"info",   icon:<Icon name="mailCheck" context="inline" />, text:`RSVP deadline in ${diff} days · ${pendingText}` };
   })();
 
+  // ── Mobile chip status mapping ─────────────────────────────────────────
+  // Confirmed = RSVP Yes, Pending = Invited+Pending+Maybe, Declined = RSVP No
+  const chipStatusMatch = (hhStatus, chip) => {
+    if (chip === "All") return true;
+    if (chip === "Confirmed") return hhStatus === "RSVP Yes";
+    if (chip === "Declined")  return hhStatus === "RSVP No";
+    if (chip === "Pending")   return hhStatus === "Invited" || hhStatus === "Pending" || hhStatus === "Maybe";
+    return true;
+  };
+  const chipCounts = useMemo(() => ({
+    All:       households.length,
+    Confirmed: households.filter(h => h.status === "RSVP Yes").length,
+    Pending:   households.filter(h => h.status === "Invited" || h.status === "Pending" || h.status === "Maybe").length,
+    Declined:  households.filter(h => h.status === "RSVP No").length,
+  }), [households]);
+
   // ── Filtering ─────────────────────────────────────────────────────────────
   const filtered = households.filter(hh => {
     if (groupFilter  !== "All" && hh.group  !== groupFilter)  return false;
-    if (statusFilter !== "All" && hh.status !== statusFilter) return false;
+    // Desktop uses statusFilter select; mobile uses mobileChip
+    if (isMobile) {
+      if (!chipStatusMatch(hh.status, mobileChip)) return false;
+    } else {
+      if (statusFilter !== "All" && hh.status !== statusFilter) return false;
+    }
     if (outOfTownFilter      && !hh.outOfTown) return false;
     if (missingAddressFilter &&  hh.address1)  return false;
     if (search) {
@@ -284,35 +309,67 @@ export function GuestsTab({ eventId, event, adminConfig, showToast, isArchived, 
       <GuestInsights households={households} people={people} groups={groups} statusStyle={statusStyle} />
 
       {/* Filters */}
-      <div style={{display:"flex",flexDirection:"column",gap:8,marginBottom:16}}>
-        <div style={{display:"flex",gap:8,alignItems:"center"}}>
-          {!isArchived && !isViewer && filtered.length > 0 && (
-            <label style={{display:"flex",alignItems:"center",gap:6,cursor:"pointer",flexShrink:0,padding:"0 4px"}}
-              title={selectedHHIds.size===filtered.length?"Deselect all":"Select all visible"}>
-              <input type="checkbox"
-                checked={filtered.length>0 && selectedHHIds.size===filtered.length}
-                ref={el => { if (el) el.indeterminate = selectedHHIds.size>0 && selectedHHIds.size<filtered.length; }}
-                onChange={e => { if (e.target.checked) setSelectedHHIds(new Set(filtered.map(h=>h.id))); else setSelectedHHIds(new Set()); }}
-                style={{width:15,height:15,accentColor:"var(--accent-primary)",cursor:"pointer"}} />
-              <span style={{fontSize:12,color:"var(--text-muted)",whiteSpace:"nowrap"}}>Select All</span>
-            </label>
-          )}
-          <input className="form-input" style={{flex:1,padding:"8px 12px"}} type="text"
-            placeholder="Search by name..." value={search} onChange={e=>setSearch(e.target.value)} />
-        </div>
-        <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
-          <select className="form-select" style={{flex:1,padding:"8px 12px"}} value={groupFilter} onChange={e=>setGroupFilter(e.target.value)}>
+      {isMobile ? (
+        <div className="guest-mobile-filters">
+          <div className="guest-mobile-filters-top">
+            <input className="form-input" style={{flex:1,padding:"10px 12px",fontSize:15}} type="text"
+              placeholder="Search by name..." value={search} onChange={e=>setSearch(e.target.value)} />
+            {!isViewer && (
+              <button className="btn btn-primary guest-mobile-add-btn" disabled={isArchived} onClick={()=>setShowAdd(true)}>
+                <Icon name="plus" context="inline" />
+              </button>
+            )}
+          </div>
+          <div className="guest-mobile-chips">
+            {["All","Confirmed","Pending","Declined"].map(chip => {
+              const count = chipCounts[chip];
+              const isActive = mobileChip === chip;
+              const toneClass = chip === "Confirmed" ? "chip-confirmed" : chip === "Pending" ? "chip-pending" : chip === "Declined" ? "chip-declined" : "";
+              return (
+                <button key={chip}
+                  className={`guest-chip ${isActive ? `guest-chip-active ${toneClass}` : ""}`}
+                  onClick={() => setMobileChip(chip)}>
+                  {chip} {count}
+                </button>
+              );
+            })}
+          </div>
+          <select className="form-select" style={{padding:"10px 12px",fontSize:14}} value={groupFilter} onChange={e=>setGroupFilter(e.target.value)}>
             <option value="All">All Groups</option>
             {groups.map(g=><option key={g} value={g}>{g}</option>)}
           </select>
-          <select className="form-select" style={{flex:1,padding:"8px 12px"}} value={statusFilter} onChange={e=>setStatusFilter(e.target.value)}>
-            <option value="All">All Statuses</option>
-            {RSVP_STATUSES.map(s=><option key={s} value={s}>{s}</option>)}
-          </select>
-          <button className={`btn btn-sm ${outOfTownFilter?"btn-primary":"btn-secondary"}`} title="Show out-of-town households only" onClick={()=>setOutOfTownFilter(f=>!f)}><Icon name="accommodations" context="badge" style={{ marginRight: 4 }} /> Out of Town{outOfTownFilter?<> <Icon name="check" context="badge" /></>:""}</button>
-          <button className={`btn btn-sm ${missingAddressFilter?"btn-primary":"btn-secondary"}`} title="Show households missing a mailing address" onClick={()=>setMissingAddressFilter(f=>!f)}><Icon name="mailX" context="badge" style={{ marginRight: 4 }} /> No Address{missingAddressFilter?<> <Icon name="check" context="badge" /></>:""}</button>
         </div>
-      </div>
+      ) : (
+        <div style={{display:"flex",flexDirection:"column",gap:8,marginBottom:16}}>
+          <div style={{display:"flex",gap:8,alignItems:"center"}}>
+            {!isArchived && !isViewer && filtered.length > 0 && (
+              <label style={{display:"flex",alignItems:"center",gap:6,cursor:"pointer",flexShrink:0,padding:"0 4px"}}
+                title={selectedHHIds.size===filtered.length?"Deselect all":"Select all visible"}>
+                <input type="checkbox"
+                  checked={filtered.length>0 && selectedHHIds.size===filtered.length}
+                  ref={el => { if (el) el.indeterminate = selectedHHIds.size>0 && selectedHHIds.size<filtered.length; }}
+                  onChange={e => { if (e.target.checked) setSelectedHHIds(new Set(filtered.map(h=>h.id))); else setSelectedHHIds(new Set()); }}
+                  style={{width:15,height:15,accentColor:"var(--accent-primary)",cursor:"pointer"}} />
+                <span style={{fontSize:12,color:"var(--text-muted)",whiteSpace:"nowrap"}}>Select All</span>
+              </label>
+            )}
+            <input className="form-input" style={{flex:1,padding:"8px 12px"}} type="text"
+              placeholder="Search by name..." value={search} onChange={e=>setSearch(e.target.value)} />
+          </div>
+          <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
+            <select className="form-select" style={{flex:1,padding:"8px 12px"}} value={groupFilter} onChange={e=>setGroupFilter(e.target.value)}>
+              <option value="All">All Groups</option>
+              {groups.map(g=><option key={g} value={g}>{g}</option>)}
+            </select>
+            <select className="form-select" style={{flex:1,padding:"8px 12px"}} value={statusFilter} onChange={e=>setStatusFilter(e.target.value)}>
+              <option value="All">All Statuses</option>
+              {RSVP_STATUSES.map(s=><option key={s} value={s}>{s}</option>)}
+            </select>
+            <button className={`btn btn-sm ${outOfTownFilter?"btn-primary":"btn-secondary"}`} title="Show out-of-town households only" onClick={()=>setOutOfTownFilter(f=>!f)}><Icon name="accommodations" context="badge" style={{ marginRight: 4 }} /> Out of Town{outOfTownFilter?<> <Icon name="check" context="badge" /></>:""}</button>
+            <button className={`btn btn-sm ${missingAddressFilter?"btn-primary":"btn-secondary"}`} title="Show households missing a mailing address" onClick={()=>setMissingAddressFilter(f=>!f)}><Icon name="mailX" context="badge" style={{ marginRight: 4 }} /> No Address{missingAddressFilter?<> <Icon name="check" context="badge" /></>:""}</button>
+          </div>
+        </div>
+      )}
 
       {/* Bulk action bar */}
       {selectedHHIds.size > 0 && !isViewer && (
@@ -331,10 +388,14 @@ export function GuestsTab({ eventId, event, adminConfig, showToast, isArchived, 
         <div style={{textAlign:"center",padding:"60px 24px",color:"var(--text-muted)"}}>
           <div style={{fontSize:36,marginBottom:12}}><Icon name="guests" context="empty" /></div>
           <div style={{fontFamily:"var(--font-display)",fontSize:18,marginBottom:8}}>
-            {households.length===0 ? "No guests yet" : "No guests match your filters"}
+            {households.length===0 ? "No guests yet"
+              : isMobile && mobileChip !== "All" ? `No ${mobileChip.toLowerCase()} households`
+              : "No guests match your filters"}
           </div>
           <div style={{fontSize:13,marginBottom:households.length===0?20:0}}>
-            {households.length===0 ? "Add your first household or import from CSV." : "Try adjusting your search or filters."}
+            {households.length===0 ? "Add your first household or import from CSV."
+              : isMobile && mobileChip !== "All" ? "Try a different status or clear your search."
+              : "Try adjusting your search or filters."}
           </div>
           {households.length===0 && !isArchived && !isViewer && (
             <button className="btn btn-primary" onClick={()=>setShowAdd(true)}>+ Add Household</button>
@@ -416,36 +477,79 @@ export function GuestsTab({ eventId, event, adminConfig, showToast, isArchived, 
                       </div>
                     )}
                     {members.length>0 ? (
-                      <div style={{overflowX:"auto"}}>
-                        <table style={{width:"100%",borderCollapse:"collapse",fontSize:12}}>
-                          <thead>
-                            <tr style={{borderBottom:"1px solid var(--border)"}}>
-                              {[{label:"Name",align:"left"},{label:"Title",align:"left"},{label:"Age",align:"left"},{label:"Sub-Events",align:"left"},{label:"Shirt",align:"left"},{label:"Pant",align:"left"},{label:"Meal",align:"left"},{label:"Kosher",align:"center"},{label:"Dietary",align:"left"}].map(col=>(
-                                <th key={col.label} style={{padding:"5px 10px",textAlign:col.align,fontWeight:700,color:"var(--text-muted)",fontSize:11,textTransform:"uppercase",letterSpacing:"0.04em",whiteSpace:"nowrap"}}>{col.label}</th>
-                              ))}
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {members.map(p=>(
-                              <tr key={p.id} style={{borderBottom:"1px solid var(--border)"}}>
-                                <td style={{padding:"6px 10px",fontWeight:600,color:"var(--text-primary)"}}>{[p.firstName,p.lastName].filter(Boolean).join(" ")||p.name||"—"}</td>
-                                <td style={{padding:"6px 10px",color:"var(--text-secondary)"}}>{p.title||"—"}</td>
-                                <td style={{padding:"6px 10px",color:"var(--text-muted)"}}>{p.isChild?"Child":"Adult"}</td>
-                                <td style={{padding:"6px 10px"}}>
-                                  {(p.attendingSections||[]).length===0
-                                    ? <span className="tag tag-muted">TBD</span>
-                                    : (p.attendingSections).map(id=>{const s=sections.find(x=>x.id===id);return <span key={id} className="tag tag-green" style={{marginRight:2,fontSize:10}}>{s?s.label:id}</span>;})}
-                                </td>
-                                <td style={{padding:"6px 10px",color:"var(--text-muted)"}}>{p.shirtSize||"—"}</td>
-                                <td style={{padding:"6px 10px",color:"var(--text-muted)"}}>{p.pantSize||"—"}</td>
-                                <td style={{padding:"6px 10px",color:"var(--text-muted)"}}>{p.mealChoice||"—"}</td>
-                                <td style={{padding:"6px 10px",textAlign:"center"}}>{p.kosher?<Icon name="check" context="badge" />:""}</td>
-                                <td style={{padding:"6px 10px",color:"var(--text-muted)",maxWidth:160,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{p.dietary||"—"}</td>
+                      isMobile ? (
+                        <div className="member-card-list">
+                          {members.map(p => {
+                            const name = [p.firstName,p.lastName].filter(Boolean).join(" ")||p.name||"Unknown";
+                            const hasSizes = p.shirtSize || p.pantSize;
+                            const hasDiet = p.mealChoice || p.kosher || p.dietary;
+                            return (
+                              <div key={p.id} className="member-card">
+                                <div className="member-card-header">
+                                  <span className="member-card-name">{name}</span>
+                                  <span className={`tag ${p.isChild ? "tag-blue" : "tag-muted"}`}>{p.isChild ? "Child" : "Adult"}</span>
+                                  {p.title && <span className="tag tag-muted">{p.title}</span>}
+                                </div>
+                                {(p.attendingSections||[]).length > 0 && (
+                                  <div className="member-card-sections">
+                                    {(p.attendingSections).map(id => {
+                                      const s = sections.find(x => x.id === id);
+                                      return <span key={id} className="tag tag-green" style={{fontSize:10}}>{s ? s.label : id}</span>;
+                                    })}
+                                  </div>
+                                )}
+                                {(p.attendingSections||[]).length === 0 && (
+                                  <div className="member-card-sections"><span className="tag tag-muted" style={{fontSize:10}}>Sub-events TBD</span></div>
+                                )}
+                                {hasDiet && (
+                                  <div className="member-card-detail">
+                                    {p.mealChoice && <span><Icon name="utensils" context="badge" style={{marginRight:3}} />{p.mealChoice}</span>}
+                                    {p.kosher && <span className="tag tag-accent" style={{fontSize:10}}>Kosher</span>}
+                                    {p.dietary && <span style={{color:"var(--text-muted)",fontStyle:"italic"}}>{p.dietary}</span>}
+                                  </div>
+                                )}
+                                {hasSizes && (
+                                  <div className="member-card-detail">
+                                    {p.shirtSize && <span>Shirt: {p.shirtSize}</span>}
+                                    {p.pantSize && <span>Pant: {p.pantSize}</span>}
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        <div style={{overflowX:"auto"}}>
+                          <table style={{width:"100%",borderCollapse:"collapse",fontSize:12}}>
+                            <thead>
+                              <tr style={{borderBottom:"1px solid var(--border)"}}>
+                                {[{label:"Name",align:"left"},{label:"Title",align:"left"},{label:"Age",align:"left"},{label:"Sub-Events",align:"left"},{label:"Shirt",align:"left"},{label:"Pant",align:"left"},{label:"Meal",align:"left"},{label:"Kosher",align:"center"},{label:"Dietary",align:"left"}].map(col=>(
+                                  <th key={col.label} style={{padding:"5px 10px",textAlign:col.align,fontWeight:700,color:"var(--text-muted)",fontSize:11,textTransform:"uppercase",letterSpacing:"0.04em",whiteSpace:"nowrap"}}>{col.label}</th>
+                                ))}
                               </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
+                            </thead>
+                            <tbody>
+                              {members.map(p=>(
+                                <tr key={p.id} style={{borderBottom:"1px solid var(--border)"}}>
+                                  <td style={{padding:"6px 10px",fontWeight:600,color:"var(--text-primary)"}}>{[p.firstName,p.lastName].filter(Boolean).join(" ")||p.name||"—"}</td>
+                                  <td style={{padding:"6px 10px",color:"var(--text-secondary)"}}>{p.title||"—"}</td>
+                                  <td style={{padding:"6px 10px",color:"var(--text-muted)"}}>{p.isChild?"Child":"Adult"}</td>
+                                  <td style={{padding:"6px 10px"}}>
+                                    {(p.attendingSections||[]).length===0
+                                      ? <span className="tag tag-muted">TBD</span>
+                                      : (p.attendingSections).map(id=>{const s=sections.find(x=>x.id===id);return <span key={id} className="tag tag-green" style={{marginRight:2,fontSize:10}}>{s?s.label:id}</span>;})}
+                                  </td>
+                                  <td style={{padding:"6px 10px",color:"var(--text-muted)"}}>{p.shirtSize||"—"}</td>
+                                  <td style={{padding:"6px 10px",color:"var(--text-muted)"}}>{p.pantSize||"—"}</td>
+                                  <td style={{padding:"6px 10px",color:"var(--text-muted)"}}>{p.mealChoice||"—"}</td>
+                                  <td style={{padding:"6px 10px",textAlign:"center"}}>{p.kosher?<Icon name="check" context="badge" />:""}</td>
+                                  <td style={{padding:"6px 10px",color:"var(--text-muted)",maxWidth:160,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{p.dietary||"—"}</td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      )
                     ) : (
                       <div style={{fontSize:12,color:"var(--text-muted)",fontStyle:"italic"}}>No members added. Edit this household to add individuals.</div>
                     )}
