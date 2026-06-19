@@ -130,30 +130,40 @@
   }
   </script>
 
-  <!-- Fonts -->
+  <!-- Fonts: Cormorant Garamond (display) + DM Sans (body) -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 
   <style>
     :root {
+      /* Brand colors: marketing site's own identity */
       --color-primary: #1e3a5f;
       --color-primary-light: #2d5a8a;
       --color-accent: #c9a227;
       --color-accent-light: #e3c565;
-      --color-bg: #fafbfc;
-      --color-bg-alt: #f0f4f8;
-      --color-text: #1a2b3c;
-      --color-text-muted: #5a6978;
-      --color-border: #e1e6eb;
+
+      /* Warm-paper surfaces aligned to app's surface language */
+      --color-bg: #faf8f5;
+      --color-bg-alt: #f4f1ec;
       --color-white: #ffffff;
-      --font-display: 'Playfair Display', Georgia, serif;
-      --font-body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+
+      /* Warm-grey neutrals (not blue-grey) */
+      --color-text: #2c2520;
+      --color-text-muted: #6b6058;
+      --color-border: #e2ddd5;
+      --color-border-strong: #c9c2b6;
+
+      /* Design-system type pairing */
+      --font-display: 'Cormorant Garamond', Georgia, serif;
+      --font-body: 'DM Sans', system-ui, sans-serif;
+
+      /* Shared tokens */
       --radius: 12px;
       --radius-lg: 20px;
-      --shadow-sm: 0 1px 3px rgba(0,0,0,0.08);
-      --shadow-md: 0 4px 12px rgba(0,0,0,0.1);
-      --shadow-lg: 0 8px 30px rgba(0,0,0,0.12);
+      --shadow-sm: 0 1px 3px rgba(44,37,32,0.07);
+      --shadow-md: 0 4px 12px rgba(44,37,32,0.09);
+      --shadow-lg: 0 8px 30px rgba(44,37,32,0.12);
       --max-width: 1140px;
     }
 
@@ -175,16 +185,22 @@
       background: var(--color-bg);
     }
 
-    /* Typography */
-    h1, h2, h3 {
+    /* Typography: Cormorant display only, DM Sans body/UI */
+    h1, h2 {
       font-family: var(--font-display);
       font-weight: 700;
-      line-height: 1.2;
+      line-height: 1.15;
+    }
+
+    h3 {
+      font-family: var(--font-body);
+      font-weight: 600;
+      line-height: 1.3;
     }
 
     h1 { font-size: clamp(2.25rem, 5vw, 3.25rem); }
     h2 { font-size: clamp(1.75rem, 4vw, 2.5rem); }
-    h3 { font-size: 1.25rem; font-weight: 600; }
+    h3 { font-size: 1.15rem; }
 
     p { max-width: 65ch; }
 
@@ -216,7 +232,7 @@
       top: 0;
       left: 0;
       right: 0;
-      background: rgba(255,255,255,0.95);
+      background: rgba(250,248,245,0.95);
       backdrop-filter: blur(10px);
       border-bottom: 1px solid var(--color-border);
       z-index: 100;
@@ -241,9 +257,9 @@
     }
 
     .logo img {
-      width: 52px;
-      height: 52px;
-      border-radius: 11px;
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
       display: block;
     }
 
@@ -269,6 +285,7 @@
       border: none;
       cursor: pointer;
       padding: 8px;
+      color: var(--color-text);
     }
 
     /* Buttons */
@@ -355,9 +372,10 @@
     }
 
     .hero-subtitle {
-      font-size: 1.2rem;
+      font-size: 1.15rem;
       color: var(--color-text-muted);
-      margin-bottom: 32px;
+      margin-bottom: 28px;
+      line-height: 1.7;
     }
 
     .hero-differentiator {
@@ -395,6 +413,7 @@
       display: flex;
       align-items: center;
       gap: 12px;
+      border: 1px solid var(--color-border);
     }
 
     .hero-float-1 {
@@ -414,11 +433,15 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 20px;
     }
 
-    .hero-float-icon.green { background: #e8f5e9; }
-    .hero-float-icon.blue { background: #e3f2fd; }
+    .hero-float-icon.green { background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%); color: #2d6a4f; }
+    .hero-float-icon.blue { background: linear-gradient(135deg, #e3f0fd 0%, #bbd6fb 100%); color: #1e4d8c; }
+
+    .hero-float-icon svg {
+      width: 20px;
+      height: 20px;
+    }
 
     .hero-float-text {
       font-size: 13px;
@@ -432,6 +455,39 @@
 
     .hero-float-text span {
       color: var(--color-text-muted);
+    }
+
+    /* The Problem */
+    .problem {
+      background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-light) 100%);
+      color: white;
+    }
+
+    .problem-inner {
+      max-width: 740px;
+      margin: 0 auto;
+      text-align: center;
+    }
+
+    .problem-inner h2 {
+      color: white;
+      margin-bottom: 24px;
+    }
+
+    .problem-inner p {
+      font-size: 1.1rem;
+      opacity: 0.9;
+      line-height: 1.7;
+      margin: 0 auto 20px;
+      max-width: 100%;
+    }
+
+    .problem-cta {
+      font-size: 1.3rem !important;
+      font-weight: 700;
+      color: var(--color-accent-light) !important;
+      opacity: 1 !important;
+      margin-top: 12px !important;
     }
 
     /* Features */
@@ -452,7 +508,7 @@
 
     .section-header p {
       color: var(--color-text-muted);
-      font-size: 1.1rem;
+      font-size: 1.05rem;
       margin: 0 auto;
     }
 
@@ -473,26 +529,30 @@
     .feature-card:hover {
       transform: translateY(-4px);
       box-shadow: var(--shadow-md);
-      border-color: var(--color-primary);
+      border-color: var(--color-border-strong);
     }
 
     .feature-icon {
-      width: 56px;
-      height: 56px;
-      border-radius: 14px;
+      width: 52px;
+      height: 52px;
+      border-radius: 13px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 28px;
       margin-bottom: 20px;
     }
 
-    .feature-icon.navy { background: linear-gradient(135deg, #e8eef5 0%, #d4e0ed 100%); }
-    .feature-icon.gold { background: linear-gradient(135deg, #fef9e7 0%, #fcefc7 100%); }
-    .feature-icon.green { background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%); }
-    .feature-icon.blue { background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%); }
-    .feature-icon.purple { background: linear-gradient(135deg, #f3e5f5 0%, #e1bee7 100%); }
-    .feature-icon.rose { background: linear-gradient(135deg, #fce4ec 0%, #f8bbd9 100%); }
+    .feature-icon svg {
+      width: 26px;
+      height: 26px;
+    }
+
+    .feature-icon.navy { background: linear-gradient(135deg, #e8eef5 0%, #d4e0ed 100%); color: #1e3a5f; }
+    .feature-icon.gold { background: linear-gradient(135deg, #fef9e7 0%, #fcefc7 100%); color: #9a7b1a; }
+    .feature-icon.green { background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%); color: #2d6a4f; }
+    .feature-icon.blue { background: linear-gradient(135deg, #e3f0fd 0%, #bbd6fb 100%); color: #1e4d8c; }
+    .feature-icon.purple { background: linear-gradient(135deg, #f3e5f5 0%, #e1bee7 100%); color: #6a1b9a; }
+    .feature-icon.rose { background: linear-gradient(135deg, #fce4ec 0%, #f5c6d6 100%); color: #7c3d52; }
 
     .feature-card h3 {
       color: var(--color-primary);
@@ -502,7 +562,7 @@
     .feature-card p {
       color: var(--color-text-muted);
       font-size: 15px;
-      line-height: 1.6;
+      line-height: 1.65;
     }
 
     /* Screenshot Gallery */
@@ -520,14 +580,14 @@
       background: var(--color-white);
       border-radius: var(--radius-lg);
       overflow: hidden;
-      box-shadow: var(--shadow-md);
+      box-shadow: var(--shadow-sm);
       border: 1px solid var(--color-border);
       transition: all 0.3s;
     }
 
     .gallery-item:hover {
       transform: translateY(-4px);
-      box-shadow: var(--shadow-lg);
+      box-shadow: var(--shadow-md);
     }
 
     .gallery-item img {
@@ -543,13 +603,54 @@
     .gallery-item-caption h3 {
       color: var(--color-primary);
       margin-bottom: 4px;
-      font-size: 1.1rem;
+      font-size: 1.05rem;
     }
 
     .gallery-item-caption p {
       color: var(--color-text-muted);
       font-size: 14px;
       margin: 0;
+    }
+
+    /* Mobile screenshots row */
+    .gallery-mobile-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      margin-top: 24px;
+      max-width: 640px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .gallery-mobile-item {
+      background: var(--color-white);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      box-shadow: var(--shadow-sm);
+      border: 1px solid var(--color-border);
+      transition: all 0.3s;
+      text-align: center;
+      padding: 24px 24px 0;
+    }
+
+    .gallery-mobile-item:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-md);
+    }
+
+    .gallery-mobile-item img {
+      width: 220px;
+      max-width: 100%;
+      height: auto;
+      display: block;
+      margin: 0 auto;
+      border-radius: 12px;
+      border: 1px solid var(--color-border);
+    }
+
+    .gallery-mobile-item .gallery-item-caption {
+      padding: 16px 4px;
     }
 
     /* How It Works */
@@ -559,8 +660,8 @@
 
     .steps {
       display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 32px;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 40px;
     }
 
     .step {
@@ -572,8 +673,8 @@
       content: '';
       position: absolute;
       top: 32px;
-      left: calc(50% + 40px);
-      width: calc(100% - 80px);
+      left: calc(50% + 44px);
+      width: calc(100% - 88px);
       height: 2px;
       background: var(--color-border);
     }
@@ -603,66 +704,19 @@
 
     .step p {
       color: var(--color-text-muted);
-      font-size: 14px;
+      font-size: 15px;
+      line-height: 1.65;
       margin: 0 auto;
+      max-width: 300px;
     }
 
-    /* Getting Started */
-    .getting-started {
-      background: var(--color-white);
-    }
-
-    .getting-started-steps {
-      display: flex;
-      align-items: flex-start;
-      gap: 0;
-      justify-content: center;
-    }
-
-    .gs-step {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
+    .how-it-works-cta {
       text-align: center;
-      max-width: 280px;
-      flex: 1;
-    }
-
-    .gs-step-number {
-      width: 56px;
-      height: 56px;
-      border-radius: 50%;
-      background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-light) 100%);
-      color: white;
+      margin-top: 48px;
       display: flex;
-      align-items: center;
       justify-content: center;
-      font-family: var(--font-display);
-      font-size: 1.5rem;
-      font-weight: 700;
-      margin-bottom: 20px;
-      flex-shrink: 0;
-    }
-
-    .gs-step-content h3 {
-      color: var(--color-primary);
-      margin-bottom: 8px;
-      font-size: 1.1rem;
-    }
-
-    .gs-step-content p {
-      color: var(--color-text-muted);
-      font-size: 14px;
-      line-height: 1.6;
-      margin: 0 auto;
-    }
-
-    .gs-connector {
-      font-size: 1.5rem;
-      color: var(--color-accent);
-      padding: 0 16px;
-      margin-top: 16px;
-      flex-shrink: 0;
+      gap: 16px;
+      flex-wrap: wrap;
     }
 
     /* Pricing */
@@ -685,7 +739,7 @@
 
     .pricing .pricing-desc {
       opacity: 0.9;
-      font-size: 1.1rem;
+      font-size: 1.05rem;
       margin-bottom: 24px;
       max-width: 100%;
     }
@@ -706,7 +760,7 @@
     }
 
     .pricing-features li::before {
-      content: '✓';
+      content: '';
       width: 24px;
       height: 24px;
       min-width: 24px;
@@ -715,8 +769,9 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 12px;
-      font-weight: bold;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: center;
     }
 
     .pricing-card {
@@ -771,37 +826,37 @@
       margin-bottom: 16px;
     }
 
-    /* Problem */
-    .problem {
-      background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-light) 100%);
-      color: white;
+    /* FAQ */
+    .faq {
+      background: var(--color-bg-alt);
     }
 
-    .problem-inner {
-      max-width: 740px;
+    .faq-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 24px;
+      max-width: 900px;
       margin: 0 auto;
-      text-align: center;
     }
 
-    .problem-inner h2 {
-      color: white;
-      margin-bottom: 24px;
+    .faq-item {
+      background: var(--color-white);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      padding: 28px 32px;
     }
 
-    .problem-inner p {
-      font-size: 1.1rem;
-      opacity: 0.9;
-      line-height: 1.7;
-      margin: 0 auto 20px;
-      max-width: 100%;
+    .faq-item h3 {
+      color: var(--color-primary);
+      margin-bottom: 10px;
+      font-size: 1.05rem;
     }
 
-    .problem-cta {
-      font-size: 1.3rem !important;
-      font-weight: 700;
-      color: var(--color-accent-light) !important;
-      opacity: 1 !important;
-      margin-top: 12px !important;
+    .faq-item p {
+      color: var(--color-text-muted);
+      font-size: 15px;
+      line-height: 1.65;
+      margin: 0;
     }
 
     /* Founder */
@@ -827,83 +882,7 @@
       max-width: 100%;
     }
 
-    /* FAQ */
-    .faq {
-      background: var(--color-bg-alt);
-    }
-
-    .faq-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 24px;
-      max-width: 900px;
-      margin: 0 auto;
-    }
-
-    .faq-item {
-      background: var(--color-white);
-      border: 1px solid var(--color-border);
-      border-radius: var(--radius-lg);
-      padding: 28px 32px;
-    }
-
-    .faq-item h3 {
-      color: var(--color-primary);
-      margin-bottom: 10px;
-      font-size: 1.1rem;
-    }
-
-    .faq-item p {
-      color: var(--color-text-muted);
-      font-size: 15px;
-      line-height: 1.6;
-      margin: 0;
-    }
-
-    /* Contact */
-    .contact {
-      background: var(--color-white);
-    }
-
-    .contact-inner {
-      max-width: 600px;
-      margin: 0 auto;
-      text-align: center;
-    }
-
-    .contact h2 {
-      color: var(--color-primary);
-      margin-bottom: 16px;
-    }
-
-    .contact-card {
-      background: var(--color-bg);
-      border: 1px solid var(--color-border);
-      border-radius: var(--radius-lg);
-      padding: 40px;
-      text-align: center;
-    }
-
-    .contact-card p {
-      margin: 0 auto 24px;
-      color: var(--color-text-muted);
-    }
-
-    .contact-email {
-      font-size: 1.25rem;
-      font-weight: 600;
-      color: var(--color-primary);
-    }
-
-    .contact-links {
-      display: flex;
-      justify-content: center;
-      gap: 16px;
-      margin-top: 24px;
-      flex-wrap: wrap;
-    }
-
-    /* Blog / Resources */
+    /* Resources */
     .blog-preview {
       background: var(--color-white);
     }
@@ -928,7 +907,7 @@
     .blog-card:hover {
       transform: translateY(-4px);
       box-shadow: var(--shadow-md);
-      border-color: var(--color-primary);
+      border-color: var(--color-border-strong);
     }
 
     .blog-card-tag {
@@ -948,7 +927,7 @@
     .blog-card h3 {
       color: var(--color-primary);
       margin-bottom: 10px;
-      font-size: 1.2rem;
+      font-size: 1.15rem;
       line-height: 1.3;
     }
 
@@ -978,6 +957,38 @@
 
     .blog-card:hover .blog-card-read-more {
       color: var(--color-primary);
+    }
+
+    /* Contact */
+    .contact {
+      background: var(--color-white);
+    }
+
+    .contact-card {
+      background: var(--color-bg);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      padding: 40px;
+      text-align: center;
+    }
+
+    .contact-card p {
+      margin: 0 auto 24px;
+      color: var(--color-text-muted);
+    }
+
+    .contact-email {
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: var(--color-primary);
+    }
+
+    .contact-links {
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+      margin-top: 24px;
+      flex-wrap: wrap;
     }
 
     /* Footer */
@@ -1051,7 +1062,7 @@
       }
 
       .hero-visual {
-        max-width: 500px;
+        max-width: 560px;
         margin: 0 auto;
       }
 
@@ -1068,11 +1079,8 @@
       }
 
       .steps {
-        grid-template-columns: repeat(2, 1fr);
-      }
-
-      .step:not(:last-child)::after {
-        display: none;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 24px;
       }
 
       .pricing-inner {
@@ -1106,7 +1114,7 @@
         top: 60px;
         left: 0;
         right: 0;
-        background: rgba(255,255,255,0.98);
+        background: rgba(250,248,245,0.98);
         border-bottom: 1px solid var(--color-border);
         padding: 8px 0 16px;
         box-shadow: var(--shadow-md);
@@ -1148,24 +1156,25 @@
         gap: 40px;
       }
 
+      .step:not(:last-child)::after {
+        display: none;
+      }
+
       .gallery-grid {
         grid-template-columns: 1fr;
       }
 
+      .gallery-mobile-row {
+        grid-template-columns: 1fr 1fr;
+        max-width: 400px;
+      }
+
+      .gallery-mobile-item img {
+        width: 160px;
+      }
+
       .faq-grid {
         grid-template-columns: 1fr;
-      }
-
-      .getting-started-steps {
-        flex-direction: column;
-        align-items: center;
-        gap: 32px;
-      }
-
-      .gs-connector {
-        transform: rotate(90deg);
-        padding: 0;
-        margin: 0;
       }
 
       .footer-inner {
@@ -1176,6 +1185,28 @@
       .footer-links {
         flex-wrap: wrap;
         justify-content: center;
+      }
+
+      .hero-subtitle {
+        font-size: 1.05rem;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .gallery-mobile-row {
+        max-width: 100%;
+      }
+
+      .gallery-mobile-item {
+        padding: 16px 16px 0;
+      }
+
+      .gallery-mobile-item img {
+        width: 140px;
+      }
+
+      .hero-float {
+        display: none;
       }
     }
   </style>
@@ -1200,8 +1231,8 @@
           <a href="https://demo.simcha-kit.com" target="_blank" class="btn btn-secondary" style="padding: 8px 16px;">Try Demo</a>
           <a href="https://app.simcha-kit.com" target="_blank" class="btn btn-primary" style="padding: 8px 20px;">Start Planning</a>
         </nav>
-        <button class="nav-mobile-toggle" aria-label="Menu">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
+        <button class="nav-mobile-toggle" aria-label="Menu" aria-expanded="false">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
         </button>
       </div>
     </div>
@@ -1222,16 +1253,20 @@
           </div>
         </div>
         <div class="hero-visual">
-          <img src="overview.png" alt="SimchaKit dashboard showing event overview with countdown, guest stats, budget tracking, and timeline" class="hero-image">
+          <img src="overview.png" alt="SimchaKit dashboard showing event overview with countdown, completion rings, focus panel, and timeline" class="hero-image">
           <div class="hero-float hero-float-1">
-            <div class="hero-float-icon green">✓</div>
+            <div class="hero-float-icon green">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
             <div class="hero-float-text">
               <strong>48 Guests</strong>
               <span>RSVPs tracked</span>
             </div>
           </div>
           <div class="hero-float hero-float-2">
-            <div class="hero-float-icon blue">📊</div>
+            <div class="hero-float-icon blue">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20V10"/><path d="M18 20V4"/><path d="M6 20v-4"/></svg>
+            </div>
             <div class="hero-float-text">
               <strong>Real-time Sync</strong>
               <span>All devices updated</span>
@@ -1263,29 +1298,52 @@
       </div>
       <div class="features-grid">
         <div class="feature-card">
-          <div class="feature-icon navy">👥</div>
+          <div class="feature-icon navy">
+            <!-- Users icon -->
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          </div>
           <h3>Guest Management</h3>
-          <p>Track households, individuals, and RSVPs across every sub-event. Manage dietary needs, formal names for invitations, and addresses. Import your list from a CSV and export when it's time to send to your invitation vendor.</p>
+          <p>Track households, individuals, and RSVPs across every sub-event. Manage dietary needs, formal names for invitations, and addresses. Import your list from a CSV and export when it's time to send to your invitation vendor. The catering summary rolls up meal choices and dietary counts so your caterer gets one clean sheet.</p>
         </div>
         <div class="feature-card">
-          <div class="feature-icon gold">💰</div>
+          <div class="feature-icon gold">
+            <!-- DollarSign icon -->
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+          </div>
           <h3>Vendors and Budget</h3>
-          <p>Store vendor contacts, contracts, and payment schedules in one place. Track deposits, balances, and due dates. Monitor expenses by category with a built-in gratuity calculator for service staff.</p>
+          <p>Store vendor contacts, contracts, and payment schedules in one place. Track deposits, balances, and due dates. Monitor expenses by category with the Budget Insights chart showing paid vs. outstanding at a glance, plus estimated vs. actual tracking and a built-in gratuity calculator for service staff.</p>
         </div>
         <div class="feature-card">
-          <div class="feature-icon purple">📋</div>
+          <div class="feature-icon purple">
+            <!-- ClipboardCheck icon -->
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="m9 14 2 2 4-4"/></svg>
+          </div>
           <h3>Event Planning and Tasks</h3>
           <p>Manage your full to-do list with due dates, categories, and completion tracking. Log gifts as they arrive and track thank-you notes so nothing falls through the cracks between now and your simcha.</p>
         </div>
         <div class="feature-card">
-          <div class="feature-icon blue">🪑</div>
+          <div class="feature-icon blue">
+            <!-- Smartphone icon -->
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+          </div>
           <h3>Day-of Coordination</h3>
-          <p>Build your seating chart, assign guests to tables, and let Auto-Seat handle the gaps. Manage ceremony roles, access vendor contacts on the fly, and switch to Day-of Mode when it's time to celebrate.</p>
+          <p>Build your seating chart, assign guests to tables, and let Auto-Seat handle the gaps. Manage ceremony roles and access vendor contacts on the fly. When it's time to celebrate, switch to Day-of Mode: a focused mobile view with your run of show, next-up timeline, and key contacts, all from your phone.</p>
         </div>
         <div class="feature-card">
-          <div class="feature-icon green">🤝</div>
+          <div class="feature-icon green">
+            <!-- UserPlus icon -->
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
+          </div>
           <h3>Plan Together</h3>
-          <p>Invite co-planners to your event as editors or viewers. Editors can add and update planning data; viewers can follow along without making changes. Up to five collaborators per event, covered by your purchase at no extra cost.</p>
+          <p>Invite co-planners to your event as editors or viewers with a one-tap email invite. See who's online with real-time presence indicators. Add a Ritual Coordinator for clergy or a tutor who sees only the Ceremony and Prep tabs. Up to five collaborators per event, covered by your purchase at no extra cost.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon rose">
+            <!-- Lightbulb / target icon -->
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
+          </div>
+          <h3>Your Dashboard, at a Glance</h3>
+          <p>The Overview shows where things stand: completion rings for RSVPs, budget, tasks, and vendors, plus a "What Needs You Next" focus panel that surfaces missing addresses, overdue tasks, and upcoming deadlines. Generate a shareable PDF brief or print a summary for your planning binder.</p>
         </div>
       </div>
     </div>
@@ -1300,31 +1358,48 @@
       </div>
       <div class="gallery-grid">
         <div class="gallery-item">
-          <img src="screenshot-guests.png" alt="SimchaKit guest list app showing household RSVPs, dietary needs, and sub-event attendance">
+          <img src="screenshot-guests.png" alt="SimchaKit guest list showing household RSVPs, catering summary, dietary tracking, and guest insights">
           <div class="gallery-item-caption">
             <h3>Guest Management</h3>
             <p>Track households, RSVPs, dietary needs, and export for invitations.</p>
           </div>
         </div>
         <div class="gallery-item">
-          <img src="screenshot-budget.png" alt="SimchaKit budget tracking app showing vendor expenses, deposits, and payment status">
+          <img src="screenshot-budget.png" alt="SimchaKit budget tracking with category chart, vendor expenses, and payment status">
           <div class="gallery-item-caption">
             <h3>Budget Tracking</h3>
-            <p>Monitor expenses by vendor and category with payment status.</p>
+            <p>Monitor expenses by vendor and category with paid vs. outstanding insights.</p>
           </div>
         </div>
         <div class="gallery-item">
-          <img src="screenshot-seating.png" alt="SimchaKit seating chart tool with table assignments and auto-seat feature">
+          <img src="screenshot-seating.png" alt="SimchaKit seating chart with table assignments, capacity bar, and auto-seat">
           <div class="gallery-item-caption">
             <h3>Seating Charts</h3>
             <p>Assign guests to tables and track capacity at a glance.</p>
           </div>
         </div>
       </div>
+      <!-- Mobile screenshots -->
+      <div class="gallery-mobile-row">
+        <div class="gallery-mobile-item">
+          <img src="mobile-overview.png" alt="SimchaKit mobile overview with completion rings, focus panel, and bottom tab navigation">
+          <div class="gallery-item-caption">
+            <h3>Mobile Dashboard</h3>
+            <p>Full planning access from your phone.</p>
+          </div>
+        </div>
+        <div class="gallery-mobile-item">
+          <img src="mobile-dayofmode.png" alt="SimchaKit Day-of Mode showing run of show timeline, next event, and key vendor contacts">
+          <div class="gallery-item-caption">
+            <h3>Day-of Mode</h3>
+            <p>Run of show, timeline, and contacts on event day.</p>
+          </div>
+        </div>
+      </div>
     </div>
   </section>
 
-  <!-- How It Works -->
+  <!-- How It Works (merged from previous How It Works + Getting Started) -->
   <section class="how-it-works" id="how-it-works">
     <div class="container">
       <div class="section-header">
@@ -1334,62 +1409,22 @@
       <div class="steps">
         <div class="step">
           <div class="step-number">1</div>
-          <h3>Create an Account</h3>
-          <p>Sign up at app.simcha-kit.com with just your email. No password required.</p>
+          <h3>Sign Up with Your Email</h3>
+          <p>No password needed. Enter your email and we'll send you a magic link to sign in instantly.</p>
         </div>
         <div class="step">
           <div class="step-number">2</div>
-          <h3>Set Up Your Event</h3>
-          <p>Name your simcha, set the date, choose your theme colors, and configure sub-events like the ceremony and reception.</p>
+          <h3>Create and Theme Your Event</h3>
+          <p>Name your simcha, set the date, and choose your theme: pick an event type, a theme icon and name, and a color scheme that skins the entire app to match your celebration.</p>
         </div>
         <div class="step">
           <div class="step-number">3</div>
-          <h3>Import Your Guests</h3>
-          <p>Import your guest list from a spreadsheet or add guests one by one. SimchaKit works with CSV exports from most RSVP platforms.</p>
-        </div>
-        <div class="step">
-          <div class="step-number">4</div>
-          <h3>Plan &amp; Celebrate</h3>
-          <p>Track everything in one place. Access from any device, any time. Enjoy your simcha.</p>
+          <h3>Import Guests and Plan Together</h3>
+          <p>Bring in your guest list from a spreadsheet or add guests one by one. Invite co-planners as editors, viewers, or a ritual coordinator to share the work.</p>
         </div>
       </div>
-    </div>
-  </section>
-
-  <!-- Getting Started -->
-  <section class="getting-started" id="getting-started">
-    <div class="container">
-      <div class="section-header">
-        <h2>Getting Started Takes Minutes</h2>
-        <p>No setup fees, no complicated onboarding. You will be planning your event in minutes.</p>
-      </div>
-      <div class="getting-started-steps">
-        <div class="gs-step">
-          <div class="gs-step-number">1</div>
-          <div class="gs-step-content">
-            <h3>Sign up with your email</h3>
-            <p>No password needed. Enter your email and we'll send you a magic link to sign in instantly.</p>
-          </div>
-        </div>
-        <div class="gs-connector">→</div>
-        <div class="gs-step">
-          <div class="gs-step-number">2</div>
-          <div class="gs-step-content">
-            <h3>Create your event</h3>
-            <p>Set your event name, date, type, and theme. Your planning dashboard is ready to go right away.</p>
-          </div>
-        </div>
-        <div class="gs-connector">→</div>
-        <div class="gs-step">
-          <div class="gs-step-number">3</div>
-          <div class="gs-step-content">
-            <h3>Start planning</h3>
-            <p>Import your guest list, add vendors, set your budget, and build your seating chart, all in one place.</p>
-          </div>
-        </div>
-      </div>
-      <div style="text-align: center; margin-top: 48px;">
-        <a href="https://demo.simcha-kit.com" target="_blank" class="btn btn-secondary btn-lg" style="margin-right: 16px;">See a Live Demo</a>
+      <div class="how-it-works-cta">
+        <a href="https://demo.simcha-kit.com" target="_blank" class="btn btn-secondary btn-lg">See a Live Demo</a>
         <a href="https://app.simcha-kit.com" target="_blank" class="btn btn-primary btn-lg">Start Planning</a>
       </div>
     </div>
@@ -1416,7 +1451,7 @@
           <p class="price-label">One-Time Fee</p>
           <div class="price-amount">$29</div>
           <p class="price-period">introductory pricing through August 31, 2026</p>
-          <div class="pricing-deadline">⏳ Introductory price ends August 31, 2026</div>
+          <div class="pricing-deadline">Introductory price ends August 31, 2026</div>
           <p class="price-note">Regular price $49 after August 31. No subscription, no recurring charges.</p>
           <a href="https://app.simcha-kit.com" target="_blank" class="btn btn-accent" style="width: 100%; justify-content: center; margin-top: 8px;">Start Planning</a>
         </div>
@@ -1476,7 +1511,7 @@
           <h2>About the Developer</h2>
           <p>SimchaKit was built by Ryan Brook of Brook Creative LLC. While planning his own family's bat mitzvah, Ryan found himself managing guests, vendors, budgets, and seating charts across six spreadsheets, a dedicated email folder, and too many sticky notes. He built SimchaKit to replace the chaos with one organized system, and kept building because every Jewish family planning a simcha potentially faces the same problem.</p>
           <p>SimchaKit is actively used to plan a real bat mitzvah. Every feature exists because it was needed.</p>
-          <p>Questions or feedback? Reach out at <a href="mailto:hello@simcha-kit.com" style="color: var(--color-accent-light);">hello@simcha-kit.com</a>.</p>
+          <p>Questions or feedback? Reach out at <a href="mailto:hello@simcha-kit.com" style="color: var(--color-accent);">hello@simcha-kit.com</a>.</p>
         </div>
       </div>
     </div>
@@ -1495,8 +1530,8 @@
           <h3>The Complete Simcha Planning Checklist</h3>
           <p>A full timeline checklist for planning any simcha, from the first decisions through the last thank-you note. Covers bar and bat mitzvahs, Jewish weddings, and every lifecycle celebration.</p>
           <div class="blog-card-meta">
-            <span>&#128197; May 27, 2026</span>
-            <span>&#9201; 10 min read</span>
+            <span>May 27, 2026</span>
+            <span>10 min read</span>
           </div>
           <br>
           <span class="blog-card-read-more">Read the guide &#8250;</span>
