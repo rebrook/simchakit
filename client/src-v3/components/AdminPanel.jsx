@@ -1,7 +1,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// SimchaKit V3.0.0 — AdminPanel.jsx
+// SimchaKit V3.16.x — AdminPanel.jsx
 // Ported from V2. All NAS REST endpoints replaced with direct Supabase calls.
-// Password stored in events.admin_password (text column).
+// Access gated on owner role only (checked upstream in AppShell.openAdmin).
 // Config stored in events.admin_config (jsonb column).
 // Archive stored in events.archived (boolean column).
 // ─────────────────────────────────────────────────────────────────────────────
@@ -16,136 +16,8 @@ import { formatPhone }                   from "@/utils/guests.js";
 import { Icon }                          from "@/utils/iconMap.jsx";
 import { TimelineEntryModal }            from "@/components/tabs/GuestsTab.jsx";
 
-// ── AdminLogin ────────────────────────────────────────────────────────────────
-export function AdminLogin({ eventId, onSuccess, onClose }) {
-  const [password,      setPassword]      = useState("");
-  const [error,         setError]         = useState("");
-  const [loading,       setLoading]       = useState(false);
-  const [showForgot,    setShowForgot]    = useState(false);
-  const [resetPhrase,   setResetPhrase]   = useState("");
-  const [resetMsg,      setResetMsg]      = useState("");
-  const [resetLoading,  setResetLoading]  = useState(false);
-  const [resetDone,     setResetDone]     = useState(false);
-
-  const submit = async () => {
-    if (!password.trim()) return;
-    setLoading(true);
-    setError("");
-    try {
-      const { data, error: err } = await supabase
-        .from("events")
-        .select("admin_password")
-        .eq("id", eventId)
-        .single();
-      if (err || !data) { setError("Could not verify password. Check your connection."); setLoading(false); return; }
-      const stored = data.admin_password || "admin";
-      if (password === stored) {
-        onSuccess(password);
-      } else {
-        setError("Incorrect password. Try 'admin' if this is a new event.");
-      }
-    } catch { setError("Could not reach server. Check your connection."); }
-    setLoading(false);
-  };
-
-  const submitReset = async () => {
-    if (resetPhrase.trim() !== "RESET PASSWORD") { setResetMsg("Confirmation phrase doesn't match."); return; }
-    setResetLoading(true); setResetMsg("");
-    try {
-      const { error: err } = await supabase
-        .from("events")
-        .update({ admin_password: "admin", updated_at: new Date().toISOString() })
-        .eq("id", eventId);
-      if (err) { setResetMsg("Reset failed: " + err.message); }
-      else { setResetDone(true); setResetMsg("Password has been reset to 'admin'. You can now log in."); }
-    } catch { setResetMsg("Could not reach server."); }
-    setResetLoading(false);
-  };
-
-  if (showForgot) {
-    return (
-      <div className="modal-backdrop" onMouseDown={e => { if (e.target === e.currentTarget) onClose(); }}>
-        <div className="modal" onClick={e => e.stopPropagation()}>
-          <div className="modal-header">
-            <div className="modal-title">Reset Admin Password</div>
-            <button className="icon-btn" title="Close" onClick={onClose}><Icon name="x" context="button" /></button>
-          </div>
-          <div className="modal-body">
-            {resetDone ? (
-              <>
-                <div className="alert alert-success" style={{ marginBottom:16 }}><Icon name="check" context="badge" style={{ marginRight: 4 }} /> {resetMsg}</div>
-                <p style={{ fontSize:13, color:"var(--text-secondary)", lineHeight:1.6, marginBottom:16 }}>
-                  The admin password has been reset to <strong>'admin'</strong>. Log in now and go to Admin Mode → Security to set a new password.
-                </p>
-                <div className="modal-footer">
-                  <button className="btn btn-primary" onClick={() => { setShowForgot(false); setResetDone(false); setResetPhrase(""); setResetMsg(""); }}>
-                    Back to Login
-                  </button>
-                </div>
-              </>
-            ) : (
-              <>
-                <p style={{ fontSize:13, color:"var(--text-secondary)", lineHeight:1.6, marginBottom:12 }}>
-                  This will reset the admin password back to <strong>'admin'</strong>.
-                </p>
-                <p style={{ fontSize:13, color:"var(--text-secondary)", lineHeight:1.6, marginBottom:16 }}>
-                  To confirm, type exactly: <strong>RESET PASSWORD</strong>
-                </p>
-                {resetMsg && <div className="alert alert-error" style={{ marginBottom:12 }}><Icon name="alertTriangle" context="badge" style={{ marginRight: 3 }} /> {resetMsg}</div>}
-                <div className="form-group">
-                  <label className="form-label">Confirmation Phrase</label>
-                  <input className="form-input" value={resetPhrase} onChange={e => setResetPhrase(e.target.value)} placeholder="Type: RESET PASSWORD" autoFocus />
-                </div>
-                <div className="modal-footer">
-                  <button className="btn btn-ghost" onClick={() => { setShowForgot(false); setResetMsg(""); setResetPhrase(""); }}>Back to Login</button>
-                  <button className="btn btn-danger" disabled={resetLoading || resetPhrase.trim() !== "RESET PASSWORD"} onClick={submitReset}>
-                    {resetLoading ? "Resetting…" : "Reset Password"}
-                  </button>
-                </div>
-              </>
-            )}
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="modal-backdrop" onMouseDown={e => { if (e.target === e.currentTarget) onClose(); }}>
-      <div className="modal" onClick={e => e.stopPropagation()}>
-        <div className="modal-header">
-          <div className="modal-title"><Icon name="settings" context="menu" style={{ marginRight: 6 }} /> Admin Mode</div>
-          <button className="icon-btn" title="Close" onClick={onClose}><Icon name="x" context="button" /></button>
-        </div>
-        <div className="modal-body">
-          <p style={{ fontSize:13, color:"var(--text-muted)", marginBottom:16, lineHeight:1.6 }}>
-            Enter the admin password to configure this event.
-          </p>
-          {error && <div className="alert alert-error" style={{ marginBottom:12 }}><Icon name="alertTriangle" context="badge" style={{ marginRight: 3 }} /> {error}</div>}
-          <div className="form-group">
-            <label className="form-label">Password</label>
-            <input className="form-input" type="password" value={password} placeholder="Enter password"
-              onChange={e => setPassword(e.target.value)}
-              onKeyDown={e => e.key === "Enter" && submit()} autoFocus />
-          </div>
-          <div className="modal-footer">
-            <button className="btn btn-ghost" style={{ marginRight:"auto" }}
-              onClick={() => { setShowForgot(true); setResetMsg(""); setResetPhrase(""); }}>
-              Forgot password?
-            </button>
-            <button className="btn btn-ghost" onClick={onClose}>Cancel</button>
-            <button className="btn btn-primary" onClick={submit} disabled={loading || !password.trim()}>
-              {loading ? "Verifying…" : "Enter Admin Mode"}
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 // ── AdminPanel ────────────────────────────────────────────────────────────────
-export function AdminPanel({ eventId, userId, calendarToken: initialCalendarToken, password, config, onClose, onConfigSaved, initialSection }) {
+export function AdminPanel({ eventId, userId, calendarToken: initialCalendarToken, config, onClose, onConfigSaved, initialSection }) {
   const [form, setForm] = useState(() => ({
     name: "", type: "bat-mitzvah", rsvpUrl: "", rsvpDeadline: "", cateringStyle: "plated", notes: "",
     rabbi:  { name: "", phone: "", email: "", notes: "" },
@@ -175,11 +47,6 @@ export function AdminPanel({ eventId, userId, calendarToken: initialCalendarToke
   const [calTokenLoading,  setCalTokenLoading]  = useState(false);
   const [calTokenError,    setCalTokenError]    = useState("");
 
-  // Password change
-  const [newPass,     setNewPass]     = useState("");
-  const [confirmPass, setConfirmPass] = useState("");
-  const [passMsg,     setPassMsg]     = useState("");
-
   // Access passcode
   const [newPasscode,     setNewPasscode]     = useState("");
   const [confirmPasscode, setConfirmPasscode] = useState("");
@@ -191,7 +58,6 @@ export function AdminPanel({ eventId, userId, calendarToken: initialCalendarToke
   const [archiveMsg,           setArchiveMsg]           = useState("");
   const [archiving,            setArchiving]            = useState(false);
   const [showUnarchive,        setShowUnarchive]        = useState(false);
-  const [unarchivePass,        setUnarchivePass]        = useState("");
   const [unarchiveCode,        setUnarchiveCode]        = useState("");
   const [unarchiveMsg,         setUnarchiveMsg]         = useState("");
   const [unarchiving,          setUnarchiving]          = useState(false);
@@ -293,21 +159,6 @@ export function AdminPanel({ eventId, userId, calendarToken: initialCalendarToke
     setSaving(false);
   };
 
-  // ── Change password ───────────────────────────────────────────────────────
-  const changePassword = async () => {
-    if (newPass !== confirmPass) { setPassMsg("Passwords do not match"); return; }
-    if (newPass.length < 8)      { setPassMsg("Password must be at least 8 characters"); return; }
-    setPassMsg("");
-    try {
-      const { error: err } = await supabase
-        .from("events")
-        .update({ admin_password: newPass, updated_at: new Date().toISOString() })
-        .eq("id", eventId);
-      if (err) { setPassMsg(err.message); }
-      else { setPassMsg("Password changed"); setNewPass(""); setConfirmPass(""); }
-    } catch { setPassMsg("Could not reach server"); }
-  };
-
   // ── Access passcode ───────────────────────────────────────────────────────
   const savePasscode = async () => {
     if (!newPasscode)                     { setPasscodeMsg("Passcode cannot be empty"); return; }
@@ -360,10 +211,9 @@ export function AdminPanel({ eventId, userId, calendarToken: initialCalendarToke
   const handleUnarchive = async () => {
     setUnarchiving(true); setUnarchiveMsg("");
     try {
-      // Verify password
-      const { data: evtData } = await supabase.from("events").select("admin_password, admin_config").eq("id", eventId).single();
+      // Verify unlock code
+      const { data: evtData } = await supabase.from("events").select("admin_config").eq("id", eventId).single();
       if (!evtData) { setUnarchiveMsg("Could not verify credentials."); setUnarchiving(false); return; }
-      if (unarchivePass !== evtData.admin_password) { setUnarchiveMsg("Incorrect admin password."); setUnarchiving(false); return; }
       if (unarchiveCode.trim() !== (evtData.admin_config?.archiveUnlockCode || "")) { setUnarchiveMsg("Incorrect unlock code."); setUnarchiving(false); return; }
       const updatedConfig = { ...(evtData.admin_config || {}), archiveUnlockCode: undefined };
       delete updatedConfig.archiveUnlockCode;
@@ -372,7 +222,7 @@ export function AdminPanel({ eventId, userId, calendarToken: initialCalendarToke
         .update({ archived: false, admin_config: updatedConfig, updated_at: new Date().toISOString() })
         .eq("id", eventId);
       if (err) { setUnarchiveMsg(err.message); }
-      else { setShowUnarchive(false); setUnarchivePass(""); setUnarchiveCode(""); onConfigSaved(updatedConfig); }
+      else { setShowUnarchive(false); setUnarchiveCode(""); onConfigSaved(updatedConfig); }
     } catch { setUnarchiveMsg("Could not reach server."); }
     setUnarchiving(false);
   };
@@ -1060,31 +910,9 @@ export function AdminPanel({ eventId, userId, calendarToken: initialCalendarToke
           {section === "security" && (
             <>
               <div className="admin-section">
-                <div className="admin-section-title">Change Password</div>
-                {passMsg && <div className={`alert ${!passMsg.toLowerCase().includes("error") && !passMsg.toLowerCase().includes("match") && !passMsg.toLowerCase().includes("least")?"alert-success":"alert-error"}`} style={{marginBottom:12}}>{passMsg}</div>}
-                <div className="form-group">
-                  <label className="form-label">New Password</label>
-                  <input className="form-input" type="password" value={newPass} onChange={e => setNewPass(e.target.value)} placeholder="Min 8 characters" />
-                  {newPass.length>0 && (() => {
-                    const len=newPass.length;const hasUpper=/[A-Z]/.test(newPass);const hasLower=/[a-z]/.test(newPass);const hasNumber=/[0-9]/.test(newPass);const hasSymbol=/[^A-Za-z0-9]/.test(newPass);
-                    const variety=[hasUpper,hasLower,hasNumber,hasSymbol].filter(Boolean).length;
-                    const strong=len>=12&&variety>=3;const fair=len>=8&&variety>=2;
-                    const color=strong?"var(--green)":fair?"var(--gold)":"var(--red)";
-                    const label=strong?"Strong":fair?"Fair":"Weak";const pct=strong?100:fair?60:30;
-                    return (<div style={{marginTop:6}}><div style={{height:4,borderRadius:99,background:"var(--border)",overflow:"hidden"}}><div style={{height:"100%",width:`${pct}%`,background:color,borderRadius:99,transition:"width 0.3s ease"}} /></div><div style={{fontSize:11,color,fontWeight:600,marginTop:3}}>{label}</div></div>);
-                  })()}
-                </div>
-                <div className="form-group">
-                  <label className="form-label">Confirm New Password</label>
-                  <input className="form-input" type="password" value={confirmPass} onChange={e => setConfirmPass(e.target.value)} placeholder="Repeat new password" />
-                </div>
-                <button className="btn btn-primary btn-sm" onClick={changePassword}>Change Password</button>
-              </div>
-
-              <div className="admin-section">
                 <div className="admin-section-title">Access Passcode</div>
                 <div className="admin-section-desc">
-                  Require a passcode before the event dashboard loads. Anyone with the direct event URL must enter this passcode to view the dashboard. Separate from your Admin Mode password.
+                  Require a passcode before the event dashboard loads. Anyone with the direct event URL must enter this passcode to view the dashboard.
                 </div>
                 {config?.accessPasscode && <div className="alert alert-success" style={{marginBottom:12}}><Icon name="lock" context="badge" style={{ marginRight: 4 }} /> An access passcode is currently set.</div>}
                 {passcodeMsg && <div className={`alert ${!passcodeMsg.toLowerCase().includes("error") && !passcodeMsg.toLowerCase().includes("match") && !passcodeMsg.toLowerCase().includes("least")?"alert-success":"alert-error"}`} style={{marginBottom:12}}>{passcodeMsg}</div>}
@@ -1096,7 +924,7 @@ export function AdminPanel({ eventId, userId, calendarToken: initialCalendarToke
                   <label className="form-label">Confirm Passcode</label>
                   <input className="form-input" type="password" value={confirmPasscode} onChange={e => setConfirmPasscode(e.target.value)} placeholder="Repeat passcode" />
                 </div>
-                <div style={{fontSize:12,color:"var(--text-muted)",marginBottom:12,lineHeight:1.5}}><Icon name="alertTriangle" context="badge" style={{ marginRight: 3 }} /> If you forget this passcode, it can only be removed by an admin with the Admin Mode password.</div>
+                <div style={{fontSize:12,color:"var(--text-muted)",marginBottom:12,lineHeight:1.5}}><Icon name="alertTriangle" context="badge" style={{ marginRight: 3 }} /> If you forget this passcode, the event owner can remove it from Admin Mode → Security.</div>
                 <div style={{display:"flex",gap:8}}>
                   <button className="btn btn-primary btn-sm" onClick={savePasscode}>{config?.accessPasscode?"Update Passcode":"Set Passcode"}</button>
                   {config?.accessPasscode && <button className="btn btn-danger btn-sm" onClick={removePasscode}>Remove Passcode</button>}
@@ -1160,7 +988,7 @@ export function AdminPanel({ eventId, userId, calendarToken: initialCalendarToke
                     </p>
                     <div style={{background:"var(--bg-subtle)",border:"1px solid var(--border)",borderRadius:"var(--radius-md)",padding:"12px 14px",marginBottom:14,fontSize:13,lineHeight:1.7}}>
                       <strong>What this restores:</strong> guests, people, budget, vendors, tasks, prep, seating, gifts, favors, ceremony roles, and notes.<br/>
-                      <strong>What is preserved:</strong> your admin password, event configuration (name, theme, timeline), and archived status.<br/>
+                      <strong>What is preserved:</strong> event configuration (name, theme, timeline), and archived status.<br/>
                       <strong style={{color:"var(--red)"}}>This cannot be undone.</strong> Export a fresh backup first if you want to save your current data.
                     </div>
                     <div style={{fontSize:12,fontWeight:700,color:"var(--text-muted)",textTransform:"uppercase",letterSpacing:"0.04em",marginBottom:6}}>Step 1 — Select your backup file</div>
@@ -1223,7 +1051,7 @@ export function AdminPanel({ eventId, userId, calendarToken: initialCalendarToke
                   Permanently deletes all planning data: guests, people, expenses, vendors, tasks, prep, seating, gifts, favors, and notes.
                 </p>
                 <p style={{fontSize:13,color:"var(--text-secondary)",lineHeight:1.6,marginBottom:16}}>
-                  <strong>What is preserved:</strong> your event configuration (name, type, timeline, theme) and your admin password.
+                  <strong>What is preserved:</strong> your event configuration (name, type, timeline, theme).
                 </p>
                 <p style={{fontSize:13,color:"var(--red)",fontWeight:600,lineHeight:1.6,marginBottom:16}}><Icon name="alertTriangle" context="badge" style={{ marginRight: 3 }} /> This action cannot be undone.</p>
                 <button className="btn btn-danger" disabled={isArchived} onClick={() => { setShowReset(true); setResetConfirm(""); setResetMsg(""); }}>
@@ -1290,20 +1118,17 @@ export function AdminPanel({ eventId, userId, calendarToken: initialCalendarToke
             <div className="modal-header"><div className="modal-title">Unarchive Event</div><button className="icon-btn" onClick={()=>setShowUnarchive(false)}><Icon name="x" context="button" /></button></div>
             <div className="modal-body">
               <p style={{fontSize:13,color:"var(--text-secondary)",lineHeight:1.6,marginBottom:16}}>
-                Unarchiving restores the event to fully editable. You will need two things:
-                your <strong>admin password</strong> and the <strong>unlock code</strong> you set
+                Unarchiving restores the event to fully editable. You will need the <strong>unlock code</strong> you set
                 when the event was archived.
               </p>
               {unarchiveMsg && <div className="alert alert-error" style={{marginBottom:12}}>{unarchiveMsg}</div>}
-              <div className="form-group"><label className="form-label">Admin Password</label><input className="form-input" type="password" value={unarchivePass} onChange={e=>setUnarchivePass(e.target.value)} placeholder="Your admin password" /></div>
               <div className="form-group">
                 <label className="form-label">Archive Unlock Code</label>
                 <input className="form-input" type="password" value={unarchiveCode} onChange={e=>setUnarchiveCode(e.target.value)} placeholder="The code you set when archiving" />
-                <div className="form-hint">This is the separate unlock code set at archive time, not your admin password.</div>
               </div>
               <div className="modal-footer">
                 <button className="btn btn-ghost" onClick={()=>setShowUnarchive(false)}>Cancel</button>
-                <button className="btn btn-primary" disabled={unarchiving||!unarchivePass||!unarchiveCode} onClick={handleUnarchive}>{unarchiving?"Unarchiving…":"Unarchive Event"}</button>
+                <button className="btn btn-primary" disabled={unarchiving||!unarchiveCode} onClick={handleUnarchive}>{unarchiving?"Unarchiving…":"Unarchive Event"}</button>
               </div>
             </div>
           </div>
@@ -1330,8 +1155,8 @@ export function AdminPanel({ eventId, userId, calendarToken: initialCalendarToke
                 <li>Quick notes</li>
               </ul>
               <p style={{fontSize:13,color:"var(--text-secondary)",lineHeight:1.6,marginBottom:16}}>
-                <strong>Your event configuration will be kept</strong> — the event name, type, timeline,
-                theme, accommodations settings, and admin password are not affected.
+                <strong>Your event configuration will be kept:</strong> the event name, type, timeline,
+                theme, and accommodations settings are not affected.
               </p>
               <p style={{fontSize:13,color:"var(--red)",fontWeight:600,lineHeight:1.6,marginBottom:16}}><Icon name="alertTriangle" context="badge" style={{ marginRight: 3 }} /> This cannot be undone. Export a backup first if you need this data.</p>
               {resetMsg && <div className="alert alert-error" style={{marginBottom:12}}>{resetMsg}</div>}

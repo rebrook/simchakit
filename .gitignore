@@ -21,3 +21,7 @@ picker-config.json
 .DS_Store
 *.log
 npm-debug.log*
+**/@eaDir/
+*@SynoEAStream
+*@SynoResource
+.DS_Store

@@ -1,11 +1,26 @@
 {
-  "current": "V4.15.0",
+  "current": "V4.16.0",
   "whatsNew": [
-    "Guest list now shows a mobile-friendly card layout on phones: tap status chips to filter by Confirmed, Pending, or Declined",
-    "Expanded household details show stacked member cards instead of a wide table, with meal choice, dietary info, and sub-event pills",
-    "All touch targets on mobile meet the 44px minimum for comfortable one-handed use"
+    "Admin Mode now opens in one click for the event owner, no password required",
+    "Unarchiving an event now only asks for the unlock code you set when you archived it"
   ],
   "changelog": [
+    {
+      "version": "V4.16.0",
+      "date": "2026-07-09",
+      "summary": "Removed the shared admin password; Admin Mode now gates on owner role alone",
+      "details": [
+        "Deleted the AdminLogin component and its password prompt, Forgot Password reset flow, and the client-side password compare against events.admin_password",
+        "Owners now reach Admin Mode in a single click from the settings gear; the existing owner-role check in AppShell.openAdmin is now the only gate",
+        "Editors, Viewers, and Ritual Coordinators still see the gear button and are still blocked with the existing toast, unchanged from before",
+        "Removed the Change Password section from Admin Mode, Security; that tab now shows Access Passcode only",
+        "Unarchiving an event now requires only the unlock code set at archive time; the redundant admin password check was removed since Admin Mode itself is already owner-gated",
+        "Removed the default access code notice shown after creating a new event",
+        "Updated the in-app guide entries for Accessing Admin Mode, Admin Mode overview, Multiple Devices, and Restoring from Backup to remove password language",
+        "Database: revoked column-level SELECT and UPDATE on events.admin_password for anon and authenticated roles; the column itself is retained, not dropped",
+        "Fixed a related risk found during this change: CreateEventForm.jsx used an unqualified select() after inserting a new event, which requests every column and would have failed once column-level access was revoked; it now requests an explicit column list matching the shape used elsewhere in EventPicker.jsx"
+      ]
+    },
     {
       "version": "V4.15.0",
       "date": "2026-06-17",

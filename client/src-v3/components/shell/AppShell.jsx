@@ -13,7 +13,7 @@ import { usePresence }    from "@/hooks/usePresence.js";
 import { useNotifications } from "@/hooks/useNotifications.js";
 import { ThemeProvider }   from "@/components/shared/ThemeProvider.jsx";
 import { PlaceholderTab }  from "@/components/shared/PlaceholderTab.jsx";
-import { AdminLogin, AdminPanel } from "@/components/AdminPanel.jsx";
+import { AdminPanel } from "@/components/AdminPanel.jsx";
 import { SearchOverlay }         from "@/components/SearchOverlay.jsx";
 import { GuideModal, ActivityLogModal, WhatsNewModal } from "@/components/Modals.jsx";
 import { DayOfOverlay }          from "@/components/DayOfOverlay.jsx";
@@ -218,9 +218,7 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false, display
   }, [eventId, loadStatus, activeTab]);
 
   // ── Admin state ───────────────────────────────────────────────────────────
-  const [showAdminLogin,  setShowAdminLogin]  = useState(false);
   const [showAdminPanel,  setShowAdminPanel]  = useState(false);
-  const [adminPassword,   setAdminPassword]   = useState(null);
   const [adminSection,    setAdminSection]    = useState("event");
 
   // ── Overlay state ─────────────────────────────────────────────────────────
@@ -409,13 +407,6 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false, display
       return;
     }
     setAdminSection(section);
-    if (adminPassword) { setShowAdminPanel(true); }
-    else               { setShowAdminLogin(true); }
-  };
-
-  const onAdminLoginSuccess = (pwd) => {
-    setAdminPassword(pwd);
-    setShowAdminLogin(false);
     setShowAdminPanel(true);
   };
 
@@ -1053,22 +1044,12 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false, display
         />
       )}
 
-      {/* ── Admin Login ── */}
-      {showAdminLogin && (
-        <AdminLogin
-          eventId={eventId}
-          onSuccess={onAdminLoginSuccess}
-          onClose={() => setShowAdminLogin(false)}
-        />
-      )}
-
       {/* ── Admin Panel ── */}
       {showAdminPanel && (
         <AdminPanel
           eventId={eventId}
           userId={session?.user?.id}
           calendarToken={event?.calendar_token}
-          password={adminPassword}
           config={adminConfig}
           onClose={() => setShowAdminPanel(false)}
           onConfigSaved={onConfigSaved}
