@@ -9,7 +9,7 @@
       "version": "V4.16.0",
       "date": "2026-07-09",
       "summary": "Removed the shared admin password; Admin Mode now gates on owner role alone",
-      "details": [
+      "changes": [
         "Deleted the AdminLogin component and its password prompt, Forgot Password reset flow, and the client-side password compare against events.admin_password",
         "Owners now reach Admin Mode in a single click from the settings gear; the existing owner-role check in AppShell.openAdmin is now the only gate",
         "Editors, Viewers, and Ritual Coordinators still see the gear button and are still blocked with the existing toast, unchanged from before",
@@ -25,7 +25,7 @@
       "version": "V4.15.0",
       "date": "2026-06-17",
       "summary": "Mobile card layout for GuestsTab: filter chips, stacked member cards, 44px touch targets",
-      "details": [
+      "changes": [
         "GuestsTab now renders a mobile-optimized card layout below 760px: status filter chips (All, Confirmed, Pending, Declined with counts), sticky search bar with inline Add button, and group dropdown",
         "Expanded household member details reflow from a 9-column table to stacked cards on mobile showing name, age tag, sub-event pills, meal choice, kosher badge, dietary notes, and shirt/pant sizes",
         "Status filter chips use the same semantic color tokens as RsvpPill: green for Confirmed (RSVP Yes), orange for Pending (Invited + Pending + Maybe), red for Declined (RSVP No)",
@@ -85,7 +85,7 @@
       "version": "V4.13.3",
       "date": "2026-06-17",
       "summary": "Event picker polish: accent-colored primary button, tighter brand header, equal-height cards",
-      "details": [
+      "changes": [
         "New Event and Retry buttons now use the brand accent (rose) instead of near-black, matching primary buttons elsewhere in the app",
         "Brand header tightened to app-chrome proportions (48px height, lighter shadow) with the marketing tagline removed for signed-in users",
         "Event card grid now ensures equal-height cards with footers pinned to the bottom row via explicit stretch alignment"
@@ -95,7 +95,7 @@
       "version": "V4.13.2",
       "date": "2026-06-17",
       "summary": "Event picker cards now use line-icon event-type glyphs, matching the dashboard",
-      "details": [
+      "changes": [
         "EventPicker card glyph switched from emoji to the same line icons used in the dashboard identity chip (Star of David, Gem, Baby, GraduationCap, Wine, Cake, PartyPopper), tinted to the card's palette accent color",
         "Theme icon (planner's emoji from Admin) now shows inline before the theme name on each card, matching the dashboard's identity treatment",
         "Empty-state Star of David switched from emoji to the StarOfDavid line icon at the empty context size",
@@ -106,7 +106,7 @@
       "version": "V4.13.1",
       "date": "2026-06-17",
       "summary": "Fix: Star of David replaced with proper two-triangle stroked hexagram; countdown watermark repositioned to bleed cleanly off card edge",
-      "details": [
+      "changes": [
         "Star of David glyph replaced with the two-triangle stroked hexagram from the event-glyphs mockup (two overlapping equilateral triangles, stroke currentColor, fill none) for a proper Magen David at all sizes",
         "Countdown watermark repositioned from right: 28 to right: -10 so the glyph bleeds cleanly off the card edge (clipped by overflow: hidden) instead of getting cut mid-shape"
       ]
@@ -115,7 +115,7 @@
       "version": "V4.13.0",
       "date": "2026-06-17",
       "summary": "Event-type glyphs replaced with single-color line icons for cross-platform consistency",
-      "details": [
+      "changes": [
         "All 7 event-type glyphs (Bat/Bar/Bnei Mitzvah, Wedding, Baby Naming, Graduation, Anniversary, Birthday, Other) are now rendered as SVG line icons instead of emoji, ensuring identical appearance on iPhone, Android, Mac, and Windows",
         "Custom Star of David hexagram icon added to iconMap (single-outline 12-point star path, stroke currentColor, no external dependency)",
         "5 Lucide icons added for the remaining types: Gem (wedding), Baby (baby naming), GraduationCap (graduation), Wine (anniversary), Cake (birthday); PartyPopper (other) was already present",
@@ -129,7 +129,7 @@
       "version": "V4.12.3",
       "date": "2026-06-17",
       "summary": "Revert: remove emoji variation selector (U+FE0F) from Star of David entries",
-      "details": [
+      "changes": [
         "Reverted the three Star of David entries in EVENT_TYPE_ICONS and the OverviewTab countdown watermark fallback back to plain U+2721 (no variation selector), restoring monochrome glyph rendering pending the line-icon replacement"
       ]
     },
@@ -137,7 +137,7 @@
       "version": "V4.12.2",
       "date": "2026-06-17",
       "summary": "Fix: Star of David emoji renders consistently across platforms (iPhone, Android, Mac, Windows)",
-      "details": [
+      "changes": [
         "Added emoji variation selector (U+FE0F) to the Star of David entries in EVENT_TYPE_ICONS so the glyph forces color-emoji presentation on all platforms instead of defaulting to monochrome text on some desktops",
         "Consolidated EVENT_TYPE_ICONS: AppShell now imports from constants/events.js instead of maintaining a duplicate definition",
         "Updated the OverviewTab countdown watermark fallback to include the variation selector"
@@ -147,7 +147,7 @@
       "version": "V4.12.1",
       "date": "2026-06-17",
       "summary": "Fix: Countdown title now shows the event name instead of the main timeline entry title",
-      "details": [
+      "changes": [
         "Countdown title priority flipped from mainEvent.title to config.name so it reads the overall event name (e.g. \"Sydney's Bat Mitzvah\") instead of the sub-event (e.g. \"Shabbat Morning Service\")",
         "The main timeline entry title now appears on the countdown date line when it differs from the event name, preserving that context"
       ]
@@ -156,7 +156,7 @@
       "version": "V4.12.0",
       "date": "2026-06-17",
       "summary": "Event identity in the chrome: event name, theme icon, theme name, and color scheme surface in both the mobile header and desktop sidebar switcher",
-      "details": [
+      "changes": [
         "Mobile header redesigned as two-row layout: Row 1 has back button, presence badge, bell, and search; Row 2 is a dedicated event identity line with the event-type chip, event name, and theme icon + theme name",
         "Removed SimchaKit wordmark from the mobile header (the back button and brand on sign-in/events list provide context)",
         "Removed Admin Mode settings button from mobile header (already available in the More drawer via bottom nav)",
