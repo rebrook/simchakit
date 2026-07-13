@@ -578,7 +578,7 @@ function exportGuestsByPerson(households, people, adminConfig) {
 // ── Guest export: Printable HTML view ────────────────────────────────────────
 // Grouped by group. Audience: day-of binder, door checklist, at-a-glance print.
 function generateGuestPrintHTML(households, people, eventName, eventDate, theme) {
-  const esc = s => String(s || "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+  const esc = s => String(s || "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;");
   const palette = theme?.palette || "rose";
   const accent  = palette === "blue"  ? "#3b82f6"
                 : palette === "green" ? "#22c55e"

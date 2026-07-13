@@ -864,6 +864,7 @@ export function FavorsTab({
               </div>
             </div>
             <iframe id="favor-print-frame" srcDoc={printHTML}
+              sandbox="allow-same-origin allow-modals"
               style={{ flex: 1, border: "none", borderRadius: "0 0 var(--radius-lg) var(--radius-lg)" }}
               title="Favor List Print Preview" />
           </div>

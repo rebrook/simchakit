@@ -604,7 +604,7 @@ export function GuestsTab({ eventId, event, adminConfig, showToast, isArchived, 
                 <button className="icon-btn" title="Close" onClick={()=>setGuestPrintHTML(null)}><Icon name="x" context="button" /></button>
               </div>
             </div>
-            <iframe id="guest-print-frame" srcDoc={guestPrintHTML} style={{flex:1,border:"none",borderRadius:"0 0 var(--radius-lg) var(--radius-lg)"}} title="Guest List Print Preview" />
+            <iframe id="guest-print-frame" srcDoc={guestPrintHTML} sandbox="allow-same-origin allow-modals" style={{flex:1,border:"none",borderRadius:"0 0 var(--radius-lg) var(--radius-lg)"}} title="Guest List Print Preview" />
           </div>
         </div>
       )}

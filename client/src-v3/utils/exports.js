@@ -13,6 +13,16 @@ function csvEsc(val) {
     : s;
 }
 
+function escHtml(val) {
+  const s = String(val == null ? "" : val);
+  return s
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 function exportExpensesCSV(expenses) {
   const headers = ["Description","Category","Vendor","Budgeted","Amount","Variance","Paid","Date","Due Date","Notes"];
   const esc = v => { const s = String(v||""); return (s.includes(",")||s.includes('"')) ? '"'+s.replace(/"/g,'""')+'"' : s; };
@@ -116,7 +126,7 @@ function generateSeatingPrintHTML(tables, people, households, eventName, eventDa
   const getTableId = (p) => sectionId ? (p.tableAssignments?.[sectionId] || null) : p.tableId;
 
   const titleLine = eventName
-    ? (sectionTitle ? `${eventName} · ${sectionTitle}` : eventName)
+    ? (sectionTitle ? `${escHtml(eventName)} · ${escHtml(sectionTitle)}` : escHtml(eventName))
     : "Seating Chart";
 
   const unassigned = people.filter(p => !getTableId(p));
@@ -127,13 +137,13 @@ function generateSeatingPrintHTML(tables, people, households, eventName, eventDa
       const hh = hhMap[p.householdId] || {};
       const flags = [];
       if (p.kosher) flags.push('<span style="background:#d8f3dc;color:#2d6a4f;font-size:10px;font-weight:700;padding:1px 6px;border-radius:99px;margin-left:4px">Kosher</span>');
-      if (p.dietary) flags.push(`<span style="background:#fef0e6;color:#9c4a12;font-size:10px;padding:1px 6px;border-radius:99px;margin-left:4px">${p.dietary}</span>`);
+      if (p.dietary) flags.push(`<span style="background:#fef0e6;color:#9c4a12;font-size:10px;padding:1px 6px;border-radius:99px;margin-left:4px">${escHtml(p.dietary)}</span>`);
       return `
         <tr>
-          <td style="padding:5px 8px;border-bottom:1px solid #f0ece6;font-weight:500">${getDisplayName(p)}${flags.join("")}</td>
-          <td style="padding:5px 8px;border-bottom:1px solid #f0ece6;color:#5c5248;font-size:12px">${hh.formalName || ""}</td>
-          <td style="padding:5px 8px;border-bottom:1px solid #f0ece6;color:#5c5248;font-size:12px">${hh.group || ""}</td>
-          <td style="padding:5px 8px;border-bottom:1px solid #f0ece6;color:#5c5248;font-size:12px">${p.mealChoice || "—"}</td>
+          <td style="padding:5px 8px;border-bottom:1px solid #f0ece6;font-weight:500">${escHtml(getDisplayName(p))}${flags.join("")}</td>
+          <td style="padding:5px 8px;border-bottom:1px solid #f0ece6;color:#5c5248;font-size:12px">${escHtml(hh.formalName || "")}</td>
+          <td style="padding:5px 8px;border-bottom:1px solid #f0ece6;color:#5c5248;font-size:12px">${escHtml(hh.group || "")}</td>
+          <td style="padding:5px 8px;border-bottom:1px solid #f0ece6;color:#5c5248;font-size:12px">${escHtml(p.mealChoice || "—")}</td>
         </tr>`;
     }).join("");
 
@@ -144,8 +154,8 @@ function generateSeatingPrintHTML(tables, people, households, eventName, eventDa
     return `
       <div style="margin-bottom:24px;page-break-inside:avoid">
         <div style="display:flex;justify-content:space-between;align-items:baseline;padding:8px 10px;background:linear-gradient(135deg,${pal["header-bg"]}22,${pal["accent-light"]});border-radius:8px 8px 0 0;border:1px solid ${pal["accent-medium"]};border-bottom:none">
-          <span style="font-family:'Cormorant Garamond',Georgia,serif;font-size:18px;font-weight:700;color:#1c1614">${t.name}</span>
-          <span style="font-size:12px;color:#5c5248">${t.type} · ${filled}/${cap} seats${over}</span>
+          <span style="font-family:'Cormorant Garamond',Georgia,serif;font-size:18px;font-weight:700;color:#1c1614">${escHtml(t.name)}</span>
+          <span style="font-size:12px;color:#5c5248">${escHtml(t.type)} · ${filled}/${cap} seats${over}</span>
         </div>
         <table style="width:100%;border-collapse:collapse;border:1px solid #e2ddd5;border-radius:0 0 8px 8px;overflow:hidden">
           <thead>
@@ -180,12 +190,12 @@ function generateSeatingPrintHTML(tables, people, households, eventName, eventDa
             const hh = hhMap[p.householdId] || {};
             const flags = [];
             if (p.kosher) flags.push('<span style="background:#d8f3dc;color:#2d6a4f;font-size:10px;font-weight:700;padding:1px 6px;border-radius:99px;margin-left:4px">Kosher</span>');
-            if (p.dietary) flags.push(`<span style="background:#fef0e6;color:#9c4a12;font-size:10px;padding:1px 6px;border-radius:99px;margin-left:4px">${p.dietary}</span>`);
+            if (p.dietary) flags.push(`<span style="background:#fef0e6;color:#9c4a12;font-size:10px;padding:1px 6px;border-radius:99px;margin-left:4px">${escHtml(p.dietary)}</span>`);
             return `<tr>
-              <td style="padding:5px 8px;border-bottom:1px solid #f0ece6;font-weight:500">${getDisplayName(p)}${flags.join("")}</td>
-              <td style="padding:5px 8px;border-bottom:1px solid #f0ece6;color:#5c5248;font-size:12px">${hh.formalName || ""}</td>
-              <td style="padding:5px 8px;border-bottom:1px solid #f0ece6;color:#5c5248;font-size:12px">${hh.group || ""}</td>
-              <td style="padding:5px 8px;border-bottom:1px solid #f0ece6;color:#5c5248;font-size:12px">${p.mealChoice || "—"}</td>
+              <td style="padding:5px 8px;border-bottom:1px solid #f0ece6;font-weight:500">${escHtml(getDisplayName(p))}${flags.join("")}</td>
+              <td style="padding:5px 8px;border-bottom:1px solid #f0ece6;color:#5c5248;font-size:12px">${escHtml(hh.formalName || "")}</td>
+              <td style="padding:5px 8px;border-bottom:1px solid #f0ece6;color:#5c5248;font-size:12px">${escHtml(hh.group || "")}</td>
+              <td style="padding:5px 8px;border-bottom:1px solid #f0ece6;color:#5c5248;font-size:12px">${escHtml(p.mealChoice || "—")}</td>
             </tr>`;
           }).join("")}
         </tbody>
@@ -198,7 +208,7 @@ function generateSeatingPrintHTML(tables, people, households, eventName, eventDa
 
   return `<!DOCTYPE html>
 <html lang="en"><head><meta charset="UTF-8">
-<title>Seating Chart${eventName ? " — " + eventName : ""}</title>
+<title>Seating Chart${eventName ? " — " + escHtml(eventName) : ""}</title>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -300,9 +310,9 @@ function generateGiftPrintHTML(gifts, households, eventName, eventDate, theme) {
         <div style="display:flex;justify-content:space-between;align-items:flex-start;padding:8px 12px;background:${pal["accent-light"]};border-bottom:1px solid ${pal["accent-medium"]}">
           <div>
             <div style="font-family:'Cormorant Garamond',Georgia,serif;font-size:16px;font-weight:700;color:#1c1614">
-              ${g.fromName || "Unknown"}${pendingBadge}${writtenBadge}${mailedBadge}
+              ${escHtml(g.fromName || "Unknown")}${pendingBadge}${writtenBadge}${mailedBadge}
             </div>
-            ${addr ? `<div style="font-size:12px;color:#5c5248;margin-top:2px">${addr}</div>` : `<div style="font-size:12px;color:#c9c2b6;font-style:italic;margin-top:2px">No address on file</div>`}
+            ${addr ? `<div style="font-size:12px;color:#5c5248;margin-top:2px">${escHtml(addr)}</div>` : `<div style="font-size:12px;color:#c9c2b6;font-style:italic;margin-top:2px">No address on file</div>`}
           </div>
           <div style="text-align:right;font-size:11px;color:#9c9188">
             ${attendedStr ? `<div>${attendedStr}</div>` : ""}
@@ -310,17 +320,17 @@ function generateGiftPrintHTML(gifts, households, eventName, eventDate, theme) {
           </div>
         </div>
         <div style="padding:8px 12px;font-size:13px">
-          <span style="font-weight:600;color:#1c1614">${g.giftType || "Gift"}</span>
-          ${g.description ? `<span style="color:#5c5248"> — ${g.description}</span>` : ""}
+          <span style="font-weight:600;color:#1c1614">${escHtml(g.giftType || "Gift")}</span>
+          ${g.description ? `<span style="color:#5c5248"> — ${escHtml(g.description)}</span>` : ""}
           ${amt ? `<span style="margin-left:8px">${amt}</span>` : ""}
-          ${g.notes ? `<div style="margin-top:4px;font-size:11px;color:#9c9188;font-style:italic">${g.notes}</div>` : ""}
+          ${g.notes ? `<div style="margin-top:4px;font-size:11px;color:#9c9188;font-style:italic">${escHtml(g.notes)}</div>` : ""}
         </div>
       </div>`;
   }).join("");
 
   return `<!DOCTYPE html>
 <html lang="en"><head><meta charset="UTF-8">
-<title>Gift List${eventName ? " — " + eventName : ""}</title>
+<title>Gift List${eventName ? " — " + escHtml(eventName) : ""}</title>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   * { box-sizing:border-box; margin:0; padding:0; }
@@ -335,7 +345,7 @@ function generateGiftPrintHTML(gifts, households, eventName, eventDate, theme) {
 
 <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:24px;padding-bottom:16px;border-bottom:2px solid ${pal["accent-medium"]}">
   <div>
-    <div style="font-family:'Cormorant Garamond',Georgia,serif;font-size:28px;font-weight:700;color:#1c1614">${eventName ? eventName + " — Gift List" : "Gift List"}</div>
+    <div style="font-family:'Cormorant Garamond',Georgia,serif;font-size:28px;font-weight:700;color:#1c1614">${eventName ? escHtml(eventName) + " — Gift List" : "Gift List"}</div>
     ${dateStr ? `<div style="font-size:13px;color:#5c5248;margin-top:2px">${dateStr}</div>` : ""}
   </div>
   <div style="text-align:right">
@@ -400,7 +410,7 @@ function generateFavorPrintHTML(favors, favorConfig, eventName, eventDate, theme
     sorted.forEach(f => { sizeCounts[f.size||"TBD"] = (sizeCounts[f.size||"TBD"]||0) + 1; });
     const badges = Object.entries(sizeCounts)
       .sort((a,b) => a[0].localeCompare(b[0]))
-      .map(([size, count]) => `<span style="display:inline-block;background:${pal["accent-light"]};border:1px solid ${pal["accent-medium"]};border-radius:6px;padding:3px 10px;font-size:12px;font-weight:600;margin:2px 4px 2px 0">${size}: ${count}</span>`)
+      .map(([size, count]) => `<span style="display:inline-block;background:${pal["accent-light"]};border:1px solid ${pal["accent-medium"]};border-radius:6px;padding:3px 10px;font-size:12px;font-weight:600;margin:2px 4px 2px 0">${escHtml(size)}: ${count}</span>`)
       .join("");
     sizeSummaryHTML = `
       <div style="margin-bottom:20px;padding:12px 16px;background:${pal["accent-light"]};border:1px solid ${pal["accent-medium"]};border-radius:8px">
@@ -422,7 +432,7 @@ function generateFavorPrintHTML(favors, favorConfig, eventName, eventDate, theme
     bodyHTML = Object.entries(bySize).sort((a,b) => a[0].localeCompare(b[0])).map(([size, items]) => `
       <div style="margin-bottom:20px;page-break-inside:avoid">
         <div style="font-family:'Cormorant Garamond',Georgia,serif;font-size:16px;font-weight:700;color:#1c1614;padding:6px 10px;background:${pal["accent-light"]};border-radius:6px 6px 0 0;border:1px solid ${pal["accent-medium"]};border-bottom:none">
-          ${size} <span style="font-size:12px;font-weight:400;color:#5c5248">(${items.length})</span>
+          ${escHtml(size)} <span style="font-size:12px;font-weight:400;color:#5c5248">(${items.length})</span>
         </div>
         <table style="width:100%;border-collapse:collapse;border:1px solid ${pal["accent-medium"]};border-radius:0 0 6px 6px;overflow:hidden;font-size:12px">
           <thead><tr style="background:${pal["accent-light"]}">
@@ -432,9 +442,9 @@ function generateFavorPrintHTML(favors, favorConfig, eventName, eventDate, theme
           </tr></thead>
           <tbody>
             ${items.map(f => `<tr style="border-bottom:1px solid #f0ece6">
-              <td style="padding:5px 8px;font-weight:500">${f.personName||""}</td>
-              ${cfg.isPersonalized ? `<td style="padding:5px 8px;color:#5c5248">${f.printName||""}</td><td style="padding:5px 8px;text-align:center;color:#5c5248">${f.preprint||"TBD"}</td>` : ""}
-              ${cfg.trackAttendance ? `<td style="padding:5px 8px;text-align:center;color:#5c5248">${f.attending||"TBD"}</td>` : ""}
+              <td style="padding:5px 8px;font-weight:500">${escHtml(f.personName||"")}</td>
+              ${cfg.isPersonalized ? `<td style="padding:5px 8px;color:#5c5248">${escHtml(f.printName||"")}</td><td style="padding:5px 8px;text-align:center;color:#5c5248">${escHtml(f.preprint||"TBD")}</td>` : ""}
+              ${cfg.trackAttendance ? `<td style="padding:5px 8px;text-align:center;color:#5c5248">${escHtml(f.attending||"TBD")}</td>` : ""}
             </tr>`).join("")}
           </tbody>
         </table>
@@ -449,9 +459,9 @@ function generateFavorPrintHTML(favors, favorConfig, eventName, eventDate, theme
         </tr></thead>
         <tbody>
           ${sorted.map(f => `<tr style="border-bottom:1px solid #f0ece6">
-            <td style="padding:5px 8px;font-weight:500">${f.personName||""}</td>
-            ${cfg.isPersonalized ? `<td style="padding:5px 8px;color:#5c5248">${f.printName||""}</td><td style="padding:5px 8px;text-align:center;color:#5c5248">${f.preprint||"TBD"}</td>` : ""}
-            ${cfg.trackAttendance ? `<td style="padding:5px 8px;text-align:center;color:#5c5248">${f.attending||"TBD"}</td>` : ""}
+            <td style="padding:5px 8px;font-weight:500">${escHtml(f.personName||"")}</td>
+            ${cfg.isPersonalized ? `<td style="padding:5px 8px;color:#5c5248">${escHtml(f.printName||"")}</td><td style="padding:5px 8px;text-align:center;color:#5c5248">${escHtml(f.preprint||"TBD")}</td>` : ""}
+            ${cfg.trackAttendance ? `<td style="padding:5px 8px;text-align:center;color:#5c5248">${escHtml(f.attending||"TBD")}</td>` : ""}
           </tr>`).join("")}
         </tbody>
       </table>`;
@@ -459,7 +469,7 @@ function generateFavorPrintHTML(favors, favorConfig, eventName, eventDate, theme
 
   return `<!DOCTYPE html>
 <html lang="en"><head><meta charset="UTF-8">
-<title>Favor List${eventName ? " — " + eventName : ""}</title>
+<title>Favor List${eventName ? " — " + escHtml(eventName) : ""}</title>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   * { box-sizing:border-box; margin:0; padding:0; }
@@ -469,7 +479,7 @@ function generateFavorPrintHTML(favors, favorConfig, eventName, eventDate, theme
 </head><body>
 <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:24px;padding-bottom:16px;border-bottom:2px solid ${pal["accent-medium"]}">
   <div>
-    <div style="font-family:'Cormorant Garamond',Georgia,serif;font-size:28px;font-weight:700">${eventName ? eventName + " — " : ""}${cfg.description || cfg.favorDescription || "Favor List"}</div>
+    <div style="font-family:'Cormorant Garamond',Georgia,serif;font-size:28px;font-weight:700">${eventName ? escHtml(eventName) + " — " : ""}${escHtml(cfg.description || cfg.favorDescription || "Favor List")}</div>
     ${dateStr ? `<div style="font-size:13px;color:#5c5248;margin-top:2px">${dateStr}</div>` : ""}
   </div>
   <div style="text-align:right">
@@ -546,11 +556,11 @@ function generateEventBriefHTML(state, adminConfig) {
       : "";
     const mainBadge = e.isMainEvent ? badge("Main Event", pal["accent-light"], pal["accent"]) : "";
     return `<tr>
-      <td style="padding:7px 10px;border-bottom:1px solid #f0ece6;font-size:18px;width:32px">${e.icon || "📅"}</td>
-      <td style="padding:7px 10px;border-bottom:1px solid #f0ece6;font-weight:600;color:#1c1614">${e.title || ""}${mainBadge}</td>
+      <td style="padding:7px 10px;border-bottom:1px solid #f0ece6;font-size:18px;width:32px">${escHtml(e.icon || "📅")}</td>
+      <td style="padding:7px 10px;border-bottom:1px solid #f0ece6;font-weight:600;color:#1c1614">${escHtml(e.title || "")}${mainBadge}</td>
       <td style="padding:7px 10px;border-bottom:1px solid #f0ece6;color:#5c5248;font-size:12px;white-space:nowrap">${d}</td>
-      <td style="padding:7px 10px;border-bottom:1px solid #f0ece6;color:#5c5248;font-size:12px">${formatEntryMeta(e).replace(d, "").replace(/^[·\s]+/, "")}</td>
-      <td style="padding:7px 10px;border-bottom:1px solid #f0ece6;color:#5c5248;font-size:12px">${e.venue || ""}</td>
+      <td style="padding:7px 10px;border-bottom:1px solid #f0ece6;color:#5c5248;font-size:12px">${escHtml(formatEntryMeta(e).replace(d, "").replace(/^[·\s]+/, ""))}</td>
+      <td style="padding:7px 10px;border-bottom:1px solid #f0ece6;color:#5c5248;font-size:12px">${escHtml(e.venue || "")}</td>
     </tr>`;
   }).join("");
 
@@ -588,8 +598,8 @@ function generateEventBriefHTML(state, adminConfig) {
     ? subEventAttendance.map(e => `
         <div style="margin-bottom:14px;padding:12px 14px;background:#faf8f5;border:1px solid #e2ddd5;border-radius:8px;page-break-inside:avoid">
           <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
-            <span style="font-size:16px">${e.icon}</span>
-            <span style="font-weight:600;font-size:14px;color:#1c1614">${e.title}</span>
+            <span style="font-size:16px">${escHtml(e.icon)}</span>
+            <span style="font-weight:600;font-size:14px;color:#1c1614">${escHtml(e.title)}</span>
             ${e.date ? `<span style="font-size:11px;color:#9c9188;margin-left:auto">${e.date}</span>` : ""}
           </div>
           <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;font-size:12px">
@@ -624,9 +634,9 @@ function generateEventBriefHTML(state, adminConfig) {
           const hh = households.find(h => h.id === p.householdId);
           const name = (p.firstName || p.lastName) ? `${p.firstName||""} ${p.lastName||""}`.trim() : (p.name || "");
           return `<div style="display:flex;gap:12px;padding:5px 0;border-bottom:1px solid #f0ece6;font-size:12px">
-            <span style="font-weight:600;min-width:140px">${name}</span>
-            <span style="color:#5c5248">${hh?.formalName || ""}</span>
-            <span style="color:#9c4a12;margin-left:auto">${p.dietary}</span>
+            <span style="font-weight:600;min-width:140px">${escHtml(name)}</span>
+            <span style="color:#5c5248">${escHtml(hh?.formalName || "")}</span>
+            <span style="color:#9c4a12;margin-left:auto">${escHtml(p.dietary)}</span>
           </div>`;
         }).join("")}
       </div>` : "";
@@ -639,8 +649,8 @@ function generateEventBriefHTML(state, adminConfig) {
     return `<div style="border:1px solid #e2ddd5;border-radius:8px;padding:14px 16px;break-inside:avoid">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px">
         <div>
-          <div style="font-weight:700;font-size:14px;color:#1c1614">${v.name}</div>
-          <div style="font-size:11px;color:#9c9188;margin-top:2px">${v.type} · ${v.status}</div>
+          <div style="font-weight:700;font-size:14px;color:#1c1614">${escHtml(v.name)}</div>
+          <div style="font-size:11px;color:#9c9188;margin-top:2px">${escHtml(v.type)} · ${escHtml(v.status)}</div>
         </div>
         ${fin.contractAmt > 0 ? `<div style="text-align:right;font-size:12px">
           <div style="font-weight:700;color:#1c1614">${fmt$(fin.contractAmt)}</div>
@@ -649,7 +659,7 @@ function generateEventBriefHTML(state, adminConfig) {
           </div>
         </div>` : ""}
       </div>
-      ${contact ? `<div style="font-size:12px;color:#5c5248;margin-bottom:6px">${contact}</div>` : ""}
+      ${contact ? `<div style="font-size:12px;color:#5c5248;margin-bottom:6px">${escHtml(contact)}</div>` : ""}
       ${fin.contractAmt > 0 ? `<div style="background:#f0ece6;border-radius:99px;height:4px;overflow:hidden;margin-top:6px">
         <div style="height:100%;border-radius:99px;background:${pal["accent"]};width:${paidPct}%"></div>
       </div>` : ""}
@@ -669,8 +679,8 @@ function generateEventBriefHTML(state, adminConfig) {
     const color = isOverdue ? "#9b2335" : "#b8962e";
     const bg    = isOverdue ? "#fde8e8" : "#fef8ec";
     return `<tr>
-      <td style="padding:6px 10px;border-bottom:1px solid #f0ece6;font-size:13px;color:#1c1614">${t.name || t.task || ""}</td>
-      <td style="padding:6px 10px;border-bottom:1px solid #f0ece6;font-size:11px;color:#9c9188;white-space:nowrap">${t.category || ""}</td>
+      <td style="padding:6px 10px;border-bottom:1px solid #f0ece6;font-size:13px;color:#1c1614">${escHtml(t.name || t.task || "")}</td>
+      <td style="padding:6px 10px;border-bottom:1px solid #f0ece6;font-size:11px;color:#9c9188;white-space:nowrap">${escHtml(t.category || "")}</td>
       <td style="padding:6px 10px;border-bottom:1px solid #f0ece6;white-space:nowrap">
         <span style="font-size:11px;font-weight:700;color:${color};background:${bg};padding:2px 7px;border-radius:99px">${dueDate}</span>
       </td>
@@ -698,13 +708,13 @@ function generateEventBriefHTML(state, adminConfig) {
   const ceremonyHTML = ceremonySections.map(sec => {
     const sectionRoles = sortedRoles.filter(r => r.section === sec);
     const rows = sectionRoles.map(r => `<tr>
-      <td style="padding:7px 10px;border-bottom:1px solid #f0ece6;font-weight:600;color:#1c1614;font-size:13px">${r.role || ""}</td>
-      <td style="padding:7px 10px;border-bottom:1px solid #f0ece6;color:${r.assignee?.trim() ? pal["accent"] : "#9c9188"};font-size:13px;font-style:${r.assignee?.trim() ? "normal" : "italic"}">${r.assignee?.trim() || "Unassigned"}</td>
-      <td style="padding:7px 10px;border-bottom:1px solid #f0ece6;color:#5c5248;font-size:12px">${r.hebrewName || ""}</td>
-      <td style="padding:7px 10px;border-bottom:1px solid #f0ece6;color:#9c9188;font-size:11px">${r.notes || ""}</td>
+      <td style="padding:7px 10px;border-bottom:1px solid #f0ece6;font-weight:600;color:#1c1614;font-size:13px">${escHtml(r.role || "")}</td>
+      <td style="padding:7px 10px;border-bottom:1px solid #f0ece6;color:${r.assignee?.trim() ? pal["accent"] : "#9c9188"};font-size:13px;font-style:${r.assignee?.trim() ? "normal" : "italic"}">${escHtml(r.assignee?.trim() || "Unassigned")}</td>
+      <td style="padding:7px 10px;border-bottom:1px solid #f0ece6;color:#5c5248;font-size:12px">${escHtml(r.hebrewName || "")}</td>
+      <td style="padding:7px 10px;border-bottom:1px solid #f0ece6;color:#9c9188;font-size:11px">${escHtml(r.notes || "")}</td>
     </tr>`).join("");
     return `<div style="margin-bottom:16px;page-break-inside:avoid">
-      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:#9c9188;margin-bottom:6px">${sec}</div>
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:#9c9188;margin-bottom:6px">${escHtml(sec)}</div>
       <table style="width:100%;border-collapse:collapse;border:1px solid #e2ddd5;border-radius:8px;overflow:hidden">
         <thead><tr style="background:#faf8f5">
           <th style="padding:6px 10px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:#9c9188;border-bottom:2px solid #e2ddd5">Role</th>
@@ -719,7 +729,7 @@ function generateEventBriefHTML(state, adminConfig) {
 
   return `<!DOCTYPE html>
 <html lang="en"><head><meta charset="UTF-8">
-<title>Event Brief — ${eventName}</title>
+<title>Event Brief — ${escHtml(eventName)}</title>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -738,9 +748,9 @@ function generateEventBriefHTML(state, adminConfig) {
 
 <!-- Header -->
 <div style="padding:20px 24px;background:linear-gradient(135deg,${pal["header-bg"]},${pal["accent"]});border-radius:10px;color:white;margin-bottom:8px">
-  <div style="font-family:'Cormorant Garamond',Georgia,serif;font-size:30px;font-weight:700;line-height:1.1">${eventName}</div>
+  <div style="font-family:'Cormorant Garamond',Georgia,serif;font-size:30px;font-weight:700;line-height:1.1">${escHtml(eventName)}</div>
   ${dateStr ? `<div style="font-size:14px;opacity:0.9;margin-top:4px">${dateStr}</div>` : ""}
-  ${eventVenue ? `<div style="font-size:13px;opacity:0.8;margin-top:2px">${iconSvg("mapPin", "badge", { style: "display:inline-block;vertical-align:middle;margin-right:3px" })} ${eventVenue}</div>` : ""}
+  ${eventVenue ? `<div style="font-size:13px;opacity:0.8;margin-top:2px">${iconSvg("mapPin", "badge", { style: "display:inline-block;vertical-align:middle;margin-right:3px" })} ${escHtml(eventVenue)}</div>` : ""}
 </div>
 <div style="text-align:right;font-size:11px;color:#9c9188;margin-bottom:4px">
   Event brief generated ${generatedAt} · SimchaKit by Brook Creative LLC
@@ -809,7 +819,7 @@ ${ceremonyHTML}
 ${config.notes && config.notes.trim() ? `
 <!-- Organizer Notes -->
 ${sectionHead(`${iconSvg("pencil", "inline")} Organizer Notes`)}
-<div style="background:#faf8f5;border:1px solid #e2ddd5;border-radius:8px;padding:14px 16px;font-size:13px;color:#1c1614;line-height:1.7;white-space:pre-wrap">${config.notes.trim()}</div>
+<div style="background:#faf8f5;border:1px solid #e2ddd5;border-radius:8px;padding:14px 16px;font-size:13px;color:#1c1614;line-height:1.7;white-space:pre-wrap">${escHtml(config.notes.trim())}</div>
 ` : ""}
 
 <div style="margin-top:36px;padding-top:12px;border-top:1px solid #e2ddd5;text-align:center;font-size:11px;color:#9c9188">
@@ -820,6 +830,7 @@ ${sectionHead(`${iconSvg("pencil", "inline")} Organizer Notes`)}
 
 export {
   csvEsc,
+  escHtml,
   exportExpensesCSV,
   exportSeatingByTable,
   exportSeatingByPerson,

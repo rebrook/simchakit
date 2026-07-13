@@ -426,6 +426,7 @@ export function GiftsTab({ eventId, event, adminConfig, showToast, isArchived, i
               </div>
             </div>
             <iframe id="gift-print-frame" srcDoc={printHTML}
+              sandbox="allow-same-origin allow-modals"
               style={{ flex: 1, border: "none", borderRadius: "0 0 var(--radius-lg) var(--radius-lg)" }}
               title="Gift List Print Preview" />
           </div>

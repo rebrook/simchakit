@@ -137,6 +137,17 @@ function useIsMobile() {
 }
 
 
+// ── HTML escaping for print brief (user-sourced field interpolation) ────────
+function escHtml(val) {
+  const s = String(val == null ? "" : val);
+  return s
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 // ── Print Brief HTML generator ────────────────────────────────────────────────
 function generatePrintBriefHTML({ adminConfig, timeline, households, people, vendors, expenses, tasks, ceremonyRoles }) {
   const config   = adminConfig || {};
@@ -206,10 +217,10 @@ function generatePrintBriefHTML({ adminConfig, timeline, households, people, ven
       ? `<span class="guest-count">${counts.confirmed} confirmed / ${counts.invited} invited</span>`
       : "";
     return `<tr>
-      <td class="tl-icon">${entry.icon || "📅"}</td>
+      <td class="tl-icon">${escHtml(entry.icon || "📅")}</td>
       <td>
-        <strong>${entry.title}</strong>${entry.isMainEvent ? ' <span class="main-badge">MAIN</span>' : ""}
-        ${meta ? `<br><span class="meta">${meta}</span>` : ""}
+        <strong>${escHtml(entry.title)}</strong>${entry.isMainEvent ? ' <span class="main-badge">MAIN</span>' : ""}
+        ${meta ? `<br><span class="meta">${escHtml(meta)}</span>` : ""}
         ${countStr ? `<br>${countStr}` : ""}
       </td>
       <td class="tl-date">${date}</td>
@@ -223,8 +234,8 @@ function generatePrintBriefHTML({ adminConfig, timeline, households, people, ven
     const vBalance = vTotal - vPaid;
     const contact  = [v.contactName, v.phone, v.email].filter(Boolean).join(" · ");
     return `<tr>
-      <td><strong>${v.name}</strong>${contact ? `<br><span class="meta">${contact}</span>` : ""}</td>
-      <td>${v.type || ""}</td>
+      <td><strong>${escHtml(v.name)}</strong>${contact ? `<br><span class="meta">${escHtml(contact)}</span>` : ""}</td>
+      <td>${escHtml(v.type || "")}</td>
       <td class="money">${vTotal > 0 ? fmt$(vTotal) : "—"}</td>
       <td class="money green">${vPaid > 0 ? fmt$(vPaid) : "—"}</td>
       <td class="money ${vBalance > 0 ? "red" : ""}">${vBalance > 0 ? fmt$(vBalance) : iconSvg("check", "badge", { color: "#2d6a4f" })}</td>
@@ -234,8 +245,8 @@ function generatePrintBriefHTML({ adminConfig, timeline, households, people, ven
   const unpaidRows = unpaidExpenses.map(e => {
     const vendorName = e.vendorId ? vendors.find(v => v.id === e.vendorId)?.name || "" : "";
     return `<tr>
-      <td>${e.description}</td>
-      <td>${vendorName}</td>
+      <td>${escHtml(e.description)}</td>
+      <td>${escHtml(vendorName)}</td>
       <td class="money">${fmtDate(e.dueDate)}</td>
       <td class="money red">${fmt$(e.amount)}</td>
     </tr>`;
@@ -246,8 +257,8 @@ function generatePrintBriefHTML({ adminConfig, timeline, households, people, ven
     const isOvr = t.due && new Date(t.due + "T00:00:00") < today;
     return `<tr>
       <td>☐</td>
-      <td>${t.task}</td>
-      <td>${t.category || ""}</td>
+      <td>${escHtml(t.task)}</td>
+      <td>${escHtml(t.category || "")}</td>
       <td class="${isOvr ? "red" : "meta"}">${due}</td>
     </tr>`;
   }).join("");
@@ -255,10 +266,10 @@ function generatePrintBriefHTML({ adminConfig, timeline, households, people, ven
   const ceremonySection = sections.length > 0 ? sections.map(sec => {
     const secRoles = sortedRoles.filter(r => r.section === sec);
     const rows = secRoles.map(r => `<tr>
-      <td>${r.role}${r.hebrewName ? `<br><span class="meta">${r.hebrewName}</span>` : ""}</td>
-      <td class="${r.assignee?.trim() ? "" : "unassigned"}">${r.assignee?.trim() || "— Unassigned —"}</td>
+      <td>${escHtml(r.role)}${r.hebrewName ? `<br><span class="meta">${escHtml(r.hebrewName)}</span>` : ""}</td>
+      <td class="${r.assignee?.trim() ? "" : "unassigned"}">${escHtml(r.assignee?.trim() || "— Unassigned —")}</td>
     </tr>`).join("");
-    return `<div class="sub-section-label">${sec}</div>
+    return `<div class="sub-section-label">${escHtml(sec)}</div>
     <table><thead><tr><th>Role</th><th>Assignee</th></tr></thead><tbody>${rows}</tbody></table>`;
   }).join("") : "";
 
@@ -267,8 +278,8 @@ function generatePrintBriefHTML({ adminConfig, timeline, households, people, ven
         const name = [p.firstName, p.lastName].filter(Boolean).join(" ") || p.name || "Guest";
         const isConf = confirmedHHIds.has(p.householdId);
         return `<tr>
-          <td><span class="${isConf ? "badge-green" : "badge-gold"}">${isConf ? iconSvg("check", "badge", { color: "#2d6a4f" }) : "?"}</span> ${name}</td>
-          <td>${p.dietary}</td>
+          <td><span class="${isConf ? "badge-green" : "badge-gold"}">${isConf ? iconSvg("check", "badge", { color: "#2d6a4f" }) : "?"}</span> ${escHtml(name)}</td>
+          <td>${escHtml(p.dietary)}</td>
         </tr>`;
       }).join("")
     : `<tr><td colspan="2" class="meta">No dietary requirements recorded.</td></tr>`;
@@ -277,7 +288,7 @@ function generatePrintBriefHTML({ adminConfig, timeline, households, people, ven
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>${eventName} — Event Brief</title>
+<title>${escHtml(eventName)} — Event Brief</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 13px; color: #1a1a1a; background: #fff; padding: 24px; max-width: 900px; margin: 0 auto; }
@@ -317,7 +328,7 @@ function generatePrintBriefHTML({ adminConfig, timeline, households, people, ven
 </style>
 </head>
 <body>
-<h1>${eventName}</h1>
+<h1>${escHtml(eventName)}</h1>
 <div class="event-meta">${eventDate ? eventDate + " · " : ""}Event Brief · Generated ${new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}</div>
 
 ${sectionHead("calendar", "Event Timeline")}
@@ -363,7 +374,7 @@ ${sectionHead("✡", `Ceremony Roles — ${ceremonyRoles.filter(r => r.assignee?
 ${ceremonySection}
 ` : ""}
 
-<div class="print-footer">SimchaKit · ${eventName} · ${new Date().toLocaleDateString()} · support@brook-creative.com</div>
+<div class="print-footer">SimchaKit · ${escHtml(eventName)} · ${new Date().toLocaleDateString()} · support@brook-creative.com</div>
 </body>
 </html>`;
 }
@@ -1254,6 +1265,7 @@ export function DayOfOverlay({ eventId, event, adminConfig, onClose, onPrintBrie
           <iframe
             ref={printFrameRef}
             srcDoc={printHTML}
+            sandbox="allow-same-origin allow-modals"
             style={{ flex:1, border:"none", borderRadius:"0 0 var(--radius-lg) var(--radius-lg)" }}
             title="Event Brief Preview"
           />

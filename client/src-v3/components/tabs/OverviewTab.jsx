@@ -598,6 +598,7 @@ export function OverviewTab({ eventId, event, adminConfig, showToast, setActiveT
               </div>
             </div>
             <iframe ref={printFrameRef} srcDoc={briefHTML}
+              sandbox="allow-same-origin allow-modals"
               style={{ flex: 1, border: "none", borderRadius: "0 0 var(--radius-lg) var(--radius-lg)" }}
               title="Event Brief Print Preview" />
           </div>

@@ -679,7 +679,7 @@ export function SeatingTab({ eventId, event, adminConfig, showToast, isArchived,
                 <button className="icon-btn" title="Close" onClick={() => setPrintHTML(null)}><Icon name="x" context="button" /></button>
               </div>
             </div>
-            <iframe id="seating-print-frame" srcDoc={printHTML} style={{ flex: 1, border: "none", borderRadius: "0 0 var(--radius-lg) var(--radius-lg)" }} title="Seating Chart Print Preview" />
+            <iframe id="seating-print-frame" srcDoc={printHTML} sandbox="allow-same-origin allow-modals" style={{ flex: 1, border: "none", borderRadius: "0 0 var(--radius-lg) var(--radius-lg)" }} title="Seating Chart Print Preview" />
           </div>
         </div>
       )}
