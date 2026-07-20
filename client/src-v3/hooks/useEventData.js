@@ -1,5 +1,5 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// SimchaKit V4.11.0 — useEventData.js
+// SimchaKit V4.17.0 — useEventData.js
 // Core data hook. Provides fetch-on-mount, optimistic save, and delete
 // for any collection table in Supabase.
 //
@@ -7,11 +7,34 @@
 //   const { items, loading, error, save, remove, reload } = useEventData(eventId, "tasks")
 //
 // Each item is the row's `data` jsonb merged with a `_rowId` field (the UUID PK).
-// Save: if item has _rowId → upsert that row. If not → insert new row.
+// Save: if item has _rowId → conditional update via the save_row RPC (see below).
+//       If not → insert new row via upsert (unchanged from before).
 // Remove: deletes by _rowId.
 //
 // Special case — households: pass promoteColumns to extract indexed columns
 // from the item and write them alongside `data`.
+//
+// ── Concurrency (V4.17.0) ──────────────────────────────────────────────────
+// Existing rows are saved through the save_row() Postgres RPC instead of a
+// plain upsert. The RPC only applies the write if the row's updated_at still
+// matches what this client last fetched (item._updatedAt). If another
+// co-planner saved the same row in between, the write is rejected instead of
+// silently overwriting their change, and save() returns the current server
+// copy so the caller can inform the user and refresh the UI. See:
+//   migrations/2026-07-20_save_row_optimistic_concurrency.sql
+//
+// save() return shapes:
+//   Success:            { item: savedItem }
+//   Conflict (updated):  { conflict: true, serverItem }
+//   Conflict (deleted):  { conflict: true, serverItem: null, deleted: true }
+//   Error:              { error: message }
+//
+// On any conflict, this hook also dispatches a "simchakit:save-conflict"
+// CustomEvent (detail: { collection, serverItem, deleted }) on window, mirroring
+// the existing "simchakit:audit-error" pattern, so AppShell can show a toast
+// without every tab needing its own conflict-handling code. Tabs that want
+// more specific behavior (e.g. re-opening an edit form with the server copy)
+// can still use the { conflict, serverItem } return value directly.
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useState, useEffect, useCallback, useRef } from "react";
@@ -125,7 +148,7 @@ export function useEventData(eventId, collection, options = {}) {
   // Fetch on mount
   useEffect(() => { load(); }, [load]);
 
-  // ── Save (upsert) ─────────────────────────────────────────────────────────────
+  // ── Save (insert new, or conditionally update existing) ───────────────────────
   const save = useCallback(async (item) => {
     if (!eventId) return { error: "No event ID" };
 
@@ -135,43 +158,103 @@ export function useEventData(eventId, collection, options = {}) {
     const promoted = promoteRef.current(item);
     const isNew    = !_rowId;
 
-    const row = {
-      ...(isNew ? {} : { id: _rowId }),
-      event_id:   eventId,
-      data:       dataPayload,
-      updated_at: new Date().toISOString(),
-      ...promoted,
-    };
+    // ── New row: unchanged insert-via-upsert path ────────────────────────────
+    if (isNew) {
+      const row = {
+        event_id:   eventId,
+        data:       dataPayload,
+        updated_at: new Date().toISOString(),
+        ...promoted,
+      };
 
-    const { data: saved, error: saveError } = await supabase
-      .from(collectionRef.current)
-      .upsert(row, { onConflict: "id" })
-      .select("id, data, created_at, updated_at")
-      .single();
+      const { data: saved, error: saveError } = await supabase
+        .from(collectionRef.current)
+        .upsert(row, { onConflict: "id" })
+        .select("id, data, created_at, updated_at")
+        .single();
 
-    if (saveError) {
-      console.error(`[SimchaKit] useEventData save error (${collectionRef.current}):`, saveError.message);
-      return { error: saveError.message };
+      if (saveError) {
+        console.error(`[SimchaKit] useEventData save error (${collectionRef.current}):`, saveError.message);
+        return { error: saveError.message };
+      }
+
+      const savedItem = {
+        ...(saved.data || {}),
+        _rowId:     saved.id,
+        _createdAt: saved.created_at,
+        _updatedAt: saved.updated_at,
+      };
+
+      setItems(prev => [...prev, savedItem]);
+
+      // Fire-and-forget audit log — never blocks the save
+      writeAuditLog(eventId, collectionRef.current, "Added", dataPayload);
+
+      return { item: savedItem };
     }
 
-    const savedItem = {
-      ...(saved.data || {}),
-      _rowId:     saved.id,
-      _createdAt: saved.created_at,
-      _updatedAt: saved.updated_at,
+    // ── Existing row: conditional update via save_row RPC ───────────────────
+    // Only applies the write if updated_at still matches what this client
+    // last fetched. Rejects (rather than overwrites) if another co-planner
+    // saved the same row in between.
+    const { data: rpcResult, error: rpcError } = await supabase.rpc("save_row", {
+      p_table:               collectionRef.current,
+      p_id:                  _rowId,
+      p_event_id:            eventId,
+      p_data:                dataPayload,
+      p_expected_updated_at: _updatedAt,
+      p_promoted:            promoted,
+    });
+
+    if (rpcError) {
+      console.error(`[SimchaKit] useEventData save error (${collectionRef.current}):`, rpcError.message);
+      return { error: rpcError.message };
+    }
+
+    if (rpcResult.status === "ok") {
+      const savedItem = {
+        ...(rpcResult.row.data || {}),
+        _rowId:     rpcResult.row.id,
+        _createdAt: rpcResult.row.created_at,
+        _updatedAt: rpcResult.row.updated_at,
+      };
+
+      setItems(prev => prev.map(i => i._rowId === _rowId ? savedItem : i));
+
+      // Fire-and-forget audit log — only on a successful save, never on conflict
+      writeAuditLog(eventId, collectionRef.current, "Updated", dataPayload);
+
+      return { item: savedItem };
+    }
+
+    if (rpcResult.status === "deleted") {
+      // Row was deleted by someone else while this client had it open
+      setItems(prev => prev.filter(i => i._rowId !== _rowId));
+
+      window.dispatchEvent(new CustomEvent("simchakit:save-conflict", {
+        detail: { collection: collectionRef.current, serverItem: null, deleted: true },
+      }));
+
+      return { conflict: true, serverItem: null, deleted: true };
+    }
+
+    // rpcResult.status === "conflict": someone else's save landed first.
+    // Replace the local copy with the current server copy so the UI reflects
+    // reality even before the calling tab reacts to the conflict.
+    const serverItem = {
+      ...(rpcResult.row.data || {}),
+      _rowId:     rpcResult.row.id,
+      _createdAt: rpcResult.row.created_at,
+      _updatedAt: rpcResult.row.updated_at,
     };
 
-    // Optimistic update — replace existing or append new
-    setItems(prev =>
-      isNew
-        ? [...prev, savedItem]
-        : prev.map(i => i._rowId === _rowId ? savedItem : i)
-    );
+    setItems(prev => prev.map(i => i._rowId === _rowId ? serverItem : i));
 
-    // Fire-and-forget audit log — never blocks the save
-    writeAuditLog(eventId, collectionRef.current, isNew ? "Added" : "Updated", dataPayload);
+    window.dispatchEvent(new CustomEvent("simchakit:save-conflict", {
+      detail: { collection: collectionRef.current, serverItem, deleted: false },
+    }));
 
-    return { item: savedItem };
+    return { conflict: true, serverItem };
   }, [eventId]);
 
   // ── Remove (delete) ───────────────────────────────────────────────────────────

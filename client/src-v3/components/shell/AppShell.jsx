@@ -247,6 +247,24 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false, display
     return () => window.removeEventListener("simchakit:audit-error", handler);
   }, [showToast]);
 
+  // ── Save conflict listener ─────────────────────────────────────────────────
+  // Fired by useEventData.js when a save is rejected because another
+  // co-planner changed (or deleted) the same row first. The hook already
+  // replaces the local item with the current server copy, so this is just
+  // the user-facing notice — no reload is needed here.
+  useEffect(() => {
+    const handler = (e) => {
+      const deleted = e?.detail?.deleted;
+      showToast(
+        deleted
+          ? "This item was deleted by someone else"
+          : "This item was changed by someone else — showing the latest version"
+      );
+    };
+    window.addEventListener("simchakit:save-conflict", handler);
+    return () => window.removeEventListener("simchakit:save-conflict", handler);
+  }, [showToast]);
+
   // ── Load event from Supabase ──────────────────────────────────────────────
   useEffect(() => {
     async function load() {
