@@ -27,7 +27,8 @@ if (inviteMatch) {
 }
 
 export default function AppV3() {
-  const [session, setSession] = useState(undefined); // undefined = loading
+  const [session, setSession]         = useState(undefined); // undefined = loading
+  const [inviteError, setInviteError] = useState(null);
   useDarkMode();
 
   // Demo mode — bypass auth entirely, ensure anon Supabase client
@@ -67,17 +68,29 @@ export default function AppV3() {
             localStorage.removeItem(PENDING_INVITE_KEY);
             fetch("/api/accept-invite", {
               method:  "POST",
-              headers: { "Content-Type": "application/json" },
-              body:    JSON.stringify({ token: pendingToken, userId: session.user.id }),
+              headers: {
+                "Content-Type":  "application/json",
+                "Authorization": "Bearer " + session.access_token,
+              },
+              // No userId in the body — the server derives identity from the
+              // Authorization header token, never from client-supplied fields.
+              body: JSON.stringify({ token: pendingToken }),
             })
-            .then(res => res.json())
-            .then(data => {
-              if (data.accepted) {
+            .then(async (res) => {
+              const data = await res.json().catch(() => ({}));
+              return { ok: res.ok, data };
+            })
+            .then(({ ok, data }) => {
+              if (ok && data.accepted) {
                 // Reload so EventPicker fetches the updated collaborator event list
                 window.location.replace("/");
+              } else {
+                setInviteError("We couldn't add you to the event — ask for a new invite link.");
               }
             })
-            .catch(() => {});
+            .catch(() => {
+              setInviteError("We couldn't add you to the event — ask for a new invite link.");
+            });
           }
         }
 
@@ -154,12 +167,17 @@ export default function AppV3() {
   return (
     <>
       <ThemeProvider palette="rose" />
-      <AppContent session={session} isCallback={isCallback} />
+      <AppContent
+        session={session}
+        isCallback={isCallback}
+        inviteError={inviteError}
+        onDismissInviteError={() => setInviteError(null)}
+      />
     </>
   );
 }
 
-function AppContent({ session, isCallback }) {
+function AppContent({ session, isCallback, inviteError, onDismissInviteError }) {
   const [selectedEventId, setSelectedEventId] = useState(null);
   const [displayName,     setDisplayName]     = useState(null); // null = not yet loaded
   const [showOnboarding,  setShowOnboarding]  = useState(false);
@@ -244,6 +262,21 @@ function AppContent({ session, isCallback }) {
           <div style={headerStyles.title}>SimchaKit</div>
         </div>
       </header>
+
+      {inviteError && (
+        <div className="alert alert-error" style={{ margin: "16px 24px 0", maxWidth: 1000, marginLeft: "auto", marginRight: "auto" }}>
+          <span>{inviteError}</span>
+          <button
+            type="button"
+            className="icon-btn"
+            onClick={onDismissInviteError}
+            aria-label="Dismiss"
+            style={{ marginLeft: "auto" }}
+          >
+            ×
+          </button>
+        </div>
+      )}
 
       {showOnboarding && (
         <OnboardingModal

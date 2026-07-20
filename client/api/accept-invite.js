@@ -1,27 +1,37 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // SimchaKit V3 — api/accept-invite.js
 // Vercel serverless function.
-// POST { token, userId }
+// POST { token } with an Authorization: Bearer <supabase access token> header.
 // Validates a collaborator invitation token and creates the collaborator row.
 // Called by the app after confirming the user is authenticated.
 //
+// Identity comes ONLY from the Authorization header's JWT, validated against
+// Supabase Auth. Any identity field in the request body is ignored -- a
+// client-supplied userId is never trusted for this insert.
+//
 // Flow:
-//   1. Validate request body (token, userId both required)
+//   0. Validate the Authorization header JWT via supabase.auth.getUser();
+//      reject if missing or invalid. This is the actual caller's user id.
+//   1. Validate request body (token required)
 //   2. Look up invitation by token using service role key
-//   3. Reject if not found, expired, or already accepted
+//   3. Reject if not found, expired, or already accepted (fast pre-checks)
 //   4. Reject if event has reached the collaborator cap (5)
 //   5. Reject if user is already a collaborator on this event
-//   6. Insert row into event_collaborators
-//   7. Stamp accepted_at on the invitation row
+//   6. Atomically claim the invitation (accepted_at set only if still null and
+//      unexpired) -- this is the actual single-use guarantee, not step 3's
+//      pre-check, which only exists to fail fast without a second round trip.
+//   7. Insert row into event_collaborators; on failure, roll back the claim so
+//      the token isn't burned for nothing.
 //   8. Sync contact to Brevo (non-fatal — does not block on failure)
 //   9. Return { accepted: true, eventId, role }
 //
 // Error codes returned to the app:
-//   TOKEN_NOT_FOUND     — no invitation matches this token
-//   TOKEN_EXPIRED       — invitation is past its 7-day expiry
-//   ALREADY_ACCEPTED    — this token has already been used
+//   UNAUTHORIZED        — missing or invalid Authorization token
+//   TOKEN_NOT_FOUND      — no invitation matches this token
+//   TOKEN_EXPIRED        — invitation is past its 7-day expiry
+//   ALREADY_ACCEPTED     — this token has already been used
 //   ALREADY_COLLABORATOR — this user is already on this event
-//   CAP_REACHED         — event has 5 collaborators (the maximum)
+//   CAP_REACHED          — event has 5 collaborators (the maximum)
 //
 // Brevo lists:
 //   9  — SimchaKit - Collaborators (Editors)
@@ -51,13 +61,10 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: "Server configuration error." });
   }
 
-  const { token, userId } = req.body || {};
+  const { token } = req.body || {};
 
   if (!token || typeof token !== "string") {
     return res.status(400).json({ error: "Missing or invalid token." });
-  }
-  if (!userId || typeof userId !== "string") {
-    return res.status(400).json({ error: "Missing or invalid userId." });
   }
 
   // ── Supabase client (service role — bypasses RLS for token lookup and insert) ──
@@ -66,6 +73,22 @@ export default async function handler(req, res) {
     process.env.VITE_SUPABASE_URL,
     process.env.SUPABASE_SERVICE_ROLE_KEY
   );
+
+  // ── Step 0: Authenticate the caller from the Authorization header ───────────
+  // Identity comes only from this validated JWT. Nothing from the request body
+  // is ever used to determine who the caller is.
+  const authHeader  = req.headers.authorization || req.headers.Authorization || "";
+  const bearerToken = authHeader.startsWith("Bearer ") ? authHeader.slice(7).trim() : null;
+
+  if (!bearerToken) {
+    return res.status(401).json({ error: "UNAUTHORIZED" });
+  }
+
+  const { data: authData, error: authError } = await supabase.auth.getUser(bearerToken);
+  if (authError || !authData?.user?.id) {
+    return res.status(401).json({ error: "UNAUTHORIZED" });
+  }
+  const userId = authData.user.id;
 
   // ── Step 1: Look up invitation by token ──────────────────────────────────────
   const { data: invitation, error: inviteError } = await supabase
@@ -146,9 +169,33 @@ export default async function handler(req, res) {
     if (!invitedByName)  invitedByName  = ownerProfile?.display_name || null;
   }
 
-  // ── Step 6: Insert collaborator row ─────────────────────────────────────────
+  // ── Step 6: Atomically claim the invitation (the actual single-use guard) ───
+  // This is the operation that makes the token single-use under concurrency:
+  // two simultaneous requests for the same token can both pass step 3's
+  // pre-check, but only one can win this conditional update, since it only
+  // applies if accepted_at is still null and the invite hasn't expired.
   const now = new Date().toISOString();
 
+  const { data: claimed, error: claimError } = await supabase
+    .from("event_invitations")
+    .update({ accepted_at: now })
+    .eq("id", invitation.id)
+    .is("accepted_at", null)
+    .gt("expires_at", now)
+    .select("id")
+    .maybeSingle();
+
+  if (claimError) {
+    console.error("[SimchaKit] accept-invite: invitation claim failed:", claimError.message);
+    return res.status(500).json({ error: "Failed to finalize invitation." });
+  }
+
+  if (!claimed) {
+    // Someone else claimed it (or it expired) between our step 3 pre-check and now
+    return res.status(409).json({ error: "ALREADY_ACCEPTED" });
+  }
+
+  // ── Step 7: Insert collaborator row ─────────────────────────────────────────
   const { error: insertError } = await supabase
     .from("event_collaborators")
     .insert({
@@ -165,18 +212,19 @@ export default async function handler(req, res) {
 
   if (insertError) {
     console.error("[SimchaKit] accept-invite: insert failed:", insertError.message);
+
+    // Roll back the claim so the token isn't burned for nothing -- the user
+    // (or a retry) can still use it.
+    const { error: rollbackError } = await supabase
+      .from("event_invitations")
+      .update({ accepted_at: null })
+      .eq("id", invitation.id);
+
+    if (rollbackError) {
+      console.error("[SimchaKit] accept-invite: claim rollback failed:", rollbackError.message);
+    }
+
     return res.status(500).json({ error: "Failed to create collaborator record." });
-  }
-
-  // ── Step 7: Stamp accepted_at on the invitation ──────────────────────────────
-  const { error: stampError } = await supabase
-    .from("event_invitations")
-    .update({ accepted_at: now })
-    .eq("id", invitation.id);
-
-  if (stampError) {
-    // Non-fatal — collaborator row already inserted. Log and continue.
-    console.error("[SimchaKit] accept-invite: invitation stamp failed:", stampError.message);
   }
 
   // ── Step 8: Brevo sync (non-fatal — does not block on failure) ───────────────

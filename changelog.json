@@ -1,10 +1,24 @@
 {
-  "current": "V4.17.0",
+  "current": "V4.17.1",
   "whatsNew": [
-    "Editing the same guest, expense, or other item at the same time as a co-planner no longer causes one of your changes to silently disappear",
-    "You will now see a clear message if someone else saved changes to an item right before you did, along with their latest version"
+    "Fixed a security issue in the co-planner invite flow so acceptance is always verified against your signed-in account",
+    "If accepting an invite fails, you will now see a clear message instead of nothing happening"
   ],
   "changelog": [
+    {
+      "version": "V4.17.1",
+      "date": "2026-07-20",
+      "summary": "Security fix: invite acceptance now authenticates the caller instead of trusting a client-supplied user id",
+      "changes": [
+        "App.v3.jsx now sends the Supabase access token as an Authorization: Bearer header when accepting a pending invite, and no longer sends userId in the request body",
+        "api/accept-invite.js derives the caller's identity solely from supabase.auth.getUser() on the Authorization header token; any identity field in the request body is ignored",
+        "Requests with a missing or invalid Authorization token are rejected with a new UNAUTHORIZED error before any invitation data is read",
+        "Replaced the insert-then-stamp sequence with an atomic conditional update that claims the invitation (accepted_at set only if still null and unexpired) before the collaborator row is inserted, closing a race where two concurrent requests for the same token could both have succeeded",
+        "If the collaborator insert fails after the invitation is claimed, the claim is rolled back so the token is not burned for nothing",
+        "The client no longer silently swallows invite-acceptance failures: a banner now reads \"We couldn't add you to the event, ask for a new invite link\" on the event picker screen, reusing the existing alert-error and icon-btn styles",
+        "Confirmed existing behavior: invite tokens are already single-use (enforced by the new atomic claim) and already expire after 7 days (event_invitations.expires_at, enforced both at the pre-check and inside the atomic claim); no schema change was needed for either"
+      ]
+    },
     {
       "version": "V4.17.0",
       "date": "2026-07-20",
