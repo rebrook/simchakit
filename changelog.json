@@ -1,9 +1,19 @@
 {
-  "current": "V4.17.2",
+  "current": "V4.17.3",
   "whatsNew": [
-    "Fixed a bug where guest list changes (RSVPs, adding or editing households, deletions, and imports) never appeared in your activity feed or notifications"
+    "Your own guest, budget, and other edits now show up right away in the Notifications panel instead of only after a page reload"
   ],
   "changelog": [
+    {
+      "version": "V4.17.3",
+      "date": "2026-07-20",
+      "summary": "Fixed your own actions not appearing live in the Notifications panel",
+      "changes": [
+        "The Realtime audit_log subscription in useNotifications.js previously returned early for the acting user's own actions, so a self-authored edit never appeared in the Notifications panel until the next full page reload",
+        "See all activity was unaffected by this, since ActivityLogModal always runs a fresh query on open",
+        "Self-authored actions now appear in the live Notifications panel immediately, same as anyone else's; only the unread count and unread dot remain suppressed for your own actions, since those should not generate a badge for yourself"
+      ]
+    },
     {
       "version": "V4.17.2",
       "date": "2026-07-20",

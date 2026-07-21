@@ -1,5 +1,5 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// SimchaKit V4.11.0 — useNotifications.js
+// SimchaKit V4.17.3 — useNotifications.js
 // Per-user notification layer over the global audit_log.
 //
 // Provides:
@@ -12,6 +12,14 @@
 // Reliable path: visibilitychange refetch + tab-change refetch.
 // Enhancement:   Supabase Realtime subscription on audit_log INSERTs
 //                (requires audit_log in supabase_realtime publication).
+//
+// ── Self-authored entries (V4.17.3) ─────────────────────────────────────────
+// Realtime INSERTs used to `return` early for the acting user's own actions,
+// which meant your own edits never appeared live in the panel at all, only
+// reappearing after a full page reload re-ran loadAll(). Self-authored
+// entries are now added to the panel like anyone else's; only the unread
+// count/dot are still suppressed for them, since you shouldn't get an
+// unread badge for your own action.
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useState, useEffect, useCallback, useRef } from "react";
@@ -181,18 +189,20 @@ export function useNotifications(eventId, session) {
           if (!row) return;
 
           const d = row.data || {};
-
-          // Self-exclude: ignore own actions
-          if (d.actorId === myIdRef.current) return;
+          const isSelf = d.actorId === myIdRef.current;
 
           // Dedupe: skip if we already have this entry
           if (entryIdsRef.current.has(row.id)) return;
 
-          // Add to entries and increment count (single source of truth)
+          // Add to entries for everyone, including the actor themselves --
+          // self-authored actions still belong in the live panel, they just
+          // shouldn't count as unread or show the unread dot for that user.
           const entry = toEntry(row, cursorRef.current);
+          if (isSelf) entry.isUnread = false;
+
           entryIdsRef.current.add(row.id);
           setEntries(prev => [entry, ...prev].slice(0, 50));
-          setUnreadCount(prev => prev + 1);
+          if (!isSelf) setUnreadCount(prev => prev + 1);
         }
       )
       .subscribe();
