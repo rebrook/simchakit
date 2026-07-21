@@ -1,7 +1,11 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// SimchaKit V3.0.0 — GuestsTab.jsx
+// SimchaKit V4.17.2 — GuestsTab.jsx
 // Ported from V2. Households and people via useEventData.
-// appendAuditLog replaced with direct Supabase insert to audit_log table.
+// Audit logging now goes through the shared writeAuditLog (utils/auditLog.js).
+// The previous local appendAuditLog wrote action/detail as top-level columns
+// that do not exist on the audit_log table (id, event_id, data, created_at,
+// updated_at only) and every write silently failed -- no GuestsTab activity
+// has ever appeared in the notification panel or activity log until this fix.
 // All modals (HouseholdModal, ImportModal, etc.) are props-based — unchanged.
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -10,8 +14,8 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, Cell, PieChart, Pie, LabelList,
 } from "recharts";
-import { supabase }           from "@/lib/supabase.js";
 import { useEventData, peoplePromoteColumns } from "@/hooks/useEventData.js";
+import { writeAuditLog }      from "@/utils/auditLog.js";
 import { useSearchHighlight } from "@/hooks/useSearchHighlight.js";
 import { RSVP_STATUSES, TITLES, DEFAULT_GROUPS, DEFAULT_MEALS } from "@/constants/guest-constants.js";
 import { SHIRT_SIZES }        from "@/constants/theme.js";
@@ -63,25 +67,13 @@ export function GuestsTab({ eventId, event, adminConfig, showToast, isArchived, 
 
   useEffect(() => { setSelectedHHIds(new Set()); }, [search, groupFilter, statusFilter, mobileChip, outOfTownFilter, missingAddressFilter]);
 
-  // ── Audit log ─────────────────────────────────────────────────────────────
-  const appendAuditLog = async (action, detail) => {
-    try {
-      await supabase.from("audit_log").insert({
-        event_id:   eventId,
-        action,
-        detail,
-        created_at: new Date().toISOString(),
-      });
-    } catch (e) { /* non-critical */ }
-  };
-
   // ── RSVP status update ────────────────────────────────────────────────────
   const updateRsvpStatus = async (hhId, newStatus) => {
     if (isArchived) return;
     const hh = households.find(h => h.id === hhId);
     const oldStatus = hh?.status || "";
     await saveHouseholdRow({ ...hh, status: newStatus });
-    appendAuditLog("Updated", `RSVP updated — ${hh?.formalName || "Household"}: ${oldStatus} → ${newStatus}`);
+    writeAuditLog(eventId, "households", "Updated", `RSVP updated — ${hh?.formalName || "Household"}: ${oldStatus} → ${newStatus}`);
     showToast(`RSVP updated — ${newStatus}`);
     setOpenRsvp(null);
   };
@@ -101,7 +93,7 @@ export function GuestsTab({ eventId, event, adminConfig, showToast, isArchived, 
       const hh = households.find(h => h.id === hhId);
       if (hh) await saveHouseholdRow({ ...hh, status: bulkStatus });
     }
-    appendAuditLog("Updated", `Bulk RSVP update — ${selectedHHIds.size} household${selectedHHIds.size !== 1 ? "s" : ""} set to ${bulkStatus}`);
+    writeAuditLog(eventId, "households", "Updated", `Bulk RSVP update — ${selectedHHIds.size} household${selectedHHIds.size !== 1 ? "s" : ""} set to ${bulkStatus}`);
     showToast(`${selectedHHIds.size} household${selectedHHIds.size !== 1 ? "s" : ""} updated to ${bulkStatus}`);
     setSelectedHHIds(new Set());
   };
@@ -128,7 +120,7 @@ export function GuestsTab({ eventId, event, adminConfig, showToast, isArchived, 
     }
     for (const p of newPpl) await savePersonRow(p);
 
-    appendAuditLog(isEdit ? "Updated" : "Added", `${isEdit ? "Updated" : "Added"} household — ${household.formalName || "Household"}`);
+    writeAuditLog(eventId, "households", isEdit ? "Updated" : "Added", `${isEdit ? "Updated" : "Added"} household — ${household.formalName || "Household"}`);
     showToast(isEdit ? "Household updated" : "Household added");
     setShowAdd(false);
     setEditingHH(null);
@@ -142,7 +134,7 @@ export function GuestsTab({ eventId, event, adminConfig, showToast, isArchived, 
     const hhPeople = people.filter(p => p.householdId === id);
     for (const p of hhPeople) await removePersonRow(p._rowId);
     await removeHouseholdRow(hh._rowId);
-    appendAuditLog("Deleted", `Deleted household — ${hh?.formalName || "Household"}`);
+    writeAuditLog(eventId, "households", "Deleted", `Deleted household — ${hh?.formalName || "Household"}`);
     showToast("Household deleted");
     setDeleteConfirm(null);
     if (expandedHH === id) setExpandedHH(null);
@@ -157,6 +149,7 @@ export function GuestsTab({ eventId, event, adminConfig, showToast, isArchived, 
     }
     for (const h of newHH)  await saveHouseholdRow(h);
     for (const p of newPpl) await savePersonRow(p);
+    writeAuditLog(eventId, "households", "Added", `Imported ${newHH.length} household${newHH.length !== 1 ? "s" : ""} and ${newPpl.length} guest${newPpl.length !== 1 ? "s" : ""} (${mode === "replace" ? "replaced existing list" : "added to existing list"})`);
     showToast("Guest list imported");
     setShowImport(false);
   };

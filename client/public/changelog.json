@@ -1,10 +1,22 @@
 {
-  "current": "V4.17.1",
+  "current": "V4.17.2",
   "whatsNew": [
-    "Fixed a security issue in the co-planner invite flow so acceptance is always verified against your signed-in account",
-    "If accepting an invite fails, you will now see a clear message instead of nothing happening"
+    "Fixed a bug where guest list changes (RSVPs, adding or editing households, deletions, and imports) never appeared in your activity feed or notifications"
   ],
   "changelog": [
+    {
+      "version": "V4.17.2",
+      "date": "2026-07-20",
+      "summary": "Fixed GuestsTab activity logging, which had silently failed since V3 launch",
+      "changes": [
+        "GuestsTab.jsx had its own local appendAuditLog that wrote action and detail as top-level columns on audit_log; that table only has id, event_id, data, created_at, and updated_at, so every one of those inserts has failed at the database level since V3 launched, silently, with the failure swallowed by an empty catch block",
+        "Moved the shared writeAuditLog (and its AUDIT_LABELS) out of useEventData.js into a new utils/auditLog.js so any component can log an activity entry, not only collection-backed tabs via the hook",
+        "writeAuditLog now accepts either a plain string detail or an item object: a string is used directly as the human-readable detail text, an item object is run through AUDIT_LABELS as before",
+        "GuestsTab's RSVP update, bulk RSVP update, household add/edit, and household delete now log through the shared writer, with the same human-readable detail text as before",
+        "Guest list imports now log an activity entry for the first time; this action previously had no audit logging at all",
+        "Confirmed no other component writes to audit_log directly outside of the fixed hook and GuestsTab; NotificationPanel, useNotifications, and ActivityLogModal all already handle the households collection correctly with no changes needed"
+      ]
+    },
     {
       "version": "V4.17.1",
       "date": "2026-07-20",

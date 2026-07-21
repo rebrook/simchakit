@@ -1,5 +1,5 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// SimchaKit V4.17.0 — useEventData.js
+// SimchaKit V4.17.2 — useEventData.js
 // Core data hook. Provides fetch-on-mount, optimistic save, and delete
 // for any collection table in Supabase.
 //
@@ -13,6 +13,11 @@
 //
 // Special case — households: pass promoteColumns to extract indexed columns
 // from the item and write them alongside `data`.
+//
+// ── Audit logging (V4.17.2) ─────────────────────────────────────────────────
+// writeAuditLog now lives in utils/auditLog.js so any component can log an
+// activity entry, not just this hook. Imported here rather than defined
+// locally; behavior for save()/remove() is unchanged.
 //
 // ── Concurrency (V4.17.0) ──────────────────────────────────────────────────
 // Existing rows are saved through the save_row() Postgres RPC instead of a
@@ -39,57 +44,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { supabase } from "@/lib/supabase.js";
-
-// ── Audit log detail labels per collection ────────────────────────────────────
-const AUDIT_LABELS = {
-  households:    item => item.formalName || item.name || "a household",
-  people:        item => [item.firstName, item.lastName].filter(Boolean).join(" ") || item.name || "a person",
-  vendors:       item => item.name || "a vendor",
-  expenses:      item => item.description || "an expense",
-  tasks:         item => item.task || "a task",
-  prep:          item => item.title || "a prep item",
-  gifts:         item => item.fromName || "a gift",
-  favors:        item => item.guestName || "a favor",
-  tables:        item => item.name || "a table",
-  ceremonyRoles: item => item.role || "a ceremony role",
-};
-
-// ── Fire-and-forget audit log writer ─────────────────────────────────────────
-// Writes { action, detail, collection, actorId, actorName } into data jsonb.
-// Actor comes from the cached Supabase session (no network call).
-// If session is null (demo/anon/refresh race), the row is written un-attributed.
-async function writeAuditLog(eventId, collection, action, item) {
-  try {
-    const labelFn = AUDIT_LABELS[collection] || (() => `a ${collection} item`);
-    const label   = labelFn(item || {});
-    const collectionLabel = collection.charAt(0).toUpperCase() + collection.slice(1);
-    const detail  = `${action} ${label} in ${collectionLabel}`;
-
-    // Resolve actor from cached session — never blocks, never throws
-    let actorId   = null;
-    let actorName = null;
-    try {
-      const { data: sessionData } = await supabase.auth.getSession();
-      const user = sessionData?.session?.user;
-      if (user) {
-        actorId   = user.id;
-        actorName = user.user_metadata?.display_name
-                 || user.email?.split("@")[0]
-                 || null;
-      }
-    } catch (_) { /* session unavailable — write un-attributed */ }
-
-    const { error } = await supabase.from("audit_log").insert({
-      event_id: eventId,
-      data:     { action, detail, collection, actorId, actorName },
-    });
-    if (error) throw new Error(error.message);
-  } catch (e) {
-    console.error("[SimchaKit] Audit log write failed:", e.message);
-    // Dispatch a custom event so AppShell can surface a user-facing toast
-    window.dispatchEvent(new CustomEvent("simchakit:audit-error", { detail: e.message }));
-  }
-}
+import { writeAuditLog } from "@/utils/auditLog.js";
 
 // ── Default promoter — no promoted columns ────────────────────────────────────
 function noPromote(_item) { return {}; }
