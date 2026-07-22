@@ -71,8 +71,8 @@ export function GuestsTab({ eventId, event, adminConfig, showToast, isArchived, 
   const updateRsvpStatus = async (hhId, newStatus) => {
     if (isArchived) return;
     const hh = households.find(h => h.id === hhId);
-    const oldStatus = hh?.status || "";
-    await saveHouseholdRow({ ...hh, status: newStatus });
+    const oldStatus = hh?.rsvpStatus || "";
+    await saveHouseholdRow({ ...hh, rsvpStatus: newStatus });
     writeAuditLog(eventId, "households", "Updated", `RSVP updated — ${hh?.formalName || "Household"}: ${oldStatus} → ${newStatus}`);
     showToast(`RSVP updated — ${newStatus}`);
     setOpenRsvp(null);
@@ -91,7 +91,7 @@ export function GuestsTab({ eventId, event, adminConfig, showToast, isArchived, 
     if (isArchived || selectedHHIds.size === 0) return;
     for (const hhId of selectedHHIds) {
       const hh = households.find(h => h.id === hhId);
-      if (hh) await saveHouseholdRow({ ...hh, status: bulkStatus });
+      if (hh) await saveHouseholdRow({ ...hh, rsvpStatus: bulkStatus });
     }
     writeAuditLog(eventId, "households", "Updated", `Bulk RSVP update — ${selectedHHIds.size} household${selectedHHIds.size !== 1 ? "s" : ""} set to ${bulkStatus}`);
     showToast(`${selectedHHIds.size} household${selectedHHIds.size !== 1 ? "s" : ""} updated to ${bulkStatus}`);
@@ -163,7 +163,7 @@ export function GuestsTab({ eventId, event, adminConfig, showToast, isArchived, 
   // ── Stats ─────────────────────────────────────────────────────────────────
   const totalPeople     = people.length;
   const totalOutOfTown  = households.filter(h => h.outOfTown).length;
-  const totalAttending  = households.filter(h => h.status === "RSVP Yes").reduce((s, h) => {
+  const totalAttending  = households.filter(h => h.rsvpStatus === "RSVP Yes").reduce((s, h) => {
     const a = getHouseholdAttending(h, people);
     return s + a.adults + a.kids;
   }, 0);
@@ -172,8 +172,8 @@ export function GuestsTab({ eventId, event, adminConfig, showToast, isArchived, 
   const totalAddresses  = households.filter(h => h.address1).length;
   const totalSTDSent    = households.filter(h => h.saveTheDateSent).length;
   const totalInviteSent = households.filter(h => h.inviteSent).length;
-  const rsvpYes         = households.filter(h => h.status === "RSVP Yes").length;
-  const rsvpPending     = households.filter(h => h.status === "Invited" || h.status === "Pending").length;
+  const rsvpYes         = households.filter(h => h.rsvpStatus === "RSVP Yes").length;
+  const rsvpPending     = households.filter(h => h.rsvpStatus === "Invited" || h.rsvpStatus === "Pending").length;
 
   // RSVP deadline banner
   const rsvpDeadline = adminConfig?.rsvpDeadline;
@@ -203,9 +203,9 @@ export function GuestsTab({ eventId, event, adminConfig, showToast, isArchived, 
   };
   const chipCounts = useMemo(() => ({
     All:       households.length,
-    Confirmed: households.filter(h => h.status === "RSVP Yes").length,
-    Pending:   households.filter(h => h.status === "Invited" || h.status === "Pending" || h.status === "Maybe").length,
-    Declined:  households.filter(h => h.status === "RSVP No").length,
+    Confirmed: households.filter(h => h.rsvpStatus === "RSVP Yes").length,
+    Pending:   households.filter(h => h.rsvpStatus === "Invited" || h.rsvpStatus === "Pending" || h.rsvpStatus === "Maybe").length,
+    Declined:  households.filter(h => h.rsvpStatus === "RSVP No").length,
   }), [households]);
 
   // ── Filtering ─────────────────────────────────────────────────────────────
@@ -213,9 +213,9 @@ export function GuestsTab({ eventId, event, adminConfig, showToast, isArchived, 
     if (groupFilter  !== "All" && hh.group  !== groupFilter)  return false;
     // Desktop uses statusFilter select; mobile uses mobileChip
     if (isMobile) {
-      if (!chipStatusMatch(hh.status, mobileChip)) return false;
+      if (!chipStatusMatch(hh.rsvpStatus, mobileChip)) return false;
     } else {
-      if (statusFilter !== "All" && hh.status !== statusFilter) return false;
+      if (statusFilter !== "All" && hh.rsvpStatus !== statusFilter) return false;
     }
     if (outOfTownFilter      && !hh.outOfTown) return false;
     if (missingAddressFilter &&  hh.address1)  return false;
@@ -635,7 +635,7 @@ export function HouseholdModal({ household, members, adminConfig, onSave, onClos
   const [hh, setHH] = useState(household ? { ...household, group: household.group || groups[0] || "" } : {
     id: newHouseholdId(), formalName: "", name2: "",
     address1: "", address2: "", city: "", stateProvince: "", postalCode: "", country: "",
-    phone: "", email: "", group: groups[0]||"", status: "Invited",
+    phone: "", email: "", group: groups[0]||"", rsvpStatus: "Invited",
     saveTheDateSent: false, inviteSent: false, thankYouSent: false, accommodationNeeded: false,
     rsvpDate: "", invitedSections: [], attendingAdults: null, attendingKids: null,
     outOfTown: false, notes: "", contactLog: [],
@@ -787,7 +787,7 @@ export function HouseholdModal({ household, members, adminConfig, onSave, onClos
             <div className="form-group"><label className="form-label">Name 2 (second line)</label><input className="form-input" value={hh.name2} onChange={e=>setHHF("name2",e.target.value)} placeholder="e.g., Miss Lisa Simpson and Mr. Bart Simpson" /></div>
             <div className="form-grid-2">
               <div className="form-group"><label className="form-label">Group</label><select className="form-select" value={hh.group} onChange={e=>setHHF("group",e.target.value)}>{groups.map(g=><option key={g} value={g}>{g}</option>)}</select></div>
-              <div className="form-group"><label className="form-label">RSVP Status</label><select className="form-select" value={hh.status} onChange={e=>setHHF("status",e.target.value)}>{RSVP_STATUSES.map(s=><option key={s} value={s}>{s}</option>)}</select></div>
+              <div className="form-group"><label className="form-label">RSVP Status</label><select className="form-select" value={hh.rsvpStatus} onChange={e=>setHHF("rsvpStatus",e.target.value)}>{RSVP_STATUSES.map(s=><option key={s} value={s}>{s}</option>)}</select></div>
             </div>
             <div className="form-group">
               <label className="form-label">RSVP Date</label>
@@ -797,7 +797,7 @@ export function HouseholdModal({ household, members, adminConfig, onSave, onClos
               <div style={{fontSize:11,color:"var(--gold,#b45309)",marginTop:3}}>&#9888; Date is more than 30 days in the future</div>
             )}
             </div>
-            {hh.status === "RSVP Yes" && (
+            {hh.rsvpStatus === "RSVP Yes" && (
             <div style={{background:"var(--green-light,rgba(34,197,94,0.08))",border:"1px solid var(--green,#16a34a)",borderRadius:"var(--radius-sm)",padding:"12px 14px",marginBottom:16}}>
               <div style={{fontSize:12,fontWeight:700,color:"var(--green)",textTransform:"uppercase",letterSpacing:"0.04em",marginBottom:4}}>Attending Count Override</div>
               <div style={{fontSize:12,color:"var(--green)",marginBottom:10,lineHeight:1.5}}>
@@ -1046,7 +1046,7 @@ export function ImportModal({ adminConfig, onImport, onClose }) {
             {preview.peopleCentric&&<div className="alert alert-info" style={{marginBottom:12}}><strong>Person-by-person format detected.</strong> Households have been automatically grouped.</div>}
             {preview.errors&&preview.errors.length>0&&(<div className="alert alert-error" style={{marginBottom:12}}><div style={{fontWeight:700,marginBottom:6}}><Icon name="alertTriangle" context="badge" style={{ marginRight: 3 }} /> {preview.errors.length} row{preview.errors.length!==1?"s":""} could not be imported</div><div style={{maxHeight:120,overflowY:"auto"}}>{preview.errors.map((err,i)=>(<div key={i} style={{fontSize:12,borderTop:i>0?"1px solid rgba(0,0,0,0.1)":"none",paddingTop:i>0?4:0,marginTop:i>0?4:0}}><strong>Row {err.rowIndex}:</strong> {err.message}{err.rawRow&&Object.values(err.rawRow).filter(Boolean).length>0&&<span style={{color:"var(--text-muted)",marginLeft:6}}>({Object.values(err.rawRow).filter(Boolean).slice(0,3).join(", ")}{Object.values(err.rawRow).filter(Boolean).length>3?"…":""})</span>}</div>))}</div><div style={{fontSize:12,marginTop:8,fontStyle:"italic"}}>The {preview.households.length} valid household{preview.households.length!==1?"s":""} below will still be imported.</div></div>)}
             <div className="alert alert-success" style={{marginBottom:12}}>Ready to import {preview.households.length} household{preview.households.length!==1?"s":""} and {preview.people.length} individual{preview.people.length!==1?"s":""}.</div>
-            <div style={{maxHeight:280,overflowY:"auto",border:"1px solid var(--border)",borderRadius:"var(--radius-sm)"}}><table style={{width:"100%",borderCollapse:"collapse",fontSize:12}}><thead><tr style={{background:"var(--bg-subtle)",position:"sticky",top:0}}>{["Household","Members","Group","Status"].map(h=>(<th key={h} style={{padding:"8px 12px",textAlign:"left",fontWeight:700,color:"var(--text-muted)",borderBottom:"1px solid var(--border)",fontSize:11,textTransform:"uppercase"}}>{h}</th>))}</tr></thead><tbody>{preview.households.map(hh=>{const members=preview.people.filter(p=>p.householdId===hh.id);return(<tr key={hh.id} style={{borderBottom:"1px solid var(--border)"}}><td style={{padding:"8px 12px",fontWeight:600}}>{hh.formalName}</td><td style={{padding:"8px 12px",color:"var(--text-secondary)"}}>{members.length>0?members.map(p=>[p.firstName,p.lastName].filter(Boolean).join(" ")||p.name||"?").join(", "):<span style={{color:"var(--text-muted)",fontStyle:"italic"}}>None</span>}</td><td style={{padding:"8px 12px",color:"var(--text-muted)"}}>{hh.group}</td><td style={{padding:"8px 12px",color:"var(--text-muted)"}}>{hh.status}</td></tr>);})}</tbody></table></div>
+            <div style={{maxHeight:280,overflowY:"auto",border:"1px solid var(--border)",borderRadius:"var(--radius-sm)"}}><table style={{width:"100%",borderCollapse:"collapse",fontSize:12}}><thead><tr style={{background:"var(--bg-subtle)",position:"sticky",top:0}}>{["Household","Members","Group","Status"].map(h=>(<th key={h} style={{padding:"8px 12px",textAlign:"left",fontWeight:700,color:"var(--text-muted)",borderBottom:"1px solid var(--border)",fontSize:11,textTransform:"uppercase"}}>{h}</th>))}</tr></thead><tbody>{preview.households.map(hh=>{const members=preview.people.filter(p=>p.householdId===hh.id);return(<tr key={hh.id} style={{borderBottom:"1px solid var(--border)"}}><td style={{padding:"8px 12px",fontWeight:600}}>{hh.formalName}</td><td style={{padding:"8px 12px",color:"var(--text-secondary)"}}>{members.length>0?members.map(p=>[p.firstName,p.lastName].filter(Boolean).join(" ")||p.name||"?").join(", "):<span style={{color:"var(--text-muted)",fontStyle:"italic"}}>None</span>}</td><td style={{padding:"8px 12px",color:"var(--text-muted)"}}>{hh.group}</td><td style={{padding:"8px 12px",color:"var(--text-muted)"}}>{hh.rsvpStatus}</td></tr>);})}</tbody></table></div>
             <div style={{marginTop:10,fontSize:12,color:"var(--text-muted)"}}>Mode: <strong>{mergeMode==="append"?"Append to existing list":"Replace existing list"}</strong></div>
           </>)}
           {stage==="done"&&<div className="alert alert-success">Import complete. Your guest list has been updated.</div>}
@@ -1148,7 +1148,7 @@ function GuestInsights({ households, people, groups, statusStyle }) {
   const hasData = households.length > 0;
 
   const rsvpData = useMemo(()=>{
-    const counts={};households.forEach(h=>{const s=h.status||"Invited";counts[s]=(counts[s]||0)+1;});
+    const counts={};households.forEach(h=>{const s=h.rsvpStatus||"Invited";counts[s]=(counts[s]||0)+1;});
     return ["RSVP Yes","Invited","Pending","Maybe","RSVP No"].filter(s=>counts[s]>0).map(s=>({name:s,value:counts[s]}));
   },[households]);
 

@@ -384,7 +384,7 @@ function importCSVToGuestData(rows, mapping, isPeopleCentric) {
         phone:        entry.phone,
         email:        entry.email,
         group:        entry.group,
-        status:       mapRsvp(entry.rsvpRaw),
+        rsvpStatus:   mapRsvp(entry.rsvpRaw),
         saveTheDateSent: false, inviteSent: false, thankYouSent: false, accommodationNeeded: false,
         rsvpDate: "", notes: entry.notes,
       });
@@ -429,7 +429,7 @@ function importCSVToGuestData(rows, mapping, isPeopleCentric) {
           city, stateProvince: get(row, "StateProvince"), postalCode: get(row, "PostalCode"),
           country: get(row, "Country"),
           phone: get(row, "Phone"), email: get(row, "Email"),
-          group: get(row, "Group"), status: mapRsvp(get(row, "Status")),
+          group: get(row, "Group"), rsvpStatus: mapRsvp(get(row, "Status")),
           saveTheDateSent: get(row, "SaveTheDateSent").toLowerCase() === "yes",
           inviteSent:      get(row, "InviteSent").toLowerCase() === "yes",
           thankYouSent:    get(row, "ThankYouSent").toLowerCase() === "yes",

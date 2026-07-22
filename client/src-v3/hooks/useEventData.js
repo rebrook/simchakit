@@ -1,5 +1,5 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// SimchaKit V4.17.2 — useEventData.js
+// SimchaKit V4.17.4 — useEventData.js
 // Core data hook. Provides fetch-on-mount, optimistic save, and delete
 // for any collection table in Supabase.
 //
@@ -13,6 +13,15 @@
 //
 // Special case — households: pass promoteColumns to extract indexed columns
 // from the item and write them alongside `data`.
+//
+// ── rsvpStatus canonicalization (V4.17.4) ───────────────────────────────────
+// Households previously forked on two field names: GuestsTab's pill/bulk/modal
+// writers used `status`, while this file's householdPromoteColumns and
+// utils/focus.js's Overview panel read `rsvpStatus`. All writers now use
+// `rsvpStatus` (see HouseholdItem typedef below). load() also runs a lazy,
+// additive self-heal for any household still missing `rsvpStatus`, backing it
+// off the legacy `status` key. See migrations/2026-07-22_backfill_rsvp_status.sql
+// for the bulk one-time fix this mirrors.
 //
 // ── Audit logging (V4.17.2) ─────────────────────────────────────────────────
 // writeAuditLog now lives in utils/auditLog.js so any component can log an
@@ -98,6 +107,48 @@ export function useEventData(eventId, collection, options = {}) {
 
     setItems(mapped);
     setLoading(false);
+
+    // ── Legacy rsvpStatus self-heal (households only, V4.17.4) ─────────────
+    // Rows saved before the rsvpStatus rename may still have RSVP state only
+    // under the legacy `status` key inside data jsonb. The bulk SQL migration
+    // (migrations/2026-07-22_backfill_rsvp_status.sql) is the primary fix;
+    // this is a lazy safety net for any row that slips through (e.g. an
+    // offline client writing a stale cached copy between migration and
+    // deploy). Runs after setItems so the UI is never blocked on it. Additive
+    // only — never deletes the legacy `status` key, mirroring the migration.
+    if (collection === "households") {
+      const legacyRows = mapped.filter(h => h.rsvpStatus == null && h.status != null);
+      legacyRows.forEach(async (h) => {
+        const { _rowId, _createdAt, _updatedAt, ...dataPayload } = h;
+        const fixedData = { ...dataPayload, rsvpStatus: dataPayload.status };
+        const promoted  = householdPromoteColumns(fixedData);
+
+        const { data: rpcResult, error: rpcError } = await supabase.rpc("save_row", {
+          p_table:               "households",
+          p_id:                  _rowId,
+          p_event_id:            eventId,
+          p_data:                fixedData,
+          p_expected_updated_at: _updatedAt,
+          p_promoted:            promoted,
+        });
+
+        if (rpcError) {
+          console.warn(`[SimchaKit] rsvpStatus self-heal skipped for ${_rowId}:`, rpcError.message);
+          return;
+        }
+        if (rpcResult.status === "ok") {
+          const healed = {
+            ...(rpcResult.row.data || {}),
+            _rowId:     rpcResult.row.id,
+            _createdAt: rpcResult.row.created_at,
+            _updatedAt: rpcResult.row.updated_at,
+          };
+          setItems(prev => prev.map(i => i._rowId === _rowId ? healed : i));
+        }
+        // "conflict" or "deleted": someone else changed the row first, or it's
+        // gone. Leave it alone — the next load() will re-evaluate from scratch.
+      });
+    }
   }, [eventId, collection, orderBy, ascending]);
 
   // Fetch on mount
@@ -243,6 +294,24 @@ export function useEventData(eventId, collection, options = {}) {
 }
 
 // ── Convenience: households promoted columns ───────────────────────────────────
+/**
+ * @typedef {Object} HouseholdItem
+ * @property {string}  _rowId       - Supabase row UUID (internal, stripped before save).
+ * @property {string}  rsvpStatus   - CANONICAL field for RSVP state. One of
+ *   "Invited" | "RSVP Yes" | "RSVP No" | "Pending" | "Maybe". Defaults to
+ *   "Invited" when absent. This is the ONLY field name that should ever be
+ *   read or written for RSVP state — do not reintroduce a sibling `status`
+ *   field for this purpose. (Legacy rows saved before V4.17.4 may still carry
+ *   a `status` key in the jsonb `data` column; it is inert and kept only for
+ *   rollback safety. See migrations/2026-07-22_backfill_rsvp_status.sql.)
+ * @property {string}  [group]      - Household group/category label.
+ * @property {boolean} [outOfTown]  - Whether the household is traveling in.
+ *
+ * The Postgres `status` COLUMN on the households table (see
+ * householdPromoteColumns below) is a different thing entirely: it is a
+ * promoted, indexed copy of `rsvpStatus`, not the source of truth. Never
+ * write to it directly — it is derived every save from `item.rsvpStatus`.
+ */
 export function householdPromoteColumns(item) {
   return {
     status:       item.rsvpStatus || "Invited",

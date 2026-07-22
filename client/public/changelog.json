@@ -1,9 +1,23 @@
 {
-  "current": "V4.17.3",
+  "current": "V4.17.4",
   "whatsNew": [
-    "Your own guest, budget, and other edits now show up right away in the Notifications panel instead of only after a page reload"
+    "Fixed RSVP statuses set via the Guests tab pill not showing up correctly in the Overview panel, guest exports, or the printable guest list"
   ],
   "changelog": [
+    {
+      "version": "V4.17.4",
+      "date": "2026-07-22",
+      "summary": "Fixed household RSVP status stored under two different field names",
+      "changes": [
+        "GuestsTab.jsx's RSVP pill, bulk RSVP update, new-household default, and the household modal all wrote RSVP state to a field called status, while useEventData.js's householdPromoteColumns and utils/focus.js's Overview panel always read a field called rsvpStatus",
+        "Because rsvpStatus was never written, the promoted status column on the households table has been stuck at Invited for every household regardless of the real RSVP state, the Overview \"guests awaiting RSVP\" panel has overcounted since it shipped, and all four guest CSV/print exports have shown Invited for every household since launch",
+        "All writers (GuestsTab.jsx, RsvpPill.jsx, and the two CSV-import paths in utils/guests.js) now use rsvpStatus exclusively; useEventData.js, utils/focus.js, and the guest export functions were already correct and needed no changes",
+        "Added a one-time SQL migration (migrations/2026-07-22_backfill_rsvp_status.sql) to backfill rsvpStatus from the legacy status key and recompute the promoted status column for existing households",
+        "useEventData.js also runs a lazy, additive self-heal on load for any household still missing rsvpStatus, as a safety net alongside the SQL migration",
+        "Added a JSDoc typedef in useEventData.js documenting rsvpStatus as the single canonical field for household RSVP state, so this cannot silently fork again",
+        "V3 only \u2014 this bug is specific to the Supabase promoted-column architecture introduced for V3; a V2 parity check is a recommended follow-up"
+      ]
+    },
     {
       "version": "V4.17.3",
       "date": "2026-07-20",
