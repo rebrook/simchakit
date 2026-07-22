@@ -7,7 +7,13 @@ import { iconSvg } from "@/utils/iconSvg.js";
 // Export and print HTML generators for all tabs
 
 function csvEsc(val) {
-  const s = String(val == null ? "" : val);
+  let s = String(val == null ? "" : val);
+  // Formula-injection hardening (SK-A7): a value starting with = + - @ or a
+  // leading tab/CR is interpreted as a formula by Excel/Sheets on open.
+  // Prefixing with a single quote forces it to render as literal text.
+  if (/^[=+\-@\t\r]/.test(s)) {
+    s = "'" + s;
+  }
   return (s.includes(",") || s.includes('"') || s.includes("\n"))
     ? '"' + s.replace(/"/g, '""') + '"'
     : s;
@@ -25,7 +31,6 @@ function escHtml(val) {
 
 function exportExpensesCSV(expenses) {
   const headers = ["Description","Category","Vendor","Budgeted","Amount","Variance","Paid","Date","Due Date","Notes"];
-  const esc = v => { const s = String(v||""); return (s.includes(",")||s.includes('"')) ? '"'+s.replace(/"/g,'""')+'"' : s; };
   const rows = [...expenses]
     .sort((a,b) => (a.category||"").localeCompare(b.category||""))
     .map(e => {
@@ -45,7 +50,7 @@ function exportExpensesCSV(expenses) {
         e.notes||"",
       ];
     });
-  return [headers.map(esc).join(","), ...rows.map(r => r.map(esc).join(","))].join("\n");
+  return [headers.map(csvEsc).join(","), ...rows.map(r => r.map(csvEsc).join(","))].join("\n");
 }
 
 function exportSeatingByTable(tables, people, households, sectionId) {

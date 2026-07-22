@@ -469,7 +469,14 @@ function importCSVToGuestData(rows, mapping, isPeopleCentric) {
 
 function exportToInvitationCSV(households, people) {
   const headers = ["Last Name","Name","Name 2","Address 1","Address 2","City","State / Province","Postal Code","Country","Household","Adults","Children"];
-  const esc = v => { const s=String(v||""); return (s.includes(",")||s.includes('"')) ? '"'+s.replace(/"/g,'""')+'"' : s; };
+  const esc = v => {
+    let s = String(v||"");
+    // Formula-injection hardening (SK-A7) — kept local to avoid a circular
+    // import with exports.js (which already imports from this file). Must
+    // stay byte-for-byte in sync with csvEsc() in utils/exports.js.
+    if (/^[=+\-@\t\r]/.test(s)) s = "'" + s;
+    return (s.includes(",")||s.includes('"')) ? '"'+s.replace(/"/g,'""')+'"' : s;
+  };
   const rows = [...households].sort((a,b) => {
     const la=(a.formalName||"").split(" ").pop().toLowerCase();
     const lb=(b.formalName||"").split(" ").pop().toLowerCase();
@@ -494,7 +501,11 @@ function exportToInvitationCSV(households, people) {
 // One row per household. Audience: planner, coordinator, full reference.
 function exportGuestsByHousehold(households, people, adminConfig) {
   const timeline = adminConfig?.timeline || [];
-  const esc = v => { const s = String(v || ""); return (s.includes(",") || s.includes('"') || s.includes("\n")) ? '"' + s.replace(/"/g, '""') + '"' : s; };
+  const esc = v => {
+    let s = String(v || "");
+    if (/^[=+\-@\t\r]/.test(s)) s = "'" + s;
+    return (s.includes(",") || s.includes('"') || s.includes("\n")) ? '"' + s.replace(/"/g, '""') + '"' : s;
+  };
   const headers = [
     "Last Name", "Formal Name", "Name 2", "Group", "RSVP Status",
     "Adults (invited)", "Kids (invited)", "Adults (attending)", "Kids (attending)",
@@ -539,7 +550,11 @@ function exportGuestsByHousehold(households, people, adminConfig) {
 // One row per individual. Audience: catering, favors vendor, day-of staff.
 function exportGuestsByPerson(households, people, adminConfig) {
   const timeline = adminConfig?.timeline || [];
-  const esc = v => { const s = String(v || ""); return (s.includes(",") || s.includes('"') || s.includes("\n")) ? '"' + s.replace(/"/g, '""') + '"' : s; };
+  const esc = v => {
+    let s = String(v || "");
+    if (/^[=+\-@\t\r]/.test(s)) s = "'" + s;
+    return (s.includes(",") || s.includes('"') || s.includes("\n")) ? '"' + s.replace(/"/g, '""') + '"' : s;
+  };
   const headers = [
     "First Name", "Last Name", "Title", "Household", "Group", "RSVP Status",
     "Adult / Child", "Meal Choice", "Kosher", "Dietary Notes",
@@ -690,7 +705,11 @@ function generateGuestPrintHTML(households, people, eventName, eventDate, theme)
 // ── Guest export: Email List ─────────────────────────────────────────────────
 // One row per household with email and phone. Audience: mail merge, bulk email, RSVP follow-up.
 function exportEmailListCSV(households) {
-  const esc = v => { const s = String(v || ""); return (s.includes(",") || s.includes('"') || s.includes("\n")) ? '"' + s.replace(/"/g, '""') + '"' : s; };
+  const esc = v => {
+    let s = String(v || "");
+    if (/^[=+\-@\t\r]/.test(s)) s = "'" + s;
+    return (s.includes(",") || s.includes('"') || s.includes("\n")) ? '"' + s.replace(/"/g, '""') + '"' : s;
+  };
   const headers = ["Last Name", "Formal Name", "Group", "RSVP Status", "Email", "Phone"];
   const sorted = [...households]
     .filter(hh => hh.email && hh.email.trim())

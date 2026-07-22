@@ -1,9 +1,23 @@
 {
-  "current": "V4.17.4",
+  "current": "V4.17.5",
   "whatsNew": [
-    "Fixed RSVP statuses set via the Guests tab pill not showing up correctly in the Overview panel, guest exports, or the printable guest list"
+    "Hardened guest list exports against a CSV formula-injection issue, and added better error logging for background account sync failures"
   ],
   "changelog": [
+    {
+      "version": "V4.17.5",
+      "date": "2026-07-22",
+      "summary": "Security hardening: CSV formula-injection protection and visibility into background sync failures",
+      "changes": [
+        "csvEsc() in utils/exports.js now prefixes any value starting with = + - @ (or a leading tab/carriage return) with a single quote, so Excel/Sheets renders it as literal text instead of executing it as a formula on open",
+        "exportExpensesCSV had its own local, unhardened esc duplicate instead of using csvEsc; removed and routed through the shared, hardened function",
+        "The four CSV export functions in utils/guests.js (exportToInvitationCSV, exportGuestsByHousehold, exportGuestsByPerson, exportEmailListCSV) each had their own local esc duplicate; all four upgraded to match csvEsc's formula-injection behavior exactly, kept local rather than importing csvEsc to avoid a circular import (exports.js already imports from guests.js)",
+        "generateCSVTemplate's local esc was left unchanged \u2014 it only ever serializes hardcoded example values, never user input, so it isn't an injection vector",
+        "App.v3.jsx's three background Brevo/notify sync fetches (new-user notification, new-user Brevo sync, returning-user Brevo sync, onboarding-name Brevo sync) previously failed silently on error; they now log console.warn with context so failures are diagnosable from browser console reports, with no retries added",
+        "Confirmed the invite-acceptance fetch already surfaces failures to the user via a banner (shipped in V4.17.1) and needed no change",
+        "Verified: a guest named =HYPERLINK(...) now round-trips through CSV import and every export as literal text rather than executing as a formula"
+      ]
+    },
     {
       "version": "V4.17.4",
       "date": "2026-07-22",

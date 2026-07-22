@@ -124,7 +124,7 @@ export default function AppV3() {
                       method:  "POST",
                       headers: { "Content-Type": "application/json" },
                       body:    JSON.stringify({ type: "new_user", data: { email, userId: id } }),
-                    }).catch(() => {});
+                    }).catch((err) => console.warn("[SimchaKit] notify (new_user) failed", err));
 
                     // Brevo contact sync — new user (includes SIGNUP_DATE)
                     fetch("/api/brevo-sync", {
@@ -139,7 +139,7 @@ export default function AppV3() {
                           ...(hasName && { FIRSTNAME: profile.display_name }),
                         },
                       }),
-                    }).catch(() => {});
+                    }).catch((err) => console.warn("[SimchaKit] brevo-sync (new user) failed", err));
                   } else {
                     // Returning user — update LAST_LOGIN and FIRSTNAME if set
                     fetch("/api/brevo-sync", {
@@ -153,7 +153,7 @@ export default function AppV3() {
                           ...(hasName && { FIRSTNAME: profile.display_name }),
                         },
                       }),
-                    }).catch(() => {});
+                    }).catch((err) => console.warn("[SimchaKit] brevo-sync (returning user) failed", err));
                   }
                 });
             });
@@ -295,7 +295,7 @@ function AppContent({ session, isCallback, inviteError, onDismissInviteError }) 
                 isNewUser: false,
                 attributes: { FIRSTNAME: name },
               }),
-            }).catch(() => {});
+            }).catch((err) => console.warn("[SimchaKit] brevo-sync (onboarding save) failed", err));
           }}
           onDismiss={() => setShowOnboarding(false)}
         />
