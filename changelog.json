@@ -1,9 +1,23 @@
 {
-  "current": "V4.17.5",
+  "current": "V4.18.0",
   "whatsNew": [
-    "Hardened guest list exports against a CSV formula-injection issue, and added better error logging for background account sync failures"
+    "Your event now updates live: when a co-planner adds a guest, checks off a task, or makes other changes, you'll see it appear automatically without needing to refresh"
   ],
   "changelog": [
+    {
+      "version": "V4.18.0",
+      "date": "2026-07-26",
+      "summary": "Live sync across all event data collections via Supabase Realtime",
+      "changes": [
+        "useEventData.js now subscribes to postgres_changes for every collection (households, people, expenses, vendors, tasks, prep, gifts, favors, tables, ceremony_roles, seating) in addition to its existing fetch-on-mount snapshot, so a co-planner's edit in one browser session appears in another within a couple seconds without a manual reload",
+        "Reconciliation is by row id: inserts are skipped if already present locally (our own optimistic write echoing back), updates are skipped unless the incoming row is strictly newer than the local copy (numeric timestamp compare, avoiding the Postgres-timestamp-vs-toISOString mismatch already fixed once in useNotifications.js), deletes filter out by the deleted row's id",
+        "Realtime is a live-update layer on top of the existing fetch-on-mount and optimistic save/remove logic, not a replacement for it \u2014 if a channel never confirms SUBSCRIBED (Realtime unavailable, demo/anon degrade, etc.) the hook simply falls back to the one-time snapshot with no retry loop",
+        "useEventData's return shape (items, loading, error, save, remove, reload, setItems) is unchanged; no calling component needed updates",
+        "AppShell.jsx's tab badge counts (guest count, open task count) closed the long-standing TODO: they now refetch on live people/tasks changes instead of on tab click, with a fallback to the old tab-change refresh if that channel never confirms SUBSCRIBED",
+        "Ops step: added households, people, expenses, vendors, tasks, prep, gifts, favors, tables, ceremony_roles, and seating to the supabase_realtime publication (migrations/2026-07-26_enable_realtime_publication.sql) \u2014 required for postgres_changes to fire at all",
+        "Verified with a two-browser test: an edit in one session appears in the other within about 2 seconds on every affected tab, with no duplicate rows from the editing session's own writes"
+      ]
+    },
     {
       "version": "V4.17.5",
       "date": "2026-07-22",

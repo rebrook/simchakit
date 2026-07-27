@@ -199,23 +199,58 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false, display
   const [showNotifPanel, setShowNotifPanel] = useState(false);
 
   // ── Tab badge counts (lightweight Supabase counts) ────────────────────────
-  // TODO: refresh counts on mutation (currently refreshes on tab change)
+  // V4.18.0: refetches on live people/tasks changes instead of on tab change.
+  // badgeRealtimeOk tracks whether that channel ever confirmed SUBSCRIBED —
+  // if it never does (Realtime unavailable, demo/anon degrade, etc.), the
+  // tab-change effect below keeps acting as a fallback so counts don't go
+  // stale indefinitely either way.
   const [badgeCounts, setBadgeCounts] = useState({});
+  const badgeRealtimeOk = useRef(false);
+
+  const fetchBadgeCounts = useCallback(async () => {
+    if (!eventId) return;
+    const [ppl, tsk] = await Promise.all([
+      supabase.from("people").select("*", { count: "exact", head: true }).eq("event_id", eventId),
+      supabase.from("tasks").select("*", { count: "exact", head: true }).eq("event_id", eventId)
+        .or("data->>completed.is.null,data->>completed.neq.true"),
+    ]);
+    setBadgeCounts({
+      guests: ppl.count ?? null,
+      tasks:  tsk.count ?? null,
+    });
+  }, [eventId]);
+
+  // Initial fetch once the event is ready
   useEffect(() => {
     if (!eventId || loadStatus !== "ready") return;
-    async function fetchCounts() {
-      const [ppl, tsk] = await Promise.all([
-        supabase.from("people").select("*", { count: "exact", head: true }).eq("event_id", eventId),
-        supabase.from("tasks").select("*", { count: "exact", head: true }).eq("event_id", eventId)
-          .or("data->>completed.is.null,data->>completed.neq.true"),
-      ]);
-      setBadgeCounts({
-        guests: ppl.count ?? null,
-        tasks:  tsk.count ?? null,
+    fetchBadgeCounts();
+  }, [eventId, loadStatus, fetchBadgeCounts]);
+
+  // Live updates: refetch whenever a relevant row changes
+  useEffect(() => {
+    if (!eventId || loadStatus !== "ready") return;
+    badgeRealtimeOk.current = false;
+    const channel = supabase
+      .channel(`badges:${eventId}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "people", filter: `event_id=eq.${eventId}` }, fetchBadgeCounts)
+      .on("postgres_changes", { event: "*", schema: "public", table: "tasks",  filter: `event_id=eq.${eventId}` }, fetchBadgeCounts)
+      .subscribe((status) => {
+        if (status === "SUBSCRIBED") {
+          badgeRealtimeOk.current = true;
+        } else if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
+          console.warn("[SimchaKit] Realtime unavailable for tab badges — falling back to tab-change refresh");
+        }
       });
-    }
-    fetchCounts();
-  }, [eventId, loadStatus, activeTab]);
+    return () => supabase.removeChannel(channel);
+  }, [eventId, loadStatus, fetchBadgeCounts]);
+
+  // Fallback only: if Realtime never confirmed SUBSCRIBED above, tab changes
+  // still nudge a refresh so badges don't go stale indefinitely (e.g. demo/
+  // anon mode). No-ops once live updates are confirmed working.
+  useEffect(() => {
+    if (!eventId || loadStatus !== "ready" || badgeRealtimeOk.current) return;
+    fetchBadgeCounts();
+  }, [activeTab]);
 
   // ── Admin state ───────────────────────────────────────────────────────────
   const [showAdminPanel,  setShowAdminPanel]  = useState(false);

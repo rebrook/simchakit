@@ -1,5 +1,5 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// SimchaKit V4.17.4 — useEventData.js
+// SimchaKit V4.18.0 — useEventData.js
 // Core data hook. Provides fetch-on-mount, optimistic save, and delete
 // for any collection table in Supabase.
 //
@@ -13,6 +13,14 @@
 //
 // Special case — households: pass promoteColumns to extract indexed columns
 // from the item and write them alongside `data`.
+//
+// ── Live sync (V4.18.0) ──────────────────────────────────────────────────────
+// Every collection now subscribes to postgres_changes in addition to the
+// fetch-on-mount snapshot, so co-planner edits appear without a manual
+// reload. See the dedicated useEffect below for the full reconciliation
+// logic and the degrade-gracefully behavior when Realtime isn't available.
+// Requires the table to be added to the supabase_realtime publication —
+// see migrations/2026-07-26_enable_realtime_publication.sql.
 //
 // ── rsvpStatus canonicalization (V4.17.4) ───────────────────────────────────
 // Households previously forked on two field names: GuestsTab's pill/bulk/modal
@@ -58,6 +66,16 @@ import { writeAuditLog } from "@/utils/auditLog.js";
 // ── Default promoter — no promoted columns ────────────────────────────────────
 function noPromote(_item) { return {}; }
 
+// ── Shared row → item mapper (used by load() and the Realtime handlers) ───────
+function rowToItem(row) {
+  return {
+    ...(row.data || {}),
+    _rowId:     row.id,
+    _createdAt: row.created_at,
+    _updatedAt: row.updated_at,
+  };
+}
+
 // ── Hook ──────────────────────────────────────────────────────────────────────
 export function useEventData(eventId, collection, options = {}) {
   const {
@@ -98,12 +116,7 @@ export function useEventData(eventId, collection, options = {}) {
     }
 
     // Merge _rowId into each item for upsert/delete identification
-    const mapped = (rows || []).map(row => ({
-      ...(row.data || {}),
-      _rowId:     row.id,
-      _createdAt: row.created_at,
-      _updatedAt: row.updated_at,
-    }));
+    const mapped = (rows || []).map(rowToItem);
 
     setItems(mapped);
     setLoading(false);
@@ -137,12 +150,7 @@ export function useEventData(eventId, collection, options = {}) {
           return;
         }
         if (rpcResult.status === "ok") {
-          const healed = {
-            ...(rpcResult.row.data || {}),
-            _rowId:     rpcResult.row.id,
-            _createdAt: rpcResult.row.created_at,
-            _updatedAt: rpcResult.row.updated_at,
-          };
+          const healed = rowToItem(rpcResult.row);
           setItems(prev => prev.map(i => i._rowId === _rowId ? healed : i));
         }
         // "conflict" or "deleted": someone else changed the row first, or it's
@@ -153,6 +161,68 @@ export function useEventData(eventId, collection, options = {}) {
 
   // Fetch on mount
   useEffect(() => { load(); }, [load]);
+
+  // ── Live sync (Supabase Realtime, V4.18.0) ─────────────────────────────────
+  // Subscribes to postgres_changes for this collection so co-planner edits
+  // show up without a manual reload. This is a live-update layer on top of
+  // the fetch-on-mount snapshot above, not a replacement for it — same
+  // "Realtime as enhancement, initial fetch as source of truth" pattern used
+  // by useNotifications.js. If the channel never confirms SUBSCRIBED (e.g.
+  // Realtime unavailable, or the demo/anon session can't authorize it), the
+  // hook simply falls back to the one-time snapshot with no retry loop —
+  // reload() is still available as a manual refresh either way.
+  //
+  // Reconciliation is by _rowId (the Postgres primary key):
+  //   INSERT — skip if _rowId is already present in state. That's our own
+  //            optimistic write from save() echoing back through the
+  //            subscription, not a new row from someone else.
+  //   UPDATE — skip if the incoming row's updated_at is not strictly newer
+  //            than the local item's _updatedAt (numeric ms compare, not
+  //            string compare — Postgres timestamps and toISOString() don't
+  //            format identically, which bit useNotifications.js's isUnread
+  //            check before). Equal-or-older means this is an echo of our
+  //            own save() or the self-heal RPC above, both of which already
+  //            applied the same data locally.
+  //   DELETE — filter out by old.id. Default replica identity only
+  //            guarantees the primary key in `old`, which is all this needs.
+  useEffect(() => {
+    if (!eventId || !collection) return;
+
+    const channel = supabase
+      .channel(`db:${collection}:${eventId}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: collection, filter: `event_id=eq.${eventId}` },
+        (payload) => {
+          if (payload.eventType === "INSERT") {
+            const row = payload.new;
+            setItems(prev =>
+              prev.some(i => i._rowId === row.id) ? prev : [...prev, rowToItem(row)]
+            );
+          } else if (payload.eventType === "UPDATE") {
+            const row = payload.new;
+            setItems(prev => prev.map(i => {
+              if (i._rowId !== row.id) return i;
+              const incoming = row.updated_at ? new Date(row.updated_at).getTime() : 0;
+              const local    = i._updatedAt   ? new Date(i._updatedAt).getTime()   : 0;
+              return incoming > local ? rowToItem(row) : i;
+            }));
+          } else if (payload.eventType === "DELETE") {
+            const oldId = payload.old?.id;
+            if (oldId) setItems(prev => prev.filter(i => i._rowId !== oldId));
+          }
+        }
+      )
+      .subscribe((status, err) => {
+        if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
+          console.warn(`[SimchaKit] Realtime unavailable for ${collection} — using one-time fetch only`, err?.message);
+        }
+      });
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [eventId, collection]);
 
   // ── Save (insert new, or conditionally update existing) ───────────────────────
   const save = useCallback(async (item) => {
