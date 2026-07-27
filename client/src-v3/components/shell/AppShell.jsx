@@ -20,6 +20,7 @@ import { DayOfOverlay }          from "@/components/DayOfOverlay.jsx";
 import { InviteModal }           from "@/components/shared/InviteModal.jsx";
 import { NotificationPanel }     from "@/components/shared/NotificationPanel.jsx";
 import { Icon }                  from "@/utils/iconMap.jsx";
+import { useSyncStatus }         from "@/utils/syncStatus.js";
 
 // ── Tab components ──────────────────────────────────────────────────────────
 import { OverviewTab }        from "@/components/tabs/OverviewTab.jsx";
@@ -251,6 +252,19 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false, display
     if (!eventId || loadStatus !== "ready" || badgeRealtimeOk.current) return;
     fetchBadgeCounts();
   }, [activeTab]);
+
+  // ── Sync indicator (V4.18.1) ───────────────────────────────────────────────
+  // Backed by utils/syncStatus.js — in-flight save()/remove() count plus the
+  // active tab's Realtime channel status plus navigator.onLine. Maps to the
+  // existing .sync-dot.connected/.connecting/.disconnected CSS (connecting's
+  // gold pulse doubles nicely as the "in progress" look for "saving").
+  const syncState = useSyncStatus();
+  const SYNC_DISPLAY = {
+    synced:  { dotClass: "connected",    topbarClass: "",         label: "All changes synced" },
+    saving:  { dotClass: "connecting",   topbarClass: "saving",   label: "Saving\u2026" },
+    offline: { dotClass: "disconnected", topbarClass: "offline",  label: "Offline: changes not saved" },
+  };
+  const syncDisplay = SYNC_DISPLAY[syncState.state] || SYNC_DISPLAY.synced;
 
   // ── Admin state ───────────────────────────────────────────────────────────
   const [showAdminPanel,  setShowAdminPanel]  = useState(false);
@@ -792,9 +806,9 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false, display
             <div className="topbar-spacer" />
             <div className="topbar-actions">
               {/* Sync indicator */}
-              <span className="topbar-sync">
-                <span className="sync-dot connected" />
-                All changes synced
+              <span className={`topbar-sync${syncDisplay.topbarClass ? " " + syncDisplay.topbarClass : ""}`}>
+                <span className={`sync-dot ${syncDisplay.dotClass}`} />
+                {syncDisplay.label}
               </span>
 
               {/* Search */}
@@ -897,8 +911,8 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false, display
             </>
           )}
           <span>&middot;</span>
-          <div className="footer-sync" title="Sync status">
-            <div className="sync-dot connected" />
+          <div className="footer-sync" title={syncDisplay.label}>
+            <div className={`sync-dot ${syncDisplay.dotClass}`} />
             <span>Supabase</span>
           </div>
         </footer>

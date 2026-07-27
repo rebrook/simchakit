@@ -62,6 +62,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { supabase } from "@/lib/supabase.js";
 import { writeAuditLog } from "@/utils/auditLog.js";
+import { beginSave, endSave, setChannelConnected, removeChannelKey } from "@/utils/syncStatus.js";
 
 // ── Default promoter — no promoted columns ────────────────────────────────────
 function noPromote(_item) { return {}; }
@@ -188,6 +189,8 @@ export function useEventData(eventId, collection, options = {}) {
   useEffect(() => {
     if (!eventId || !collection) return;
 
+    const channelKey = `${collection}:${eventId}`;
+
     const channel = supabase
       .channel(`db:${collection}:${eventId}`)
       .on(
@@ -214,6 +217,10 @@ export function useEventData(eventId, collection, options = {}) {
         }
       )
       .subscribe((status, err) => {
+        // Feed the topbar/footer sync indicator (V4.18.1). SUBSCRIBED is the
+        // only "connected" status; everything else (CHANNEL_ERROR, TIMED_OUT,
+        // CLOSED) counts as disconnected for that indicator.
+        setChannelConnected(channelKey, status === "SUBSCRIBED");
         if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
           console.warn(`[SimchaKit] Realtime unavailable for ${collection} — using one-time fetch only`, err?.message);
         }
@@ -221,12 +228,16 @@ export function useEventData(eventId, collection, options = {}) {
 
     return () => {
       supabase.removeChannel(channel);
+      removeChannelKey(channelKey);
     };
   }, [eventId, collection]);
 
   // ── Save (insert new, or conditionally update existing) ───────────────────────
   const save = useCallback(async (item) => {
     if (!eventId) return { error: "No event ID" };
+
+    beginSave();
+    try {
 
     // Strip internal tracking fields before storing in data jsonb
     const { _rowId, _createdAt, _updatedAt, ...dataPayload } = item;
@@ -331,11 +342,18 @@ export function useEventData(eventId, collection, options = {}) {
     }));
 
     return { conflict: true, serverItem };
+
+    } finally {
+      endSave();
+    }
   }, [eventId]);
 
   // ── Remove (delete) ───────────────────────────────────────────────────────────
   const remove = useCallback(async (rowId) => {
     if (!rowId) return { error: "No row ID" };
+
+    beginSave();
+    try {
 
     const { error: deleteError } = await supabase
       .from(collectionRef.current)
@@ -355,6 +373,10 @@ export function useEventData(eventId, collection, options = {}) {
     writeAuditLog(eventIdRef.current, collectionRef.current, "Deleted", deletedItem);
 
     return { ok: true };
+
+    } finally {
+      endSave();
+    }
   }, [items]);
 
   // ── Reload ─────────────────────────────────────────────────────────────────

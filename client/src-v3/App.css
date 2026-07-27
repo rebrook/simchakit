@@ -670,6 +670,8 @@
         border-radius: var(--radius-pill);
         background: var(--green-light);
       }
+      .topbar-sync.saving  { color: var(--gold); background: var(--gold-light); }
+      .topbar-sync.offline { color: var(--red);  background: var(--red-light); }
       .topbar-print-btn {
         display: inline-flex;
         align-items: center;

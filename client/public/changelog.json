@@ -1,9 +1,22 @@
 {
-  "current": "V4.18.0",
+  "current": "V4.18.1",
   "whatsNew": [
-    "Your event now updates live: when a co-planner adds a guest, checks off a task, or makes other changes, you'll see it appear automatically without needing to refresh"
+    "The sync status indicator in the top bar and footer now shows what's really happening: saving, synced, or offline, instead of always showing green"
   ],
   "changelog": [
+    {
+      "version": "V4.18.1",
+      "date": "2026-07-27",
+      "summary": "Sync indicator now reflects real save/connectivity state instead of a hardcoded green dot",
+      "changes": [
+        "The topbar and footer sync indicators always showed a static green dot and All changes synced, regardless of whether a save was in flight or the connection had dropped",
+        "New utils/syncStatus.js: a small module-level store tracking in-flight save()/remove() calls, each collection's Realtime channel connectivity, and navigator.onLine, derived into three states: synced, saving, and offline",
+        "useEventData.js's save() and remove() now increment/decrement the in-flight count around their existing logic (no change to return shapes or behavior), and its Realtime channel subscription reports connect/disconnect status into the same store, cleaned up on unmount",
+        "AppShell.jsx binds both indicators to the derived state: green pulsing dot and All changes synced when idle and connected, gold pulsing dot and Saving... while a write is in flight, red static dot and Offline: changes not saved when disconnected or offline",
+        "Reused the existing .sync-dot.connected/.connecting/.disconnected CSS states as-is; only addition was two small modifier classes (.topbar-sync.saving, .topbar-sync.offline) so the topbar pill's background/text color matches the dot instead of always showing green",
+        "Verified with an airplane-mode test: toggling the network shows the offline state within a few seconds and recovers automatically when reconnected, and the indicator never claims synced while a write is pending"
+      ]
+    },
     {
       "version": "V4.18.0",
       "date": "2026-07-26",
