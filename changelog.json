@@ -1,9 +1,23 @@
 {
-  "current": "V4.20.0",
+  "current": "V4.20.1",
   "whatsNew": [
-    "SimchaKit is now more resilient to unexpected errors: if one part of the app hits a problem, the rest keeps working, and we're notified automatically so we can fix it fast"
+    "Ritual Coordinators now see a clear message when a link points to a section outside Ceremony and Prep, instead of being silently redirected"
   ],
   "changelog": [
+    {
+      "version": "V4.20.1",
+      "date": "2026-07-29",
+      "summary": "Coordinators now get a clear toast instead of a silent bounce when a deep link isn't permitted",
+      "changes": [
+        "An always-running effect forced coordinators back to the Ceremony tab whenever activeTab was anything other than Ceremony or Prep, with no explanation. A coordinator tapping a notification deep-link to Budget, for example, would just silently land on Ceremony with no indication why",
+        "New applyTabWithPermissionCheck is the single source of truth for whether the current role/config can access a tab, reusing the existing visibleTabIdSet (which already accounts for both the coordinator restriction and any adminConfig.visibleTabs restriction) rather than a separate hardcoded coordinator-only check",
+        "navigateTo now runs every requested tab through this check. Since SearchOverlay's onNavigate and NotificationPanel's onNavigateToTab already route through navigateTo, search results and notification deep-links are covered automatically",
+        "The popstate listener (browser back/forward, or a hand-typed URL) and the one-time initial-load check (a pasted deep link on first load) now run the same permission check, correcting the URL via replaceState if what was requested isn't permitted",
+        "Denied requests stay on the current tab if it's still permitted, or fall back to a safe tab (Ceremony for coordinators, Overview for everyone else) if it isn't, with a toast: \"That section isn't available for your role\"",
+        "The old always-running effect is gone. The one-time mount-time correction the ticket asked to keep still exists (ref-guarded so it fires exactly once per session, right when collaboratorRole first resolves), but it can no longer re-fire on every activeTab change and fight a deliberate later navigation",
+        "No behavior change for owners or editors: visibleTabIdSet already includes every tab for those roles absent an adminConfig restriction, so applyTabWithPermissionCheck is a no-op pass-through for them"
+      ]
+    },
     {
       "version": "V4.20.0",
       "date": "2026-07-28",

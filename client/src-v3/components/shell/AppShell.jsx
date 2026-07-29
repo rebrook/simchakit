@@ -347,37 +347,6 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false, display
     load();
   }, [eventId, session?.user?.id]);
 
-  // ── Popstate: tab-level routing (V4.19.0) ─────────────────────────────────
-  // Only concerned with which tab, if any, the URL now points to for the
-  // CURRENT event. Cross-event navigation (a different eventId in the path)
-  // is App.v3.jsx's popstate listener's job — it updates the eventId prop
-  // this component receives, and the existing event-load effect above
-  // already re-runs off that prop change.
-  useEffect(() => {
-    const handler = () => {
-      const route = parseEventRoute(window.location.pathname);
-      const tab   = route?.tab;
-      setActiveTab(tab && ALL_TABS.some(t => t.id === tab) ? tab : "overview");
-    };
-    window.addEventListener("popstate", handler);
-    return () => window.removeEventListener("popstate", handler);
-  }, []);
-
-  // ── Coordinator redirect ──────────────────────────────────────────────────
-  // Coordinators only see Ceremony and Prep. If they land directly on a
-  // non-permitted tab route (deep link, or a mid-session role change), correct
-  // both the state and the URL, and let them know why (V4.19.0). replaceState,
-  // not push — this is a correction, not a navigation they asked for.
-  useEffect(() => {
-    if (collaboratorRole === "coordinator" && activeTab !== "ceremony" && activeTab !== "prep") {
-      setActiveTab("ceremony");
-      if (eventId && !isDemoMode) {
-        window.history.replaceState({}, "", `/e/${eventId}/ceremony`);
-      }
-      showToast("You don't have access to that tab. Showing Ceremony instead.");
-    }
-  }, [collaboratorRole, activeTab, eventId, isDemoMode]);
-
   // ── Cmd+K / Ctrl+K search shortcut ────────────────────────────────────────
   useEffect(() => {
     const handler = (e) => {
@@ -452,19 +421,91 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false, display
   const moreDrawerTabs = tabsWithBadges.filter(t => !bottomBarTabs.includes(t));
   const moreIsActive   = moreDrawerTabs.some(t => t.id === activeTab);
 
+  // ── Tab permission check (V4.20.1) ────────────────────────────────────────
+  // Single source of truth for "can the current role/config access this
+  // tab," reused by navigateTo (covers sidebar clicks, SearchOverlay's
+  // onNavigate, and NotificationPanel's onNavigateToTab, since all three
+  // already route through navigateTo), the popstate listener (browser back/
+  // forward, or a hand-typed URL), and the one-time mount check below
+  // (a pasted deep link on first load). visibleTabIdSet already reflects
+  // both the coordinator restriction and any adminConfig.visibleTabs
+  // restriction, so this protects against both, not just the coordinator
+  // case the ticket named.
+  //
+  // Denied requests stay on the current tab if it's still permitted;
+  // otherwise they fall back to a tab we know is safe (ceremony for
+  // coordinators, overview for everyone else, since overview is always
+  // included in visibleTabIdSet). Returns the tab that was actually applied,
+  // so callers that also touch the URL (navigateTo, popstate) know whether
+  // to reflect the requested tab or the fallback.
+  const applyTabWithPermissionCheck = (requestedTab) => {
+    if (visibleTabIdSet.has(requestedTab)) {
+      setActiveTab(requestedTab);
+      return requestedTab;
+    }
+    const fallback = visibleTabIdSet.has(activeTab) ? activeTab : (isCoordinator ? "ceremony" : "overview");
+    if (fallback !== activeTab) setActiveTab(fallback);
+    showToast("That section isn't available for your role");
+    return fallback;
+  };
+
   // ── Navigate to tab ───────────────────────────────────────────────────────
   const navigateTo = (tabId) => {
+    const applied = applyTabWithPermissionCheck(tabId);
     // Demo mode's entry point is the fixed /demo path (App.v3.jsx checks
     // pathname === "/demo" exactly); pushing /e/<demoEventId>/tab here would
     // break out of that on refresh, since demo has no session to fall back
     // on. Tab state still changes normally, just without a URL change.
-    if (eventId && !isDemoMode) pushEventPath(eventId, tabId);
-    setActiveTab(tabId);
+    if (eventId && !isDemoMode) pushEventPath(eventId, applied);
     setShowMoreDrawer(false);
     window.scrollTo(0, 0);
     // Refresh notification count on tab change (lightweight count-only query)
     refreshNotifCount();
   };
+
+  // ── Popstate: tab-level routing (V4.19.0, permission-checked V4.20.1) ────
+  // Only concerned with which tab, if any, the URL now points to for the
+  // CURRENT event. Cross-event navigation (a different eventId in the path)
+  // is App.v3.jsx's popstate listener's job — it updates the eventId prop
+  // this component receives, and the existing event-load effect above
+  // already re-runs off that prop change. Covers a hand-typed URL or
+  // browser back/forward landing on a tab the role can't access.
+  useEffect(() => {
+    const handler = () => {
+      const route = parseEventRoute(window.location.pathname);
+      const requestedTab = route?.tab && ALL_TABS.some(t => t.id === route.tab) ? route.tab : "overview";
+      const applied = applyTabWithPermissionCheck(requestedTab);
+      if (applied !== requestedTab && eventId && !isDemoMode) {
+        // Permission denied what the URL asked for — correct the URL to
+        // match what we actually applied. replaceState, not push: this is
+        // a correction, not a navigation the user asked for.
+        window.history.replaceState({}, "", `/e/${eventId}/${applied}`);
+      }
+    };
+    window.addEventListener("popstate", handler);
+    return () => window.removeEventListener("popstate", handler);
+  }, [applyTabWithPermissionCheck, eventId, isDemoMode]);
+
+  // ── One-time initial-load permission check (V4.20.1) ─────────────────────
+  // Replaces the old always-running coordinator-redirect effect, which fired
+  // on every activeTab change and would silently fight navigateTo's own
+  // corrected navigation. This runs exactly once, as soon as collaboratorRole
+  // resolves from its initial null/loading state, and corrects the tab
+  // hydrated from the URL on first load (e.g. a coordinator's notification
+  // deep-link straight to a non-permitted tab) — the "mount-time redirect"
+  // the ticket asked to keep. Never fires again after that, so it can't
+  // clobber a deliberate later navigation.
+  const didInitialPermissionCheck = useRef(false);
+  useEffect(() => {
+    if (didInitialPermissionCheck.current) return;
+    if (collaboratorRole === null) return; // still loading — wait for it to resolve
+    didInitialPermissionCheck.current = true;
+
+    const applied = applyTabWithPermissionCheck(activeTab);
+    if (applied !== activeTab && eventId && !isDemoMode) {
+      window.history.replaceState({}, "", `/e/${eventId}/${applied}`);
+    }
+  }, [collaboratorRole, activeTab, applyTabWithPermissionCheck, eventId, isDemoMode]);
 
   // ── Palette from adminConfig ──────────────────────────────────────────────
   const palette     = adminConfig?.theme?.palette     || "rose";
