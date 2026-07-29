@@ -13,10 +13,12 @@ import { OnboardingModal }     from "@/components/events/OnboardingModal.jsx";
 import { AppShell }            from "@/components/shell/AppShell.jsx";
 import { useDarkMode }         from "@/hooks/useDarkMode.js";
 import { ThemeProvider }       from "@/components/shared/ThemeProvider.jsx";
+import { parseEventRoute }     from "@/utils/router.js";
 
 const DEMO_EVENT_ID       = "440a8b9e-e92e-4ad6-b352-41965bd8383b"; // Bart's Bar Mitzvah demo event
 const IS_DEMO             = window.location.pathname === "/demo";
 const PENDING_INVITE_KEY  = "simchakit-pending-invite";
+const PENDING_ROUTE_KEY   = "simchakit-pending-route";
 
 // Detect /invite/{token} path and store token for post-auth acceptance
 const inviteMatch = window.location.pathname.match(/^\/invite\/([0-9a-f-]{36})$/i);
@@ -24,6 +26,17 @@ if (inviteMatch) {
   localStorage.setItem(PENDING_INVITE_KEY, inviteMatch[1]);
   // Redirect to root so the auth flow can proceed cleanly
   window.history.replaceState({}, "", "/");
+}
+
+// Detect /e/:eventId(/:tab) path and stash it for post-auth restoration
+// (V4.19.0). Magic-link sign-in does a full page reload, which destroys any
+// in-memory state, so a deep link like /e/<id>/seating has to survive that
+// round-trip the same way pending invites already do. Harmless to run this
+// unconditionally: if the user is already signed in, AppContent hydrates
+// straight from the current path below and this stashed value just sits
+// unused until AuthCallback's onComplete consumes and clears it.
+if (parseEventRoute(window.location.pathname)) {
+  localStorage.setItem(PENDING_ROUTE_KEY, window.location.pathname);
 }
 
 export default function AppV3() {
@@ -178,7 +191,14 @@ export default function AppV3() {
 }
 
 function AppContent({ session, isCallback, inviteError, onDismissInviteError }) {
-  const [selectedEventId, setSelectedEventId] = useState(null);
+  // Lazy-init from the current URL (V4.19.0) — handles the case where an
+  // already-signed-in user pastes/refreshes a /e/:eventId(/:tab) link
+  // directly, no reload required. The not-yet-signed-in case is handled
+  // separately via PENDING_ROUTE_KEY + AuthCallback's onComplete below.
+  const [selectedEventId, setSelectedEventId] = useState(() => {
+    const route = parseEventRoute(window.location.pathname);
+    return route ? route.eventId : null;
+  });
   const [displayName,     setDisplayName]     = useState(null); // null = not yet loaded
   const [showOnboarding,  setShowOnboarding]  = useState(false);
   const [isNewUser,       setIsNewUser]       = useState(false);
@@ -201,6 +221,26 @@ function AppContent({ session, isCallback, inviteError, onDismissInviteError }) 
         }
       });
   }, [session?.user?.id]);
+
+  // Popstate: only concerned with which event, if any, the URL now points to.
+  // Tab-level popstate is handled independently by AppShell itself. Only
+  // updates state when the eventId actually changed, so back/forward between
+  // tabs within the SAME event doesn't cause a redundant re-render here.
+  useEffect(() => {
+    const handler = () => {
+      const route = parseEventRoute(window.location.pathname);
+      const newEventId = route ? route.eventId : null;
+      setSelectedEventId(prev => (prev !== newEventId ? newEventId : prev));
+    };
+    window.addEventListener("popstate", handler);
+    return () => window.removeEventListener("popstate", handler);
+  }, []);
+
+  // Selecting an event from the picker is a real navigation — push its URL.
+  const selectEvent = (id) => {
+    window.history.pushState({}, "", `/e/${id}`);
+    setSelectedEventId(id);
+  };
 
   // Loading spinner
   if (session === undefined) {
@@ -232,7 +272,19 @@ function AppContent({ session, isCallback, inviteError, onDismissInviteError }) 
 
   // Magic link callback
   if (isCallback) {
-    return <AuthCallback onComplete={() => window.location.replace("/")} />;
+    return (
+      <AuthCallback
+        onComplete={() => {
+          const pendingRoute = localStorage.getItem(PENDING_ROUTE_KEY);
+          if (pendingRoute) {
+            localStorage.removeItem(PENDING_ROUTE_KEY);
+            window.location.replace(pendingRoute);
+          } else {
+            window.location.replace("/");
+          }
+        }}
+      />
+    );
   }
 
   // Not signed in
@@ -247,7 +299,10 @@ function AppContent({ session, isCallback, inviteError, onDismissInviteError }) 
         session={session}
         eventId={selectedEventId}
         displayName={displayName}
-        onBack={() => setSelectedEventId(null)}
+        onBack={() => {
+          window.history.pushState({}, "", "/");
+          setSelectedEventId(null);
+        }}
       />
     );
   }
@@ -304,7 +359,7 @@ function AppContent({ session, isCallback, inviteError, onDismissInviteError }) 
       <EventPicker
         session={session}
         displayName={displayName}
-        onSelectEvent={setSelectedEventId}
+        onSelectEvent={selectEvent}
         onEditName={() => setShowOnboarding(true)}
       />
     </>

@@ -1,9 +1,26 @@
 {
-  "current": "V4.18.1",
+  "current": "V4.19.0",
   "whatsNew": [
-    "The sync status indicator in the top bar and footer now shows what's really happening: saving, synced, or offline, instead of always showing green"
+    "SimchaKit now has real, refreshable URLs for each event and tab, so you can bookmark a tab, share a direct link, and use your browser's back and forward buttons to move around"
   ],
   "changelog": [
+    {
+      "version": "V4.19.0",
+      "date": "2026-07-28",
+      "summary": "Minimal history-based routing: real URLs for events and tabs",
+      "changes": [
+        "The selected event and active tab previously lived only in React state, with no URL to match, so refresh always dropped back to the event picker and there was nothing to link to, back into, or bookmark",
+        "New utils/router.js: pure path parsing/building helpers (no router library) defining / (event picker), /e/:eventId (overview), and /e/:eventId/:tab (a specific tab), leaving /demo, /invite/:token, and the auth-callback hash/code detection untouched",
+        "App.v3.jsx now hydrates selectedEventId from the current URL on load, pushes /e/:id when an event is selected from the picker, and listens for popstate to update the event on browser back/forward",
+        "AppShell.jsx now hydrates activeTab from the URL (validated against known tab ids, falling back to overview on anything unrecognized), pushes the canonical path on every navigateTo call, and listens for popstate to update the tab independently of the event-level listener above",
+        "SearchOverlay's onNavigate and NotificationPanel's onNavigateToTab both already routed through navigateTo, so search results and notification deep-links now produce real, refreshable URLs with no changes needed in those two files",
+        "onBack is now history-aware: returning to the picker pushes / instead of only clearing React state",
+        "Coordinators landing directly on a non-permitted tab route (deep link, or a mid-session role change) are corrected to /e/:id/ceremony via replaceState (not a pushed entry, since this wasn't a navigation they asked for), with a toast explaining why",
+        "Deep-link survival across sign-in: since magic-link auth causes a full page reload that would otherwise drop the originally-requested path, the intended /e/:id/:tab route is stashed in localStorage on load (mirroring the existing pending-invite pattern) and restored once the auth callback completes",
+        "Demo mode is explicitly excluded from URL pushes in both the tab-navigation and coordinator-redirect paths, since its fixed /demo entry point has no session to fall back on if the URL drifted to /e/<demo-event-id>/... and the page were refreshed",
+        "Verified: refreshing mid-session restores the same event and tab, browser back/forward move between tabs as expected, and a pasted /e/<id>/seating link lands on the Seating tab after completing sign-in"
+      ]
+    },
     {
       "version": "V4.18.1",
       "date": "2026-07-27",

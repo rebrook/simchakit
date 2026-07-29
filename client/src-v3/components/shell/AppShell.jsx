@@ -21,6 +21,7 @@ import { InviteModal }           from "@/components/shared/InviteModal.jsx";
 import { NotificationPanel }     from "@/components/shared/NotificationPanel.jsx";
 import { Icon }                  from "@/utils/iconMap.jsx";
 import { useSyncStatus }         from "@/utils/syncStatus.js";
+import { parseEventRoute, pushEventPath } from "@/utils/router.js";
 
 // ── Tab components ──────────────────────────────────────────────────────────
 import { OverviewTab }        from "@/components/tabs/OverviewTab.jsx";
@@ -138,7 +139,11 @@ function formatSwitcherDate(timeline) {
 import { displayNameWithEmail } from "@/utils/displayName.js";
 
 export function AppShell({ session, eventId, onBack, isDemoMode = false, displayName: userDisplayName = null }) {
-  const [activeTab,       setActiveTab]       = useState("overview");
+  const [activeTab,       setActiveTab]       = useState(() => {
+    const route = parseEventRoute(window.location.pathname);
+    const tab   = route?.tab;
+    return tab && ALL_TABS.some(t => t.id === tab) ? tab : "overview";
+  });
   const [event,           setEvent]           = useState(null);
   const [adminConfig,     setAdminConfig]     = useState(null);
   const [loadStatus,      setLoadStatus]      = useState("loading");
@@ -341,12 +346,36 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false, display
     load();
   }, [eventId, session?.user?.id]);
 
+  // ── Popstate: tab-level routing (V4.19.0) ─────────────────────────────────
+  // Only concerned with which tab, if any, the URL now points to for the
+  // CURRENT event. Cross-event navigation (a different eventId in the path)
+  // is App.v3.jsx's popstate listener's job — it updates the eventId prop
+  // this component receives, and the existing event-load effect above
+  // already re-runs off that prop change.
+  useEffect(() => {
+    const handler = () => {
+      const route = parseEventRoute(window.location.pathname);
+      const tab   = route?.tab;
+      setActiveTab(tab && ALL_TABS.some(t => t.id === tab) ? tab : "overview");
+    };
+    window.addEventListener("popstate", handler);
+    return () => window.removeEventListener("popstate", handler);
+  }, []);
+
   // ── Coordinator redirect ──────────────────────────────────────────────────
+  // Coordinators only see Ceremony and Prep. If they land directly on a
+  // non-permitted tab route (deep link, or a mid-session role change), correct
+  // both the state and the URL, and let them know why (V4.19.0). replaceState,
+  // not push — this is a correction, not a navigation they asked for.
   useEffect(() => {
     if (collaboratorRole === "coordinator" && activeTab !== "ceremony" && activeTab !== "prep") {
       setActiveTab("ceremony");
+      if (eventId && !isDemoMode) {
+        window.history.replaceState({}, "", `/e/${eventId}/ceremony`);
+      }
+      showToast("You don't have access to that tab. Showing Ceremony instead.");
     }
-  }, [collaboratorRole, activeTab]);
+  }, [collaboratorRole, activeTab, eventId, isDemoMode]);
 
   // ── Cmd+K / Ctrl+K search shortcut ────────────────────────────────────────
   useEffect(() => {
@@ -424,6 +453,11 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false, display
 
   // ── Navigate to tab ───────────────────────────────────────────────────────
   const navigateTo = (tabId) => {
+    // Demo mode's entry point is the fixed /demo path (App.v3.jsx checks
+    // pathname === "/demo" exactly); pushing /e/<demoEventId>/tab here would
+    // break out of that on refresh, since demo has no session to fall back
+    // on. Tab state still changes normally, just without a URL change.
+    if (eventId && !isDemoMode) pushEventPath(eventId, tabId);
     setActiveTab(tabId);
     setShowMoreDrawer(false);
     window.scrollTo(0, 0);
