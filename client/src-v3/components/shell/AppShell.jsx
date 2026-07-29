@@ -20,6 +20,7 @@ import { DayOfOverlay }          from "@/components/DayOfOverlay.jsx";
 import { InviteModal }           from "@/components/shared/InviteModal.jsx";
 import { NotificationPanel }     from "@/components/shared/NotificationPanel.jsx";
 import { Icon }                  from "@/utils/iconMap.jsx";
+import { ErrorBoundary }         from "@/components/shared/ErrorBoundary.jsx";
 import { useSyncStatus }         from "@/utils/syncStatus.js";
 import { parseEventRoute, pushEventPath } from "@/utils/router.js";
 
@@ -908,18 +909,31 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false, display
               <Icon name="ceremony" context="inline" /> As Ritual Coordinator, you can view and edit Ceremony and Prep for this event.
             </div>
           )}
-          {activeTab === "overview"       && <OverviewTab       {...tabProps} />}
-          {activeTab === "guests"         && <GuestsTab         {...tabProps} />}
-          {activeTab === "budget"         && <BudgetTab         {...tabProps} />}
-          {activeTab === "vendors"        && <VendorsTab        {...tabProps} />}
-          {activeTab === "tasks"          && <TasksTab          {...tabProps} />}
-          {activeTab === "prep"           && <PrepTab           {...tabProps} />}
-          {activeTab === "ceremony"       && <CeremonyRolesTab  {...tabProps} />}
-          {activeTab === "seating"        && <SeatingTab        {...tabProps} />}
-          {activeTab === "gifts"          && <GiftsTab          {...tabProps} />}
-          {activeTab === "accommodations" && <AccommodationsTab {...tabProps} />}
-          {activeTab === "favors"         && <FavorsTab         {...tabProps} />}
-          {activeTab === "calendar"       && <CalendarTab       {...tabProps} />}
+          <ErrorBoundary
+            key={activeTab}
+            source={`tab:${activeTab}`}
+            title="Something went wrong with this tab"
+            message="This part of SimchaKit hit an unexpected error. You can try again, or head back and continue elsewhere."
+            eventId={eventId}
+            activeTab={activeTab}
+            collaboratorRole={collaboratorRole}
+            session={session}
+            onNavigateAway={activeTab === "overview" ? onBack : () => navigateTo("overview")}
+            navigateAwayLabel={activeTab === "overview" ? "Back to Events" : "Back to Overview"}
+          >
+            {activeTab === "overview"       && <OverviewTab       {...tabProps} />}
+            {activeTab === "guests"         && <GuestsTab         {...tabProps} />}
+            {activeTab === "budget"         && <BudgetTab         {...tabProps} />}
+            {activeTab === "vendors"        && <VendorsTab        {...tabProps} />}
+            {activeTab === "tasks"          && <TasksTab          {...tabProps} />}
+            {activeTab === "prep"           && <PrepTab           {...tabProps} />}
+            {activeTab === "ceremony"       && <CeremonyRolesTab  {...tabProps} />}
+            {activeTab === "seating"        && <SeatingTab        {...tabProps} />}
+            {activeTab === "gifts"          && <GiftsTab          {...tabProps} />}
+            {activeTab === "accommodations" && <AccommodationsTab {...tabProps} />}
+            {activeTab === "favors"         && <FavorsTab         {...tabProps} />}
+            {activeTab === "calendar"       && <CalendarTab       {...tabProps} />}
+          </ErrorBoundary>
         </main>
 
         {/* ── Footer ── */}

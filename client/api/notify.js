@@ -3,7 +3,7 @@
 // Vercel serverless function.
 // POST { type, data }
 // Sends email notifications to rebrook@me.com via Gmail SMTP.
-// Types: "new_user" | "new_event"
+// Types: "new_user" | "new_event" | "client_error"
 // ─────────────────────────────────────────────────────────────────────────────
 
 import nodemailer from "nodemailer";
@@ -73,6 +73,33 @@ export default async function handler(req, res) {
       `Time: ${new Date().toLocaleString("en-US", { timeZone: "America/New_York" })} ET`,
       ``,
       `View in admin: https://admin.simcha-kit.com`,
+    ].join("\n");
+  } else if (type === "client_error") {
+    const d = data || {};
+    subject = `SimchaKit: Client error (${d.source || "unknown"})`;
+    text = [
+      `A client-side error was caught and reported automatically.`,
+      ``,
+      `Error ID: ${d.errorId || "unknown"}`,
+      `Source: ${d.source || "unknown"}`,
+      `Message: ${d.message || "unknown"}`,
+      `Path: ${d.path || "unknown"}`,
+      `Event ID: ${d.eventId || "none"}`,
+      `Active tab: ${d.activeTab || "none"}`,
+      `Collaborator role: ${d.collaboratorRole || "none"}`,
+      `User: ${d.userEmail || "unknown"} (${d.userId || "no user id"})`,
+      `Online: ${d.online === false ? "no" : "yes"}`,
+      `Viewport: ${d.viewport || "unknown"}`,
+      `User agent: ${d.userAgent || "unknown"}`,
+      `Time: ${d.timestamp || new Date().toISOString()}`,
+      ``,
+      `Stack:`,
+      d.stack || "(no stack available)",
+      ``,
+      `Component stack:`,
+      d.componentStack || "(no component stack available)",
+      ``,
+      `This error was also logged to the client_errors table for later reference.`,
     ].join("\n");
   } else {
     return res.status(400).json({ error: "Unknown notification type." });

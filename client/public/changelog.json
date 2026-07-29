@@ -1,9 +1,35 @@
 {
-  "current": "V4.19.0",
+  "current": "V4.20.0",
   "whatsNew": [
-    "SimchaKit now has real, refreshable URLs for each event and tab, so you can bookmark a tab, share a direct link, and use your browser's back and forward buttons to move around"
+    "SimchaKit is now more resilient to unexpected errors: if one part of the app hits a problem, the rest keeps working, and we're notified automatically so we can fix it fast"
   ],
   "changelog": [
+    {
+      "version": "V4.20.0",
+      "date": "2026-07-28",
+      "summary": "Crash resilience: Error Boundaries and automatic error reporting",
+      "changes": [
+        "Any uncaught error in a tab previously blanked the entire app (as the Budget tab crash in V4.19.1 demonstrated). Each tab is now wrapped in its own ErrorBoundary, so a crash in one tab shows a recovery screen while the topbar, sidebar, and every other tab keep working",
+        "Added an outer app-level ErrorBoundary around AppShell itself (both the normal event flow and demo mode) as a last-resort catch-all for anything outside the tab-switch logic",
+        "New utils/errorReporting.js captures and reports every crash automatically: error message and stack, React's componentStack, current path, event id, active tab, collaborator role, user id and email if signed in, browser and viewport info, and online status, all under a generated error ID",
+        "Reports are delivered two ways: a persistent client_errors table (RLS: any role can insert, only admin_users can read) for later diagnosis, and an immediate email via the existing /api/notify endpoint (same one used for new-user and new-event alerts), so problems surface without a user needing to report them",
+        "Error Boundaries only catch render, lifecycle, and constructor errors, not event handlers or unhandled promise rejections, so App.v3.jsx now also registers global window error and unhandledrejection listeners feeding the same reporting pipeline, for genuinely comprehensive coverage",
+        "Each unique error signature is capped at 2 reports per browser session (sessionStorage-backed) so a render-loop or a deterministic crash can't spam the inbox or the table with duplicates",
+        "The recovery screen offers Try again (resets the boundary) and a context-aware escape hatch: Back to Overview for any other tab, Back to Events if Overview itself is what crashed (since Back to Overview would otherwise be a no-op there)",
+        "Error reporting itself is fire-and-forget and wrapped in its own try/catch at every step, matching the existing posture for writeAuditLog and the Brevo syncs, so a broken reporter can never cause a second crash"
+      ]
+    },
+    {
+      "version": "V4.19.1",
+      "date": "2026-07-28",
+      "summary": "Fixed a Budget tab crash caused by a duplicate Realtime channel",
+      "changes": [
+        "BudgetTab.jsx called useEventData(eventId, \"vendors\") twice: once for the tab's vendor list, and once into an unused vendorsForExpense variable that was dead code left over from an earlier refactor",
+        "Both calls tried to open a Supabase Realtime channel with the identical topic name (db:vendors:<eventId>) introduced in V4.18.0's live-sync work; the second call's postgres_changes subscription collided with the first, throwing an uncaught error that blanked the entire tab on both the demo event and real events",
+        "Removed the dead, duplicate hook call. The tab now opens a single vendors channel as intended",
+        "Root cause was a gap in V4.18.0's design assumption that only one useEventData instance per collection would ever be mounted at a time; that holds across different tabs but not within a single component that calls the hook twice for the same collection"
+      ]
+    },
     {
       "version": "V4.19.0",
       "date": "2026-07-28",

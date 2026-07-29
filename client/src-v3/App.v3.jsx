@@ -14,6 +14,8 @@ import { AppShell }            from "@/components/shell/AppShell.jsx";
 import { useDarkMode }         from "@/hooks/useDarkMode.js";
 import { ThemeProvider }       from "@/components/shared/ThemeProvider.jsx";
 import { parseEventRoute }     from "@/utils/router.js";
+import { ErrorBoundary }       from "@/components/shared/ErrorBoundary.jsx";
+import { reportClientError }   from "@/utils/errorReporting.js";
 
 const DEMO_EVENT_ID       = "440a8b9e-e92e-4ad6-b352-41965bd8383b"; // Bart's Bar Mitzvah demo event
 const IS_DEMO             = window.location.pathname === "/demo";
@@ -44,6 +46,26 @@ export default function AppV3() {
   const [inviteError, setInviteError] = useState(null);
   useDarkMode();
 
+  // Global crash reporting (V4.20.0) — catches what ErrorBoundary can't:
+  // errors thrown in event handlers, and unhandled promise rejections.
+  // Registered once here (not inside AppContent) so it's active even
+  // before sign-in and during demo mode. No fallback UI here since there's
+  // no component tree to swap out — this is purely for diagnosis.
+  useEffect(() => {
+    const handleError = (event) => {
+      reportClientError(event.error || event.message, { source: "window.onerror" });
+    };
+    const handleRejection = (event) => {
+      reportClientError(event.reason, { source: "unhandledrejection" });
+    };
+    window.addEventListener("error", handleError);
+    window.addEventListener("unhandledrejection", handleRejection);
+    return () => {
+      window.removeEventListener("error", handleError);
+      window.removeEventListener("unhandledrejection", handleRejection);
+    };
+  }, []);
+
   // Demo mode — bypass auth entirely, ensure anon Supabase client
   if (IS_DEMO) {
     // Sign out any existing session so Supabase uses the anon key for all requests
@@ -51,12 +73,19 @@ export default function AppV3() {
     return (
       <>
         <ThemeProvider palette="rose" />
-        <AppShell
-          session={null}
-          eventId={DEMO_EVENT_ID}
-          isDemoMode={true}
-          onBack={() => window.location.replace("/")}
-        />
+        <ErrorBoundary
+          source="app-shell:demo"
+          title="Something went wrong"
+          onNavigateAway={() => window.location.replace("/")}
+          navigateAwayLabel="Back to Home"
+        >
+          <AppShell
+            session={null}
+            eventId={DEMO_EVENT_ID}
+            isDemoMode={true}
+            onBack={() => window.location.replace("/")}
+          />
+        </ErrorBoundary>
       </>
     );
   }
@@ -295,15 +324,28 @@ function AppContent({ session, isCallback, inviteError, onDismissInviteError }) 
   // Signed in — event selected → full app shell
   if (selectedEventId) {
     return (
-      <AppShell
-        session={session}
+      <ErrorBoundary
+        source="app-shell"
+        title="Something went wrong"
+        message="SimchaKit hit an unexpected error. You can try again, or head back to your events."
         eventId={selectedEventId}
-        displayName={displayName}
-        onBack={() => {
+        session={session}
+        onNavigateAway={() => {
           window.history.pushState({}, "", "/");
           setSelectedEventId(null);
         }}
-      />
+        navigateAwayLabel="Back to Events"
+      >
+        <AppShell
+          session={session}
+          eventId={selectedEventId}
+          displayName={displayName}
+          onBack={() => {
+            window.history.pushState({}, "", "/");
+            setSelectedEventId(null);
+          }}
+        />
+      </ErrorBoundary>
     );
   }
 
