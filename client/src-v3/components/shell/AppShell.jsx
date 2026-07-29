@@ -139,16 +139,6 @@ function formatSwitcherDate(timeline) {
 // ─────────────────────────────────────────────────────────────────────────────
 import { displayNameWithEmail } from "@/utils/displayName.js";
 
-// ── TEMPORARY: manual ErrorBoundary verification trigger (V4.20.0) ──────────
-// Only fires in demo mode, and only with an explicit ?crashtest=1 query
-// param, so it can never fire for a real demo visitor by accident. Throws
-// during render so it's caught by the tab-level ErrorBoundary, exercising
-// the real fallback UI (recovery screen, Try again, escape hatch) rather
-// than just the reporting call. REMOVE this whole block once verified.
-function TestCrashTrigger() {
-  throw new Error("Manual ErrorBoundary test crash (temporary, safe to remove once verified)");
-}
-
 export function AppShell({ session, eventId, onBack, isDemoMode = false, displayName: userDisplayName = null }) {
   const [activeTab,       setActiveTab]       = useState(() => {
     const route = parseEventRoute(window.location.pathname);
@@ -931,8 +921,6 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false, display
             onNavigateAway={activeTab === "overview" ? onBack : () => navigateTo("overview")}
             navigateAwayLabel={activeTab === "overview" ? "Back to Events" : "Back to Overview"}
           >
-            {/* TEMPORARY — remove once ErrorBoundary is verified, see TestCrashTrigger above */}
-            {isDemoMode && new URLSearchParams(window.location.search).get("crashtest") === "1" && <TestCrashTrigger />}
             {activeTab === "overview"       && <OverviewTab       {...tabProps} />}
             {activeTab === "guests"         && <GuestsTab         {...tabProps} />}
             {activeTab === "budget"         && <BudgetTab         {...tabProps} />}
