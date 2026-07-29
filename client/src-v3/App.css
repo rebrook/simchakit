@@ -2593,6 +2593,16 @@
     .form-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
     .form-hint { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
 
+    /* ── Mobile input zoom fix (≤760px, matches SK-C4 useIsMobile breakpoint) ──
+       iOS Safari auto-zooms the page on focus for any text input under 16px.
+       Desktop keeps the 14px size above; do not add maximum-scale/user-scalable
+       to the viewport meta as a workaround, that blocks accessibility zoom. ── */
+    @media (max-width: 760px) {
+      .form-input, .form-select, .form-textarea {
+        font-size: 16px;
+      }
+    }
+
     /* ── Admin mode panel ────────────────────────────────────────────────── */
     .admin-panel {
       background: var(--bg-subtle);
