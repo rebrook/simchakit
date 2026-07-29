@@ -1,9 +1,21 @@
 {
-  "current": "V4.20.3",
+  "current": "V4.20.4",
   "whatsNew": [
-    "Fixed a bug where tapping into a form field on an iPhone would zoom the whole page in"
+    "Cleaned up some inconsistent mobile layout behavior on phones and tablets"
   ],
   "changelog": [
+    {
+      "version": "V4.20.4",
+      "date": "2026-07-29",
+      "summary": "Consolidated all mobile media queries onto the two intentional breakpoints (760px, 900px)",
+      "changes": [
+        "App.css had accumulated 16 rules at max-width:640px and one stray at max-width:768px (.two-col), left over from before useIsMobile.js standardized on 760px for table-to-card layouts and 900px for the app shell's sidebar collapse, so phones and small tablets between 641 and 760px were getting desktop-sized stat grids, section headers, icon buttons, and full-size modals even though the guest list had already switched to its mobile card view at that same width",
+        "Converted all 15 general-purpose 640px rules and the 768px .two-col rule to 760px, so every content-density adaptation (stat grids, section headers, countdown card, modal-as-sheet, expense/task rows, filter bar, vendor grid, search overlay, calendar) now kicks in at the same width the table-to-card swap already uses",
+        "Admin Mode's sidebar-to-mobile-nav toggle was the one exception: since it's shell navigation chrome, not content density, it now tracks the app shell's own 900px sidebar-collapse threshold instead, so Admin Mode's navigation state matches the main dashboard's at any given width",
+        "Added a breakpoint reference comment at the top of App.css documenting the two intentional thresholds and pointing to useIsMobile.js, so future mobile rules land on 760 or 900 instead of drifting to a new number",
+        "No component logic changed, this is a CSS-only threshold cleanup"
+      ]
+    },
     {
       "version": "V4.20.3",
       "date": "2026-07-29",
