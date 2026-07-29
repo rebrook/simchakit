@@ -1,5 +1,5 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// SimchaKit V4.18.0 — useEventData.js
+// SimchaKit V4.20.2 — useEventData.js
 // Core data hook. Provides fetch-on-mount, optimistic save, and delete
 // for any collection table in Supabase.
 //
@@ -13,6 +13,15 @@
 //
 // Special case — households: pass promoteColumns to extract indexed columns
 // from the item and write them alongside `data`.
+//
+// ── Per-instance Realtime channels (V4.20.2) ────────────────────────────────
+// Two components can legitimately mount useEventData for the same
+// collection+event simultaneously (e.g. SearchOverlay loads households/
+// people/etc. for search while the active tab also loads some of the same
+// collections). The Realtime channel name is now unique per hook instance
+// (see instanceIdRef below), not just per collection+event, since a shared
+// channel name meant the second instance's `.on()` call collided with the
+// first's already-`subscribe()`d channel and threw an uncaught error.
 //
 // ── Live sync (V4.18.0) ──────────────────────────────────────────────────────
 // Every collection now subscribes to postgres_changes in addition to the
@@ -96,6 +105,22 @@ export function useEventData(eventId, collection, options = {}) {
   collectionRef.current  = collection;
   eventIdRef.current     = eventId;
   promoteRef.current     = promoteColumns;
+
+  // ── Per-instance id (V4.20.2) ──────────────────────────────────────────────
+  // Two components can legitimately mount useEventData for the SAME
+  // collection+event at once (e.g. SearchOverlay loads households/people/etc.
+  // for search while whatever tab is active also loads some of the same
+  // collections for its own use). The Realtime channel name used to be just
+  // `db:${collection}:${eventId}` with no per-instance uniqueness, so the
+  // second instance's `.on()` call collided with the first's already-
+  // `subscribe()`d channel and threw an uncaught error (first seen as a
+  // duplicate BudgetTab hook call, now seen for real between SearchOverlay
+  // and a tab). Generated once per mount via the lazy-ref pattern below, not
+  // regenerated on every render.
+  const instanceIdRef = useRef();
+  if (instanceIdRef.current == null) {
+    instanceIdRef.current = Math.random().toString(36).slice(2, 8);
+  }
 
   // ── Fetch ────────────────────────────────────────────────────────────────────
   const load = useCallback(async () => {
@@ -189,10 +214,10 @@ export function useEventData(eventId, collection, options = {}) {
   useEffect(() => {
     if (!eventId || !collection) return;
 
-    const channelKey = `${collection}:${eventId}`;
+    const channelKey = `${collection}:${eventId}:${instanceIdRef.current}`;
 
     const channel = supabase
-      .channel(`db:${collection}:${eventId}`)
+      .channel(`db:${collection}:${eventId}:${instanceIdRef.current}`)
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: collection, filter: `event_id=eq.${eventId}` },

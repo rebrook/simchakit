@@ -1,9 +1,21 @@
 {
-  "current": "V4.20.1",
+  "current": "V4.20.2",
   "whatsNew": [
-    "Ritual Coordinators now see a clear message when a link points to a section outside Ceremony and Prep, instead of being silently redirected"
+    "Fixed a bug where opening search could show an error instead of search results"
   ],
   "changelog": [
+    {
+      "version": "V4.20.2",
+      "date": "2026-07-29",
+      "summary": "Fixed a real-time channel crash when SearchOverlay and a tab load the same collection at once",
+      "changes": [
+        "Opening search as an owner crashed the app with the same class of error as V4.19.1's Budget tab crash, but this time between two legitimate components rather than dead code: SearchOverlay.jsx loads households, people, vendors, expenses, tasks, prep, gifts, and favors for search, all of which run in parallel with whatever tab is active by design",
+        "The Realtime channel name in useEventData.js was db:<collection>:<eventId> with no per-instance uniqueness, so two simultaneous hook instances for the same collection (one in the active tab, one in SearchOverlay) collided the moment both tried to open a channel with the identical name",
+        "Fixed at the root: every useEventData instance now generates a stable per-instance id once on mount, included in both the Realtime channel's topic name and the sync-status tracking key, so simultaneous instances for the same collection+event never collide",
+        "This is the correct general fix rather than another per-caller deletion, since unlike the Budget bug, both callers here have a legitimate reason to load the same collection at the same time",
+        "Caught cleanly by the app-level ErrorBoundary from V4.20.0 rather than blanking the page, and automatically reported with full diagnostics, exactly as that system was built to do"
+      ]
+    },
     {
       "version": "V4.20.1",
       "date": "2026-07-29",
