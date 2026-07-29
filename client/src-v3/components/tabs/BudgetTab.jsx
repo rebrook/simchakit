@@ -365,7 +365,6 @@ export function BudgetTab({ eventId, event, adminConfig, showToast, isArchived, 
   const toggleVendorGroup  = (key) => setExpandedVendors(v  => ({ ...v,  [key]: !v[key]  }));
   const toggleSectionGroup = (key) => setExpandedSections(s => ({ ...s, [key]: !s[key] }));
 
-  const { items: vendorsForExpense } = useEventData(eventId, "vendors");
   useSearchHighlight(searchHighlight, clearSearchHighlight, "budget");
 
   // Timeline sections from adminConfig
