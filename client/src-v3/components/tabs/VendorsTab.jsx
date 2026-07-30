@@ -13,6 +13,7 @@ import { computeVendorFinancials, getLastContacted, fmt$ } from "@/utils/vendors
 import { ArchivedNotice }    from "@/components/shared/ArchivedNotice.jsx";
 import { VendorQuickView }   from "@/components/shared/VendorQuickView.jsx";
 import { VendorModal }       from "@/components/shared/VendorModal.jsx";
+import { ConfirmDialog }     from "@/components/shared/ConfirmDialog.jsx";
 import { Icon }              from "@/utils/iconMap.jsx";
 
 export function VendorsTab({ eventId, event, adminConfig, showToast, isArchived, isViewer, searchHighlight, clearSearchHighlight, setTopbarSubtitle }) {
@@ -370,23 +371,13 @@ export function VendorsTab({ eventId, event, adminConfig, showToast, isArchived,
 
       {/* Delete confirm */}
       {deleteConfirm && (
-        <div className="modal-backdrop" onMouseDown={e => { if (e.target === e.currentTarget) setDeleteConfirm(null); }}>
-          <div className="modal" style={{maxWidth:400}} onClick={e => e.stopPropagation()}>
-            <div className="modal-header">
-              <div className="modal-title">Delete Vendor</div>
-              <button className="icon-btn" onClick={() => setDeleteConfirm(null)}><Icon name="x" context="button" /></button>
-            </div>
-            <div className="modal-body">
-              <p style={{fontSize:14,color:"var(--text-primary)",marginBottom:4,lineHeight:1.6}}>
-                This will permanently remove this vendor. Any expenses linked to this vendor will be unlinked but not deleted.
-              </p>
-              <div className="modal-footer">
-                <button className="btn btn-ghost" onClick={() => setDeleteConfirm(null)}>Cancel</button>
-                <button className="btn btn-danger" onClick={() => handleDelete(deleteConfirm)}>Delete Vendor</button>
-              </div>
-            </div>
-          </div>
-        </div>
+        <ConfirmDialog
+          title="Delete Vendor"
+          message="This will permanently remove this vendor. Any expenses linked to this vendor will be unlinked but not deleted."
+          confirmLabel="Delete Vendor"
+          onConfirm={() => handleDelete(deleteConfirm)}
+          onClose={() => setDeleteConfirm(null)}
+        />
       )}
     </div>
   );

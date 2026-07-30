@@ -9,6 +9,7 @@ import { useState, useEffect } from "react";
 import { supabase }            from "@/lib/supabase.js";
 import { GUIDE_SECTIONS, ACTION_COLORS } from "@/constants/ui.js";
 import { Icon }                from "@/utils/iconMap.jsx";
+import { ConfirmDialog }       from "@/components/shared/ConfirmDialog.jsx";
 
 // ── GuideModal ────────────────────────────────────────────────────────────────
 export function GuideModal({ onClose }) {
@@ -141,18 +142,13 @@ export function ActivityLogModal({ eventId, isArchived, onClose }) {
 
         {/* Clear Log confirmation dialog */}
         {showClearConfirm && (
-          <div className="modal-backdrop" onMouseDown={e => { if (e.target === e.currentTarget) setShowClearConfirm(false); }}>
-            <div className="modal" style={{ maxWidth:380 }} onClick={e => e.stopPropagation()}>
-              <div className="modal-header"><div className="modal-title">Clear Activity Log?</div><button className="icon-btn" onClick={() => setShowClearConfirm(false)}><Icon name="x" context="button" /></button></div>
-              <div className="modal-body">
-                <p style={{ fontSize:14, color:"var(--text-secondary)", marginBottom:0 }}>This will permanently wipe all activity log entries. This cannot be undone.</p>
-              </div>
-              <div className="modal-footer">
-                <button className="btn btn-secondary" onClick={() => setShowClearConfirm(false)}>Cancel</button>
-                <button className="btn btn-danger" onClick={handleClear}>Clear Log</button>
-              </div>
-            </div>
-          </div>
+          <ConfirmDialog
+            title="Clear Activity Log?"
+            message="This will permanently wipe all activity log entries. This cannot be undone."
+            confirmLabel="Clear Log"
+            onConfirm={handleClear}
+            onClose={() => setShowClearConfirm(false)}
+          />
         )}
 
         <div className="modal-body" style={{ overflowY:"auto", flex:1, minHeight:0, paddingTop:12 }}>

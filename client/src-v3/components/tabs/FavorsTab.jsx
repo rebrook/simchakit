@@ -13,6 +13,7 @@ import { SHIRT_SIZES }        from "@/constants/theme.js";
 import { newFavorId }         from "@/utils/ids.js";
 import { exportFavorsCSV, generateFavorPrintHTML } from "@/utils/exports.js";
 import { ArchivedNotice }     from "@/components/shared/ArchivedNotice.jsx";
+import { ConfirmDialog }      from "@/components/shared/ConfirmDialog.jsx";
 import { Icon }               from "@/utils/iconMap.jsx";
 import { supabase }           from "@/lib/supabase.js";
 
@@ -819,24 +820,14 @@ export function FavorsTab({
 
       {/* Delete confirm */}
       {deleteConfirm && (
-        <div className="modal-backdrop" onMouseDown={e => { if (e.target === e.currentTarget) { setDeleteConfirm(null); } }}>
-          <div className="modal" style={{ maxWidth: 400 }} onClick={e => e.stopPropagation()}>
-            <div className="modal-header">
-              <div className="modal-title">Delete Favor Recipient</div>
-              <button className="icon-btn" title="Close" onClick={() => setDeleteConfirm(null)}><Icon name="x" context="button" /></button>
-            </div>
-            <div className="modal-body">
-              <p style={{ fontSize: 14, color: "var(--text-primary)", lineHeight: 1.6 }}>
-                Delete <strong>{deleteConfirm.personName || "this person"}</strong> from the favors list?
-                {deleteConfirm.personId && " They will return to the Available panel."}
-              </p>
-              <div className="modal-footer">
-                <button className="btn btn-ghost" onClick={() => setDeleteConfirm(null)}>Cancel</button>
-                <button className="btn btn-danger" onClick={() => handleDelete(deleteConfirm.id)}>Delete</button>
-              </div>
-            </div>
-          </div>
-        </div>
+        <ConfirmDialog
+          title="Delete Favor Recipient"
+          message={<>Delete <strong>{deleteConfirm.personName || "this person"}</strong> from the favors list?
+            {deleteConfirm.personId && " They will return to the Available panel."}</>}
+          confirmLabel="Delete"
+          onConfirm={() => handleDelete(deleteConfirm.id)}
+          onClose={() => setDeleteConfirm(null)}
+        />
       )}
 
       {/* Export modal */}

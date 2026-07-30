@@ -12,6 +12,7 @@ import { newTableId }         from "@/utils/ids.js";
 import { exportSeatingByTable, exportSeatingByPerson, generateSeatingPrintHTML } from "@/utils/exports.js";
 import { autoSeatByHousehold } from "@/utils/seating.js";
 import { ArchivedNotice }     from "@/components/shared/ArchivedNotice.jsx";
+import { ConfirmDialog }      from "@/components/shared/ConfirmDialog.jsx";
 import { Icon }               from "@/utils/iconMap.jsx";
 
 export function SeatingTab({ eventId, event, adminConfig, showToast, isArchived, isViewer, setActiveTab, searchHighlight, clearSearchHighlight, setTopbarSubtitle }) {
@@ -643,21 +644,14 @@ export function SeatingTab({ eventId, event, adminConfig, showToast, isArchived,
       {deleteConfirm && (() => {
         const affected = tableOccupants(deleteConfirm.id).length;
         return (
-          <div className="modal-backdrop" onMouseDown={e => { if (e.target === e.currentTarget) setDeleteConfirm(null); }}>
-            <div className="modal" style={{ maxWidth: 400 }} onClick={e => e.stopPropagation()}>
-              <div className="modal-header"><div className="modal-title">Delete Table</div><button className="icon-btn" title="Close" onClick={() => setDeleteConfirm(null)}><Icon name="x" context="button" /></button></div>
-              <div className="modal-body">
-                <p style={{ fontSize: 14, color: "var(--text-primary)", lineHeight: 1.6, marginBottom: 4 }}>
-                  Permanently delete <strong>{deleteConfirm.name}</strong>?
-                  {affected > 0 && <span style={{ color: "var(--red)" }}> {affected} person{affected !== 1 ? "s" : ""} assigned here will be unassigned.</span>}
-                </p>
-                <div className="modal-footer">
-                  <button className="btn btn-ghost" onClick={() => setDeleteConfirm(null)}>Cancel</button>
-                  <button className="btn btn-danger" onClick={() => handleDeleteTable(deleteConfirm.id)}>Delete Table</button>
-                </div>
-              </div>
-            </div>
-          </div>
+          <ConfirmDialog
+            title="Delete Table"
+            message={<>Permanently delete <strong>{deleteConfirm.name}</strong>?
+              {affected > 0 && <span style={{ color: "var(--red)" }}> {affected} person{affected !== 1 ? "s" : ""} assigned here will be unassigned.</span>}</>}
+            confirmLabel="Delete Table"
+            onConfirm={() => handleDeleteTable(deleteConfirm.id)}
+            onClose={() => setDeleteConfirm(null)}
+          />
         );
       })()}
 

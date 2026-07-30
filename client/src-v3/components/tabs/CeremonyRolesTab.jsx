@@ -19,6 +19,7 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import { supabase }      from "@/lib/supabase.js";
 import { ArchivedNotice } from "@/components/shared/ArchivedNotice.jsx";
+import { ConfirmDialog }  from "@/components/shared/ConfirmDialog.jsx";
 import { Icon }            from "@/utils/iconMap.jsx";
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
@@ -645,28 +646,16 @@ export function CeremonyRolesTab({ eventId, event, adminConfig, showToast, isArc
       )}
 
       {deleteConfirm && (
-        <div className="modal-backdrop" onMouseDown={e => { if (e.target === e.currentTarget) setDeleteConfirm(null); }}>
-          <div className="modal" style={{ maxWidth: 380 }} onClick={e => e.stopPropagation()}>
-            <div className="modal-header">
-              <div className="modal-title">{deleteConfirm === "__reset__" ? "Reset to Template?" : "Remove Role?"}</div>
-              <button className="icon-btn" onClick={() => setDeleteConfirm(null)}><Icon name="x" context="button" /></button>
-            </div>
-            <div className="modal-body">
-              <p style={{ fontSize: 13, color: "var(--text-secondary)", lineHeight: 1.6 }}>
-                {deleteConfirm === "__reset__" ? "This will replace all current roles with the default template. This cannot be undone." : "This role will be permanently removed. This cannot be undone."}
-              </p>
-              <div className="modal-footer">
-                <button className="btn btn-ghost" onClick={() => setDeleteConfirm(null)}>Cancel</button>
-                <button className="btn btn-danger" onClick={() => {
-                  if (deleteConfirm === "__reset__") { loadTemplate(); setDeleteConfirm(null); }
-                  else handleDelete(deleteConfirm);
-                }}>
-                  {deleteConfirm === "__reset__" ? "Reset" : "Remove"}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
+        <ConfirmDialog
+          title={deleteConfirm === "__reset__" ? "Reset to Template?" : "Remove Role?"}
+          message={deleteConfirm === "__reset__" ? "This will replace all current roles with the default template. This cannot be undone." : "This role will be permanently removed. This cannot be undone."}
+          confirmLabel={deleteConfirm === "__reset__" ? "Reset" : "Remove"}
+          onConfirm={() => {
+            if (deleteConfirm === "__reset__") { loadTemplate(); setDeleteConfirm(null); }
+            else handleDelete(deleteConfirm);
+          }}
+          onClose={() => setDeleteConfirm(null)}
+        />
       )}
     </div>
   );

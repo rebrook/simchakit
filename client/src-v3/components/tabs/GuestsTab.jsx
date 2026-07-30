@@ -32,6 +32,7 @@ import {
 import { ArchivedNotice }    from "@/components/shared/ArchivedNotice.jsx";
 import { RsvpPill }          from "@/components/shared/RsvpPill.jsx";
 import { CateringSummary }   from "@/components/shared/CateringSummary.jsx";
+import { ConfirmDialog }     from "@/components/shared/ConfirmDialog.jsx";
 import { Icon }              from "@/utils/iconMap.jsx";
 import { useIsMobile }       from "@/hooks/useIsMobile.js";
 
@@ -602,18 +603,13 @@ export function GuestsTab({ eventId, event, adminConfig, showToast, isArchived, 
         </div>
       )}
       {deleteConfirm && (
-        <div className="modal-backdrop" onMouseDown={e=>{if(e.target===e.currentTarget)setDeleteConfirm(null);}}>
-          <div className="modal" style={{maxWidth:400}} onClick={e=>e.stopPropagation()}>
-            <div className="modal-header"><div className="modal-title">Delete Household</div><button className="icon-btn" title="Close" onClick={()=>setDeleteConfirm(null)}><Icon name="x" context="button" /></button></div>
-            <div className="modal-body">
-              <p style={{fontSize:14,color:"var(--text-primary)",marginBottom:8}}>This will permanently delete this household and all its members.</p>
-              <div className="modal-footer">
-                <button className="btn btn-ghost" onClick={()=>setDeleteConfirm(null)}>Cancel</button>
-                <button className="btn btn-danger" onClick={()=>deleteHousehold(deleteConfirm)}>Delete</button>
-              </div>
-            </div>
-          </div>
-        </div>
+        <ConfirmDialog
+          title="Delete Household"
+          message="This will permanently delete this household and all its members."
+          confirmLabel="Delete"
+          onConfirm={() => deleteHousehold(deleteConfirm)}
+          onClose={() => setDeleteConfirm(null)}
+        />
       )}
     </div>
   );

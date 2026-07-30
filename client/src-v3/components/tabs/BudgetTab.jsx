@@ -16,6 +16,7 @@ import { newExpenseId }       from "@/utils/ids.js";
 import { getDueStatus, getNextDue } from "@/utils/vendors.js";
 import { exportExpensesCSV }  from "@/utils/exports.js";
 import { ArchivedNotice }     from "@/components/shared/ArchivedNotice.jsx";
+import { ConfirmDialog }      from "@/components/shared/ConfirmDialog.jsx";
 import { Icon }               from "@/utils/iconMap.jsx";
 import { VendorQuickView }    from "@/components/shared/VendorQuickView.jsx";
 import { VendorModal }        from "@/components/shared/VendorModal.jsx";
@@ -1049,23 +1050,13 @@ export function BudgetTab({ eventId, event, adminConfig, showToast, isArchived, 
       </div>
 
       {deleteConfirm && (
-        <div className="modal-backdrop" onMouseDown={e => { if (e.target === e.currentTarget) setDeleteConfirm(null); }}>
-          <div className="modal" style={{ maxWidth: 380 }} onClick={e => e.stopPropagation()}>
-            <div className="modal-header">
-              <div className="modal-title">Delete Expense</div>
-              <button className="icon-btn" title="Close" onClick={() => setDeleteConfirm(null)}><Icon name="x" context="button" /></button>
-            </div>
-            <div className="modal-body">
-              <p style={{ fontSize: 14, color: "var(--text-primary)", marginBottom: 4 }}>
-                This will permanently remove <strong>{deleteConfirm.description}</strong> from your budget.
-              </p>
-              <div className="modal-footer">
-                <button className="btn btn-ghost" onClick={() => setDeleteConfirm(null)}>Cancel</button>
-                <button className="btn btn-danger" onClick={() => { handleDelete(deleteConfirm); setDeleteConfirm(null); }}>Delete</button>
-              </div>
-            </div>
-          </div>
-        </div>
+        <ConfirmDialog
+          title="Delete Expense"
+          message={<>This will permanently remove <strong>{deleteConfirm.description}</strong> from your budget.</>}
+          confirmLabel="Delete"
+          onConfirm={() => { handleDelete(deleteConfirm); setDeleteConfirm(null); }}
+          onClose={() => setDeleteConfirm(null)}
+        />
       )}
 
       {vendorQuick && (

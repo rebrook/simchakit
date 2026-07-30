@@ -13,6 +13,7 @@ import { MITZVAH_TYPES }      from "@/constants/events.js";
 import { PREP_CATEGORIES, PREP_STATUSES, PREP_STATUS_STYLES } from "@/constants/prep.js";
 import { newPrepId }          from "@/utils/ids.js";
 import { ArchivedNotice }     from "@/components/shared/ArchivedNotice.jsx";
+import { ConfirmDialog }      from "@/components/shared/ConfirmDialog.jsx";
 import { Icon }               from "@/utils/iconMap.jsx";
 import { TorahPortionCard }   from "@/components/shared/TorahPortionCard.jsx";
 
@@ -420,23 +421,13 @@ export function PrepTab({ eventId, event, adminConfig, showToast, isArchived, is
 
       {/* Delete confirm */}
       {deleteConfirm && (
-        <div className="modal-backdrop" onMouseDown={e => { if (e.target === e.currentTarget) { setDeleteConfirm(null); } }}>
-          <div className="modal" style={{ maxWidth: 400 }} onClick={e => e.stopPropagation()}>
-            <div className="modal-header">
-              <div className="modal-title">Delete Item</div>
-              <button className="icon-btn" title="Close" onClick={() => setDeleteConfirm(null)}><Icon name="x" context="button" /></button>
-            </div>
-            <div className="modal-body">
-              <p style={{ fontSize: 14, color: "var(--text-primary)", marginBottom: 4, lineHeight: 1.6 }}>
-                This will permanently remove this preparation item. This cannot be undone.
-              </p>
-              <div className="modal-footer">
-                <button className="btn btn-ghost" onClick={() => setDeleteConfirm(null)}>Cancel</button>
-                <button className="btn btn-danger" onClick={() => handleDelete(deleteConfirm)}>Delete Item</button>
-              </div>
-            </div>
-          </div>
-        </div>
+        <ConfirmDialog
+          title="Delete Item"
+          message="This will permanently remove this preparation item. This cannot be undone."
+          confirmLabel="Delete Item"
+          onConfirm={() => handleDelete(deleteConfirm)}
+          onClose={() => setDeleteConfirm(null)}
+        />
       )}
 
       {/* Clergy edit modal */}

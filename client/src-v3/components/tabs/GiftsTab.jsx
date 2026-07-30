@@ -14,6 +14,7 @@ import { newGiftId }           from "@/utils/ids.js";
 import { exportGiftsCSV, generateGiftPrintHTML } from "@/utils/exports.js";
 import { getAddressFields, formatAddress, migrateCityStateZip, COUNTRIES } from "@/utils/guests.js";
 import { ArchivedNotice }      from "@/components/shared/ArchivedNotice.jsx";
+import { ConfirmDialog }       from "@/components/shared/ConfirmDialog.jsx";
 import { Icon }                from "@/utils/iconMap.jsx";
 
 export function GiftsTab({ eventId, event, adminConfig, showToast, isArchived, isViewer, searchHighlight, clearSearchHighlight, setTopbarSubtitle }) {
@@ -381,23 +382,13 @@ export function GiftsTab({ eventId, event, adminConfig, showToast, isArchived, i
 
       {/* Delete confirm */}
       {deleteConfirm && (
-        <div className="modal-backdrop" onMouseDown={e => { if (e.target === e.currentTarget) { setDeleteConfirm(null); } }}>
-          <div className="modal" style={{ maxWidth: 400 }} onClick={e => e.stopPropagation()}>
-            <div className="modal-header">
-              <div className="modal-title">Delete Gift</div>
-              <button className="icon-btn" title="Close" onClick={() => setDeleteConfirm(null)}><Icon name="x" context="button" /></button>
-            </div>
-            <div className="modal-body">
-              <p style={{ fontSize: 14, color: "var(--text-primary)", lineHeight: 1.6 }}>
-                Permanently remove the gift from <strong>{deleteConfirm.fromName || "this donor"}</strong>? This cannot be undone.
-              </p>
-              <div className="modal-footer">
-                <button className="btn btn-ghost" onClick={() => setDeleteConfirm(null)}>Cancel</button>
-                <button className="btn btn-danger" onClick={() => handleDelete(deleteConfirm.id)}>Delete Gift</button>
-              </div>
-            </div>
-          </div>
-        </div>
+        <ConfirmDialog
+          title="Delete Gift"
+          message={<>Permanently remove the gift from <strong>{deleteConfirm.fromName || "this donor"}</strong>? This cannot be undone.</>}
+          confirmLabel="Delete Gift"
+          onConfirm={() => handleDelete(deleteConfirm.id)}
+          onClose={() => setDeleteConfirm(null)}
+        />
       )}
 
       {/* Export modal */}

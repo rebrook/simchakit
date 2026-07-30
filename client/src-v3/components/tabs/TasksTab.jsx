@@ -15,6 +15,8 @@ import { newTaskId }          from "@/utils/ids.js";
 import { getTaskDueStatus, computeSuggestions, getSmartTaskTemplates } from "@/utils/tasks.js";
 import { ArchivedNotice }     from "@/components/shared/ArchivedNotice.jsx";
 import { SuggestionsPanel }   from "@/components/shared/SuggestionsPanel.jsx";
+import { ConfirmDialog }      from "@/components/shared/ConfirmDialog.jsx";
+import { Modal }              from "@/components/shared/Modal.jsx";
 import { Icon }               from "@/utils/iconMap.jsx";
 
 export function TaskModal({ task, prefilled, onSave, onClose, isArchived }) {
@@ -747,52 +749,44 @@ export function TasksTab({ eventId, event, adminConfig, showToast, isArchived, i
 
       {/* Delete confirm */}
       {deleteConfirm && (
-        <div className="modal-backdrop" onMouseDown={e => { if (e.target === e.currentTarget) { setDeleteConfirm(null); } }}>
-          <div className="modal" style={{maxWidth:380}} onClick={e => e.stopPropagation()}>
-            <div className="modal-header">
-              <div className="modal-title">Delete Task</div>
-              <button className="icon-btn" title="Close" onClick={() => setDeleteConfirm(null)}><Icon name="x" context="button" /></button>
-            </div>
-            <div className="modal-body">
-              <p style={{fontSize:14,color:"var(--text-primary)",marginBottom:4,lineHeight:1.6}}>
-                This will permanently remove this task.
-              </p>
-              <div className="modal-footer">
-                <button className="btn btn-ghost" onClick={() => setDeleteConfirm(null)}>Cancel</button>
-                <button className="btn btn-danger" onClick={() => handleDelete(deleteConfirm)}>Delete Task</button>
-              </div>
-            </div>
-          </div>
-        </div>
+        <ConfirmDialog
+          title="Delete Task"
+          message="This will permanently remove this task."
+          confirmLabel="Delete Task"
+          onConfirm={() => handleDelete(deleteConfirm)}
+          onClose={() => setDeleteConfirm(null)}
+        />
       )}
 
       {/* Link confirm */}
       {linkConfirm && (
-        <div className="modal-backdrop" onMouseDown={e => { if (e.target === e.currentTarget) { setLinkConfirm(null); } }}>
-          <div className="modal" style={{maxWidth:420}} onClick={e => e.stopPropagation()}>
-            <div className="modal-header">
-              <div className="modal-title">
-                {linkConfirm.action === "markPaid" ? <><Icon name="banknote" context="inline" style={{ marginRight: 4 }} /> Mark Payment Paid?</> : <><Icon name="prep" context="inline" style={{ marginRight: 4 }} /> Update Prep Item?</>}
-              </div>
-              <button className="icon-btn" title="Close" onClick={() => setLinkConfirm(null)}><Icon name="x" context="button" /></button>
+        <Modal
+          onClose={() => setLinkConfirm(null)}
+          ariaLabel={linkConfirm.action === "markPaid" ? "Mark Payment Paid?" : "Update Prep Item?"}
+          maxWidth={420}
+        >
+          <div className="modal-header">
+            <div className="modal-title">
+              {linkConfirm.action === "markPaid" ? <><Icon name="banknote" context="inline" style={{ marginRight: 4 }} /> Mark Payment Paid?</> : <><Icon name="prep" context="inline" style={{ marginRight: 4 }} /> Update Prep Item?</>}
             </div>
-            <div className="modal-body">
-              <p style={{fontSize:14,color:"var(--text-primary)",marginBottom:12,lineHeight:1.6}}>
-                {linkConfirm.action === "markPaid"
-                  ? <>Completing this task will also mark <strong>"{linkConfirm.label}"</strong> as paid in your budget. Do you want to update it now?</>
-                  : <>Completing this task will also mark <strong>"{linkConfirm.label}"</strong> as Complete in Prep. Do you want to update it now?</>
-                }
-              </p>
-              <div className="modal-footer">
-                <button className="btn btn-ghost" onClick={() => setLinkConfirm(null)}>Cancel</button>
-                <button className="btn btn-secondary" onClick={() => handleLinkConfirm(false)}>Complete Task Only</button>
-                <button className="btn btn-primary" onClick={() => handleLinkConfirm(true)}>
-                  {linkConfirm.action === "markPaid" ? "Mark as Paid" : "Mark as Complete"}
-                </button>
-              </div>
+            <button className="icon-btn" title="Close" onClick={() => setLinkConfirm(null)}><Icon name="x" context="button" /></button>
+          </div>
+          <div className="modal-body">
+            <p style={{fontSize:14,color:"var(--text-primary)",marginBottom:12,lineHeight:1.6}}>
+              {linkConfirm.action === "markPaid"
+                ? <>Completing this task will also mark <strong>"{linkConfirm.label}"</strong> as paid in your budget. Do you want to update it now?</>
+                : <>Completing this task will also mark <strong>"{linkConfirm.label}"</strong> as Complete in Prep. Do you want to update it now?</>
+              }
+            </p>
+            <div className="modal-footer">
+              <button className="btn btn-ghost" onClick={() => setLinkConfirm(null)}>Cancel</button>
+              <button className="btn btn-secondary" onClick={() => handleLinkConfirm(false)}>Complete Task Only</button>
+              <button className="btn btn-primary" onClick={() => handleLinkConfirm(true)}>
+                {linkConfirm.action === "markPaid" ? "Mark as Paid" : "Mark as Complete"}
+              </button>
             </div>
           </div>
-        </div>
+        </Modal>
       )}
 
       {/* Smart Tasks modal */}
