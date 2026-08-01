@@ -1,26 +1,51 @@
 // Vendor and budget utilities — financials, due dates, and currency formatting
 
+import { hasPayments, isFullyPaid, totalAmount, amountPaid } from "./expensePayments.js";
+
+// For an expense with a payment schedule, find the earliest due date among
+// its not-yet-paid installments. Returns null if there's nothing scheduled
+// with a due date (mirrors the legacy "no dueDate means not surfaced" rule).
+function nextInstallmentDueDate(expense) {
+  const unpaid = (expense.payments || []).filter(p => p.status !== "paid" && p.dueDate);
+  if (!unpaid.length) return null;
+  return unpaid.sort((a, b) => a.dueDate.localeCompare(b.dueDate))[0].dueDate;
+}
+
 function getDueStatus(expense) {
-  if (expense.paid || !expense.dueDate) return null;
+  if (isFullyPaid(expense)) return null;
+  const dueDate = hasPayments(expense) ? nextInstallmentDueDate(expense) : expense.dueDate;
+  if (!dueDate) return null;
   const today = new Date();
   today.setHours(0,0,0,0);
-  const due = new Date(expense.dueDate + "T00:00:00");
+  const due = new Date(dueDate + "T00:00:00");
   const diff = Math.ceil((due - today) / (1000*60*60*24));
   if (diff < 0)  return { label: "Overdue", cls: "expense-row-overdue", diff };
   if (diff <= 14) return { label: `Due in ${diff}d`, cls: "expense-row-due", diff };
-  return { label: `Due ${new Date(expense.dueDate+"T00:00:00").toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"})}`, cls: "expense-row-due", diff };
+  return { label: `Due ${new Date(dueDate+"T00:00:00").toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"})}`, cls: "expense-row-due", diff };
 }
 
 function getNextDue(expenses) {
-  const unpaid = expenses.filter(e => !e.paid && e.dueDate);
-  if (!unpaid.length) return null;
-  return unpaid.sort((a,b) => new Date(a.dueDate) - new Date(b.dueDate))[0];
+  const candidates = [];
+  (expenses || []).forEach(e => {
+    if (isFullyPaid(e)) return;
+    if (hasPayments(e)) {
+      (e.payments || []).forEach(p => {
+        if (p.status !== "paid" && p.dueDate) {
+          candidates.push({ description: `${e.description} — ${p.label}`, amount: p.amount, dueDate: p.dueDate });
+        }
+      });
+    } else if (e.dueDate) {
+      candidates.push({ description: e.description, amount: e.amount, dueDate: e.dueDate });
+    }
+  });
+  if (!candidates.length) return null;
+  return candidates.sort((a,b) => new Date(a.dueDate) - new Date(b.dueDate))[0];
 }
 
 function computeVendorFinancials(vendor, expenses) {
   const linked = (expenses||[]).filter(e => e.vendorId === vendor.id);
-  const totalPaid       = linked.filter(e => e.paid).reduce((s,e) => s + (parseFloat(e.amount)||0), 0);
-  const totalScheduled  = linked.filter(e => !e.paid).reduce((s,e) => s + (parseFloat(e.amount)||0), 0);
+  const totalPaid       = linked.reduce((s,e) => s + amountPaid(e), 0);
+  const totalScheduled  = linked.reduce((s,e) => s + (totalAmount(e) - amountPaid(e)), 0);
   const contractAmt     = parseFloat(vendor.contractAmt) || 0;
   const totalLinked     = totalPaid + totalScheduled;
   const unscheduled     = Math.max(0, contractAmt - totalLinked);

@@ -1,9 +1,28 @@
 {
-  "current": "V4.21.0",
+  "current": "V4.22.0",
   "whatsNew": [
-    "Confirmation dialogs across the app (delete, clear log, etc.) are now fully keyboard-accessible: Escape closes them, Tab stays inside the dialog, and focus returns to where you were when you close it"
+    "Expenses can now carry a partial payment schedule (deposit, 50%, balance, or any custom installments) instead of needing separate line items for each payment"
   ],
   "changelog": [
+    {
+      "version": "V4.22.0",
+      "date": "2026-08-01",
+      "summary": "Partial/installment payments on expenses (V3 only)",
+      "changes": [
+        "New optional payments array on expense records: a single expense can now carry a payment schedule (e.g. Deposit, 50% payment, Balance) instead of requiring separate expense rows per installment. expense.amount remains the total contract amount; existing expenses with no payments array are unaffected and render identically to before",
+        "New utils/expensePayments.js (V3 only): totalAmount, amountPaid, amountRemaining, isFullyPaid, and getPaymentStatus helpers, used everywhere BudgetTab reads totals so installments never double-count or drop an amount",
+        "BudgetTab: expense rows get a payment-schedule toggle. Expanding shows each installment with label, amount, due date, and a status pill (Scheduled, Paid, or Overdue, the last derived at render time and never stored), plus inline Mark Paid and Remove actions and an Add Payment row",
+        "Collapsed rows for expenses with a payment schedule show a compact progress bar and paid-of-total amount instead of the single paid checkbox",
+        "A non-blocking note appears if the payment schedule total does not match the expense's contract amount",
+        "Budget stat cards, category totals, vendor group totals, and section group totals now compute from installment payments when present",
+        "CSV export gains four columns: Total Amount, Amount Paid, Amount Remaining, Fully Paid. Existing columns and column order are unchanged",
+        "Extracted a shared ExpenseRow component from the three previously-duplicated List/Vendor/Section row renderers as part of this change; no visual or behavioral change to the existing three views",
+        "This feature is V3 only by design. V2's BudgetTab does not receive installment payments",
+        "utils/vendors.js: getDueStatus and getNextDue now use isFullyPaid() and, for expenses with a payment schedule, surface the next unpaid installment's own due date and amount instead of only the legacy top-level dueDate. Fixes the Next Payment Due stat card and Due date sort so they reflect installments",
+        "utils/vendors.js: computeVendorFinancials now splits a partially-paid installment expense correctly between paid and scheduled amounts, instead of counting it entirely as one or the other",
+        "Guide updated: new 'Payment schedules' entry under Budget explaining the \u25be expand affordance, and the 'Tracking expenses' / 'Due dates & payment suggestions' entries clarified"
+      ]
+    },
     {
       "version": "V4.21.0",
       "date": "2026-07-30",

@@ -2,7 +2,7 @@
 
 A real-time event planning web app for celebrations — B'nei Mitzvot, weddings, and other simchas.
 
-![Version](https://img.shields.io/badge/version-4.21.0-blue)
+![Version](https://img.shields.io/badge/version-4.22.0-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
 ## Hosted Version
@@ -28,7 +28,7 @@ A real-time event planning web app for celebrations — B'nei Mitzvot, weddings,
 - **Shared Access** — invite co-planners as Editors (full access) or Viewers (read-only), or a Ritual Coordinator (ceremony and prep only) for clergy or tutors; collaborators covered by the event owner's purchase
 - **Guest Management** — households, people, formal names, dietary requirements, RSVP tracking
 - **Sub-Event Support** — track attendance across multiple events (service, kiddush, reception)
-- **Budget Tracking** — expenses, payments, vendor costs, gratuity calculator
+- **Budget Tracking** — expenses, payments, vendor costs, gratuity calculator; optional partial/installment payment schedules per expense (V3 only)
 - **Vendor Management** — contacts, contracts, payment schedules
 - **Task Lists** — categorized to-dos with due dates and completion tracking
 - **Seating Charts** — table management with drag-and-drop assignment

@@ -1,6 +1,7 @@
 import { sortTimeline, formatEntryMeta } from "./dates.js";
 import { getHouseholdAttending, formatAddress, migrateCityStateZip } from "./guests.js";
 import { computeVendorFinancials, fmt$ } from "./vendors.js";
+import { totalAmount, amountPaid, amountRemaining, isFullyPaid } from "./expensePayments.js";
 import { PALETTES } from "@/constants/theme.js";
 import { iconSvg } from "@/utils/iconSvg.js";
 
@@ -30,7 +31,10 @@ function escHtml(val) {
 }
 
 function exportExpensesCSV(expenses) {
-  const headers = ["Description","Category","Vendor","Budgeted","Amount","Variance","Paid","Date","Due Date","Notes"];
+  const headers = [
+    "Description","Category","Vendor","Budgeted","Amount","Variance","Paid","Date","Due Date","Notes",
+    "Total Amount","Amount Paid","Amount Remaining","Fully Paid",
+  ];
   const rows = [...expenses]
     .sort((a,b) => (a.category||"").localeCompare(b.category||""))
     .map(e => {
@@ -48,6 +52,10 @@ function exportExpensesCSV(expenses) {
         e.date||"",
         e.dueDate||"",
         e.notes||"",
+        totalAmount(e).toFixed(2),
+        amountPaid(e).toFixed(2),
+        amountRemaining(e).toFixed(2),
+        isFullyPaid(e) ? "Yes" : "No",
       ];
     });
   return [headers.map(csvEsc).join(","), ...rows.map(r => r.map(csvEsc).join(","))].join("\n");

@@ -15,6 +15,10 @@ import { TIPPABLE_CATEGORIES, EXPENSE_CATEGORIES } from "@/constants/budget.js";
 import { newExpenseId }       from "@/utils/ids.js";
 import { getDueStatus, getNextDue } from "@/utils/vendors.js";
 import { exportExpensesCSV }  from "@/utils/exports.js";
+import {
+  hasPayments, totalAmount, amountPaid, amountRemaining, isFullyPaid,
+  getPaymentStatus, paymentMismatch, newPaymentId,
+} from "@/utils/expensePayments.js";
 import { ArchivedNotice }     from "@/components/shared/ArchivedNotice.jsx";
 import { ConfirmDialog }      from "@/components/shared/ConfirmDialog.jsx";
 import { Icon }               from "@/utils/iconMap.jsx";
@@ -337,6 +341,329 @@ function BudgetInsights({ expenses, catRows, catPaid, catBudgeted, hasAnyBudgete
   );
 }
 
+// ── PaymentStatusPill ──────────────────────────────────────────────────────────
+// Reuses the existing .rsvp-pill visual language (padding/radius/weight from
+// App.css) rather than inventing a new badge system. Non-interactive: payment
+// status is derived, not clicked into a dropdown like the RSVP pill is.
+function PaymentStatusPill({ status }) {
+  const cfg = {
+    paid:      { label: "Paid",      bg: "var(--green)" },
+    overdue:   { label: "Overdue",   bg: "var(--red)"   },
+    scheduled: { label: "Scheduled", bg: "var(--gold)"  },
+  }[status] || { label: status, bg: "var(--text-muted)" };
+  return (
+    <span className="rsvp-pill" style={{ background: cfg.bg, color: "#fff", cursor: "default" }}>
+      {cfg.label}
+    </span>
+  );
+}
+
+// ── ExpenseRow ────────────────────────────────────────────────────────────────
+// Shared row renderer for List / Vendor / Section views. The base row (check,
+// desc, meta, amount, actions, pending-paid-date block) was extracted verbatim
+// from the three previously-duplicated inline blocks — no behavior change there.
+// Variant-specific differences (meta composition, notes toggle, budget
+// variance, row id, padding, and the viewer-guard inconsistency on the
+// pending-paid confirm buttons) are preserved exactly as they existed per view.
+//
+// New in this pass: an optional installment payment schedule per expense.
+// Every payments-related branch below is gated on hasPayments(e)/expanded, so
+// an expense with no payments array renders pixel-identical to before.
+function ExpenseRow({
+  e, eIdx, variant, vendors, hasAnyBudgeted, isArchived, isViewer,
+  expandedNotes, toggleNotes, togglePaid, setVendorQuick, setEditing, setShowAdd,
+  setDeleteConfirm, pendingPaidId, pendingPaidIdx, pendingPaidDate, setPendingPaidDate,
+  confirmPaid, cancelPaid, fmt, onUpdateExpense, showToast,
+}) {
+  const dueStatus     = getDueStatus(e);
+  const linkedVendor  = e.vendorId ? vendors.find(v => v.id === e.vendorId) : null;
+  const hasNotes      = variant !== "section" && !!(e.notes && e.notes.trim());
+  const notesOpen     = !!expandedNotes[e.id];
+  const actionsDisabled = variant === "section" ? isArchived : (isArchived || isViewer);
+  const guardConfirm  = variant !== "vendorGroup"; // matches pre-existing inconsistency, not a fix
+
+  // ── Installment payment schedule state (local to this row instance) ──────
+  const [expanded, setExpanded]           = useState(false);
+  const [removePayment, setRemovePayment] = useState(null); // payment object pending delete confirm
+  const [newLabel, setNewLabel]           = useState("");
+  const [newAmount, setNewAmount]         = useState("");
+  const [newDue, setNewDue]               = useState("");
+
+  const payHasPayments = hasPayments(e);
+  const payTotal       = totalAmount(e);
+  const payPaid        = amountPaid(e);
+  const payFullyPaid   = isFullyPaid(e);
+  const payPct         = payTotal > 0 ? (payPaid / payTotal * 100) : 0;
+  const mismatch       = paymentMismatch(e);
+
+  const persistPayments = async (nextPayments) => {
+    await onUpdateExpense({ ...e, payments: nextPayments });
+  };
+
+  const handleMarkPaymentPaid = async (paymentId) => {
+    if (actionsDisabled) return;
+    const next = (e.payments || []).map(p =>
+      p.id === paymentId ? { ...p, status: "paid", paidDate: new Date().toISOString().slice(0, 10) } : p
+    );
+    await persistPayments(next);
+    showToast("Payment marked paid");
+  };
+
+  const handleAddPayment = async () => {
+    if (actionsDisabled) return;
+    if (!newAmount || isNaN(parseFloat(newAmount))) return;
+    const payment = {
+      id: newPaymentId(),
+      label: newLabel.trim() || "Payment",
+      amount: newAmount,
+      dueDate: newDue || "",
+      paidDate: null,
+      status: "scheduled",
+    };
+    await persistPayments([...(e.payments || []), payment]);
+    setNewLabel(""); setNewAmount(""); setNewDue("");
+    showToast("Payment added");
+  };
+
+  const handleRemovePayment = async () => {
+    if (!removePayment) return;
+    const next = (e.payments || []).filter(p => p.id !== removePayment.id);
+    await persistPayments(next);
+    setRemovePayment(null);
+    showToast("Payment removed");
+  };
+
+  let metaNode;
+  if (variant === "list") {
+    const preMeta  = e.category ? [e.category] : [];
+    const postMeta = (e.paid && e.date) ? [`Paid ${fmt(e.date)}`] : [];
+    metaNode = (
+      <div className="expense-row-meta">
+        {preMeta.join(" · ")}
+        {(e.vendor || linkedVendor) && (
+          <>
+            {preMeta.length > 0 && " · "}
+            {linkedVendor ? (
+              <button className="vendor-name-link"
+                style={{fontSize:11,fontWeight:600,color:"var(--accent-primary)"}}
+                onClick={() => setVendorQuick(linkedVendor)}>
+                {linkedVendor.name}
+              </button>
+            ) : (
+              <span>{e.vendor}</span>
+            )}
+          </>
+        )}
+        {postMeta.length > 0 && (
+          <span>{(preMeta.length > 0 || e.vendor) ? " · " : ""}{postMeta.join(" · ")}</span>
+        )}
+        {dueStatus && (
+          <span className={dueStatus.cls}> · {dueStatus.label}</span>
+        )}
+        {hasNotes && (
+          <button
+            style={{background:"none",border:"none",cursor:"pointer",
+              fontSize:11,color:"var(--text-muted)",padding:"0 0 0 4px"}}
+            onClick={() => toggleNotes(e.id)}>
+            {notesOpen ? "▴ hide" : "▾ notes"}
+          </button>
+        )}
+      </div>
+    );
+  } else if (variant === "vendorGroup") {
+    const postMeta = (e.paid && e.date) ? [`Paid ${fmt(e.date)}`] : [];
+    metaNode = (
+      <div className="expense-row-meta">
+        {e.category && <span>{e.category}</span>}
+        {postMeta.length > 0 && <span>{e.category ? " · " : ""}{postMeta.join(" · ")}</span>}
+        {dueStatus && <span className={dueStatus.cls}> · {dueStatus.label}</span>}
+        {hasNotes && (
+          <button
+            style={{background:"none",border:"none",cursor:"pointer",fontSize:11,color:"var(--text-muted)",padding:"0 0 0 4px"}}
+            onClick={() => toggleNotes(e.id)}>
+            {notesOpen ? "▴ hide" : "▾ notes"}
+          </button>
+        )}
+      </div>
+    );
+  } else {
+    metaNode = (
+      <div className="expense-row-meta">
+        {[e.category, (vendors.find(v => v.id === e.vendorId)?.name || e.vendor)].filter(Boolean).join(" · ")}
+        {dueStatus && <span className={dueStatus.cls} style={{marginLeft:4}}>{dueStatus.label}</span>}
+      </div>
+    );
+  }
+
+  return (
+    <div
+      id={variant !== "vendorGroup" ? `row-${e.id}` : undefined}
+      className="expense-row"
+      style={{opacity: e.paid ? 0.7 : 1, ...(variant === "vendorGroup" ? { paddingLeft: 32 } : {})}}
+    >
+      <div className="expense-row-check">
+        {payHasPayments ? (
+          <div
+            className={`paid-check ${payFullyPaid ? "checked" : ""}`}
+            title={payFullyPaid ? "Fully paid" : `${fmt$(payPaid)} of ${fmt$(payTotal)} paid`}
+            style={{ cursor: "default" }}
+          >
+            {payFullyPaid && (
+              <svg width="11" height="9" viewBox="0 0 11 9" fill="none">
+                <path d="M1 4.5L4 7.5L10 1" stroke="white" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            )}
+          </div>
+        ) : (
+          <div
+            className={`paid-check ${e.paid ? "checked" : ""}`}
+            onClick={() => togglePaid(e, eIdx)}
+            title={e.paid ? "Mark as unpaid" : "Mark as paid"}
+          >
+            {e.paid && (
+              <svg width="11" height="9" viewBox="0 0 11 9" fill="none">
+                <path d="M1 4.5L4 7.5L10 1" stroke="white" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            )}
+          </div>
+        )}
+      </div>
+      <div className="expense-row-body">
+        <div className="expense-row-desc">{e.description}</div>
+        {metaNode}
+        {variant !== "section" && hasNotes && notesOpen && (
+          <div className="task-notes-text">{e.notes}</div>
+        )}
+        {payHasPayments && (
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 5 }}>
+            <div style={{ flex: 1, maxWidth: 160, height: 4, background: "var(--border)", borderRadius: 99, overflow: "hidden" }}>
+              <div style={{ height: "100%", width: `${payPct}%`, background: "var(--green)", borderRadius: 99, transition: "width 0.3s ease" }} />
+            </div>
+            <span style={{ fontSize: 11, color: "var(--text-muted)", whiteSpace: "nowrap" }}>
+              {fmt$(payPaid)} of {fmt$(payTotal)} paid
+            </span>
+          </div>
+        )}
+      </div>
+      <div className="expense-row-amount">
+        ${(parseFloat(e.amount)||0).toLocaleString("en-US",{minimumFractionDigits:0,maximumFractionDigits:0})}
+        {variant === "list" && hasAnyBudgeted && (() => {
+          const b = parseFloat(e.budgeted);
+          const a = parseFloat(e.amount) || 0;
+          if (!b) return <div style={{fontSize:10,color:"var(--text-muted)",marginTop:2}}>no estimate</div>;
+          const diff = a - b;
+          const color = diff > 0 ? "var(--red)" : "var(--green)";
+          return (
+            <div style={{fontSize:10,fontWeight:600,color,marginTop:2}}>
+              {diff > 0 ? "▲" : "▼"} ${Math.abs(diff).toLocaleString("en-US",{minimumFractionDigits:0,maximumFractionDigits:0})}
+            </div>
+          );
+        })()}
+      </div>
+      <div className="expense-row-actions">
+        <button className="icon-btn" title={expanded ? "Hide payment schedule" : "Payment schedule"}
+          style={{width:22,height:28,fontSize:11,opacity: payHasPayments ? 1 : 0.4}}
+          onClick={() => setExpanded(x => !x)}>
+          {expanded ? "▴" : "▾"}
+        </button>
+        <button className="icon-btn" title="Edit"
+          style={{width:28,height:28,fontSize:13}}
+          disabled={actionsDisabled} onClick={() => { setEditing(e); setShowAdd(true); }}><Icon name="pencil" context="badge" /></button>
+        <button className="icon-btn" title="Delete"
+          style={{width:28,height:28,fontSize:13,color:"var(--red)"}}
+          disabled={actionsDisabled} onClick={() => setDeleteConfirm(e)}><Icon name="x" context="badge" /></button>
+      </div>
+      {pendingPaidId === (e.id || e._rowId) && pendingPaidIdx === eIdx && (
+        <div style={{gridColumn:"1/-1",display:"flex",alignItems:"center",gap:8,flexWrap:"wrap",marginTop:6,padding:"10px 12px",background:"var(--green-light)",border:"1px solid var(--green)",borderRadius:"var(--radius-sm)"}}>
+          <span style={{fontSize:12,fontWeight:600,color:"var(--green)",flexShrink:0}}><Icon name="calendarCheck" context="badge" style={{ marginRight: 3 }} /> Payment date:</span>
+          <input className="form-input" type="date" value={pendingPaidDate}
+            onChange={e2 => setPendingPaidDate(e2.target.value)}
+            style={{width:150,fontSize:12,padding:"4px 8px"}} />
+          {guardConfirm ? (
+            <>
+              {!isViewer && <button className="btn btn-primary btn-sm" style={{fontSize:12}} onClick={confirmPaid}>Confirm paid</button>}
+              {!isViewer && <button className="btn btn-secondary btn-sm" style={{fontSize:12}} onClick={cancelPaid}>Cancel</button>}
+            </>
+          ) : (
+            <>
+              <button className="btn btn-primary btn-sm" style={{fontSize:12}} onClick={confirmPaid}>Confirm paid</button>
+              <button className="btn btn-secondary btn-sm" style={{fontSize:12}} onClick={cancelPaid}>Cancel</button>
+            </>
+          )}
+        </div>
+      )}
+      {expanded && (
+        <div style={{
+          gridColumn: "1/-1", marginTop: 8, padding: "12px 14px",
+          background: "var(--bg-subtle)", border: "1px solid var(--border)", borderRadius: "var(--radius-sm)",
+        }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.04em", marginBottom: 8 }}>
+            Payment Schedule
+          </div>
+
+          {mismatch && (
+            <div style={{ fontSize: 12, color: "var(--gold)", marginBottom: 10, padding: "6px 10px", background: "var(--gold-light)", border: "1px solid var(--gold)", borderRadius: "var(--radius-sm)" }}>
+              Payments total {fmt$(mismatch.paymentsTotal)} — {fmt$(Math.abs(mismatch.diff))} {mismatch.diff > 0 ? "under" : "over"} the {fmt$(mismatch.contractTotal)} contract amount
+            </div>
+          )}
+
+          {payHasPayments && (
+            <div style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: 12 }}>
+              {e.payments.map(p => {
+                const status = getPaymentStatus(p);
+                return (
+                  <div key={p.id} style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap", padding: "6px 8px", background: "var(--bg-surface)", borderRadius: "var(--radius-sm)" }}>
+                    <span style={{ flex: "1 1 120px", fontSize: 13, fontWeight: 600, color: "var(--text-primary)" }}>{p.label}</span>
+                    <span style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)", fontFamily: "var(--font-mono, monospace)" }}>
+                      ${(parseFloat(p.amount)||0).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2})}
+                    </span>
+                    <span style={{ fontSize: 12, color: "var(--text-muted)", minWidth: 90 }}>{p.dueDate ? fmt(p.dueDate) : "No due date"}</span>
+                    <PaymentStatusPill status={status} />
+                    {!actionsDisabled && status !== "paid" && (
+                      <button className="btn btn-secondary btn-sm" style={{ fontSize: 11 }} onClick={() => handleMarkPaymentPaid(p.id)}>Mark paid</button>
+                    )}
+                    {!actionsDisabled && (
+                      <button className="icon-btn" title="Remove payment" style={{ width: 24, height: 24, fontSize: 12, color: "var(--red)" }}
+                        onClick={() => setRemovePayment(p)}><Icon name="x" context="badge" /></button>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {!actionsDisabled && (
+            <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+              <input className="form-input" type="text" placeholder="Label (e.g. Deposit)"
+                value={newLabel} onChange={ev => setNewLabel(ev.target.value)}
+                style={{ flex: "1 1 140px", fontSize: 12, padding: "6px 8px" }} />
+              <input className="form-input" type="number" min="0" step="0.01" placeholder="Amount"
+                value={newAmount} onChange={ev => setNewAmount(ev.target.value)}
+                style={{ width: 100, fontSize: 12, padding: "6px 8px" }} />
+              <input className="form-input" type="date" value={newDue}
+                onChange={ev => setNewDue(ev.target.value)}
+                style={{ width: 150, fontSize: 12, padding: "6px 8px" }} />
+              <button className="btn btn-primary btn-sm" style={{ fontSize: 12 }}
+                disabled={!newAmount || isNaN(parseFloat(newAmount))}
+                onClick={handleAddPayment}>+ Add payment</button>
+            </div>
+          )}
+
+          {removePayment && (
+            <ConfirmDialog
+              title="Remove Payment"
+              message={<>This will remove <strong>{removePayment.label}</strong> ({fmt$(parseFloat(removePayment.amount)||0)}) from this expense's payment schedule.</>}
+              confirmLabel="Remove"
+              onConfirm={handleRemovePayment}
+              onClose={() => setRemovePayment(null)}
+            />
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ── BudgetTab ─────────────────────────────────────────────────────────────────
 export function BudgetTab({ eventId, event, adminConfig, showToast, isArchived, isViewer, searchHighlight, clearSearchHighlight, setTopbarSubtitle }) {
   const { items: expenses, loading: eLoading, save, remove } = useEventData(eventId, "expenses");
@@ -372,15 +699,18 @@ export function BudgetTab({ eventId, event, adminConfig, showToast, isArchived, 
   const timelineSections = (adminConfig?.timeline || []).filter(t => t.title);
 
   // ── Stats ────────────────────────────────────────────────────────────────
-  const totalExpenses     = expenses.reduce((s, e) => s + (parseFloat(e.amount) || 0), 0);
-  const totalPaid         = expenses.filter(e => e.paid).reduce((s, e) => s + (parseFloat(e.amount) || 0), 0);
+  // Routed through the payment helpers: falls back to expense.amount/paid when
+  // an expense has no payments array, so totals never double-count or drop
+  // an amount once some expenses carry installments and others don't.
+  const totalExpenses     = expenses.reduce((s, e) => s + totalAmount(e), 0);
+  const totalPaid         = expenses.reduce((s, e) => s + amountPaid(e), 0);
   const totalUnpaid       = totalExpenses - totalPaid;
-  const unpaidCount       = expenses.filter(e => !e.paid).length;
+  const unpaidCount       = expenses.filter(e => !isFullyPaid(e)).length;
   const hasBudgeted       = expenses.some(e => e.budgeted && parseFloat(e.budgeted) > 0);
   const hasAnyBudgeted    = hasBudgeted;
   const totalBudgeted     = expenses.reduce((s, e) => s + (parseFloat(e.budgeted) || 0), 0);
   const estimatedItems    = expenses.filter(e => parseFloat(e.budgeted) > 0);
-  const actualOfEstimated = estimatedItems.reduce((s, e) => s + (parseFloat(e.amount) || 0), 0);
+  const actualOfEstimated = estimatedItems.reduce((s, e) => s + totalAmount(e), 0);
   const totalVariance     = hasBudgeted ? actualOfEstimated - totalBudgeted : 0;
   const variance          = totalBudgeted > 0 ? totalExpenses - totalBudgeted : null;
   const nextDue           = getNextDue(expenses);
@@ -391,8 +721,9 @@ export function BudgetTab({ eventId, event, adminConfig, showToast, isArchived, 
   const catBudgeted = {};
   expenses.forEach(e => {
     const cat = e.category || "Miscellaneous";
-    catTotals[cat]   = (catTotals[cat]   || 0) + (parseFloat(e.amount)   || 0);
-    if (e.paid) catPaid[cat] = (catPaid[cat] || 0) + (parseFloat(e.amount) || 0);
+    catTotals[cat] = (catTotals[cat] || 0) + totalAmount(e);
+    const paidAmt = amountPaid(e);
+    if (paidAmt > 0) catPaid[cat] = (catPaid[cat] || 0) + paidAmt;
     if (parseFloat(e.budgeted) > 0) catBudgeted[cat] = (catBudgeted[cat] || 0) + (parseFloat(e.budgeted) || 0);
   });
   const catRows = Object.entries(catTotals).sort((a, b) => b[1] - a[1]);
@@ -412,8 +743,8 @@ export function BudgetTab({ eventId, event, adminConfig, showToast, isArchived, 
   // ── Filtered expenses ────────────────────────────────────────────────────
   const filtered = useMemo(() => {
     return expenses.filter(e => {
-      if (filterPaid === "paid"   && !e.paid)  return false;
-      if (filterPaid === "unpaid" && e.paid)   return false;
+      if (filterPaid === "paid"   && !isFullyPaid(e)) return false;
+      if (filterPaid === "unpaid" && isFullyPaid(e))  return false;
       if (filterCat !== "All"    && e.category !== filterCat)  return false;
       if (filterVendor !== "All" && e.vendorId !== filterVendor) return false;
       if (filterSection !== "All" && e.eventSection !== filterSection) return false;
@@ -425,8 +756,8 @@ export function BudgetTab({ eventId, event, adminConfig, showToast, isArchived, 
     }).sort((a, b) => {
       switch (sortBy) {
         case "due": {
-          const aDue = !a.paid && a.dueDate ? new Date(a.dueDate).getTime() : Infinity;
-          const bDue = !b.paid && b.dueDate ? new Date(b.dueDate).getTime() : Infinity;
+          const aDue = !isFullyPaid(a) && a.dueDate ? new Date(a.dueDate).getTime() : Infinity;
+          const bDue = !isFullyPaid(b) && b.dueDate ? new Date(b.dueDate).getTime() : Infinity;
           if (aDue !== bDue) return aDue - bDue;
           return (a.description || "").localeCompare(b.description || "");
         }
@@ -453,8 +784,8 @@ export function BudgetTab({ eventId, event, adminConfig, showToast, isArchived, 
         : (e.vendor || "Other / Unlinked");
       if (!groups[key]) groups[key] = { key, label, vendorId: e.vendorId || null, items: [], contracted: 0, paid: 0 };
       groups[key].items.push(e);
-      groups[key].contracted += parseFloat(e.amount) || 0;
-      if (e.paid) groups[key].paid += parseFloat(e.amount) || 0;
+      groups[key].contracted += totalAmount(e);
+      groups[key].paid += amountPaid(e);
     });
     return Object.values(groups).sort((a, b) => {
       if (a.key === "__other__") return 1;
@@ -471,8 +802,8 @@ export function BudgetTab({ eventId, event, adminConfig, showToast, isArchived, 
       const label = key || "All Events";
       if (!groups[key]) groups[key] = { key, label, items: [], total: 0, paid: 0 };
       groups[key].items.push(e);
-      groups[key].total += parseFloat(e.amount) || 0;
-      if (e.paid) groups[key].paid += parseFloat(e.amount) || 0;
+      groups[key].total += totalAmount(e);
+      groups[key].paid += amountPaid(e);
     });
     return Object.values(groups).sort((a, b) => {
       if (a.key === "") return 1;
@@ -577,7 +908,7 @@ export function BudgetTab({ eventId, event, adminConfig, showToast, isArchived, 
         <div className="stat-card">
           <div className="stat-label">Paid to Date</div>
           <div className="stat-value stat-green">{fmt$(totalPaid)}</div>
-          <div className="stat-sub">{expenses.filter(e => e.paid).length} of {expenses.length} paid</div>
+          <div className="stat-sub">{expenses.filter(e => isFullyPaid(e)).length} of {expenses.length} paid</div>
         </div>
         <div className="stat-card">
           <div className="stat-label">Outstanding</div>
@@ -704,101 +1035,16 @@ export function BudgetTab({ eventId, event, adminConfig, showToast, isArchived, 
         {/* Expense rows — list view */}
         {viewMode === "list" && filtered.length > 0 && (
           <div>
-            {filtered.map((e, eIdx) => {
-              const dueStatus  = getDueStatus(e);
-              const hasNotes   = !!(e.notes && e.notes.trim());
-              const notesOpen  = !!expandedNotes[e.id];
-              const linkedVendor = e.vendorId ? vendors.find(v => v.id === e.vendorId) : null;
-              const preMeta  = e.category ? [e.category] : [];
-              const postMeta = (e.paid && e.date) ? [`Paid ${fmt(e.date)}`] : [];
-              return (
-                <div key={e.id} id={`row-${e.id}`} className="expense-row" style={{opacity: e.paid ? 0.7 : 1}}>
-                  <div className="expense-row-check">
-                    <div
-                      className={`paid-check ${e.paid ? "checked" : ""}`}
-                      onClick={() => togglePaid(e, eIdx)}
-                      title={e.paid ? "Mark as unpaid" : "Mark as paid"}
-                    >
-                      {e.paid && (
-                        <svg width="11" height="9" viewBox="0 0 11 9" fill="none">
-                          <path d="M1 4.5L4 7.5L10 1" stroke="white" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
-                        </svg>
-                      )}
-                    </div>
-                  </div>
-                  <div className="expense-row-body">
-                    <div className="expense-row-desc">{e.description}</div>
-                    <div className="expense-row-meta">
-                      {preMeta.join(" · ")}
-                      {(e.vendor || linkedVendor) && (
-                        <>
-                          {preMeta.length > 0 && " · "}
-                          {linkedVendor ? (
-                            <button className="vendor-name-link"
-                              style={{fontSize:11,fontWeight:600,color:"var(--accent-primary)"}}
-                              onClick={() => setVendorQuick(linkedVendor)}>
-                              {linkedVendor.name}
-                            </button>
-                          ) : (
-                            <span>{e.vendor}</span>
-                          )}
-                        </>
-                      )}
-                      {postMeta.length > 0 && (
-                        <span>{(preMeta.length > 0 || e.vendor) ? " · " : ""}{postMeta.join(" · ")}</span>
-                      )}
-                      {dueStatus && (
-                        <span className={dueStatus.cls}> · {dueStatus.label}</span>
-                      )}
-                      {hasNotes && (
-                        <button
-                          style={{background:"none",border:"none",cursor:"pointer",
-                            fontSize:11,color:"var(--text-muted)",padding:"0 0 0 4px"}}
-                          onClick={() => toggleNotes(e.id)}>
-                          {notesOpen ? "▴ hide" : "▾ notes"}
-                        </button>
-                      )}
-                    </div>
-                    {hasNotes && notesOpen && (
-                      <div className="task-notes-text">{e.notes}</div>
-                    )}
-                  </div>
-                  <div className="expense-row-amount">
-                    ${(parseFloat(e.amount)||0).toLocaleString("en-US",{minimumFractionDigits:0,maximumFractionDigits:0})}
-                    {hasAnyBudgeted && (() => {
-                      const b = parseFloat(e.budgeted);
-                      const a = parseFloat(e.amount) || 0;
-                      if (!b) return <div style={{fontSize:10,color:"var(--text-muted)",marginTop:2}}>no estimate</div>;
-                      const diff = a - b;
-                      const color = diff > 0 ? "var(--red)" : "var(--green)";
-                      return (
-                        <div style={{fontSize:10,fontWeight:600,color,marginTop:2}}>
-                          {diff > 0 ? "▲" : "▼"} ${Math.abs(diff).toLocaleString("en-US",{minimumFractionDigits:0,maximumFractionDigits:0})}
-                        </div>
-                      );
-                    })()}
-                  </div>
-                  <div className="expense-row-actions">
-                    <button className="icon-btn" title="Edit"
-                      style={{width:28,height:28,fontSize:13}}
-                      disabled={isArchived || isViewer} onClick={() => { setEditing(e); setShowAdd(true); }}><Icon name="pencil" context="badge" /></button>
-                    <button className="icon-btn" title="Delete"
-                      style={{width:28,height:28,fontSize:13,color:"var(--red)"}}
-                      disabled={isArchived || isViewer} onClick={() => setDeleteConfirm(e)}><Icon name="x" context="badge" /></button>
-                  </div>
-                  {pendingPaidId === (e.id || e._rowId) && pendingPaidIdx === eIdx && (
-                    <div style={{gridColumn:"1/-1",display:"flex",alignItems:"center",gap:8,flexWrap:"wrap",marginTop:6,padding:"10px 12px",background:"var(--green-light)",border:"1px solid var(--green)",borderRadius:"var(--radius-sm)"}}>
-                      <span style={{fontSize:12,fontWeight:600,color:"var(--green)",flexShrink:0}}><Icon name="calendarCheck" context="badge" style={{ marginRight: 3 }} /> Payment date:</span>
-                      <input className="form-input" type="date" value={pendingPaidDate}
-                        onChange={e2 => setPendingPaidDate(e2.target.value)}
-                        style={{width:150,fontSize:12,padding:"4px 8px"}} />
-                      {!isViewer && <button className="btn btn-primary btn-sm" style={{fontSize:12}} onClick={confirmPaid}>Confirm paid</button>}
-                      {!isViewer && <button className="btn btn-secondary btn-sm" style={{fontSize:12}} onClick={cancelPaid}>Cancel</button>}
-                    </div>
-                  )}
-                </div>
-              );
-            })}
+            {filtered.map((e, eIdx) => (
+              <ExpenseRow key={e.id} variant="list" e={e} eIdx={eIdx} vendors={vendors}
+                hasAnyBudgeted={hasAnyBudgeted} isArchived={isArchived} isViewer={isViewer}
+                expandedNotes={expandedNotes} toggleNotes={toggleNotes} togglePaid={togglePaid}
+                setVendorQuick={setVendorQuick} setEditing={setEditing} setShowAdd={setShowAdd}
+                setDeleteConfirm={setDeleteConfirm} pendingPaidId={pendingPaidId} pendingPaidIdx={pendingPaidIdx}
+                pendingPaidDate={pendingPaidDate} setPendingPaidDate={setPendingPaidDate}
+                confirmPaid={confirmPaid} cancelPaid={cancelPaid} fmt={fmt}
+                onUpdateExpense={save} showToast={showToast} />
+            ))}
           </div>
         )}
 
@@ -866,68 +1112,16 @@ export function BudgetTab({ eventId, event, adminConfig, showToast, isArchived, 
                   </div>
 
                   {/* Individual expenses within group */}
-                  {isOpen && group.items.map((e, eIdx) => {
-                    const dueStatus = getDueStatus(e);
-                    const hasNotes  = !!(e.notes && e.notes.trim());
-                    const notesOpen = !!expandedNotes[e.id];
-                    const postMeta  = (e.paid && e.date) ? [`Paid ${fmt(e.date)}`] : [];
-                    return (
-                      <div key={e.id} className="expense-row" style={{opacity: e.paid ? 0.7 : 1, paddingLeft: 32}}>
-                        <div className="expense-row-check">
-                          <div
-                            className={`paid-check ${e.paid ? "checked" : ""}`}
-                            onClick={() => togglePaid(e, eIdx)}
-                            title={e.paid ? "Mark as unpaid" : "Mark as paid"}
-                          >
-                            {e.paid && (
-                              <svg width="11" height="9" viewBox="0 0 11 9" fill="none">
-                                <path d="M1 4.5L4 7.5L10 1" stroke="white" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
-                              </svg>
-                            )}
-                          </div>
-                        </div>
-                        <div className="expense-row-body">
-                          <div className="expense-row-desc">{e.description}</div>
-                          <div className="expense-row-meta">
-                            {e.category && <span>{e.category}</span>}
-                            {postMeta.length > 0 && <span>{e.category ? " · " : ""}{postMeta.join(" · ")}</span>}
-                            {dueStatus && <span className={dueStatus.cls}> · {dueStatus.label}</span>}
-                            {hasNotes && (
-                              <button
-                                style={{background:"none",border:"none",cursor:"pointer",fontSize:11,color:"var(--text-muted)",padding:"0 0 0 4px"}}
-                                onClick={() => toggleNotes(e.id)}>
-                                {notesOpen ? "▴ hide" : "▾ notes"}
-                              </button>
-                            )}
-                          </div>
-                          {hasNotes && notesOpen && (
-                            <div className="task-notes-text">{e.notes}</div>
-                          )}
-                        </div>
-                        <div className="expense-row-amount">
-                          ${(parseFloat(e.amount)||0).toLocaleString("en-US",{minimumFractionDigits:0,maximumFractionDigits:0})}
-                        </div>
-                        <div className="expense-row-actions">
-                          <button className="icon-btn" title="Edit"
-                            style={{width:28,height:28,fontSize:13}}
-                            disabled={isArchived || isViewer} onClick={() => { setEditing(e); setShowAdd(true); }}><Icon name="pencil" context="badge" /></button>
-                          <button className="icon-btn" title="Delete"
-                            style={{width:28,height:28,fontSize:13,color:"var(--red)"}}
-                            disabled={isArchived || isViewer} onClick={() => setDeleteConfirm(e)}><Icon name="x" context="badge" /></button>
-                        </div>
-                        {pendingPaidId === (e.id || e._rowId) && pendingPaidIdx === eIdx && (
-                          <div style={{gridColumn:"1/-1",display:"flex",alignItems:"center",gap:8,flexWrap:"wrap",marginTop:6,padding:"10px 12px",background:"var(--green-light)",border:"1px solid var(--green)",borderRadius:"var(--radius-sm)"}}>
-                            <span style={{fontSize:12,fontWeight:600,color:"var(--green)",flexShrink:0}}><Icon name="calendarCheck" context="badge" style={{ marginRight: 3 }} /> Payment date:</span>
-                            <input className="form-input" type="date" value={pendingPaidDate}
-                              onChange={e2 => setPendingPaidDate(e2.target.value)}
-                              style={{width:150,fontSize:12,padding:"4px 8px"}} />
-                            <button className="btn btn-primary btn-sm" style={{fontSize:12}} onClick={confirmPaid}>Confirm paid</button>
-                            <button className="btn btn-secondary btn-sm" style={{fontSize:12}} onClick={cancelPaid}>Cancel</button>
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
+                  {isOpen && group.items.map((e, eIdx) => (
+                    <ExpenseRow key={e.id} variant="vendorGroup" e={e} eIdx={eIdx} vendors={vendors}
+                      hasAnyBudgeted={hasAnyBudgeted} isArchived={isArchived} isViewer={isViewer}
+                      expandedNotes={expandedNotes} toggleNotes={toggleNotes} togglePaid={togglePaid}
+                      setVendorQuick={setVendorQuick} setEditing={setEditing} setShowAdd={setShowAdd}
+                      setDeleteConfirm={setDeleteConfirm} pendingPaidId={pendingPaidId} pendingPaidIdx={pendingPaidIdx}
+                      pendingPaidDate={pendingPaidDate} setPendingPaidDate={setPendingPaidDate}
+                      confirmPaid={confirmPaid} cancelPaid={cancelPaid} fmt={fmt}
+                      onUpdateExpense={save} showToast={showToast} />
+                  ))}
                 </div>
               );
             })}
@@ -995,51 +1189,16 @@ export function BudgetTab({ eventId, event, adminConfig, showToast, isArchived, 
                   {/* Expense rows inside section */}
                   {isOpen && (
                     <div>
-                      {group.items.map((e, eIdx) => {
-                        const dueStatus = getDueStatus(e);
-                        return (
-                          <div key={e.id} id={`row-${e.id}`} className="expense-row"
-                            style={{opacity: e.paid ? 0.7 : 1}}>
-                            <div className="expense-row-check">
-                              <div className={`paid-check ${e.paid ? "checked" : ""}`}
-                                onClick={() => togglePaid(e, eIdx)}
-                                title={e.paid ? "Mark as unpaid" : "Mark as paid"}>
-                                {e.paid && (
-                                  <svg width="11" height="9" viewBox="0 0 11 9" fill="none">
-                                    <path d="M1 4.5L4 7.5L10 1" stroke="white" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
-                                  </svg>
-                                )}
-                              </div>
-                            </div>
-                            <div className="expense-row-body">
-                              <div className="expense-row-desc">{e.description}</div>
-                              <div className="expense-row-meta">
-                                {[e.category, (vendors.find(v => v.id === e.vendorId)?.name || e.vendor)].filter(Boolean).join(" · ")}
-                                {dueStatus && <span className={dueStatus.cls} style={{marginLeft:4}}>{dueStatus.label}</span>}
-                              </div>
-                            </div>
-                            <div className="expense-row-amount">
-                              ${(parseFloat(e.amount)||0).toLocaleString("en-US",{minimumFractionDigits:0,maximumFractionDigits:0})}
-                            </div>
-                            <div className="expense-row-actions">
-                              <button className="icon-btn" title="Edit" disabled={isArchived}
-                                onClick={() => { setEditing(e); setShowAdd(true); }}><Icon name="pencil" context="badge" /></button>
-                              <button className="icon-btn" title="Delete" disabled={isArchived}
-                                onClick={() => setDeleteConfirm(e)}><Icon name="x" context="badge" /></button>
-                            </div>
-                            {pendingPaidId === (e.id || e._rowId) && pendingPaidIdx === eIdx && (
-                              <div style={{gridColumn:"1/-1",display:"flex",alignItems:"center",gap:8,flexWrap:"wrap",marginTop:6,padding:"10px 12px",background:"var(--green-light)",border:"1px solid var(--green)",borderRadius:"var(--radius-sm)"}}>
-                                <span style={{fontSize:12,fontWeight:600,color:"var(--green)",flexShrink:0}}><Icon name="calendarCheck" context="badge" style={{ marginRight: 3 }} /> Payment date:</span>
-                                <input className="form-input" type="date" value={pendingPaidDate}
-                                  onChange={e2 => setPendingPaidDate(e2.target.value)}
-                                  style={{width:150,fontSize:12,padding:"4px 8px"}} />
-                                {!isViewer && <button className="btn btn-primary btn-sm" style={{fontSize:12}} onClick={confirmPaid}>Confirm paid</button>}
-                                {!isViewer && <button className="btn btn-secondary btn-sm" style={{fontSize:12}} onClick={cancelPaid}>Cancel</button>}
-                              </div>
-                            )}
-                          </div>
-                        );
-                      })}
+                      {group.items.map((e, eIdx) => (
+                        <ExpenseRow key={e.id} variant="section" e={e} eIdx={eIdx} vendors={vendors}
+                          hasAnyBudgeted={hasAnyBudgeted} isArchived={isArchived} isViewer={isViewer}
+                          expandedNotes={expandedNotes} toggleNotes={toggleNotes} togglePaid={togglePaid}
+                          setVendorQuick={setVendorQuick} setEditing={setEditing} setShowAdd={setShowAdd}
+                          setDeleteConfirm={setDeleteConfirm} pendingPaidId={pendingPaidId} pendingPaidIdx={pendingPaidIdx}
+                          pendingPaidDate={pendingPaidDate} setPendingPaidDate={setPendingPaidDate}
+                          confirmPaid={confirmPaid} cancelPaid={cancelPaid} fmt={fmt}
+                          onUpdateExpense={save} showToast={showToast} />
+                      ))}
                     </div>
                   )}
                 </div>
