@@ -14,10 +14,12 @@ export function hasPayments(expense) {
   return Array.isArray(expense?.payments) && expense.payments.length > 0;
 }
 
+// The expense's contract total. Always expense.amount, regardless of whether
+// a payment schedule exists or how much of it has been entered so far.
+// payments is a schedule of how this fixed total gets paid over time, not a
+// substitute for it — a partially-built schedule must never make the
+// contract total appear smaller than it really is.
 export function totalAmount(expense) {
-  if (hasPayments(expense)) {
-    return expense.payments.reduce((s, p) => s + (parseFloat(p.amount) || 0), 0);
-  }
   return parseFloat(expense?.amount) || 0;
 }
 
@@ -34,9 +36,13 @@ export function amountRemaining(expense) {
   return totalAmount(expense) - amountPaid(expense);
 }
 
+// "Fully paid" means the contract balance is actually zero — not merely that
+// every installment currently on the schedule happens to be marked paid.
+// An incomplete schedule (e.g. only a deposit entered and paid, with the
+// balance not yet scheduled) must not show as fully paid.
 export function isFullyPaid(expense) {
   if (hasPayments(expense)) {
-    return expense.payments.every(p => p.status === "paid");
+    return amountRemaining(expense) <= 0.005;
   }
   return !!expense?.paid;
 }

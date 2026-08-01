@@ -1,9 +1,19 @@
 {
-  "current": "V4.23.0",
+  "current": "V4.23.1",
   "whatsNew": [
-    "You can now edit an individual payment in an expense's payment schedule (label, amount, due date) instead of having to remove and re-add it"
+    "Fixed a bug where an expense's contracted amount could display incorrectly if its payment schedule hadn't been fully entered yet"
   ],
   "changelog": [
+    {
+      "version": "V4.23.1",
+      "date": "2026-08-01",
+      "summary": "Fix: contracted amount collapsed to sum of entered payments on an incomplete schedule",
+      "changes": [
+        "Bug fix: totalAmount() incorrectly summed only the payments entered so far instead of always using the expense's contract amount (expense.amount). This made the Vendor view's Contracted figure, the collapsed row's progress bar, and CSV Total Amount column all shrink to whatever partial schedule had been entered, rather than showing the true contract total, whenever a payment schedule existed but wasn't fully built out yet",
+        "Bug fix: isFullyPaid() previously returned true once every currently-listed installment was marked paid, even if the schedule didn't yet cover the full contract amount. It now means the contract's remaining balance is actually zero",
+        "Both fixes are contained entirely within utils/expensePayments.js. No other files changed, no schema impact, no behavior change for expenses without a payment schedule"
+      ]
+    },
     {
       "version": "V4.23.0",
       "date": "2026-08-01",
