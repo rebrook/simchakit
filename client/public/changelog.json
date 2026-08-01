@@ -1,9 +1,21 @@
 {
-  "current": "V4.22.0",
+  "current": "V4.23.0",
   "whatsNew": [
-    "Expenses can now carry a partial payment schedule (deposit, 50%, balance, or any custom installments) instead of needing separate line items for each payment"
+    "You can now edit an individual payment in an expense's payment schedule (label, amount, due date) instead of having to remove and re-add it"
   ],
   "changelog": [
+    {
+      "version": "V4.23.0",
+      "date": "2026-08-01",
+      "summary": "Inline editing for individual installment payments (V3 only)",
+      "changes": [
+        "Each payment in an expense's payment schedule now has an edit (pencil) icon alongside Mark Paid and Remove. Clicking it turns that row into inline-editable label/amount/due-date fields, matching the existing Add Payment row's styling",
+        "Enter saves, Escape cancels, matching existing modal keyboard conventions",
+        "Editing a scheduled (not yet paid) payment is unrestricted",
+        "Editing an already-paid payment's label or due date is unrestricted and silent. If the amount changes on a paid payment, an audit log entry is written via the existing writeAuditLog utility, the same pattern already used elsewhere for meaningful expense changes. paidDate and status are never altered by this edit, so correcting a label or amount can never accidentally revert a payment to unpaid",
+        "Same actionsDisabled gating as the rest of the payment schedule (archived events and viewers cannot edit)"
+      ]
+    },
     {
       "version": "V4.22.0",
       "date": "2026-08-01",

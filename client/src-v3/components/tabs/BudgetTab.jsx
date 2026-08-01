@@ -21,6 +21,7 @@ import {
 } from "@/utils/expensePayments.js";
 import { ArchivedNotice }     from "@/components/shared/ArchivedNotice.jsx";
 import { ConfirmDialog }      from "@/components/shared/ConfirmDialog.jsx";
+import { writeAuditLog }      from "@/utils/auditLog.js";
 import { Icon }               from "@/utils/iconMap.jsx";
 import { VendorQuickView }    from "@/components/shared/VendorQuickView.jsx";
 import { VendorModal }        from "@/components/shared/VendorModal.jsx";
@@ -373,7 +374,7 @@ function ExpenseRow({
   e, eIdx, variant, vendors, hasAnyBudgeted, isArchived, isViewer,
   expandedNotes, toggleNotes, togglePaid, setVendorQuick, setEditing, setShowAdd,
   setDeleteConfirm, pendingPaidId, pendingPaidIdx, pendingPaidDate, setPendingPaidDate,
-  confirmPaid, cancelPaid, fmt, onUpdateExpense, showToast,
+  confirmPaid, cancelPaid, fmt, onUpdateExpense, showToast, eventId,
 }) {
   const dueStatus     = getDueStatus(e);
   const linkedVendor  = e.vendorId ? vendors.find(v => v.id === e.vendorId) : null;
@@ -388,6 +389,10 @@ function ExpenseRow({
   const [newLabel, setNewLabel]           = useState("");
   const [newAmount, setNewAmount]         = useState("");
   const [newDue, setNewDue]               = useState("");
+  const [editingPaymentId, setEditingPaymentId] = useState(null);
+  const [editLabel, setEditLabel]         = useState("");
+  const [editAmount, setEditAmount]       = useState("");
+  const [editDue, setEditDue]             = useState("");
 
   const payHasPayments = hasPayments(e);
   const payTotal       = totalAmount(e);
@@ -431,6 +436,38 @@ function ExpenseRow({
     await persistPayments(next);
     setRemovePayment(null);
     showToast("Payment removed");
+  };
+
+  const startEditPayment = (p) => {
+    if (actionsDisabled) return;
+    setEditingPaymentId(p.id);
+    setEditLabel(p.label);
+    setEditAmount(String(p.amount));
+    setEditDue(p.dueDate || "");
+  };
+
+  const cancelEditPayment = () => {
+    setEditingPaymentId(null);
+    setEditLabel(""); setEditAmount(""); setEditDue("");
+  };
+
+  const saveEditPayment = async (payment) => {
+    if (!editAmount || isNaN(parseFloat(editAmount))) return;
+    const oldAmount = parseFloat(payment.amount) || 0;
+    const nextAmount = parseFloat(editAmount) || 0;
+    const next = (e.payments || []).map(p =>
+      p.id === payment.id
+        ? { ...p, label: editLabel.trim() || p.label, amount: editAmount, dueDate: editDue || "" }
+        // paidDate/status are intentionally left untouched by this edit —
+        // correcting a label or amount should never revert a paid installment.
+        : p
+    );
+    await persistPayments(next);
+    if (payment.status === "paid" && nextAmount !== oldAmount && eventId) {
+      await writeAuditLog(eventId, "expenses", `Edited a paid payment amount ($${oldAmount.toFixed(2)} → $${nextAmount.toFixed(2)}) on`, e);
+    }
+    cancelEditPayment();
+    showToast("Payment updated");
   };
 
   let metaNode;
@@ -611,6 +648,32 @@ function ExpenseRow({
             <div style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: 12 }}>
               {e.payments.map(p => {
                 const status = getPaymentStatus(p);
+                const isEditing = editingPaymentId === p.id;
+
+                if (isEditing) {
+                  return (
+                    <div key={p.id} style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", padding: "6px 8px", background: "var(--bg-surface)", borderRadius: "var(--radius-sm)", border: "1px solid var(--accent-medium)" }}>
+                      <input className="form-input" type="text" value={editLabel}
+                        onChange={ev => setEditLabel(ev.target.value)}
+                        onKeyDown={ev => { if (ev.key === "Enter") saveEditPayment(p); if (ev.key === "Escape") cancelEditPayment(); }}
+                        style={{ flex: "1 1 120px", fontSize: 12, padding: "6px 8px" }} />
+                      <input className="form-input" type="number" min="0" step="0.01" value={editAmount}
+                        onChange={ev => setEditAmount(ev.target.value)}
+                        onKeyDown={ev => { if (ev.key === "Enter") saveEditPayment(p); if (ev.key === "Escape") cancelEditPayment(); }}
+                        style={{ width: 100, fontSize: 12, padding: "6px 8px" }} />
+                      <input className="form-input" type="date" value={editDue}
+                        onChange={ev => setEditDue(ev.target.value)}
+                        onKeyDown={ev => { if (ev.key === "Enter") saveEditPayment(p); if (ev.key === "Escape") cancelEditPayment(); }}
+                        style={{ width: 150, fontSize: 12, padding: "6px 8px" }} />
+                      <button className="btn btn-primary btn-sm" style={{ fontSize: 11 }}
+                        disabled={!editAmount || isNaN(parseFloat(editAmount))}
+                        onClick={() => saveEditPayment(p)}>Save</button>
+                      <button className="btn btn-secondary btn-sm" style={{ fontSize: 11 }}
+                        onClick={cancelEditPayment}>Cancel</button>
+                    </div>
+                  );
+                }
+
                 return (
                   <div key={p.id} style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap", padding: "6px 8px", background: "var(--bg-surface)", borderRadius: "var(--radius-sm)" }}>
                     <span style={{ flex: "1 1 120px", fontSize: 13, fontWeight: 600, color: "var(--text-primary)" }}>{p.label}</span>
@@ -621,6 +684,10 @@ function ExpenseRow({
                     <PaymentStatusPill status={status} />
                     {!actionsDisabled && status !== "paid" && (
                       <button className="btn btn-secondary btn-sm" style={{ fontSize: 11 }} onClick={() => handleMarkPaymentPaid(p.id)}>Mark paid</button>
+                    )}
+                    {!actionsDisabled && (
+                      <button className="icon-btn" title="Edit payment" style={{ width: 24, height: 24, fontSize: 12 }}
+                        onClick={() => startEditPayment(p)}><Icon name="pencil" context="badge" /></button>
                     )}
                     {!actionsDisabled && (
                       <button className="icon-btn" title="Remove payment" style={{ width: 24, height: 24, fontSize: 12, color: "var(--red)" }}
@@ -1043,7 +1110,7 @@ export function BudgetTab({ eventId, event, adminConfig, showToast, isArchived, 
                 setDeleteConfirm={setDeleteConfirm} pendingPaidId={pendingPaidId} pendingPaidIdx={pendingPaidIdx}
                 pendingPaidDate={pendingPaidDate} setPendingPaidDate={setPendingPaidDate}
                 confirmPaid={confirmPaid} cancelPaid={cancelPaid} fmt={fmt}
-                onUpdateExpense={save} showToast={showToast} />
+                onUpdateExpense={save} showToast={showToast} eventId={eventId} />
             ))}
           </div>
         )}
@@ -1120,7 +1187,7 @@ export function BudgetTab({ eventId, event, adminConfig, showToast, isArchived, 
                       setDeleteConfirm={setDeleteConfirm} pendingPaidId={pendingPaidId} pendingPaidIdx={pendingPaidIdx}
                       pendingPaidDate={pendingPaidDate} setPendingPaidDate={setPendingPaidDate}
                       confirmPaid={confirmPaid} cancelPaid={cancelPaid} fmt={fmt}
-                      onUpdateExpense={save} showToast={showToast} />
+                      onUpdateExpense={save} showToast={showToast} eventId={eventId} />
                   ))}
                 </div>
               );
@@ -1197,7 +1264,7 @@ export function BudgetTab({ eventId, event, adminConfig, showToast, isArchived, 
                           setDeleteConfirm={setDeleteConfirm} pendingPaidId={pendingPaidId} pendingPaidIdx={pendingPaidIdx}
                           pendingPaidDate={pendingPaidDate} setPendingPaidDate={setPendingPaidDate}
                           confirmPaid={confirmPaid} cancelPaid={cancelPaid} fmt={fmt}
-                          onUpdateExpense={save} showToast={showToast} />
+                          onUpdateExpense={save} showToast={showToast} eventId={eventId} />
                       ))}
                     </div>
                   )}
