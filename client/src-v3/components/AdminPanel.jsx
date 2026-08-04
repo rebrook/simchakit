@@ -15,6 +15,8 @@ import { deriveCustomPalette }           from "@/utils/color.js";
 import { formatPhone }                   from "@/utils/guests.js";
 import { Icon }                          from "@/utils/iconMap.jsx";
 import { TimelineEntryModal }            from "@/components/tabs/GuestsTab.jsx";
+import { Modal }                         from "@/components/shared/Modal.jsx";
+import { ConfirmDialog }                 from "@/components/shared/ConfirmDialog.jsx";
 
 // ── AdminPanel ────────────────────────────────────────────────────────────────
 export function AdminPanel({ eventId, userId, calendarToken: initialCalendarToken, config, onClose, onConfigSaved, initialSection }) {
@@ -358,8 +360,8 @@ export function AdminPanel({ eventId, userId, calendarToken: initialCalendarToke
 
   // ── Render ────────────────────────────────────────────────────────────────
   return (
-    <div className="modal-backdrop" onMouseDown={e => { if (e.target === e.currentTarget) onClose(); }}>
-      <div className="modal modal-lg" onClick={e => e.stopPropagation()}>
+    <>
+      <Modal onClose={onClose} ariaLabel="Admin Mode" className="modal-lg">
         <div className="modal-header">
           <div className="modal-title"><Icon name="settings" context="menu" style={{ marginRight: 6 }} /> Admin Mode</div>
           <button className="icon-btn" title="Close" onClick={onClose}><Icon name="x" context="button" /></button>
@@ -1064,116 +1066,113 @@ export function AdminPanel({ eventId, userId, calendarToken: initialCalendarToke
 
           </div>{/* end admin-content */}
         </div>{/* end admin-modal-body */}
-      </div>
+      </Modal>
 
       {/* ── Timeline modals ── */}
       {tlModal && <TimelineEntryModal entry={tlModal==="add"?null:tlModal} onSave={handleTlSave} onClose={()=>setTlModal(null)} />}
 
       {tlDelete && (
-        <div className="modal-backdrop" onMouseDown={e => { if (e.target===e.currentTarget) setTlDelete(null); }}>
-          <div className="modal" style={{maxWidth:380}} onClick={e=>e.stopPropagation()}>
-            <div className="modal-header"><div className="modal-title">Delete Timeline Entry</div><button className="icon-btn" title="Close" onClick={()=>setTlDelete(null)}><Icon name="x" context="button" /></button></div>
-            <div className="modal-body">
-              <p style={{fontSize:14,color:"var(--text-primary)",lineHeight:1.6}}>Delete <strong>{tlDelete.title}</strong>? This cannot be undone.</p>
-              <div className="modal-footer"><button className="btn btn-ghost" onClick={()=>setTlDelete(null)}>Cancel</button><button className="btn btn-danger" onClick={()=>handleTlDelete(tlDelete.id)}>Delete</button></div>
-            </div>
-          </div>
-        </div>
+        <ConfirmDialog
+          title="Delete Timeline Entry"
+          message={<>Delete <strong>{tlDelete.title}</strong>? This cannot be undone.</>}
+          confirmLabel="Delete"
+          onConfirm={() => handleTlDelete(tlDelete.id)}
+          onClose={() => setTlDelete(null)}
+        />
       )}
 
       {/* ── Backup modal ── */}
       {backupModal && (
-        <div className="modal-backdrop" onMouseDown={e => { if (e.target===e.currentTarget){setBackupModal(false);setBackupCopied(false);} }}>
-          <div className="modal modal-lg" style={{maxWidth:600}} onClick={e=>e.stopPropagation()}>
-            <div className="modal-header"><div className="modal-title"><Icon name="download" context="inline" style={{ marginRight: 4 }} /> Export Full Backup</div><button className="icon-btn" title="Close" onClick={()=>{setBackupModal(false);setBackupCopied(false);}}><Icon name="x" context="button" /></button></div>
-            <div className="modal-body">
-              <p style={{fontSize:13,color:"var(--text-secondary)",marginBottom:12,lineHeight:1.6}}>Copy the JSON below and save it to a file as a complete snapshot of your event data.</p>
-              <textarea readOnly value={backupData||""} onClick={e=>e.target.select()} style={{width:"100%",minHeight:220,fontFamily:"var(--font-mono,monospace)",fontSize:11,background:"var(--bg-subtle)",border:"1px solid var(--border)",borderRadius:"var(--radius-sm)",padding:"10px 12px",color:"var(--text-secondary)",resize:"vertical",outline:"none"}} />
-              <div className="modal-footer" style={{marginTop:12}}>
-                <button className="btn btn-ghost" onClick={()=>{setBackupModal(false);setBackupCopied(false);}}>Close</button>
-                <button className="btn btn-secondary" onClick={() => {
-                  const blob = new Blob([backupData||""], { type: "application/json" });
-                  const url  = URL.createObjectURL(blob);
-                  const a    = document.createElement("a");
-                  a.href     = url;
-                  a.download = `simchakit-backup-${eventId}-${new Date().toISOString().slice(0,10)}.json`;
-                  a.click();
-                  URL.revokeObjectURL(url);
-                }}>
-                  <Icon name="download" context="inline" style={{ marginRight: 4 }} /> Download File
-                </button>
-                <button className="btn btn-primary" onClick={()=>navigator.clipboard.writeText(backupData||"").then(()=>{setBackupCopied(true);setTimeout(()=>setBackupCopied(false),2500);})}>
-                  {backupCopied?<><Icon name="check" context="badge" /> Copied!</>:"Copy to Clipboard"}
-                </button>
-              </div>
+        <Modal
+          onClose={() => { setBackupModal(false); setBackupCopied(false); }}
+          ariaLabel="Export Full Backup"
+          className="modal-lg"
+          maxWidth={600}
+        >
+          <div className="modal-header"><div className="modal-title"><Icon name="download" context="inline" style={{ marginRight: 4 }} /> Export Full Backup</div><button className="icon-btn" title="Close" onClick={()=>{setBackupModal(false);setBackupCopied(false);}}><Icon name="x" context="button" /></button></div>
+          <div className="modal-body">
+            <p style={{fontSize:13,color:"var(--text-secondary)",marginBottom:12,lineHeight:1.6}}>Copy the JSON below and save it to a file as a complete snapshot of your event data.</p>
+            <textarea readOnly value={backupData||""} onClick={e=>e.target.select()} style={{width:"100%",minHeight:220,fontFamily:"var(--font-mono,monospace)",fontSize:11,background:"var(--bg-subtle)",border:"1px solid var(--border)",borderRadius:"var(--radius-sm)",padding:"10px 12px",color:"var(--text-secondary)",resize:"vertical",outline:"none"}} />
+            <div className="modal-footer" style={{marginTop:12}}>
+              <button className="btn btn-ghost" onClick={()=>{setBackupModal(false);setBackupCopied(false);}}>Close</button>
+              <button className="btn btn-secondary" onClick={() => {
+                const blob = new Blob([backupData||""], { type: "application/json" });
+                const url  = URL.createObjectURL(blob);
+                const a    = document.createElement("a");
+                a.href     = url;
+                a.download = `simchakit-backup-${eventId}-${new Date().toISOString().slice(0,10)}.json`;
+                a.click();
+                URL.revokeObjectURL(url);
+              }}>
+                <Icon name="download" context="inline" style={{ marginRight: 4 }} /> Download File
+              </button>
+              <button className="btn btn-primary" onClick={()=>navigator.clipboard.writeText(backupData||"").then(()=>{setBackupCopied(true);setTimeout(()=>setBackupCopied(false),2500);})}>
+                {backupCopied?<><Icon name="check" context="badge" /> Copied!</>:"Copy to Clipboard"}
+              </button>
             </div>
           </div>
-        </div>
+        </Modal>
       )}
 
       {/* ── Unarchive modal ── */}
       {showUnarchive && (
-        <div className="modal-backdrop" onMouseDown={e => { if (e.target===e.currentTarget) setShowUnarchive(false); }}>
-          <div className="modal" onClick={e=>e.stopPropagation()}>
-            <div className="modal-header"><div className="modal-title">Unarchive Event</div><button className="icon-btn" onClick={()=>setShowUnarchive(false)}><Icon name="x" context="button" /></button></div>
-            <div className="modal-body">
-              <p style={{fontSize:13,color:"var(--text-secondary)",lineHeight:1.6,marginBottom:16}}>
-                Unarchiving restores the event to fully editable. You will need the <strong>unlock code</strong> you set
-                when the event was archived.
-              </p>
-              {unarchiveMsg && <div className="alert alert-error" style={{marginBottom:12}}>{unarchiveMsg}</div>}
-              <div className="form-group">
-                <label className="form-label">Archive Unlock Code</label>
-                <input className="form-input" type="password" value={unarchiveCode} onChange={e=>setUnarchiveCode(e.target.value)} placeholder="The code you set when archiving" />
-              </div>
-              <div className="modal-footer">
-                <button className="btn btn-ghost" onClick={()=>setShowUnarchive(false)}>Cancel</button>
-                <button className="btn btn-primary" disabled={unarchiving||!unarchiveCode} onClick={handleUnarchive}>{unarchiving?"Unarchiving…":"Unarchive Event"}</button>
-              </div>
+        <Modal onClose={() => setShowUnarchive(false)} ariaLabel="Unarchive Event">
+          <div className="modal-header"><div className="modal-title">Unarchive Event</div><button className="icon-btn" onClick={()=>setShowUnarchive(false)}><Icon name="x" context="button" /></button></div>
+          <div className="modal-body">
+            <p style={{fontSize:13,color:"var(--text-secondary)",lineHeight:1.6,marginBottom:16}}>
+              Unarchiving restores the event to fully editable. You will need the <strong>unlock code</strong> you set
+              when the event was archived.
+            </p>
+            {unarchiveMsg && <div className="alert alert-error" style={{marginBottom:12}}>{unarchiveMsg}</div>}
+            <div className="form-group">
+              <label className="form-label">Archive Unlock Code</label>
+              <input className="form-input" type="password" value={unarchiveCode} onChange={e=>setUnarchiveCode(e.target.value)} placeholder="The code you set when archiving" />
+            </div>
+            <div className="modal-footer">
+              <button className="btn btn-ghost" onClick={()=>setShowUnarchive(false)}>Cancel</button>
+              <button className="btn btn-primary" disabled={unarchiving||!unarchiveCode} onClick={handleUnarchive}>{unarchiving?"Unarchiving…":"Unarchive Event"}</button>
             </div>
           </div>
-        </div>
+        </Modal>
       )}
 
       {/* ── Reset data modal ── */}
       {showReset && (
-        <div className="modal-backdrop" onMouseDown={e => { if (e.target===e.currentTarget) setShowReset(false); }}>
-          <div className="modal" onClick={e=>e.stopPropagation()}>
-            <div className="modal-header"><div className="modal-title">Reset Event Data</div><button className="icon-btn" onClick={()=>setShowReset(false)}><Icon name="x" context="button" /></button></div>
-            <div className="modal-body">
-              <p style={{fontSize:13,color:"var(--text-secondary)",lineHeight:1.6,marginBottom:12}}>
-                This will permanently delete all planning data for this event:
-              </p>
-              <ul style={{fontSize:13,color:"var(--text-secondary)",lineHeight:2,marginBottom:12,paddingLeft:20}}>
-                <li>All guests and household records</li>
-                <li>All expenses and budget entries</li>
-                <li>All vendors</li>
-                <li>All tasks</li>
-                <li>All prep items</li>
-                <li>All seating tables and assignments</li>
-                <li>All gifts and favors</li>
-                <li>Quick notes</li>
-              </ul>
-              <p style={{fontSize:13,color:"var(--text-secondary)",lineHeight:1.6,marginBottom:16}}>
-                <strong>Your event configuration will be kept:</strong> the event name, type, timeline,
-                theme, and accommodations settings are not affected.
-              </p>
-              <p style={{fontSize:13,color:"var(--red)",fontWeight:600,lineHeight:1.6,marginBottom:16}}><Icon name="alertTriangle" context="badge" style={{ marginRight: 3 }} /> This cannot be undone. Export a backup first if you need this data.</p>
-              {resetMsg && <div className="alert alert-error" style={{marginBottom:12}}>{resetMsg}</div>}
-              <div className="form-group">
-                <label className="form-label">Type the event name to confirm: <strong>{eventName||"(no event name set)"}</strong></label>
-                <input className="form-input" value={resetConfirm} onChange={e=>setResetConfirm(e.target.value)} placeholder={eventName||"Type the event name exactly"} />
-              </div>
-              <div className="modal-footer">
-                <button className="btn btn-ghost" onClick={()=>setShowReset(false)}>Cancel</button>
-                <button className="btn btn-danger" disabled={resetting||resetConfirm!==eventName||!eventName} onClick={handleResetData}>{resetting?"Resetting…":"Reset All Event Data"}</button>
-              </div>
+        <Modal onClose={() => setShowReset(false)} ariaLabel="Reset Event Data">
+          <div className="modal-header"><div className="modal-title">Reset Event Data</div><button className="icon-btn" onClick={()=>setShowReset(false)}><Icon name="x" context="button" /></button></div>
+          <div className="modal-body">
+            <p style={{fontSize:13,color:"var(--text-secondary)",lineHeight:1.6,marginBottom:12}}>
+              This will permanently delete all planning data for this event:
+            </p>
+            <ul style={{fontSize:13,color:"var(--text-secondary)",lineHeight:2,marginBottom:12,paddingLeft:20}}>
+              <li>All guests and household records</li>
+              <li>All expenses and budget entries</li>
+              <li>All vendors</li>
+              <li>All tasks</li>
+              <li>All prep items</li>
+              <li>All seating tables and assignments</li>
+              <li>All gifts and favors</li>
+              <li>Quick notes</li>
+            </ul>
+            <p style={{fontSize:13,color:"var(--text-secondary)",lineHeight:1.6,marginBottom:16}}>
+              <strong>Your event configuration will be kept:</strong> the event name, type, timeline,
+              theme, and accommodations settings are not affected.
+            </p>
+            <p style={{fontSize:13,color:"var(--red)",fontWeight:600,lineHeight:1.6,marginBottom:16}}><Icon name="alertTriangle" context="badge" style={{ marginRight: 3 }} /> This cannot be undone. Export a backup first if you need this data.</p>
+            {resetMsg && <div className="alert alert-error" style={{marginBottom:12}}>{resetMsg}</div>}
+            <div className="form-group">
+              <label className="form-label">Type the event name to confirm: <strong>{eventName||"(no event name set)"}</strong></label>
+              <input className="form-input" value={resetConfirm} onChange={e=>setResetConfirm(e.target.value)} placeholder={eventName||"Type the event name exactly"} />
+            </div>
+            <div className="modal-footer">
+              <button className="btn btn-ghost" onClick={()=>setShowReset(false)}>Cancel</button>
+              <button className="btn btn-danger" disabled={resetting||resetConfirm!==eventName||!eventName} onClick={handleResetData}>{resetting?"Resetting…":"Reset All Event Data"}</button>
             </div>
           </div>
-        </div>
+        </Modal>
       )}
 
-    </div>
+    </>
   );
 }
 
