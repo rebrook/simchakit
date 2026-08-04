@@ -1,5 +1,5 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// SimchaKit V4.23.3 — components/shared/Modal.jsx
+// SimchaKit V4.23.4 — components/shared/Modal.jsx
 // Reusable modal wrapper providing the accessibility behavior every hand-
 // rolled modal-backdrop div in this codebase was missing: portal to body,
 // role="dialog" aria-modal="true" aria-labelledby, a trapped focus loop,
@@ -54,15 +54,16 @@
 //     className="print-preview-panel" style={{ width: "95%", ... }}>
 //     ...
 //   </Modal>
+//
 // Stacked modals (e.g. Admin Mode's Export Full Backup, opened on top of the
 // Admin Mode panel itself): a module-level stack tracks every currently-
-// mounted Modal instance in open order. Only the TOPMOST instance's Escape
-// and Tab handling is active. Without this, two simultaneously-mounted
-// Modal instances each independently register their own window-level
-// keydown listener — Escape would fire both onClose handlers at once, and
-// the OUTER modal's Tab-trap listener stays fully live the whole time an
-// inner modal is open (it never unmounts), competing with the inner one's
-// own trap instead of getting out of the way.
+// mounted Modal instance's backdrop node, in open order. Every non-topmost
+// modal's backdrop is marked `inert`, which makes its entire subtree
+// genuinely unfocusable and non-interactive at the browser level — Tab
+// physically cannot reach it, regardless of any wrap-around detection logic
+// here being correct. Escape/Tab handling is additionally gated to only the
+// topmost instance, so an outer modal's own listener doesn't also fire
+// while an inner one is open on top of it.
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useEffect, useLayoutEffect, useRef, useId } from "react";
@@ -73,8 +74,20 @@ const FOCUSABLE_SELECTOR = 'button, [href], input, select, textarea, [tabindex]:
 
 // Open-modal stack, most-recently-mounted last. Plain module-level array,
 // not React state — read live at keydown time, not captured in a closure.
+// Each entry is { id, backdropNode }.
 let modalStack = [];
 let nextModalId = 0;
+
+function reconcileInert() {
+  const topIndex = modalStack.length - 1;
+  modalStack.forEach((entry, i) => {
+    if (entry.backdropNode) entry.backdropNode.inert = i !== topIndex;
+  });
+}
+
+function isTopmost(id) {
+  return modalStack.length > 0 && modalStack[modalStack.length - 1].id === id;
+}
 
 export function Modal({
   onClose,
@@ -95,12 +108,16 @@ export function Modal({
     instanceIdRef.current = ++nextModalId;
   }
 
-  // Register in the open-modal stack on mount, deregister on unmount, so
-  // stacked modals know which one is topmost.
+  // Register in the open-modal stack on mount (with this modal's backdrop
+  // node, so reconcileInert can enforce inert on everything beneath the
+  // topmost), deregister on unmount.
   useEffect(() => {
-    modalStack.push(instanceIdRef.current);
+    const entry = { id: instanceIdRef.current, backdropNode: modalRef.current?.parentElement || null };
+    modalStack.push(entry);
+    reconcileInert();
     return () => {
-      modalStack = modalStack.filter(id => id !== instanceIdRef.current);
+      modalStack = modalStack.filter(e => e.id !== instanceIdRef.current);
+      reconcileInert();
     };
   }, []);
 
@@ -133,7 +150,7 @@ export function Modal({
   // (e.g. a form transitioning to a success state with different buttons).
   useEffect(() => {
     const handler = (e) => {
-      if (modalStack[modalStack.length - 1] !== instanceIdRef.current) return;
+      if (!isTopmost(instanceIdRef.current)) return;
 
       if (e.key === "Escape") {
         onClose();

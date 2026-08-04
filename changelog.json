@@ -1,9 +1,30 @@
 {
-  "current": "V4.23.2",
+  "current": "V4.23.4",
   "whatsNew": [
-    "Extended last update's keyboard-accessible confirmation dialogs to Admin Mode and the household editor: Escape closes them, Tab stays inside, and focus returns to where you were"
+    "Fixed a follow-up issue where the previous fix for stacked dialogs (e.g. inside Admin Mode) didn't fully resolve keyboard navigation between them"
   ],
   "changelog": [
+    {
+      "version": "V4.23.4",
+      "date": "2026-07-31",
+      "summary": "Stronger fix for stacked modals: background modal is now genuinely unreachable, not just logically trapped",
+      "changes": [
+        "V4.23.3's fix (gating Escape/Tab handling to only the topmost modal via a stack of ids) did not resolve the reported issue when tested: Tab still moved into the modal behind, and Escape still did nothing",
+        "Rebuilt the fix around the native inert DOM property instead of relying solely on hand-written wrap-around detection. The open-modal stack now tracks each modal's backdrop node directly; every non-topmost modal's entire backdrop is marked inert, which makes it genuinely unfocusable and non-interactive at the browser level. Tab physically cannot reach a background modal's content regardless of whether any of this component's own boundary-detection logic has a subtle bug",
+        "Escape/Tab handling is still additionally gated to the topmost instance as a second layer, but the inert enforcement is now the primary guarantee, not the JS wrap-around logic alone"
+      ]
+    },
+    {
+      "version": "V4.23.3",
+      "date": "2026-07-31",
+      "summary": "Fixed Escape and Tab not working correctly when one modal is opened on top of another",
+      "changes": [
+        "Opening a modal from within another modal (e.g. Admin Mode's Export Full Backup, Unarchive, or Reset dialogs, all opened while the Admin Mode panel itself stays open behind them) broke Escape and Tab: Escape did nothing, and Tab moved focus through the modal underneath instead of staying trapped in the one on top",
+        "Root cause: each Modal instance independently registers its own window-level keydown listener with no awareness of any other Modal instances that might also be mounted. With two modals open at once, both listeners fired on every keypress, and the outer modal's Tab-trap logic stayed fully active the entire time an inner modal was open on top of it, since the outer modal never unmounts",
+        "Fixed with a module-level stack tracking every currently-mounted Modal instance in open order. Escape and Tab handling is now gated to only the topmost instance; every other open modal's handler is a no-op while it isn't on top",
+        "No change to single-modal behavior, initial focus, or focus restore on close, since those aren't affected by stacking the same way Escape/Tab handling was"
+      ]
+    },
     {
       "version": "V4.23.2",
       "date": "2026-07-31",
