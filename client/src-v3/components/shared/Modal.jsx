@@ -1,5 +1,5 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// SimchaKit V4.23.2 — components/shared/Modal.jsx
+// SimchaKit V4.23.3 — components/shared/Modal.jsx
 // Reusable modal wrapper providing the accessibility behavior every hand-
 // rolled modal-backdrop div in this codebase was missing: portal to body,
 // role="dialog" aria-modal="true" aria-labelledby, a trapped focus loop,
@@ -54,6 +54,15 @@
 //     className="print-preview-panel" style={{ width: "95%", ... }}>
 //     ...
 //   </Modal>
+// Stacked modals (e.g. Admin Mode's Export Full Backup, opened on top of the
+// Admin Mode panel itself): a module-level stack tracks every currently-
+// mounted Modal instance in open order. Only the TOPMOST instance's Escape
+// and Tab handling is active. Without this, two simultaneously-mounted
+// Modal instances each independently register their own window-level
+// keydown listener — Escape would fire both onClose handlers at once, and
+// the OUTER modal's Tab-trap listener stays fully live the whole time an
+// inner modal is open (it never unmounts), competing with the inner one's
+// own trap instead of getting out of the way.
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useEffect, useLayoutEffect, useRef, useId } from "react";
@@ -61,6 +70,11 @@ import { createPortal } from "react-dom";
 import { Icon } from "@/utils/iconMap.jsx";
 
 const FOCUSABLE_SELECTOR = 'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
+
+// Open-modal stack, most-recently-mounted last. Plain module-level array,
+// not React state — read live at keydown time, not captured in a closure.
+let modalStack = [];
+let nextModalId = 0;
 
 export function Modal({
   onClose,
@@ -76,6 +90,19 @@ export function Modal({
   const modalRef              = useRef(null);
   const previouslyFocusedRef  = useRef(null);
   const titleId                = useId();
+  const instanceIdRef          = useRef(null);
+  if (instanceIdRef.current == null) {
+    instanceIdRef.current = ++nextModalId;
+  }
+
+  // Register in the open-modal stack on mount, deregister on unmount, so
+  // stacked modals know which one is topmost.
+  useEffect(() => {
+    modalStack.push(instanceIdRef.current);
+    return () => {
+      modalStack = modalStack.filter(id => id !== instanceIdRef.current);
+    };
+  }, []);
 
   // Capture whatever had focus before the modal opened, restore it on close.
   useEffect(() => {
@@ -98,12 +125,16 @@ export function Modal({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Escape closes. Tab / Shift+Tab is trapped inside the modal. Focusable
-  // elements are re-queried on every keypress rather than cached once, so
-  // this stays correct even if the modal's content changes shape (e.g. a
-  // form transitioning to a success state with different buttons).
+  // Escape closes. Tab / Shift+Tab is trapped inside the modal. Both are
+  // gated to the topmost modal in the stack — otherwise an outer modal's
+  // listener would also fire while an inner one is open on top of it.
+  // Focusable elements are re-queried on every keypress rather than cached
+  // once, so this stays correct even if the modal's content changes shape
+  // (e.g. a form transitioning to a success state with different buttons).
   useEffect(() => {
     const handler = (e) => {
+      if (modalStack[modalStack.length - 1] !== instanceIdRef.current) return;
+
       if (e.key === "Escape") {
         onClose();
         return;
