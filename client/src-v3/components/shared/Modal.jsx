@@ -1,5 +1,5 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// SimchaKit V4.21.0 — components/shared/Modal.jsx
+// SimchaKit V4.23.2 — components/shared/Modal.jsx
 // Reusable modal wrapper providing the accessibility behavior every hand-
 // rolled modal-backdrop div in this codebase was missing: portal to body,
 // role="dialog" aria-modal="true" aria-labelledby, a trapped focus loop,
@@ -28,6 +28,16 @@
 //      migrating bigger, more custom modals without restructuring their
 //      existing markup.
 //
+// `unstyled`: for modals that don't use .modal/.modal-lg at all — e.g. a
+// full-custom print-preview panel with its own inline-styled dimensions,
+// no card chrome, no entrance animation. Skips the .modal/.modal-lg class
+// entirely so the caller's own className/inline styles are the only thing
+// controlling appearance, while still getting the portal, dialog
+// semantics, focus trap, Escape, and focus restore. Forcing .modal's CSS
+// (max-height: 85vh, the slide-up animation) onto a caller that never had
+// them would be a real visual change, not a faithful wrapper — this option
+// exists so that never has to happen.
+//
 // Usage (simple):
 //   <Modal onClose={onClose} title="Delete Household" maxWidth={400}>
 //     <div className="modal-body">...</div>
@@ -37,6 +47,12 @@
 //   <Modal onClose={onClose} ariaLabel="SimchaKit Guide" className="modal-lg">
 //     <div className="modal-header">...custom markup...</div>
 //     <div className="modal-body">...</div>
+//   </Modal>
+//
+// Usage (unstyled, fully custom panel):
+//   <Modal onClose={onClose} ariaLabel="Print Preview" unstyled
+//     className="print-preview-panel" style={{ width: "95%", ... }}>
+//     ...
 //   </Modal>
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -52,6 +68,8 @@ export function Modal({
   ariaLabel,
   className = "",
   maxWidth,
+  unstyled = false,
+  style,
   initialFocusRef,
   children,
 }) {
@@ -115,8 +133,8 @@ export function Modal({
     <div className="modal-backdrop" onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}>
       <div
         ref={modalRef}
-        className={className ? `modal ${className}` : "modal"}
-        style={maxWidth ? { maxWidth } : undefined}
+        className={unstyled ? (className || undefined) : (className ? `modal ${className}` : "modal")}
+        style={unstyled ? style : (maxWidth ? { maxWidth } : undefined)}
         role="dialog"
         aria-modal="true"
         aria-labelledby={title ? titleId : undefined}

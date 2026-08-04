@@ -33,6 +33,7 @@ import { ArchivedNotice }    from "@/components/shared/ArchivedNotice.jsx";
 import { RsvpPill }          from "@/components/shared/RsvpPill.jsx";
 import { CateringSummary }   from "@/components/shared/CateringSummary.jsx";
 import { ConfirmDialog }     from "@/components/shared/ConfirmDialog.jsx";
+import { Modal }             from "@/components/shared/Modal.jsx";
 import { Icon }              from "@/utils/iconMap.jsx";
 import { useIsMobile }       from "@/hooks/useIsMobile.js";
 
@@ -589,18 +590,21 @@ export function GuestsTab({ eventId, event, adminConfig, showToast, isArchived, 
         />
       )}
       {guestPrintHTML && (
-        <div className="modal-backdrop" onMouseDown={e=>{if(e.target===e.currentTarget)setGuestPrintHTML(null);}}>
-          <div onClick={e=>e.stopPropagation()} style={{background:"var(--bg-surface)",borderRadius:"var(--radius-lg)",width:"95%",maxWidth:960,height:"90vh",display:"flex",flexDirection:"column",boxShadow:"var(--shadow-lg)"}}>
-            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"14px 20px",borderBottom:"1px solid var(--border)",flexShrink:0}}>
-              <div style={{fontSize:17,fontWeight:700,color:"var(--text-primary)"}}>Print Preview — Guest List</div>
-              <div style={{display:"flex",gap:8}}>
-                <button className="btn btn-primary" style={{fontSize:12,display:"inline-flex",alignItems:"center",gap:4}} onClick={()=>{const f=document.getElementById("guest-print-frame");if(f?.contentWindow)f.contentWindow.print();}}><Icon name="printer" context="inline" /> Print</button>
-                <button className="icon-btn" title="Close" onClick={()=>setGuestPrintHTML(null)}><Icon name="x" context="button" /></button>
-              </div>
+        <Modal
+          onClose={() => setGuestPrintHTML(null)}
+          ariaLabel="Print Preview: Guest List"
+          unstyled
+          style={{background:"var(--bg-surface)",borderRadius:"var(--radius-lg)",width:"95%",maxWidth:960,height:"90vh",display:"flex",flexDirection:"column",boxShadow:"var(--shadow-lg)"}}
+        >
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"14px 20px",borderBottom:"1px solid var(--border)",flexShrink:0}}>
+            <div style={{fontSize:17,fontWeight:700,color:"var(--text-primary)"}}>Print Preview — Guest List</div>
+            <div style={{display:"flex",gap:8}}>
+              <button className="btn btn-primary" style={{fontSize:12,display:"inline-flex",alignItems:"center",gap:4}} onClick={()=>{const f=document.getElementById("guest-print-frame");if(f?.contentWindow)f.contentWindow.print();}}><Icon name="printer" context="inline" /> Print</button>
+              <button className="icon-btn" title="Close" onClick={()=>setGuestPrintHTML(null)}><Icon name="x" context="button" /></button>
             </div>
-            <iframe id="guest-print-frame" srcDoc={guestPrintHTML} sandbox="allow-same-origin allow-modals" style={{flex:1,border:"none",borderRadius:"0 0 var(--radius-lg) var(--radius-lg)"}} title="Guest List Print Preview" />
           </div>
-        </div>
+          <iframe id="guest-print-frame" srcDoc={guestPrintHTML} sandbox="allow-same-origin allow-modals" style={{flex:1,border:"none",borderRadius:"0 0 var(--radius-lg) var(--radius-lg)"}} title="Guest List Print Preview" />
+        </Modal>
       )}
       {deleteConfirm && (
         <ConfirmDialog
@@ -759,15 +763,14 @@ export function HouseholdModal({ household, members, adminConfig, onSave, onClos
   );
 
   return (
-    <div className="modal-backdrop" onMouseDown={e=>{if(e.target===e.currentTarget)onClose();}}>
-      <div className="modal modal-lg" style={{maxWidth:640}} onClick={e=>e.stopPropagation()}>
-        <div className="modal-header">
-          <div>
-            <div className="modal-title">{isEdit?"Edit Household":"Add Household"}</div>
-            {!isEdit && <div style={{fontSize:12,color:"var(--text-muted)",marginTop:2}}>Step {step} of 2 — {step===1?"Household Details":"Members"}</div>}
-          </div>
-          <button className="icon-btn" title="Close" onClick={onClose}><Icon name="x" context="button" /></button>
+    <Modal onClose={onClose} ariaLabel={isEdit ? "Edit Household" : "Add Household"} className="modal-lg" maxWidth={640}>
+      <div className="modal-header">
+        <div>
+          <div className="modal-title">{isEdit?"Edit Household":"Add Household"}</div>
+          {!isEdit && <div style={{fontSize:12,color:"var(--text-muted)",marginTop:2}}>Step {step} of 2 — {step===1?"Household Details":"Members"}</div>}
         </div>
+        <button className="icon-btn" title="Close" onClick={onClose}><Icon name="x" context="button" /></button>
+      </div>
         {isEdit && (
           <div className="hh-modal-tabs">
             {[{id:"details",label:"Details"},{id:"address",label:"Address"},{id:"members",label:"Members"},{id:"flags",label:"Flags & Notes"},{id:"contacts",label:"Contact Log"}].map(t=>(
@@ -936,8 +939,7 @@ export function HouseholdModal({ household, members, adminConfig, onSave, onClos
             {isEdit && <><button className="btn btn-ghost" onClick={onClose}>Cancel</button><button className="btn btn-primary" onClick={handleSave} disabled={!hh.formalName.trim()||isArchived}>Save Changes</button></>}
           </div>
         </div>
-      </div>
-    </div>
+    </Modal>
   );
 }
 
@@ -1000,9 +1002,7 @@ export function ImportModal({ adminConfig, onImport, onClose }) {
   };
 
   return (
-    <div className="modal-backdrop" onMouseDown={e=>{if(e.target===e.currentTarget)onClose();}}>
-      <div className="modal modal-lg" onClick={e=>e.stopPropagation()}>
-        <div className="modal-header"><div className="modal-title">Import Guests</div><button className="icon-btn" title="Close" onClick={onClose}><Icon name="x" context="button" /></button></div>
+    <Modal onClose={onClose} title="Import Guests" className="modal-lg">
         <div className="modal-body">
           {stage==="upload" && (<>
             <div className="alert alert-info" style={{marginBottom:16}}>Upload any CSV file — SimchaKit will detect your columns automatically. Or download the template for a pre-formatted starting point.</div>
@@ -1052,8 +1052,7 @@ export function ImportModal({ adminConfig, onImport, onClose }) {
             {stage==="preview"&&<><button className="btn btn-secondary" onClick={()=>setStage(headers.length>0&&mapping["FormalName"]?"mapping":"upload")}>Back</button><button className="btn btn-primary" onClick={()=>{onImport(preview,mergeMode);setStage("done");}}>Confirm Import{preview?.errors?.length>0?` (${preview.households.length} rows)`:""}</button></>}
           </div>
         </div>
-      </div>
-    </div>
+    </Modal>
   );
 }
 
@@ -1069,9 +1068,7 @@ export function TimelineEntryModal({ entry, onSave, onClose }) {
   const onEndPart=(h,m,ap)=>{const t=buildTime(h,m,ap);if(t)setF("endTime",t);};
   const selStyle={flex:1,minWidth:0};
   return (
-    <div className="modal-backdrop" onMouseDown={e=>{if(e.target===e.currentTarget)onClose();}}>
-      <div className="modal" style={{maxWidth:480}} onClick={e=>e.stopPropagation()}>
-        <div className="modal-header"><div className="modal-title">{isEdit?"Edit Timeline Event":"Add Timeline Event"}</div><button className="icon-btn" title="Close" onClick={onClose}><Icon name="x" context="button" /></button></div>
+    <Modal onClose={onClose} title={isEdit ? "Edit Timeline Event" : "Add Timeline Event"} maxWidth={480}>
         <div className="modal-body">
           <div className="form-grid-2">
             <div className="form-group" style={{flex:"0 0 80px"}}><label className="form-label">Icon</label><input className="form-input" value={form.icon} onChange={e=>setF("icon",e.target.value)} placeholder="📅" style={{textAlign:"center",fontSize:20}} maxLength={4} /></div>
@@ -1096,8 +1093,7 @@ export function TimelineEntryModal({ entry, onSave, onClose }) {
             <button className="btn btn-primary" onClick={()=>{if(!form.title.trim()||!form.startDate)return;const endDate=(!form.endDate&&form.endTime)?form.startDate:form.endDate;onSave({...form,endDate,title:form.title.trim()});}} disabled={!form.title.trim()||!form.startDate}>{isEdit?"Save Changes":"Add Event"}</button>
           </div>
         </div>
-      </div>
-    </div>
+    </Modal>
   );
 }
 
@@ -1119,9 +1115,7 @@ export function GuestExportModal({ households, people, tables, adminConfig, onPr
   const PRINT_OPT=()=>({flex:"1 1 180px",padding:"14px 16px",borderRadius:"var(--radius-md)",border:"2px solid var(--border)",background:"var(--bg-surface)",cursor:"pointer",textAlign:"left"});
   const ALERT_TEXT={byHousehold:"One row per household, sorted by last name. Paste into Excel or Google Sheets.",byPerson:"One row per individual with meal choice, kosher flag, dietary notes, shirt size, and table. Best pasted into Excel — filter by Kosher, Meal, or Dietary to prep catering sheets.",mailing:"Address fields are split into separate columns (Street, City, State, Zip, Country) for mail-merge compatibility. Paste into Excel or share with anyone who needs a structured address list.",emailList:"One row per household with an email address on file. Includes formal name, group, RSVP status, email, and phone. Ready for mail merge, bulk email, or RSVP follow-up."};
   return (
-    <div className="modal-backdrop" onMouseDown={e=>{if(e.target===e.currentTarget)onClose();}}>
-      <div className="modal modal-lg" style={{maxWidth:640}} onClick={e=>e.stopPropagation()}>
-        <div className="modal-header"><div className="modal-title">Export Guest List</div><button className="icon-btn" title="Close" onClick={onClose}><Icon name="x" context="button" /></button></div>
+    <Modal onClose={onClose} title="Export Guest List" className="modal-lg" maxWidth={640}>
         <div className="modal-body">
           <div style={{display:"flex",gap:10,marginBottom:20,flexWrap:"wrap"}}>
             <button style={OPTION("byHousehold")} onClick={()=>{setActiveExport("byHousehold");setCopied(false);}}><div style={{fontSize:22,marginBottom:6}}><Icon name="guests" context="button" /></div><div style={{fontWeight:700,fontSize:13,marginBottom:4}}>By Household</div><div style={{fontSize:11,color:"var(--text-muted)",lineHeight:1.5}}>One row per household with RSVP status, headcount, address, and sub-events. Best for your planner or a full reference spreadsheet.</div></button>
@@ -1133,8 +1127,7 @@ export function GuestExportModal({ households, people, tables, adminConfig, onPr
           {activeExport && (<><div className="alert alert-info" style={{marginBottom:10}}>{ALERT_TEXT[activeExport]}</div><textarea readOnly value={csvContent} onClick={e=>e.target.select()} style={{width:"100%",minHeight:180,background:"var(--bg-subtle)",border:"1px solid var(--border)",borderRadius:"var(--radius-sm)",padding:10,fontFamily:"var(--font-mono,monospace)",fontSize:11,resize:"vertical"}} /><div className="modal-footer" style={{marginTop:12}}><button className="btn btn-ghost" onClick={onClose}>Close</button><button className="btn btn-primary" onClick={()=>navigator.clipboard.writeText(csvContent).then(()=>{setCopied(true);setTimeout(()=>setCopied(false),2000);})}>{copied?<><Icon name="check" context="badge" /> Copied!</>:"Copy to Clipboard"}</button></div></>)}
           {!activeExport && <div className="modal-footer"><button className="btn btn-ghost" onClick={onClose}>Cancel</button></div>}
         </div>
-      </div>
-    </div>
+    </Modal>
   );
 }
 

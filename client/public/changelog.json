@@ -1,9 +1,22 @@
 {
-  "current": "V4.23.1",
+  "current": "V4.23.2",
   "whatsNew": [
-    "Fixed a bug where an expense's contracted amount could display incorrectly if its payment schedule hadn't been fully entered yet"
+    "Extended last update's keyboard-accessible confirmation dialogs to Admin Mode and the household editor: Escape closes them, Tab stays inside, and focus returns to where you were"
   ],
   "changelog": [
+    {
+      "version": "V4.23.2",
+      "date": "2026-07-31",
+      "summary": "Step 4: AdminPanel and the household editor migrated to the accessible Modal/ConfirmDialog system",
+      "changes": [
+        "AdminPanel.jsx's Delete Timeline Entry confirmation migrated to ConfirmDialog (an 11th instance of the same shape as the original nine plus Modals.jsx's clear-log)",
+        "AdminPanel.jsx's four other modals (the main Admin Mode panel itself, Export Full Backup, Unarchive Event, and Reset Event Data) migrated wrapper-only to Modal, keeping their existing custom headers, forms, and multi-button footers exactly as-is",
+        "GuestsTab.jsx's remaining modals migrated wrapper-only to Modal: HouseholdModal (the household editor named in the original ticket), ImportModal, TimelineEntryModal, and GuestExportModal. Where a modal only ever had a plain string title, it now uses Modal's built-in title mode instead of hand-rolling its own modal-header, dropping a small amount of duplicated markup along the way",
+        "New Modal.jsx option: unstyled (plus a style prop), for modals that don't use .modal/.modal-lg at all. Needed for GuestsTab's guest-list print-preview panel, which has its own fully custom inline-styled dimensions (95% width, 90vh height) and no entrance animation; forcing the standard .modal class on top would have clipped it to that class's max-height: 85vh ceiling and added a slide-up animation that was never there before. This keeps portal/dialog-semantics/focus-trap/Escape/focus-restore behavior identical for these callers while letting them fully control their own appearance",
+        "Every migrated modal in this batch was verified via a div open/close balance check against each file's own self-closing-div baseline (confirmed unchanged before and after every edit), not just a visual read-through, given how many of these have far-apart opening and closing tags",
+        "This completes Step 4 from the original modal-consolidation ticket. All delete-confirm-shaped modals across the app now share one definition, and every modal touched across both passes gets Escape, a trapped focus loop, initial and restored focus, and proper dialog semantics"
+      ]
+    },
     {
       "version": "V4.23.1",
       "date": "2026-08-01",
