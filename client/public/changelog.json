@@ -1,9 +1,25 @@
 {
-  "current": "V4.24.0",
+  "current": "V4.25.0",
   "whatsNew": [
-    "Guests tab: households can now show and filter RSVP status per sub-event (Ceremony, Reception, Rehearsal Dinner, etc.), not just overall"
+    "Guests tab: fixed sub-event RSVP status contradicting the invite checklist, and added a per-sub-event setting in Admin Mode for events where only a few households attend a given sub-event"
   ],
   "changelog": [
+    {
+      "version": "V4.25.0",
+      "date": "2026-08-14",
+      "summary": "Merged sub-event invite and RSVP into one table, per-sub-event invite defaults, and status-fallback fixes",
+      "changes": [
+        "Fixed: a brand new household with nothing checked under sub-events no longer shows an Invited pill for every sub-event -- the old invitedSections-empty-means-invited-to-everything fallback was leaking into the RSVP display and contradicting the checklist above it",
+        "Fixed: a household sub-event status with no explicit override now falls back to that household's own real rsvpStatus (Invited, Pending, RSVP No, whatever it actually is), instead of a hardcoded Invited value that could contradict a status you had already set",
+        "New households now default to Pending rather than Invited, since nothing has actually been sent yet",
+        "Merged the separate Invited To Sub-Events checklist and Sub-Event RSVP list into a single table: one row per sub-event, with the status pill and attending summary only appearing once that row is actually invited -- removes the two-source-of-truth layout that could show contradictory information",
+        "In the Add Household flow, this merged sub-events table now appears at the bottom of Step 1 (after Notes, before Next: Members) instead of mid-scroll between RSVP fields and Address -- Edit mode is unchanged, it was already the last item on the Details tab",
+        "Added a per-sub-event Invite all households by default setting in Admin Mode's Timeline (on by default, matching existing behavior for every event already using sub-events): sub-events only a handful of people attend (a small rehearsal, a minyan) can be switched to opt-in-only, so you check the few households who are invited instead of unchecking everyone who is not",
+        "Timeline list in Admin Mode shows an Opt-in only tag on any sub-event switched away from the default",
+        "A household's sub-event RSVP status flips to RSVP Yes as soon as any one person in that household is checked as attending -- it does not wait for every invited person to be accounted for, and unchecking one person later does not flip it back down as long as someone else is still checked",
+        "No database migration required -- inviteAllByDefault lives on the existing timeline entries inside admin_config, and subEventRsvp continues to live inside the existing households data jsonb column"
+      ]
+    },
     {
       "version": "V4.24.0",
       "date": "2026-08-14",

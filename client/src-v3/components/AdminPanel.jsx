@@ -478,6 +478,7 @@ export function AdminPanel({ eventId, userId, calendarToken: initialCalendarToke
                         <div style={{display:"flex",alignItems:"center",gap:8,flexWrap:"wrap"}}>
                           <span style={{fontWeight:600,fontSize:14,color:"var(--text-primary)"}}>{entry.title}</span>
                           {entry.isMainEvent && <span className="tag tag-accent" style={{fontSize:11}}><Icon name="star" context="badge" style={{ marginRight: 3 }} /> Main Event</span>}
+                          {entry.inviteAllByDefault === false && <span className="tag tag-muted" style={{fontSize:11}}>Opt-in only</span>}
                         </div>
                         <div style={{fontSize:12,color:"var(--text-muted)",marginTop:2}}>{formatEntryMeta(entry)}</div>
                       </div>

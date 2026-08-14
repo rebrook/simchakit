@@ -37,20 +37,31 @@ import { Modal }             from "@/components/shared/Modal.jsx";
 import { Icon }              from "@/utils/iconMap.jsx";
 import { useIsMobile }       from "@/hooks/useIsMobile.js";
 
-// ── Sub-event RSVP status (derived) ───────────────────────────────────────────
-// A household with no invitedSections is invited to every sub-event (existing
-// invitedSections/attendingSections fallback behavior, unchanged). Returns null
-// when the household is not invited to sectionId — callers treat null as
-// "don't render a chip / not filterable". An explicit hh.subEventRsvp[sectionId]
-// always wins; otherwise status is derived from whether anyone in the household
-// is marked attending that sub-event (RSVP Yes) or not (Invited / not yet responded).
-function getSubEventStatus(hh, hhMembers, sectionId) {
-  const invited = (hh.invitedSections || []).length === 0 || (hh.invitedSections || []).includes(sectionId);
-  if (!invited) return null;
-  const explicit = hh.subEventRsvp?.[sectionId];
+// ── Sub-event invite + RSVP status (derived) ──────────────────────────────────
+// Each timeline entry (sub-event) carries its own inviteAllByDefault flag (true
+// unless explicitly set to false in Admin Mode). A household's invitedSections
+// is a pure positive list (checked ids only) -- there's no way to explicitly
+// exclude a household from a default-all sub-event, only to opt one into an
+// opt-in-only sub-event. That's a known, accepted limitation, not a bug.
+function isInvited(hh, section) {
+  const explicitlyChecked = (hh.invitedSections || []).includes(section.id);
+  if (explicitlyChecked) return true;
+  return section.inviteAllByDefault !== false; // undefined/absent = true (backward compat)
+}
+
+// Returns null when the household is not invited to this section -- callers
+// treat null as "don't render a chip / row / filter match". An explicit
+// hh.subEventRsvp[section.id] always wins; otherwise status is RSVP Yes if
+// anyone in the household is marked attending, or the household's own real
+// rsvpStatus (Invited, Pending, RSVP No, whatever it actually is) if not --
+// never a hardcoded default that could contradict what's actually been recorded.
+function getSubEventStatus(hh, hhMembers, section) {
+  if (!isInvited(hh, section)) return null;
+  const explicit = hh.subEventRsvp?.[section.id];
   if (explicit) return explicit;
-  const anyoneAttending = (hhMembers || []).some(p => (p.attendingSections || []).includes(sectionId));
-  return anyoneAttending ? "RSVP Yes" : "Invited";
+  const anyoneAttending = (hhMembers || []).some(p => (p.attendingSections || []).includes(section.id));
+  if (anyoneAttending) return "RSVP Yes";
+  return hh.rsvpStatus || "Invited";
 }
 
 // Shared RSVP status color mapping — used by the main household RsvpPill and the
@@ -71,7 +82,7 @@ export function GuestsTab({ eventId, event, adminConfig, showToast, isArchived, 
   const { items: tables,     loading: tLoading }                                                       = useEventData(eventId, "tables");
 
   const groups   = adminConfig?.groups   || DEFAULT_GROUPS;
-  const sections = (adminConfig?.timeline || []).map(e => ({ id: e.id, label: (e.icon ? e.icon + " " : "") + e.title }));
+  const sections = (adminConfig?.timeline || []).map(e => ({ id: e.id, label: (e.icon ? e.icon + " " : "") + e.title, inviteAllByDefault: e.inviteAllByDefault !== false }));
 
   const [search,               setSearch]               = useState("");
   const [groupFilter,          setGroupFilter]          = useState("All");
@@ -269,7 +280,9 @@ export function GuestsTab({ eventId, event, adminConfig, showToast, isArchived, 
       // requiring every selected sub-event to match, which would hide anyone
       // who responded to some but not all of the selected sub-events.
       const matchesAny = subEventFilter.some(sid => {
-        const st = getSubEventStatus(hh, hhMembers, sid);
+        const sec = sections.find(x => x.id === sid);
+        if (!sec) return false;
+        const st = getSubEventStatus(hh, hhMembers, sec);
         if (st === null) return false;
         return subEventStatusFilter === "All" ? true : st === subEventStatusFilter;
       });
@@ -301,7 +314,7 @@ export function GuestsTab({ eventId, event, adminConfig, showToast, isArchived, 
   const renderSubEventChips = (hh, hhMembers, isRowExpanded, onToggleRow) => {
     if (sections.length <= 1) return null;
     const invited = sections
-      .map(s => ({ ...s, status: getSubEventStatus(hh, hhMembers, s.id) }))
+      .map(s => ({ ...s, status: getSubEventStatus(hh, hhMembers, s) }))
       .filter(s => s.status !== null);
     if (invited.length === 0) return null;
     const visible = isRowExpanded ? invited : invited.slice(0, 3);
@@ -770,7 +783,7 @@ export function GuestsTab({ eventId, event, adminConfig, showToast, isArchived, 
 
 export function HouseholdModal({ household, members, adminConfig, onSave, onClose, isArchived }) {
   const groups      = adminConfig?.groups        || DEFAULT_GROUPS;
-  const sections    = (adminConfig?.timeline || []).map(e => ({ id: e.id, label: (e.icon ? e.icon + " " : "") + e.title }));
+  const sections    = (adminConfig?.timeline || []).map(e => ({ id: e.id, label: (e.icon ? e.icon + " " : "") + e.title, inviteAllByDefault: e.inviteAllByDefault !== false }));
   const mealChoices = adminConfig?.mealChoices   || DEFAULT_MEALS;
   const sizes       = ["", ...(adminConfig?.shirtSizes || SHIRT_SIZES.filter(s => s))];
   const isEdit      = !!household;
@@ -781,7 +794,7 @@ export function HouseholdModal({ household, members, adminConfig, onSave, onClos
   const [hh, setHH] = useState(household ? { ...household, group: household.group || groups[0] || "" } : {
     id: newHouseholdId(), formalName: "", name2: "",
     address1: "", address2: "", city: "", stateProvince: "", postalCode: "", country: "",
-    phone: "", email: "", group: groups[0]||"", rsvpStatus: "Invited",
+    phone: "", email: "", group: groups[0]||"", rsvpStatus: "Pending",
     saveTheDateSent: false, inviteSent: false, thankYouSent: false, accommodationNeeded: false,
     rsvpDate: "", invitedSections: [], subEventRsvp: {}, attendingAdults: null, attendingKids: null,
     outOfTown: false, notes: "", contactLog: [],
@@ -816,14 +829,14 @@ export function HouseholdModal({ household, members, adminConfig, onSave, onClos
 
   const handleSave = () => {
     if (!hh.formalName.trim()) return;
-    const validSections = hh.invitedSections || [];
+    const invitedIds = sections.filter(s => isInvited(hh, s)).map(s => s.id);
     const linked = ppl
       .filter(p => (p.firstName||p.lastName||p.name||"").trim())
       .map(p => ({
         ...p,
         householdId: hh.id,
         name: [p.firstName, p.lastName].filter(Boolean).join(" ") || p.name || "",
-        attendingSections: validSections.length > 0 ? (p.attendingSections||[]).filter(sid=>validSections.includes(sid)) : (p.attendingSections||[]),
+        attendingSections: (p.attendingSections||[]).filter(sid=>invitedIds.includes(sid)),
       }));
     onSave({ household: { ...hh, formalName: hh.formalName.trim(), name2: (hh.name2||"").trim() }, people: linked });
   };
@@ -865,9 +878,7 @@ export function HouseholdModal({ household, members, adminConfig, onSave, onClos
         </div>
       </div>
       {sections.length>0 && (() => {
-        const availableSections = (hh.invitedSections || []).length > 0
-          ? sections.filter(s => (hh.invitedSections || []).includes(s.id))
-          : sections;
+        const availableSections = sections.filter(s => isInvited(hh, s));
         return availableSections.length > 0 ? (
         <div className="form-group" style={{marginBottom:10}}>
           <label className="form-label">Attending Sub-Events</label>
@@ -881,9 +892,7 @@ export function HouseholdModal({ household, members, adminConfig, onSave, onClos
               </label>
             ))}
           </div>
-          {(hh.invitedSections || []).length > 0 && (
-            <div className="form-hint">Only sub-events the household is invited to are shown.</div>
-          )}
+          <div className="form-hint">Only sub-events this household is invited to appear here.</div>
         </div>
         ) : null;
       })()}
@@ -910,6 +919,57 @@ export function HouseholdModal({ household, members, adminConfig, onSave, onClos
         </div>
       </div>
       <div className="form-group" style={{marginBottom:6}}><label className="form-label">Dietary Notes</label><input className="form-input" value={p.dietary||""} onChange={e=>setPF(p.id,"dietary",e.target.value)} placeholder="Allergies, restrictions…" /></div>
+    </div>
+  );
+
+  // ── Merged sub-event invite + RSVP table ──────────────────────────────────
+  // One row per sub-event: checkbox always visible; status pill and attending
+  // summary only render once that row is invited (checked, or invited by
+  // default). Replaces the old separate "Invited To Sub-Events" checklist and
+  // "Sub-Event RSVP" list, which could show contradictory information (a pill
+  // claiming Invited while the checklist above it showed nothing checked).
+  // Rendered once here, referenced from two spots below depending on isEdit --
+  // not duplicated JSX.
+  const subEventBlock = sections.length > 0 && (
+    <div className="form-group">
+      <label className="form-label">Sub-Events</label>
+      <div style={{display:"flex",flexDirection:"column",gap:6,marginTop:2}}>
+        {sections.map(s => {
+          const invited = isInvited(hh, s);
+          const isDefaultAll = s.inviteAllByDefault !== false;
+          const status = getSubEventStatus(hh, ppl, s);
+          const attendingNames = ppl
+            .filter(p => (p.attendingSections||[]).includes(s.id))
+            .map(p => [p.firstName,p.lastName].filter(Boolean).join(" ")||p.name||"Unnamed")
+            .join(", ");
+          return (
+            <div key={s.id} style={{display:"flex",alignItems:"center",gap:10,flexWrap:"wrap",background:invited?"var(--bg-subtle)":"transparent",border:"1px solid var(--border)",borderRadius:"var(--radius-sm)",padding:"6px 10px"}}>
+              <input type="checkbox" checked={invited} disabled={isDefaultAll || isArchived}
+                title={isDefaultAll ? "Everyone is invited to this sub-event by default -- change this in Admin Mode's Timeline" : "Invite this household to this sub-event"}
+                onChange={e=>{
+                  if (isDefaultAll) return;
+                  const cur = hh.invitedSections||[];
+                  setHHF("invitedSections", e.target.checked ? [...cur, s.id] : cur.filter(x=>x!==s.id));
+                }}
+                style={{width:14,height:14,accentColor:"var(--accent-primary)",cursor:isDefaultAll?"default":"pointer",flexShrink:0}} />
+              <span style={{fontSize:12,fontWeight:600,color:invited?"var(--text-primary)":"var(--text-muted)",minWidth:140}}>{s.label}</span>
+              {isDefaultAll && <span style={{fontSize:10,color:"var(--text-muted)",fontStyle:"italic"}}>Invited by default</span>}
+              {invited && (
+                <>
+                  <RsvpPill value={status} open={openSectionRsvp===s.id}
+                    onOpen={e=>{e.stopPropagation();if(!isArchived)setOpenSectionRsvp(openSectionRsvp===s.id?null:s.id);}}
+                    onSelect={st=>setSubEventRsvpStatus(s.id, st)}
+                    statusStyle={statusStyle} disabled={isArchived} />
+                  <span style={{fontSize:11,color:"var(--text-muted)"}}>
+                    {attendingNames ? `Attending: ${attendingNames}` : "No one marked attending yet"}
+                  </span>
+                </>
+              )}
+            </div>
+          );
+        })}
+      </div>
+      <div className="form-hint">Status defaults to this household's overall RSVP status, or RSVP Yes once someone's marked attending on the Members step. Click a pill to set it explicitly. "Invited by default" sub-events include every household automatically -- change that in Admin Mode's Timeline.</div>
     </div>
   );
 
@@ -971,53 +1031,7 @@ export function HouseholdModal({ household, members, adminConfig, onSave, onClos
             </div>
             </div>
             )}
-            {sections.length>0 && (
-              <div className="form-group">
-                <label className="form-label">Invited To Sub-Events</label>
-                <div style={{display:"flex",flexWrap:"wrap",gap:6,marginTop:2}}>
-                  {sections.map(s=>(
-                    <label key={s.id} style={{display:"flex",alignItems:"center",gap:5,fontSize:12,cursor:"pointer",background:"var(--bg-subtle)",border:"1px solid var(--border)",borderRadius:"var(--radius-sm)",padding:"3px 8px"}}>
-                      <input type="checkbox" checked={(hh.invitedSections||[]).includes(s.id)}
-                        onChange={e=>{const cur=hh.invitedSections||[];setHHF("invitedSections",e.target.checked?[...cur,s.id]:cur.filter(x=>x!==s.id));}}
-                        style={{width:13,height:13,accentColor:"var(--accent-primary)"}} />{s.label}
-                    </label>
-                  ))}
-                </div>
-                <div className="form-hint">Which sub-events is this household invited to?</div>
-              </div>
-            )}
-            {sections.length>0 && (() => {
-              const invitedSections = (hh.invitedSections||[]).length > 0
-                ? sections.filter(s => (hh.invitedSections||[]).includes(s.id))
-                : sections;
-              return invitedSections.length > 0 ? (
-                <div className="form-group">
-                  <label className="form-label">Sub-Event RSVP</label>
-                  <div style={{display:"flex",flexDirection:"column",gap:8,marginTop:2}}>
-                    {invitedSections.map(s => {
-                      const status = getSubEventStatus(hh, ppl, s.id);
-                      const attendingNames = ppl
-                        .filter(p => (p.attendingSections||[]).includes(s.id))
-                        .map(p => [p.firstName,p.lastName].filter(Boolean).join(" ")||p.name||"Unnamed")
-                        .join(", ");
-                      return (
-                        <div key={s.id} style={{display:"flex",alignItems:"center",gap:10,flexWrap:"wrap",background:"var(--bg-subtle)",border:"1px solid var(--border)",borderRadius:"var(--radius-sm)",padding:"6px 10px"}}>
-                          <span style={{fontSize:12,fontWeight:600,color:"var(--text-primary)",minWidth:120}}>{s.label}</span>
-                          <RsvpPill value={status} open={openSectionRsvp===s.id}
-                            onOpen={e=>{e.stopPropagation();if(!isArchived)setOpenSectionRsvp(openSectionRsvp===s.id?null:s.id);}}
-                            onSelect={st=>setSubEventRsvpStatus(s.id, st)}
-                            statusStyle={statusStyle} disabled={isArchived} />
-                          <span style={{fontSize:11,color:"var(--text-muted)"}}>
-                            {attendingNames ? `Attending: ${attendingNames}` : "No one marked attending yet"}
-                          </span>
-                        </div>
-                      );
-                    })}
-                  </div>
-                  <div className="form-hint">Status defaults to Invited, or RSVP Yes once someone is marked attending below. Click a pill to set it explicitly.</div>
-                </div>
-              ) : null;
-            })()}
+            {isEdit && subEventBlock}
           </>)}
 
           {/* Address tab (edit only) or in-line (add step 1) */}
@@ -1061,6 +1075,7 @@ export function HouseholdModal({ household, members, adminConfig, onSave, onClos
                 ))}
               </div>
               <div className="form-group"><label className="form-label">Notes</label><textarea className="form-textarea" value={hh.notes} rows={2} onChange={e=>setHHF("notes",e.target.value)} placeholder="Any notes about this household..." /></div>
+              {!isEdit && subEventBlock}
             </>
           )}
 
@@ -1242,7 +1257,9 @@ export function ImportModal({ adminConfig, onImport, onClose }) {
 export function TimelineEntryModal({ entry, onSave, onClose }) {
   const isEdit = !!entry;
   const initParts = (timeStr) => parseTimeParts(timeStr);
-  const [form, setForm] = useState(entry || { id: newTimelineId(), icon: "", title: "", startDate: "", startTime: "", endDate: "", endTime: "", venue: "", notes: "", isMainEvent: false });
+  const [form, setForm] = useState(entry
+    ? { ...entry, inviteAllByDefault: entry.inviteAllByDefault !== false }
+    : { id: newTimelineId(), icon: "", title: "", startDate: "", startTime: "", endDate: "", endTime: "", venue: "", notes: "", isMainEvent: false, inviteAllByDefault: true });
   const setF = (k,v) => setForm(f=>({...f,[k]:v}));
   const sp0 = initParts(form.startTime); const ep0 = initParts(form.endTime);
   const [sH,setSH]=useState(sp0.h);const [sM,setSM]=useState(sp0.m);const [sAP,setSAP]=useState(sp0.ap);
@@ -1267,10 +1284,19 @@ export function TimelineEntryModal({ entry, onSave, onClose }) {
           </div>
           <div className="form-group"><label className="form-label">Venue / Location</label><input className="form-input" value={form.venue||""} onChange={e=>setF("venue",e.target.value)} placeholder="e.g., Springfield Grand Ballroom" /></div>
           <div className="form-group"><label className="form-label">Notes</label><input className="form-input" value={form.notes||""} onChange={e=>setF("notes",e.target.value)} placeholder="Any additional details…" /></div>
-          <label style={{display:"flex",alignItems:"center",gap:8,cursor:"pointer",fontSize:13,color:"var(--text-primary)",marginBottom:16}}>
+          <label style={{display:"flex",alignItems:"center",gap:8,cursor:"pointer",fontSize:13,color:"var(--text-primary)",marginBottom:10}}>
             <input type="checkbox" checked={!!form.isMainEvent} onChange={e=>setF("isMainEvent",e.target.checked)} style={{width:15,height:15,accentColor:"var(--accent-primary)"}} />
             Count down to this event (sets date and venue for the countdown clock)
           </label>
+          <label style={{display:"flex",alignItems:"center",gap:8,cursor:"pointer",fontSize:13,color:"var(--text-primary)",marginBottom:4}}>
+            <input type="checkbox" checked={form.inviteAllByDefault !== false} onChange={e=>setF("inviteAllByDefault",e.target.checked)} style={{width:15,height:15,accentColor:"var(--accent-primary)"}} />
+            Invite all households by default
+          </label>
+          <div className="form-hint" style={{marginBottom:16}}>
+            {form.inviteAllByDefault !== false
+              ? "Every household is invited to this sub-event automatically. Uncheck this for a sub-event only a handful of households attend (e.g. a small rehearsal), so you only need to check the ones who are invited, not uncheck everyone else."
+              : "Households must be explicitly invited to this sub-event, one at a time, on their guest record."}
+          </div>
           <div className="modal-footer">
             <button className="btn btn-ghost" onClick={onClose}>Cancel</button>
             <button className="btn btn-primary" onClick={()=>{if(!form.title.trim()||!form.startDate)return;const endDate=(!form.endDate&&form.endTime)?form.startDate:form.endDate;onSave({...form,endDate,title:form.title.trim()});}} disabled={!form.title.trim()||!form.startDate}>{isEdit?"Save Changes":"Add Event"}</button>
