@@ -20,7 +20,7 @@ import { useSearchHighlight } from "@/hooks/useSearchHighlight.js";
 import { RSVP_STATUSES, TITLES, DEFAULT_GROUPS, DEFAULT_MEALS } from "@/constants/guest-constants.js";
 import { SHIRT_SIZES }        from "@/constants/theme.js";
 import { TL_HOURS, TL_MINUTES } from "@/constants/ui.js";
-import { parseTimeParts, buildTime } from "@/utils/dates.js";
+import { parseTimeParts, buildTime, sortTimeline } from "@/utils/dates.js";
 import { newHouseholdId, newPersonId, newContactId, newTimelineId } from "@/utils/ids.js";
 import {
   getPeopleForHousehold, isMaleTitle, computeHouseholdCounts, getHouseholdAttending,
@@ -82,7 +82,7 @@ export function GuestsTab({ eventId, event, adminConfig, showToast, isArchived, 
   const { items: tables,     loading: tLoading }                                                       = useEventData(eventId, "tables");
 
   const groups   = adminConfig?.groups   || DEFAULT_GROUPS;
-  const sections = (adminConfig?.timeline || []).map(e => ({ id: e.id, label: (e.icon ? e.icon + " " : "") + e.title, inviteAllByDefault: e.inviteAllByDefault !== false }));
+  const sections = sortTimeline(adminConfig?.timeline || []).map(e => ({ id: e.id, label: (e.icon ? e.icon + " " : "") + e.title, inviteAllByDefault: e.inviteAllByDefault !== false }));
 
   const [search,               setSearch]               = useState("");
   const [groupFilter,          setGroupFilter]          = useState("All");
@@ -305,22 +305,28 @@ export function GuestsTab({ eventId, event, adminConfig, showToast, isArchived, 
 
   // ── Sub-event row chips (glance-level, read-only) ──────────────────────────
   // Hidden entirely for events with 0-1 sub-events — a single sub-event would
-  // just duplicate the main RSVP pill already shown on the row. Capped at 3
-  // visible chips with a "+N more" overflow toggle so events with many
-  // sub-events don't turn every row into a wall of chips. Status is conveyed
-  // by glyph AND color together (not color alone) for colorblind accessibility.
+  // just duplicate the main RSVP pill already shown on the row. Only shows a
+  // chip when it's actually informative: a real RSVP Yes/No response, or any
+  // opt-in-only sub-event (being invited to one of those is itself notable,
+  // regardless of status). A default-all sub-event still sitting at Invited or
+  // Pending is the same non-answer as every other household, so it stays
+  // hidden rather than repeating identical noise on every single row.
+  // Rendered as its own full-width block below the main row (not inline in the
+  // single-line meta row), so it wraps onto additional lines instead of
+  // stretching that row out sideways when a household has several chips.
   const subEventGlyph = { "RSVP Yes": "✓", "RSVP No": "✕" };
   const subEventTone   = (status) => status === "RSVP Yes" ? "tag-green" : status === "RSVP No" ? "tag-red" : "tag-gold";
   const renderSubEventChips = (hh, hhMembers, isRowExpanded, onToggleRow) => {
     if (sections.length <= 1) return null;
-    const invited = sections
+    const notable = sections
       .map(s => ({ ...s, status: getSubEventStatus(hh, hhMembers, s) }))
-      .filter(s => s.status !== null);
-    if (invited.length === 0) return null;
-    const visible = isRowExpanded ? invited : invited.slice(0, 3);
-    const hiddenCount = invited.length - visible.length;
+      .filter(s => s.status !== null)
+      .filter(s => s.inviteAllByDefault === false || s.status === "RSVP Yes" || s.status === "RSVP No");
+    if (notable.length === 0) return null;
+    const visible = isRowExpanded ? notable : notable.slice(0, 4);
+    const hiddenCount = notable.length - visible.length;
     return (
-      <span style={{display:"inline-flex",flexWrap:"wrap",gap:3}}>
+      <div style={{display:"flex",flexWrap:"wrap",gap:4,padding:"0 14px 10px 14px"}} onClick={e=>e.stopPropagation()}>
         {visible.map(s => (
           <span key={s.id} className={`tag ${subEventTone(s.status)}`} style={{fontSize:10,cursor:"default"}}
             title={`${s.label}: ${s.status}`}>
@@ -330,11 +336,11 @@ export function GuestsTab({ eventId, event, adminConfig, showToast, isArchived, 
         {hiddenCount > 0 && (
           <button className="tag tag-muted" style={{fontSize:10,border:"none",cursor:"pointer"}}
             title="Show all sub-events for this household"
-            onClick={e=>{e.stopPropagation();onToggleRow(hh.id);}}>
+            onClick={()=>onToggleRow(hh.id)}>
             +{hiddenCount} more
           </button>
         )}
-      </span>
+      </div>
     );
   };
 
@@ -551,7 +557,6 @@ export function GuestsTab({ eventId, event, adminConfig, showToast, isArchived, 
                       <RsvpPill value={hh.rsvpStatus} open={openRsvp===hh.id}
                         onOpen={e=>{e.stopPropagation();if(!isViewer)setOpenRsvp(openRsvp===hh.id?null:hh.id);}}
                         onSelect={s=>!isViewer && updateRsvpStatus(hh.id,s)} statusStyle={statusStyle} />
-                      {renderSubEventChips(hh, members, expandedChipRows.has(hh.id), toggleChipRow)}
                       {hh.outOfTown && <span title="Out of town" style={{fontSize:13}}><Icon name="accommodations" context="badge" /></span>}
                       {!hh.address1 && <span title="No address on file" style={{fontSize:13}}><Icon name="mailX" context="badge" /></span>}
                       <span style={{fontSize:12,color:"var(--text-muted)"}} title={`${counts.adults} Adults, ${counts.kids} Kids`}>
@@ -564,7 +569,6 @@ export function GuestsTab({ eventId, event, adminConfig, showToast, isArchived, 
                     <RsvpPill value={hh.rsvpStatus} open={openRsvp===hh.id}
                       onOpen={e=>{e.stopPropagation();if(!isViewer)setOpenRsvp(openRsvp===hh.id?null:hh.id);}}
                       onSelect={s=>!isViewer && updateRsvpStatus(hh.id,s)} statusStyle={statusStyle} />
-                    {renderSubEventChips(hh, members, expandedChipRows.has(hh.id), toggleChipRow)}
                     <div className="hh-row-counts" title={`${counts.adults} Adults, ${counts.kids} Kids`}>
                       {counts.adults>0 && <span>{counts.adults}A </span>}
                       {counts.kids>0   && <span>{counts.kids}K </span>}
@@ -585,6 +589,8 @@ export function GuestsTab({ eventId, event, adminConfig, showToast, isArchived, 
                     <button className="icon-btn" style={{width:32,height:32,fontSize:13,color:"var(--red)"}} title="Delete" disabled={isArchived || isViewer} onClick={()=>setDeleteConfirm(hh.id)}><Icon name="x" context="inline" /></button>
                   </div>
                 </div>
+
+                {renderSubEventChips(hh, members, expandedChipRows.has(hh.id), toggleChipRow)}
 
                 {isExpanded && (
                   <div style={{borderTop:"1px solid var(--border)",background:"var(--bg-subtle)",padding:"12px 14px 16px 14px",borderRadius:"0 0 var(--radius-md) var(--radius-md)"}}>
@@ -783,7 +789,7 @@ export function GuestsTab({ eventId, event, adminConfig, showToast, isArchived, 
 
 export function HouseholdModal({ household, members, adminConfig, onSave, onClose, isArchived }) {
   const groups      = adminConfig?.groups        || DEFAULT_GROUPS;
-  const sections    = (adminConfig?.timeline || []).map(e => ({ id: e.id, label: (e.icon ? e.icon + " " : "") + e.title, inviteAllByDefault: e.inviteAllByDefault !== false }));
+  const sections    = sortTimeline(adminConfig?.timeline || []).map(e => ({ id: e.id, label: (e.icon ? e.icon + " " : "") + e.title, inviteAllByDefault: e.inviteAllByDefault !== false }));
   const mealChoices = adminConfig?.mealChoices   || DEFAULT_MEALS;
   const sizes       = ["", ...(adminConfig?.shirtSizes || SHIRT_SIZES.filter(s => s))];
   const isEdit      = !!household;

@@ -1,9 +1,19 @@
 {
-  "current": "V4.25.0",
+  "current": "V4.25.1",
   "whatsNew": [
-    "Guests tab: fixed sub-event RSVP status contradicting the invite checklist, and added a per-sub-event setting in Admin Mode for events where only a few households attend a given sub-event"
+    "Guests tab: sub-events now sort chronologically, and row chips only show when there is something actually worth noting"
   ],
   "changelog": [
+    {
+      "version": "V4.25.1",
+      "date": "2026-08-14",
+      "summary": "Sub-events now sort chronologically on the Guests tab, and row chips only show when actually informative",
+      "changes": [
+        "Fixed: sub-events on the Guests tab (row chips, the Sub-Events table, filters) now sort chronologically, matching the order Admin Mode already displays. The sort previously existed only inside AdminPanel.jsx for its own display and was never applied to the Guests tab, which read the raw, unsorted timeline order",
+        "Fixed: row-level sub-event chips no longer show one chip per invited sub-event regardless of status. A default-all sub-event still sitting at its boring default (Invited or Pending) is now hidden, since that's the same non-answer for every household and added visual noise rather than signal. A chip now only appears for a real RSVP Yes or RSVP No, or for any opt-in-only sub-event regardless of status, since being invited to one of those is itself notable",
+        "Fixed: sub-event chips now render on their own dedicated line below the household row instead of inline inside the single-line status row, so a household with several notable chips wraps onto additional lines instead of stretching that row out sideways"
+      ]
+    },
     {
       "version": "V4.25.0",
       "date": "2026-08-14",
