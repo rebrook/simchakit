@@ -37,6 +37,33 @@ import { Modal }             from "@/components/shared/Modal.jsx";
 import { Icon }              from "@/utils/iconMap.jsx";
 import { useIsMobile }       from "@/hooks/useIsMobile.js";
 
+// ── Sub-event RSVP status (derived) ───────────────────────────────────────────
+// A household with no invitedSections is invited to every sub-event (existing
+// invitedSections/attendingSections fallback behavior, unchanged). Returns null
+// when the household is not invited to sectionId — callers treat null as
+// "don't render a chip / not filterable". An explicit hh.subEventRsvp[sectionId]
+// always wins; otherwise status is derived from whether anyone in the household
+// is marked attending that sub-event (RSVP Yes) or not (Invited / not yet responded).
+function getSubEventStatus(hh, hhMembers, sectionId) {
+  const invited = (hh.invitedSections || []).length === 0 || (hh.invitedSections || []).includes(sectionId);
+  if (!invited) return null;
+  const explicit = hh.subEventRsvp?.[sectionId];
+  if (explicit) return explicit;
+  const anyoneAttending = (hhMembers || []).some(p => (p.attendingSections || []).includes(sectionId));
+  return anyoneAttending ? "RSVP Yes" : "Invited";
+}
+
+// Shared RSVP status color mapping — used by the main household RsvpPill and the
+// per-sub-event RsvpPill in both GuestsTab and HouseholdModal, so colors never
+// drift between the two.
+const statusStyle = {
+  "Invited":  { bg:"var(--blue-light)",   color:"var(--blue)"   },
+  "RSVP Yes": { bg:"var(--green-light)",  color:"var(--green)"  },
+  "RSVP No":  { bg:"var(--red-light)",    color:"var(--red)"    },
+  "Pending":  { bg:"var(--orange-light)", color:"var(--orange)" },
+  "Maybe":    { bg:"var(--gold-light)",   color:"var(--gold)"   },
+};
+
 // ── GuestsTab ─────────────────────────────────────────────────────────────────
 export function GuestsTab({ eventId, event, adminConfig, showToast, isArchived, isViewer, searchHighlight, clearSearchHighlight, setTopbarSubtitle }) {
   const { items: households, loading: hLoading, save: saveHouseholdRow, remove: removeHouseholdRow } = useEventData(eventId, "households");
@@ -62,12 +89,17 @@ export function GuestsTab({ eventId, event, adminConfig, showToast, isArchived, 
   const [selectedHHIds,        setSelectedHHIds]        = useState(new Set());
   const [bulkStatus,           setBulkStatus]           = useState("RSVP Yes");
   const [mobileChip,           setMobileChip]           = useState("All");
+  const [showMoreFilters,      setShowMoreFilters]      = useState(false);
+  const [subEventFilter,       setSubEventFilter]       = useState([]);
+  const [subEventStatusFilter, setSubEventStatusFilter] = useState("All");
+  const [mobileMoreFiltersOpen,setMobileMoreFiltersOpen]= useState(false);
+  const [expandedChipRows,     setExpandedChipRows]     = useState(new Set());
 
   const isMobile = useIsMobile();
 
   useSearchHighlight(searchHighlight, clearSearchHighlight, "guests", { setExpandedHH });
 
-  useEffect(() => { setSelectedHHIds(new Set()); }, [search, groupFilter, statusFilter, mobileChip, outOfTownFilter, missingAddressFilter]);
+  useEffect(() => { setSelectedHHIds(new Set()); }, [search, groupFilter, statusFilter, mobileChip, outOfTownFilter, missingAddressFilter, subEventFilter, subEventStatusFilter]);
 
   // ── RSVP status update ────────────────────────────────────────────────────
   const updateRsvpStatus = async (hhId, newStatus) => {
@@ -78,6 +110,15 @@ export function GuestsTab({ eventId, event, adminConfig, showToast, isArchived, 
     writeAuditLog(eventId, "households", "Updated", `RSVP updated — ${hh?.formalName || "Household"}: ${oldStatus} → ${newStatus}`);
     showToast(`RSVP updated — ${newStatus}`);
     setOpenRsvp(null);
+  };
+
+  // ── Sub-event chip row overflow (+N more) ─────────────────────────────────
+  const toggleChipRow = (hhId) => {
+    setExpandedChipRows(prev => {
+      const next = new Set(prev);
+      next.has(hhId) ? next.delete(hhId) : next.add(hhId);
+      return next;
+    });
   };
 
   // ── Bulk RSVP update ──────────────────────────────────────────────────────
@@ -221,6 +262,19 @@ export function GuestsTab({ eventId, event, adminConfig, showToast, isArchived, 
     }
     if (outOfTownFilter      && !hh.outOfTown) return false;
     if (missingAddressFilter &&  hh.address1)  return false;
+    if (subEventFilter.length > 0) {
+      const hhMembers = getPeopleForHousehold(people, hh.id);
+      // ANY selected sub-event matching the chosen status is a match — this
+      // surfaces "who still needs a nudge on any of these events" rather than
+      // requiring every selected sub-event to match, which would hide anyone
+      // who responded to some but not all of the selected sub-events.
+      const matchesAny = subEventFilter.some(sid => {
+        const st = getSubEventStatus(hh, hhMembers, sid);
+        if (st === null) return false;
+        return subEventStatusFilter === "All" ? true : st === subEventStatusFilter;
+      });
+      if (!matchesAny) return false;
+    }
     if (search) {
       const s = search.toLowerCase();
       const memberMatch = getPeopleForHousehold(people, hh.id).some(p => {
@@ -236,12 +290,39 @@ export function GuestsTab({ eventId, event, adminConfig, showToast, isArchived, 
     return la.localeCompare(lb);
   });
 
-  const statusStyle = {
-    "Invited":  { bg:"var(--blue-light)",   color:"var(--blue)"   },
-    "RSVP Yes": { bg:"var(--green-light)",  color:"var(--green)"  },
-    "RSVP No":  { bg:"var(--red-light)",    color:"var(--red)"    },
-    "Pending":  { bg:"var(--orange-light)", color:"var(--orange)" },
-    "Maybe":    { bg:"var(--gold-light)",   color:"var(--gold)"   },
+  // ── Sub-event row chips (glance-level, read-only) ──────────────────────────
+  // Hidden entirely for events with 0-1 sub-events — a single sub-event would
+  // just duplicate the main RSVP pill already shown on the row. Capped at 3
+  // visible chips with a "+N more" overflow toggle so events with many
+  // sub-events don't turn every row into a wall of chips. Status is conveyed
+  // by glyph AND color together (not color alone) for colorblind accessibility.
+  const subEventGlyph = { "RSVP Yes": "✓", "RSVP No": "✕" };
+  const subEventTone   = (status) => status === "RSVP Yes" ? "tag-green" : status === "RSVP No" ? "tag-red" : "tag-gold";
+  const renderSubEventChips = (hh, hhMembers, isRowExpanded, onToggleRow) => {
+    if (sections.length <= 1) return null;
+    const invited = sections
+      .map(s => ({ ...s, status: getSubEventStatus(hh, hhMembers, s.id) }))
+      .filter(s => s.status !== null);
+    if (invited.length === 0) return null;
+    const visible = isRowExpanded ? invited : invited.slice(0, 3);
+    const hiddenCount = invited.length - visible.length;
+    return (
+      <span style={{display:"inline-flex",flexWrap:"wrap",gap:3}}>
+        {visible.map(s => (
+          <span key={s.id} className={`tag ${subEventTone(s.status)}`} style={{fontSize:10,cursor:"default"}}
+            title={`${s.label}: ${s.status}`}>
+            {subEventGlyph[s.status] || "•"} {s.label}
+          </span>
+        ))}
+        {hiddenCount > 0 && (
+          <button className="tag tag-muted" style={{fontSize:10,border:"none",cursor:"pointer"}}
+            title="Show all sub-events for this household"
+            onClick={e=>{e.stopPropagation();onToggleRow(hh.id);}}>
+            +{hiddenCount} more
+          </button>
+        )}
+      </span>
+    );
   };
 
   // ── Topbar subtitle (must be before loading guard — hooks can't follow conditional returns) ──
@@ -328,6 +409,12 @@ export function GuestsTab({ eventId, event, adminConfig, showToast, isArchived, 
                 </button>
               );
             })}
+            {sections.length > 1 && (
+              <button className={`guest-chip ${subEventFilter.length>0?"guest-chip-active":""}`}
+                onClick={()=>setMobileMoreFiltersOpen(true)}>
+                Sub-Events{subEventFilter.length>0?` (${subEventFilter.length})`:""}
+              </button>
+            )}
           </div>
           <select className="form-select" style={{padding:"10px 12px",fontSize:14}} value={groupFilter} onChange={e=>setGroupFilter(e.target.value)}>
             <option value="All">All Groups</option>
@@ -362,7 +449,35 @@ export function GuestsTab({ eventId, event, adminConfig, showToast, isArchived, 
             </select>
             <button className={`btn btn-sm ${outOfTownFilter?"btn-primary":"btn-secondary"}`} title="Show out-of-town households only" onClick={()=>setOutOfTownFilter(f=>!f)}><Icon name="accommodations" context="badge" style={{ marginRight: 4 }} /> Out of Town{outOfTownFilter?<> <Icon name="check" context="badge" /></>:""}</button>
             <button className={`btn btn-sm ${missingAddressFilter?"btn-primary":"btn-secondary"}`} title="Show households missing a mailing address" onClick={()=>setMissingAddressFilter(f=>!f)}><Icon name="mailX" context="badge" style={{ marginRight: 4 }} /> No Address{missingAddressFilter?<> <Icon name="check" context="badge" /></>:""}</button>
+            {sections.length > 1 && (
+              <button className={`btn btn-sm ${subEventFilter.length>0?"btn-primary":"btn-secondary"}`}
+                onClick={()=>setShowMoreFilters(v=>!v)}>
+                More Filters{subEventFilter.length>0?` (${subEventFilter.length})`:""} {showMoreFilters?"▴":"▾"}
+              </button>
+            )}
           </div>
+          {showMoreFilters && sections.length > 1 && (
+            <div style={{display:"flex",flexWrap:"wrap",gap:6,alignItems:"center",padding:"10px 12px",background:"var(--bg-subtle)",border:"1px solid var(--border)",borderRadius:"var(--radius-md)"}}>
+              <span style={{fontSize:11,fontWeight:700,color:"var(--text-muted)",textTransform:"uppercase",letterSpacing:"0.04em",marginRight:2}}>Sub-Events</span>
+              {sections.map(s=>(
+                <button key={s.id}
+                  className={`guest-chip ${subEventFilter.includes(s.id)?"guest-chip-active":""}`}
+                  onClick={()=>setSubEventFilter(f=>f.includes(s.id)?f.filter(x=>x!==s.id):[...f,s.id])}>
+                  {s.label}
+                </button>
+              ))}
+              <select className="form-select" style={{width:"auto",padding:"6px 10px",fontSize:12}}
+                value={subEventStatusFilter} onChange={e=>setSubEventStatusFilter(e.target.value)}
+                disabled={subEventFilter.length===0}
+                title={subEventFilter.length===0 ? "Select a sub-event first" : "Filter by RSVP status within selected sub-events"}>
+                <option value="All">Any status</option>
+                {RSVP_STATUSES.map(s=><option key={s} value={s}>{s}</option>)}
+              </select>
+              {(subEventFilter.length>0 || subEventStatusFilter!=="All") && (
+                <button className="btn btn-ghost btn-sm" onClick={()=>{setSubEventFilter([]);setSubEventStatusFilter("All");}}>Clear</button>
+              )}
+            </div>
+          )}
         </div>
       )}
 
@@ -420,9 +535,10 @@ export function GuestsTab({ eventId, event, adminConfig, showToast, isArchived, 
                     {hh.name2 && <div className="hh-row-name-secondary">{hh.name2}</div>}
                     <div className="hh-row-mobile-meta">
                       <span className="tag tag-muted">{hh.group}</span>
-                      <RsvpPill hh={hh} open={openRsvp===hh.id}
+                      <RsvpPill value={hh.rsvpStatus} open={openRsvp===hh.id}
                         onOpen={e=>{e.stopPropagation();if(!isViewer)setOpenRsvp(openRsvp===hh.id?null:hh.id);}}
                         onSelect={s=>!isViewer && updateRsvpStatus(hh.id,s)} statusStyle={statusStyle} />
+                      {renderSubEventChips(hh, members, expandedChipRows.has(hh.id), toggleChipRow)}
                       {hh.outOfTown && <span title="Out of town" style={{fontSize:13}}><Icon name="accommodations" context="badge" /></span>}
                       {!hh.address1 && <span title="No address on file" style={{fontSize:13}}><Icon name="mailX" context="badge" /></span>}
                       <span style={{fontSize:12,color:"var(--text-muted)"}} title={`${counts.adults} Adults, ${counts.kids} Kids`}>
@@ -432,9 +548,10 @@ export function GuestsTab({ eventId, event, adminConfig, showToast, isArchived, 
                   </div>
                   <div className="hh-row-meta">
                     <span className="tag tag-muted">{hh.group}</span>
-                    <RsvpPill hh={hh} open={openRsvp===hh.id}
+                    <RsvpPill value={hh.rsvpStatus} open={openRsvp===hh.id}
                       onOpen={e=>{e.stopPropagation();if(!isViewer)setOpenRsvp(openRsvp===hh.id?null:hh.id);}}
                       onSelect={s=>!isViewer && updateRsvpStatus(hh.id,s)} statusStyle={statusStyle} />
+                    {renderSubEventChips(hh, members, expandedChipRows.has(hh.id), toggleChipRow)}
                     <div className="hh-row-counts" title={`${counts.adults} Adults, ${counts.kids} Kids`}>
                       {counts.adults>0 && <span>{counts.adults}A </span>}
                       {counts.kids>0   && <span>{counts.kids}K </span>}
@@ -615,6 +732,35 @@ export function GuestsTab({ eventId, event, adminConfig, showToast, isArchived, 
           onClose={() => setDeleteConfirm(null)}
         />
       )}
+      {mobileMoreFiltersOpen && sections.length > 1 && (
+        <Modal onClose={()=>setMobileMoreFiltersOpen(false)} ariaLabel="Sub-Event Filters" unstyled
+          style={{position:"fixed",left:0,right:0,bottom:0,background:"var(--bg-surface)",borderRadius:"var(--radius-lg) var(--radius-lg) 0 0",width:"100%",maxHeight:"75vh",overflowY:"auto",padding:"16px 18px 20px",boxShadow:"var(--shadow-lg)",animation:"slide-up 0.2s ease"}}>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
+            <div style={{fontSize:16,fontWeight:700,color:"var(--text-primary)"}}>Sub-Event Filters</div>
+            <button className="icon-btn" title="Close" onClick={()=>setMobileMoreFiltersOpen(false)}><Icon name="x" context="button" /></button>
+          </div>
+          <div style={{fontSize:11,fontWeight:700,color:"var(--text-muted)",textTransform:"uppercase",letterSpacing:"0.04em",marginBottom:6}}>Sub-Events</div>
+          <div style={{display:"flex",flexWrap:"wrap",gap:6,marginBottom:14}}>
+            {sections.map(s=>(
+              <button key={s.id} className={`guest-chip ${subEventFilter.includes(s.id)?"guest-chip-active":""}`}
+                onClick={()=>setSubEventFilter(f=>f.includes(s.id)?f.filter(x=>x!==s.id):[...f,s.id])}>
+                {s.label}
+              </button>
+            ))}
+          </div>
+          <div style={{fontSize:11,fontWeight:700,color:"var(--text-muted)",textTransform:"uppercase",letterSpacing:"0.04em",marginBottom:6}}>Status</div>
+          <select className="form-select" style={{width:"100%",padding:"10px 12px",fontSize:15,marginBottom:16}}
+            value={subEventStatusFilter} onChange={e=>setSubEventStatusFilter(e.target.value)}
+            disabled={subEventFilter.length===0}>
+            <option value="All">Any status</option>
+            {RSVP_STATUSES.map(s=><option key={s} value={s}>{s}</option>)}
+          </select>
+          <div style={{display:"flex",gap:8}}>
+            <button className="btn btn-secondary" style={{flex:1}} onClick={()=>{setSubEventFilter([]);setSubEventStatusFilter("All");}}>Clear</button>
+            <button className="btn btn-primary" style={{flex:1}} onClick={()=>setMobileMoreFiltersOpen(false)}>Apply</button>
+          </div>
+        </Modal>
+      )}
     </div>
   );
 }
@@ -637,7 +783,7 @@ export function HouseholdModal({ household, members, adminConfig, onSave, onClos
     address1: "", address2: "", city: "", stateProvince: "", postalCode: "", country: "",
     phone: "", email: "", group: groups[0]||"", rsvpStatus: "Invited",
     saveTheDateSent: false, inviteSent: false, thankYouSent: false, accommodationNeeded: false,
-    rsvpDate: "", invitedSections: [], attendingAdults: null, attendingKids: null,
+    rsvpDate: "", invitedSections: [], subEventRsvp: {}, attendingAdults: null, attendingKids: null,
     outOfTown: false, notes: "", contactLog: [],
   });
   const [ppl, setPpl] = useState(
@@ -648,6 +794,11 @@ export function HouseholdModal({ household, members, adminConfig, onSave, onClos
     }]
   );
   const setHHF = (k,v) => setHH(h => ({...h,[k]:v}));
+  const [openSectionRsvp, setOpenSectionRsvp] = useState(null);
+  const setSubEventRsvpStatus = (sectionId, status) => {
+    setHHF("subEventRsvp", { ...(hh.subEventRsvp||{}), [sectionId]: status });
+    setOpenSectionRsvp(null);
+  };
 
   useEffect(() => {
     if (household && household.cityStateZip && !household.city) {
@@ -835,6 +986,38 @@ export function HouseholdModal({ household, members, adminConfig, onSave, onClos
                 <div className="form-hint">Which sub-events is this household invited to?</div>
               </div>
             )}
+            {sections.length>0 && (() => {
+              const invitedSections = (hh.invitedSections||[]).length > 0
+                ? sections.filter(s => (hh.invitedSections||[]).includes(s.id))
+                : sections;
+              return invitedSections.length > 0 ? (
+                <div className="form-group">
+                  <label className="form-label">Sub-Event RSVP</label>
+                  <div style={{display:"flex",flexDirection:"column",gap:8,marginTop:2}}>
+                    {invitedSections.map(s => {
+                      const status = getSubEventStatus(hh, ppl, s.id);
+                      const attendingNames = ppl
+                        .filter(p => (p.attendingSections||[]).includes(s.id))
+                        .map(p => [p.firstName,p.lastName].filter(Boolean).join(" ")||p.name||"Unnamed")
+                        .join(", ");
+                      return (
+                        <div key={s.id} style={{display:"flex",alignItems:"center",gap:10,flexWrap:"wrap",background:"var(--bg-subtle)",border:"1px solid var(--border)",borderRadius:"var(--radius-sm)",padding:"6px 10px"}}>
+                          <span style={{fontSize:12,fontWeight:600,color:"var(--text-primary)",minWidth:120}}>{s.label}</span>
+                          <RsvpPill value={status} open={openSectionRsvp===s.id}
+                            onOpen={e=>{e.stopPropagation();if(!isArchived)setOpenSectionRsvp(openSectionRsvp===s.id?null:s.id);}}
+                            onSelect={st=>setSubEventRsvpStatus(s.id, st)}
+                            statusStyle={statusStyle} disabled={isArchived} />
+                          <span style={{fontSize:11,color:"var(--text-muted)"}}>
+                            {attendingNames ? `Attending: ${attendingNames}` : "No one marked attending yet"}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  <div className="form-hint">Status defaults to Invited, or RSVP Yes once someone is marked attending below. Click a pill to set it explicitly.</div>
+                </div>
+              ) : null;
+            })()}
           </>)}
 
           {/* Address tab (edit only) or in-line (add step 1) */}

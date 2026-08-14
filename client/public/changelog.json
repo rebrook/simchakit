@@ -1,9 +1,23 @@
 {
-  "current": "V4.23.4",
+  "current": "V4.24.0",
   "whatsNew": [
-    "Fixed a follow-up issue where the previous fix for stacked dialogs (e.g. inside Admin Mode) didn't fully resolve keyboard navigation between them"
+    "Guests tab: households can now show and filter RSVP status per sub-event (Ceremony, Reception, Rehearsal Dinner, etc.), not just overall"
   ],
   "changelog": [
+    {
+      "version": "V4.24.0",
+      "date": "2026-08-14",
+      "summary": "Per-sub-event RSVP status and filtering on the Guests tab",
+      "changes": [
+        "Households can now carry an explicit RSVP status per sub-event (subEventRsvp), in addition to the existing invitedSections (household) and attendingSections (person) fields, which are unchanged",
+        "When no explicit status is set, a household defaults to RSVP Yes for a sub-event if anyone in the household is marked attending it, otherwise Invited (not yet responded) -- matches the same fallback already used for invitedSections/attendingSections",
+        "Household rows in the Guests tab list now show a compact chip per invited sub-event (status conveyed by both color and glyph, not color alone), capped at 3 with a +N more toggle, hidden entirely for events with 0 or 1 sub-events",
+        "Editing a household now shows a Sub-Event RSVP section with an editable status pill per sub-event (reusing the same pill-dropdown as the main RSVP status) and a list of who is currently marked attending each one",
+        "Added a More Filters control (desktop) and a Sub-Events filter sheet (mobile) to the Guests tab filter bar: pick one or more sub-events, then narrow by RSVP status within those; matches if a household meets the status on any selected sub-event, combined with existing search/group/status/out-of-town/address filters",
+        "RsvpPill.jsx generalized to accept a plain value instead of assuming a household object, so the same component now drives both the main RSVP pill and the new per-sub-event pill with no change in appearance or behavior for the existing main pill",
+        "No database migration required -- subEventRsvp lives inside the existing data jsonb column on households, same as invitedSections"
+      ]
+    },
     {
       "version": "V4.23.4",
       "date": "2026-07-31",
