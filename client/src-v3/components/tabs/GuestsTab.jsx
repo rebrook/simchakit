@@ -1324,7 +1324,7 @@ export function GuestExportModal({ households, people, tables, adminConfig, onPr
   })();
   const handlePrint = () => {
     const mainEvt=(adminConfig?.timeline||[]).find(e=>e.isMainEvent);
-    onPrint(generateGuestPrintHTML(households,people,adminConfig?.name||"",mainEvt?.startDate||"",adminConfig?.theme||{}));
+    onPrint(generateGuestPrintHTML(households,people,adminConfig?.name||"",mainEvt?.startDate||"",adminConfig?.theme||{},adminConfig?.logoUrl||null));
   };
   const OPTION=(key)=>({flex:"1 1 180px",padding:"14px 16px",borderRadius:"var(--radius-md)",border:activeExport===key?"2px solid var(--accent-primary)":"2px solid var(--border)",background:activeExport===key?"var(--accent-light)":"var(--bg-surface)",cursor:"pointer",textAlign:"left",transition:"border-color 0.15s"});
   const PRINT_OPT=()=>({flex:"1 1 180px",padding:"14px 16px",borderRadius:"var(--radius-md)",border:"2px solid var(--border)",background:"var(--bg-surface)",cursor:"pointer",textAlign:"left"});

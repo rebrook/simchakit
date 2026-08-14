@@ -2,7 +2,7 @@
 
 A real-time event planning web app for celebrations — B'nei Mitzvot, weddings, and other simchas.
 
-![Version](https://img.shields.io/badge/version-4.25.0-blue)
+![Version](https://img.shields.io/badge/version-4.26.0-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
 ## Hosted Version
@@ -36,7 +36,7 @@ A real-time event planning web app for celebrations — B'nei Mitzvot, weddings,
 - **Favor Management** — track sweatshirts, kippot, or other party favors by size
 - **Day-Of Mode** — streamlined mobile view for event day with hot sheet and vendor contacts
 - **Real-Time Sync** — WebSocket-based updates across all connected devices (V2) / fetch-on-navigate (V3)
-- **Theming** — customizable color palettes and event branding
+- **Theming** — customizable color palettes and event branding, including an optional event logo shown in the sidebar, the Overview countdown, and the printed guest list (owner/editor only, V3 only)
 - **Print Brief** — generate a comprehensive event summary document
 - **CSV Import/Export** — import guest lists, export for invitation vendors
 - **Admin Mode** — sidebar navigation groups settings into Event Setup, People & Logistics, and App Config; owner-only access; changes save immediately

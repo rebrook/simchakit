@@ -14,6 +14,7 @@ import { useNotifications } from "@/hooks/useNotifications.js";
 import { ThemeProvider }   from "@/components/shared/ThemeProvider.jsx";
 import { PlaceholderTab }  from "@/components/shared/PlaceholderTab.jsx";
 import { AdminPanel } from "@/components/AdminPanel.jsx";
+import { EventLogoControl } from "@/components/shared/EventLogoControl.jsx";
 import { SearchOverlay }         from "@/components/SearchOverlay.jsx";
 import { GuideModal, ActivityLogModal, WhatsNewModal } from "@/components/Modals.jsx";
 import { DayOfOverlay }          from "@/components/DayOfOverlay.jsx";
@@ -567,6 +568,15 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false, display
     });
   };
 
+  const onLogoSaved = (newLogoUrl) => {
+    setAdminConfig(prev => {
+      const updated = { ...(prev || {}), logoUrl: newLogoUrl || null };
+      setEvent(ev => ev ? { ...ev, admin_config: updated } : ev);
+      return updated;
+    });
+    showToast(newLogoUrl ? "Logo updated" : "Logo removed");
+  };
+
   // ── User identity (needed by tabProps and account row) ─────────────────
   const userEmail = session?.user?.email || "";
   const userName  = userDisplayName || userEmail.split("@")[0] || "";
@@ -680,6 +690,15 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false, display
           <img src="/apple-touch-icon.png" alt="SimchaKit" style={{ width: 34, height: 34, borderRadius: 9 }} />
           <span className="sidebar-wordmark">SimchaKit</span>
         </div>
+
+        {/* Event logo (optional) -- renders nothing if absent and viewer can't edit */}
+        <EventLogoControl
+          eventId={eventId}
+          adminConfig={adminConfig}
+          collaboratorRole={collaboratorRole}
+          isArchived={!!(event?.archived)}
+          onLogoSaved={onLogoSaved}
+        />
 
         {/* Event switcher */}
         <button className="sidebar-switcher" onClick={onBack} title="Back to Events">

@@ -210,6 +210,40 @@
       color: var(--text-primary);
     }
 
+    /* ── Event logo control (sidebar) ── */
+    .sidebar-event-logo-wrap {
+      margin: -2px 0 10px;
+      padding: 0 8px;
+    }
+    .sidebar-event-logo-img {
+      width: 30px;
+      height: 30px;
+      border-radius: 8px;
+      object-fit: cover;
+      border: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .sidebar-event-logo-btn {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-muted);
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 2px 0;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .sidebar-event-logo-btn:hover { color: var(--accent-primary); }
+    .sidebar-event-logo-panel {
+      margin-top: 8px;
+      padding: 12px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      background: var(--bg-subtle);
+    }
+
     /* ── Sidebar event switcher ── */
     .sidebar-switcher {
       display: flex;
@@ -1545,6 +1579,14 @@
       display: flex;
       gap: 20px;
       flex-wrap: wrap;
+    }
+    .countdown-logo-img {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      object-fit: cover;
+      border: 2px solid rgba(255,255,255,0.5);
+      flex-shrink: 0;
     }
     .countdown-unit {
       text-align: center;

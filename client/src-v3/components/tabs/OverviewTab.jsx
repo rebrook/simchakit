@@ -379,7 +379,12 @@ export function OverviewTab({ eventId, event, adminConfig, showToast, setActiveT
               <Icon name={EVENT_TYPE_ICON_KEYS[config.type] || "sparkles"} size={80} strokeWidth={1.25} />
             </div>
             <div className="countdown-label">Counting down to</div>
-            <div className="countdown-title">{config.name || mainEvent?.title || "The Big Day"}</div>
+            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+              {config.logoUrl && (
+                <img src={config.logoUrl} alt="" className="countdown-logo-img" />
+              )}
+              <div className="countdown-title">{config.name || mainEvent?.title || "The Big Day"}</div>
+            </div>
             <div className="countdown-date">
               {formatDate(eventDate)}
               {mainEvent?.title && config.name && mainEvent.title.trim().toLowerCase() !== config.name.trim().toLowerCase() ? ` · ${mainEvent.title}` : ""}

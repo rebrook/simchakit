@@ -592,7 +592,7 @@ function exportGuestsByPerson(households, people, adminConfig) {
 
 // ── Guest export: Printable HTML view ────────────────────────────────────────
 // Grouped by group. Audience: day-of binder, door checklist, at-a-glance print.
-function generateGuestPrintHTML(households, people, eventName, eventDate, theme) {
+function generateGuestPrintHTML(households, people, eventName, eventDate, theme, logoUrl) {
   const esc = s => String(s || "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;");
   const palette = theme?.palette || "rose";
   const accent  = palette === "blue"  ? "#3b82f6"
@@ -684,9 +684,12 @@ function generateGuestPrintHTML(households, people, eventName, eventDate, theme)
   @media print { body { padding:12px; } .no-print { display:none; } }
 </style></head><body>
   <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px;padding-bottom:14px;border-bottom:2px solid ${accent}">
-    <div>
-      <h1 style="font-size:22px;font-weight:800;color:#111827">${esc(eventName||"Guest List")}</h1>
-      ${dateStr ? `<div style="font-size:13px;color:#6b7280;margin-top:4px">${esc(dateStr)}</div>` : ""}
+    <div style="display:flex;align-items:center;gap:12px">
+      ${logoUrl ? `<img src="${esc(logoUrl)}" alt="" style="width:40px;height:40px;border-radius:8px;object-fit:cover;flex-shrink:0">` : ""}
+      <div>
+        <h1 style="font-size:22px;font-weight:800;color:#111827">${esc(eventName||"Guest List")}</h1>
+        ${dateStr ? `<div style="font-size:13px;color:#6b7280;margin-top:4px">${esc(dateStr)}</div>` : ""}
+      </div>
     </div>
     <div style="display:flex;gap:16px;text-align:center">
       <div><div style="font-size:22px;font-weight:800;color:${accent}">${households.length}</div><div style="font-size:10px;color:#6b7280;font-weight:600;text-transform:uppercase">Households</div></div>

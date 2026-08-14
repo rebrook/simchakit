@@ -1,9 +1,20 @@
 {
-  "current": "V4.25.1",
+  "current": "V4.26.0",
   "whatsNew": [
-    "Guests tab: sub-events now sort chronologically, and row chips only show when there is something actually worth noting"
+    "Events can now have an optional logo, shown in the sidebar, the Overview countdown, and the printed guest list"
   ],
   "changelog": [
+    {
+      "version": "V4.26.0",
+      "date": "2026-08-14",
+      "summary": "Optional per-event logo, shown on guest-facing surfaces and light workspace branding",
+      "changes": [
+        "New: events can now have an optional logo, uploaded from a small control beside the SimchaKit brand in the sidebar. Available to the event owner and editors; viewers and coordinators never see the upload control, and archived events are read-only",
+        "The event logo appears in three places when set: beside the SimchaKit wordmark in the sidebar, in the countdown hero on the Overview tab, and at the top of the printed guest list. An event with no logo looks identical to today in all three places -- no placeholder box, no layout shift",
+        "Logo images are stored in a new Supabase Storage bucket and are not shown anywhere in the Guests or Budget tabs or any other dense table view",
+        "Accepts PNG, JPG, WEBP, GIF, or SVG images up to 5MB; a square or near-square image is recommended since there is no cropping step in this release"
+      ]
+    },
     {
       "version": "V4.25.1",
       "date": "2026-08-14",
