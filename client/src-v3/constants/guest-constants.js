@@ -1,6 +1,6 @@
 // Guest list constants — statuses, titles, and default config values
 
-const RSVP_STATUSES    = ["Invited","RSVP Yes","RSVP No","Pending","Maybe"];
+const RSVP_STATUSES    = ["Pending","Invited","RSVP Yes","RSVP No","Maybe"];
 
 const TITLES           = ["","Mr.","Mrs.","Miss","Ms.","Dr.","Rabbi","Cantor","Mx."];
 

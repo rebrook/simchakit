@@ -1,19 +1,19 @@
 // Gift types
 
 const GIFT_TYPES = [
-  "Cash / Check",
-  "Gift Card",
-  "Charitable Fund / Donation",
-  "Israel Bond",
-  "Physical Gift",
-  "Combination",
-  "Religious Item",
-  "Ceremonial / Tribute",
-  "Experience / Activity",
-  "Home / Judaica",
   "Books / Media",
+  "Cash / Check",
+  "Ceremonial / Tribute",
+  "Charitable Fund / Donation",
   "Clothing / Accessories",
+  "Combination",
+  "Experience / Activity",
+  "Gift Card",
+  "Home / Judaica",
+  "Israel Bond",
   "Online / Digital",
+  "Physical Gift",
+  "Religious Item",
   "Other",
 ];
 

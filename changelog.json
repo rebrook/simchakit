@@ -1,9 +1,20 @@
 {
-  "current": "V4.27.0",
+  "current": "V4.27.1",
   "whatsNew": [
-    "Attire is now a vendor type, and choosing Other lets you specify your own custom vendor type"
+    "Dropdowns across the app are now alphabetical or follow a logical event order for easier scanning"
   ],
   "changelog": [
+    {
+      "version": "V4.27.1",
+      "date": "2026-08-15",
+      "summary": "Dropdown consistency sweep: alphabetical or event order across the app",
+      "changes": [
+        "Fix: gift types and prep categories are now alphabetized (Other pinned last)",
+        "Fix: RSVP status order updated to Pending, Invited, RSVP Yes, RSVP No, Maybe across all guest filters and status pickers",
+        "Fix: event type dropdown in Admin Mode now lists Bar Mitzvah, Bat Mitzvah, and B'nei Mitzvah together first, then the remaining event types alphabetically, with Other Celebration last",
+        "Fix: vendor and guest Contact Log type dropdowns are now each alphabetized (Other pinned last); the two lists remain intentionally separate since a vendor contract log and a guest contact log track different kinds of contact"
+      ]
+    },
     {
       "version": "V4.27.0",
       "date": "2026-08-15",

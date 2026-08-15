@@ -97,14 +97,14 @@ export function AdminPanel({ eventId, userId, calendarToken: initialCalendarToke
   const eventName      = config?.name || "";
 
   const EVENT_TYPES = [
-    { value:"bat-mitzvah",  label:"Bat Mitzvah"        },
     { value:"bar-mitzvah",  label:"Bar Mitzvah"        },
+    { value:"bat-mitzvah",  label:"Bat Mitzvah"        },
     { value:"bnei-mitzvah", label:"B'nei Mitzvah"      },
-    { value:"wedding",      label:"Wedding"            },
-    { value:"baby-naming",  label:"Baby Naming"        },
-    { value:"graduation",   label:"Graduation"         },
     { value:"anniversary",  label:"Anniversary"        },
+    { value:"baby-naming",  label:"Baby Naming"        },
     { value:"birthday",     label:"Birthday"           },
+    { value:"graduation",   label:"Graduation"         },
+    { value:"wedding",      label:"Wedding"            },
     { value:"other",        label:"Other Celebration"  },
   ];
 

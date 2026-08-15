@@ -1117,7 +1117,7 @@ export function HouseholdModal({ household, members, adminConfig, onSave, onClos
                           <select className="form-select" value={c.type||"Call"}
                             onChange={e=>updateHHContact(c.id,"type",e.target.value)}
                             style={{fontSize:13,flex:"0 0 130px"}}>
-                            {["Call","Text","Email","In Person","Other"].map(t=><option key={t} value={t}>{t}</option>)}
+                            {["Call","Email","In Person","Text","Other"].map(t=><option key={t} value={t}>{t}</option>)}
                           </select>
                         </div>
                         <input className="form-input" value={c.notes||""}

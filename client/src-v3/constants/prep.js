@@ -1,14 +1,14 @@
 // Preparation item categories, statuses, and status styles
 
 const PREP_CATEGORIES = [
+  "Attire & Appearance",
+  "Community / Service Project",
+  "Milestones & Sessions",
+  "Personal Preparation",
+  "Rehearsals & Practice",
   "Religious Study",
   "Service Preparation",
   "Speeches & Toasts",
-  "Attire & Appearance",
-  "Rehearsals & Practice",
-  "Milestones & Sessions",
-  "Community / Service Project",
-  "Personal Preparation",
   "Other",
 ];
 

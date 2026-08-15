@@ -274,7 +274,7 @@ export function VendorModal({ vendor, onSave, onClose, isArchived }) {
                         <select className="form-select" value={c.type||"Call"}
                           onChange={e => updateContact(c.id, "type", e.target.value)}
                           style={{ fontSize:13, flex:"0 0 130px" }}>
-                          {["Call","Email","Meeting","In Person","Contract","Other"].map(t => (
+                          {["Call","Contract","Email","In Person","Meeting","Other"].map(t => (
                             <option key={t} value={t}>{t}</option>
                           ))}
                         </select>
