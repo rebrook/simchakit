@@ -1,6 +1,7 @@
 // Vendor types, statuses, and status styles
 
 const VENDOR_TYPES = [
+  "Attire",
   "Baker",
   "Caterer",
   "Decorator",

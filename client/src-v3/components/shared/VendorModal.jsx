@@ -5,7 +5,12 @@ import { formatPhone, getAddressFields, formatAddress, COUNTRIES } from "@/utils
 
 export function VendorModal({ vendor, onSave, onClose, isArchived }) {
   const isEdit = !!vendor;
-  const [form, setForm] = useState(vendor || {
+
+  // A vendor's saved type is "custom" if it exists but isn't one of the fixed VENDOR_TYPES
+  // (this includes the literal string "Other", which is never itself a valid saved value).
+  const hasCustomType = !!(vendor && vendor.type && !VENDOR_TYPES.includes(vendor.type));
+
+  const [form, setForm] = useState(vendor ? { ...vendor, type: hasCustomType ? "Other" : vendor.type } : {
     id: newVendorId(),
     name: "", type: VENDOR_TYPES[0], contactName: "",
     phone: "", email: "", website: "",
@@ -15,6 +20,7 @@ export function VendorModal({ vendor, onSave, onClose, isArchived }) {
     milestones: [],
     contactLog: [],
   });
+  const [customType, setCustomType] = useState(hasCustomType ? vendor.type : "");
   const setF = (k,v) => setForm(f => ({...f,[k]:v}));
 
   const addMilestone = () =>
@@ -60,6 +66,12 @@ export function VendorModal({ vendor, onSave, onClose, isArchived }) {
                 onChange={e => setF("type", e.target.value)}>
                 {VENDOR_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
               </select>
+              {form.type === "Other" && (
+                <input className="form-input" value={customType}
+                  onChange={e => setCustomType(e.target.value)}
+                  placeholder="Specify vendor type"
+                  style={{ marginTop: 6 }} />
+              )}
             </div>
             <div className="form-group">
               <label className="form-label">Status</label>
@@ -286,7 +298,13 @@ export function VendorModal({ vendor, onSave, onClose, isArchived }) {
             <span style={{fontSize:11,color:"var(--text-muted)",marginRight:"auto"}}>* required</span>
             <button className="btn btn-ghost" onClick={onClose}>Cancel</button>
             <button className="btn btn-primary"
-              onClick={() => { if (form.name.trim()) onSave({...form}); }}
+              onClick={() => {
+                if (!form.name.trim()) return;
+                const finalType = form.type === "Other" && customType.trim()
+                  ? customType.trim()
+                  : form.type;
+                onSave({ ...form, type: finalType });
+              }}
               disabled={!form.name.trim() || isArchived}>
               {isEdit ? "Save Changes" : "Add Vendor"}
             </button>

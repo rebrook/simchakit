@@ -1,9 +1,19 @@
 {
-  "current": "V4.26.0",
+  "current": "V4.27.0",
   "whatsNew": [
-    "Events can now have an optional logo, shown in the sidebar, the Overview countdown, and the printed guest list"
+    "Attire is now a vendor type, and choosing Other lets you specify your own custom vendor type"
   ],
   "changelog": [
+    {
+      "version": "V4.27.0",
+      "date": "2026-08-15",
+      "summary": "New Attire vendor category, plus a custom type option for anything else",
+      "changes": [
+        "New: Attire has been added as a vendor type, covering suit rentals, dress sellers, tailors, and alterations",
+        "New: selecting Other as a vendor type now reveals a field to specify your own vendor type, instead of saving the literal word Other. Custom types show up automatically in the type filter for that event",
+        "Editing a vendor with a previously saved custom type now correctly shows Other selected with the custom text pre-filled, instead of reverting to the first type in the list"
+      ]
+    },
     {
       "version": "V4.26.0",
       "date": "2026-08-14",
