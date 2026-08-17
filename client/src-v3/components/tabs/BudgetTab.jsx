@@ -593,15 +593,21 @@ function ExpenseRow({
       <div className="expense-row-check">
         {payHasPayments ? (
           <div
-            className={`paid-check ${payFullyPaid ? "checked" : ""}`}
             title={payFullyPaid ? "Fully paid" : `${fmt$(payPaid)} of ${fmt$(payTotal)} paid`}
-            style={{ cursor: "default" }}
+            style={{
+              width: 18, height: 18, borderRadius: "50%", flexShrink: 0,
+              display: "flex", alignItems: "center", justifyContent: "center",
+              background: payFullyPaid ? "var(--green)" : "transparent",
+              border: payFullyPaid ? "none" : "1.5px solid var(--border-strong, var(--border))",
+            }}
           >
-            {payFullyPaid && (
-              <svg width="11" height="9" viewBox="0 0 11 9" fill="none">
+            {payFullyPaid ? (
+              <svg width="10" height="8" viewBox="0 0 11 9" fill="none">
                 <path d="M1 4.5L4 7.5L10 1" stroke="white" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
-            )}
+            ) : payPaid > 0 ? (
+              <div style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--green)" }} />
+            ) : null}
           </div>
         ) : (
           <div
@@ -666,11 +672,21 @@ function ExpenseRow({
         })()}
       </div>
       <div className="expense-row-actions">
-        <button className="icon-btn" title={expanded ? "Hide payment schedule" : "Payment schedule"}
-          style={{width:22,height:28,fontSize:11,opacity: payHasPayments ? 1 : 0.4}}
-          onClick={() => setExpanded(x => !x)}>
-          {expanded ? "▴" : "▾"}
-        </button>
+        {payHasPayments ? (
+          <button className="btn btn-secondary btn-sm"
+            title={expanded ? "Hide payment schedule" : "View payment schedule"}
+            style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 12, padding: "5px 10px", borderRadius: 999 }}
+            onClick={() => setExpanded(x => !x)}>
+            {e.payments.filter(p => p.status === "paid").length} of {e.payments.length} paid
+            <span style={{ fontSize: 10 }}>{expanded ? "▴" : "▾"}</span>
+          </button>
+        ) : (
+          <button className="icon-btn" title="Payment schedule"
+            style={{width:22,height:28,fontSize:11,opacity:0.4}}
+            onClick={() => setExpanded(x => !x)}>
+            ▾
+          </button>
+        )}
         <button className="icon-btn" title="Edit"
           style={{width:28,height:28,fontSize:13}}
           disabled={actionsDisabled} onClick={() => { setEditing(e); setShowAdd(true); }}><Icon name="pencil" context="badge" /></button>

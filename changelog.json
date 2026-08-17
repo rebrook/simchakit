@@ -1,9 +1,19 @@
 {
-  "current": "V4.28.0",
+  "current": "V4.28.1",
   "whatsNew": [
-    "Payment schedules got easier to reconcile: the row now shows what's due next with its own Mark Paid button, and catching up on several payments at once lets you confirm the real date each one was actually paid instead of assuming today"
+    "Fixed a dead-looking checkbox and a hard-to-notice schedule control on expenses with a payment schedule"
   ],
   "changelog": [
+    {
+      "version": "V4.28.1",
+      "date": "2026-08-01",
+      "summary": "Fix: dead-looking checkbox and low-visibility schedule control on payment-schedule rows",
+      "changes": [
+        "The square checkbox on a schedule-based expense looked identical to the genuinely clickable checkbox on a regular expense but did nothing when clicked, since paid status there is derived, not toggleable. Replaced with a small circular status dot (empty, partially filled, or a solid check) that's visually distinct from the interactive square checkbox used elsewhere",
+        "The payment-schedule expand control was a bare, low-contrast glyph easy to miss next to the edit and delete icons. It's now a labeled pill showing a live count, e.g. '2 of 4 paid', with a chevron, so it reads as a distinct, informative control rather than another small icon",
+        "Guide updated to match: describes the paid-count pill instead of a bare chevron glyph, and the new status dot"
+      ]
+    },
     {
       "version": "V4.28.0",
       "date": "2026-08-01",
