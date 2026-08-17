@@ -624,7 +624,18 @@ function ExpenseRow({
         )}
       </div>
       <div className="expense-row-body">
-        <div className="expense-row-desc">{e.description}</div>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+          <div className="expense-row-desc" style={{ minWidth: 80, flexShrink: 1 }}>{e.description}</div>
+          {payHasPayments && (
+            <button className="btn btn-secondary btn-sm"
+              title={expanded ? "Hide payment schedule" : "View payment schedule"}
+              style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 11, padding: "3px 9px", borderRadius: 999, flexShrink: 0 }}
+              onClick={() => setExpanded(x => !x)}>
+              {e.payments.filter(p => p.status === "paid").length} of {e.payments.length} paid
+              <span style={{ fontSize: 9 }}>{expanded ? "▴" : "▾"}</span>
+            </button>
+          )}
+        </div>
         {metaNode}
         {variant !== "section" && hasNotes && notesOpen && (
           <div className="task-notes-text">{e.notes}</div>
@@ -672,15 +683,7 @@ function ExpenseRow({
         })()}
       </div>
       <div className="expense-row-actions">
-        {payHasPayments ? (
-          <button className="btn btn-secondary btn-sm"
-            title={expanded ? "Hide payment schedule" : "View payment schedule"}
-            style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 12, padding: "5px 10px", borderRadius: 999 }}
-            onClick={() => setExpanded(x => !x)}>
-            {e.payments.filter(p => p.status === "paid").length} of {e.payments.length} paid
-            <span style={{ fontSize: 10 }}>{expanded ? "▴" : "▾"}</span>
-          </button>
-        ) : (
+        {!payHasPayments && (
           <button className="icon-btn" title="Payment schedule"
             style={{width:22,height:28,fontSize:11,opacity:0.4}}
             onClick={() => setExpanded(x => !x)}>

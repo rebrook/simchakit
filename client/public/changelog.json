@@ -1,9 +1,29 @@
 {
-  "current": "V4.28.1",
+  "current": "V4.28.3",
   "whatsNew": [
-    "Fixed a dead-looking checkbox and a hard-to-notice schedule control on expenses with a payment schedule"
+    "Fixed the expense description shrinking too aggressively on narrow screens to make room for the paid-count pill"
   ],
   "changelog": [
+    {
+      "version": "V4.28.3",
+      "date": "2026-08-01",
+      "summary": "Fix: narrow-screen description could collapse to protect the paid-count pill",
+      "changes": [
+        "expense-row-desc relies on overflow: hidden, which gives it an automatic minimum width of 0 in a flex row. Once the paid-count pill (V4.28.1/2) was sharing that row, a narrow screen could shrink the description to near-nothing to keep the pill fully visible",
+        "Description now has an explicit 80px minimum width, so it holds a readable minimum size. Once the row is too narrow for both, the pill wraps to its own line below the description instead of the description collapsing further",
+        "Matches standard list-row responsive behavior (as in GitHub, Gmail, Linear): primary identifying text keeps priority over secondary status metadata under space pressure"
+      ]
+    },
+    {
+      "version": "V4.28.2",
+      "date": "2026-08-01",
+      "summary": "Fix: paid-count pill overflowed the fixed-width actions column and covered the amount",
+      "changes": [
+        "The 'X of Y paid' pill added in V4.28.1 was placed in the narrow, fixed-width actions column alongside the edit/delete icons. Its wider text overflowed that column and visually covered the amount figure next to it",
+        "Moved the pill inline next to the expense description, in the row's flexible-width area, where it has room to render fully without affecting the amount column",
+        "The actions column reverts to the original quiet bare chevron, now shown only for expenses with no payment schedule yet \u2014 the pill in the body handles the toggle once a schedule exists, avoiding two redundant controls doing the same thing"
+      ]
+    },
     {
       "version": "V4.28.1",
       "date": "2026-08-01",
