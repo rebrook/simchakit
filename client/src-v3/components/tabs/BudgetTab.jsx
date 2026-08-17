@@ -401,17 +401,69 @@ function ExpenseRow({
   const payPct         = payTotal > 0 ? (payPaid / payTotal * 100) : 0;
   const mismatch       = paymentMismatch(e);
 
-  const persistPayments = async (nextPayments) => {
-    await onUpdateExpense({ ...e, payments: nextPayments });
+  // Payments sorted by due date (undated payments sort last) — used both for
+  // the expanded list and for finding what's actually next.
+  const sortedPayments = [...(e.payments || [])].sort((a, b) => {
+    if (!a.dueDate && !b.dueDate) return 0;
+    if (!a.dueDate) return 1;
+    if (!b.dueDate) return -1;
+    return a.dueDate.localeCompare(b.dueDate);
+  });
+  const unpaidPayments = sortedPayments.filter(p => p.status !== "paid");
+  const nextUnpaid     = unpaidPayments[0] || null;
+  const nextDueStatus  = nextUnpaid ? getDueStatus({ paid: false, dueDate: nextUnpaid.dueDate }) : null;
+
+  // ── Reconcile (multi-select, per-payment date confirm) ───────────────────
+  // No date or amount is ever assumed. Checking a payment adds it to the
+  // selection with a default-today date that's fully editable before Confirm.
+  const [reconcileSelected, setReconcileSelected] = useState({}); // { [paymentId]: true }
+  const [reconcileDates, setReconcileDates]       = useState({}); // { [paymentId]: "YYYY-MM-DD" }
+  const reconcileCount   = Object.values(reconcileSelected).filter(Boolean).length;
+  const allUnpaidSelected = unpaidPayments.length > 0 && unpaidPayments.every(p => reconcileSelected[p.id]);
+
+  const toggleReconcile = (p) => {
+    setReconcileSelected(sel => {
+      const next = { ...sel };
+      if (next[p.id]) delete next[p.id]; else next[p.id] = true;
+      return next;
+    });
+    setReconcileDates(d => (d[p.id] ? d : { ...d, [p.id]: new Date().toISOString().slice(0, 10) }));
   };
 
-  const handleMarkPaymentPaid = async (paymentId) => {
-    if (actionsDisabled) return;
+  const toggleSelectAllRemaining = () => {
+    if (allUnpaidSelected) {
+      setReconcileSelected({});
+    } else {
+      const sel = {}; const dates = { ...reconcileDates };
+      unpaidPayments.forEach(p => { sel[p.id] = true; if (!dates[p.id]) dates[p.id] = new Date().toISOString().slice(0, 10); });
+      setReconcileSelected(sel); setReconcileDates(dates);
+    }
+  };
+
+  const cancelReconcile = () => { setReconcileSelected({}); setReconcileDates({}); };
+
+  const confirmReconcile = async () => {
+    const ids = Object.keys(reconcileSelected).filter(id => reconcileSelected[id]);
+    if (!ids.length) return;
     const next = (e.payments || []).map(p =>
-      p.id === paymentId ? { ...p, status: "paid", paidDate: new Date().toISOString().slice(0, 10) } : p
+      ids.includes(p.id) ? { ...p, status: "paid", paidDate: reconcileDates[p.id] || new Date().toISOString().slice(0, 10) } : p
     );
     await persistPayments(next);
-    showToast("Payment marked paid");
+    setReconcileSelected({}); setReconcileDates({});
+    showToast(ids.length === 1 ? "Payment marked paid" : `${ids.length} payments marked paid`);
+  };
+
+  // Collapsed-row shortcut: jump straight to a ready-to-confirm selection for
+  // just the single next-due payment, rather than assuming its date.
+  const quickMarkNext = () => {
+    if (!nextUnpaid || actionsDisabled) return;
+    setExpanded(true);
+    setReconcileSelected({ [nextUnpaid.id]: true });
+    setReconcileDates(d => (d[nextUnpaid.id] ? d : { ...d, [nextUnpaid.id]: new Date().toISOString().slice(0, 10) }));
+  };
+
+  const persistPayments = async (nextPayments) => {
+    await onUpdateExpense({ ...e, payments: nextPayments });
   };
 
   const handleAddPayment = async () => {
@@ -581,6 +633,22 @@ function ExpenseRow({
             </span>
           </div>
         )}
+        {payHasPayments && nextUnpaid && (
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 6, flexWrap: "wrap" }}>
+            <span style={{ fontSize: 12, color: "var(--text-secondary)" }}>
+              {nextUnpaid.label} · {fmt$(parseFloat(nextUnpaid.amount) || 0)}
+              {nextDueStatus && <span className={nextDueStatus.cls}> · {nextDueStatus.label}</span>}
+            </span>
+            {!actionsDisabled && (
+              <button className="btn btn-secondary btn-sm" style={{ fontSize: 11 }} onClick={quickMarkNext}>Mark paid</button>
+            )}
+          </div>
+        )}
+        {payHasPayments && !nextUnpaid && mismatch && (
+          <div style={{ fontSize: 12, color: "var(--gold)", marginTop: 6 }}>
+            Schedule incomplete — {fmt$(Math.abs(mismatch.diff))} not yet planned
+          </div>
+        )}
       </div>
       <div className="expense-row-amount">
         ${(parseFloat(e.amount)||0).toLocaleString("en-US",{minimumFractionDigits:0,maximumFractionDigits:0})}
@@ -644,9 +712,16 @@ function ExpenseRow({
             </div>
           )}
 
+          {payHasPayments && unpaidPayments.length > 1 && !actionsDisabled && (
+            <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: "var(--text-secondary)", marginBottom: 6, cursor: "pointer" }}>
+              <input type="checkbox" checked={allUnpaidSelected} onChange={toggleSelectAllRemaining} />
+              Select all remaining
+            </label>
+          )}
+
           {payHasPayments && (
             <div style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: 12 }}>
-              {e.payments.map(p => {
+              {sortedPayments.map(p => {
                 const status = getPaymentStatus(p);
                 const isEditing = editingPaymentId === p.id;
 
@@ -676,15 +751,15 @@ function ExpenseRow({
 
                 return (
                   <div key={p.id} style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap", padding: "6px 8px", background: "var(--bg-surface)", borderRadius: "var(--radius-sm)" }}>
+                    {status !== "paid" && !actionsDisabled && (
+                      <input type="checkbox" checked={!!reconcileSelected[p.id]} onChange={() => toggleReconcile(p)} />
+                    )}
                     <span style={{ flex: "1 1 120px", fontSize: 13, fontWeight: 600, color: "var(--text-primary)" }}>{p.label}</span>
                     <span style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)", fontFamily: "var(--font-mono, monospace)" }}>
                       ${(parseFloat(p.amount)||0).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2})}
                     </span>
                     <span style={{ fontSize: 12, color: "var(--text-muted)", minWidth: 90 }}>{p.dueDate ? fmt(p.dueDate) : "No due date"}</span>
                     <PaymentStatusPill status={status} />
-                    {!actionsDisabled && status !== "paid" && (
-                      <button className="btn btn-secondary btn-sm" style={{ fontSize: 11 }} onClick={() => handleMarkPaymentPaid(p.id)}>Mark paid</button>
-                    )}
                     {!actionsDisabled && (
                       <button className="icon-btn" title="Edit payment" style={{ width: 24, height: 24, fontSize: 12 }}
                         onClick={() => startEditPayment(p)}><Icon name="pencil" context="badge" /></button>
@@ -696,6 +771,30 @@ function ExpenseRow({
                   </div>
                 );
               })}
+            </div>
+          )}
+
+          {reconcileCount > 0 && (
+            <div style={{ marginTop: -4, marginBottom: 12, padding: "10px 12px", background: "var(--bg-subtle)", border: "1px solid var(--border)", borderRadius: "var(--radius-sm)" }}>
+              <div style={{ fontSize: 12, color: "var(--text-muted)", marginBottom: 8 }}>
+                {reconcileCount} selected — confirm the actual date each was paid
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: 10 }}>
+                {unpaidPayments.filter(p => reconcileSelected[p.id]).map(p => (
+                  <div key={p.id} style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                    <span style={{ width: 110, fontSize: 12, flexShrink: 0 }}>{p.label}</span>
+                    <input className="form-input" type="date" value={reconcileDates[p.id] || ""}
+                      onChange={ev => setReconcileDates(d => ({ ...d, [p.id]: ev.target.value }))}
+                      style={{ width: 150, fontSize: 12, padding: "4px 8px" }} />
+                  </div>
+                ))}
+              </div>
+              <div style={{ display: "flex", gap: 8 }}>
+                <button className="btn btn-primary btn-sm" style={{ fontSize: 12 }} onClick={confirmReconcile}>
+                  Confirm {reconcileCount} {reconcileCount === 1 ? "payment" : "payments"}
+                </button>
+                <button className="btn btn-secondary btn-sm" style={{ fontSize: 12 }} onClick={cancelReconcile}>Cancel</button>
+              </div>
             </div>
           )}
 
@@ -1383,16 +1482,22 @@ export function ExpenseModal({ expense, vendors, adminConfig, onSave, onClose, i
               </div>
             )}
           </div>
-          <div className="form-group" style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <div className={`paid-check ${form.paid ? "checked" : ""}`} onClick={() => set("paid", !form.paid)}>
-              {form.paid && <svg width="10" height="8" viewBox="0 0 10 8"><polyline points="1,4 4,7 9,1" stroke="white" strokeWidth="1.5" fill="none"/></svg>}
+          {hasPayments(expense) ? (
+            <div className="form-group" style={{ fontSize: 13, color: "var(--text-muted)", background: "var(--bg-subtle)", border: "1px solid var(--border)", borderRadius: "var(--radius-sm)", padding: "10px 12px" }}>
+              This expense uses a payment schedule. Mark individual payments as paid from the expense row.
             </div>
-            <label className="form-label" style={{ margin: 0, textTransform: "none", fontSize: 14, fontWeight: 500 }}>Paid</label>
-            {form.paid && (
-              <input className="form-input" type="date" value={form.datePaid || ""} onChange={e => set("datePaid", e.target.value)}
-                style={{ flex: 1, maxWidth: 180 }} placeholder="Date paid" />
-            )}
-          </div>
+          ) : (
+            <div className="form-group" style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <div className={`paid-check ${form.paid ? "checked" : ""}`} onClick={() => set("paid", !form.paid)}>
+                {form.paid && <svg width="10" height="8" viewBox="0 0 10 8"><polyline points="1,4 4,7 9,1" stroke="white" strokeWidth="1.5" fill="none"/></svg>}
+              </div>
+              <label className="form-label" style={{ margin: 0, textTransform: "none", fontSize: 14, fontWeight: 500 }}>Paid</label>
+              {form.paid && (
+                <input className="form-input" type="date" value={form.datePaid || ""} onChange={e => set("datePaid", e.target.value)}
+                  style={{ flex: 1, maxWidth: 180 }} placeholder="Date paid" />
+              )}
+            </div>
+          )}
           <div className="form-group">
             <label className="form-label">Notes</label>
             <textarea className="form-textarea" value={form.notes || ""} onChange={e => set("notes", e.target.value)} placeholder="Payment terms, deposit details…" />

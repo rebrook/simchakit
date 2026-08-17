@@ -1,9 +1,24 @@
 {
-  "current": "V4.27.1",
+  "current": "V4.28.0",
   "whatsNew": [
-    "Dropdowns across the app are now alphabetical or follow a logical event order for easier scanning"
+    "Payment schedules got easier to reconcile: the row now shows what's due next with its own Mark Paid button, and catching up on several payments at once lets you confirm the real date each one was actually paid instead of assuming today"
   ],
   "changelog": [
+    {
+      "version": "V4.28.0",
+      "date": "2026-08-01",
+      "summary": "Reworked payment schedule reconciliation to never assume a date or an amount",
+      "changes": [
+        "Collapsed expense rows with a payment schedule now surface the next unpaid payment directly (label, amount, due date, styled red if overdue) with its own Mark Paid button, so paying what's next doesn't require opening the schedule",
+        "If a schedule is fully checked off but doesn't yet cover the full contract amount, the row shows a quiet 'Schedule incomplete \u2014 $X not yet planned' hint instead of a Mark Paid button that has nothing to act on",
+        "The \u25be chevron is now purely a view/edit affordance for the full schedule (add, edit, remove payments) and never marks anything paid by itself",
+        "Removed the old per-payment Mark Paid button that silently stamped today's date with no confirmation. Marking one or several payments paid now works through checkboxes plus a confirm step showing an editable date field for each selected payment, defaulted to today but changeable, so catching up on payments made days or weeks ago never fabricates the date",
+        "Added a Select all remaining checkbox for schedules with more than one unpaid installment, to speed up bulk reconciliation without skipping the per-payment date confirmation",
+        "Payments now always display sorted by due date rather than entry order",
+        "The Edit Expense modal's Paid checkbox previously did nothing once a schedule existed (it wrote to a field the schedule ignores). It's now replaced with an explanatory note directing you to the row for expenses that already have a schedule; unaffected for expenses without one",
+        "No new audit log entries from any of this \u2014 marking payments paid, individually or in bulk, was already exempt from audit logging (only editing the amount on an already-paid payment logs an entry, per V4.23.0)"
+      ]
+    },
     {
       "version": "V4.27.1",
       "date": "2026-08-15",
