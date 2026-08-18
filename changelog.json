@@ -10,7 +10,8 @@
       "summary": "New Event Planner category, plus a working custom category option for expenses",
       "changes": [
         "Fix: selecting Custom as an expense category previously saved the literal word Custom with no way to specify what it actually was. Choosing Custom now reveals a field to type your own category, matching the same behavior already available for vendor types",
-        "New: Event Planner has been added as both a vendor type and an expense category, replacing the vendor type previously named Party Planner so the same role uses consistent naming in both places"
+        "New: Event Planner has been added as both a vendor type and an expense category, replacing the vendor type previously named Party Planner so the same role uses consistent naming in both places",
+        "Fix: the nightly demo reset (client/api/reset-demo.js) still hardcoded the old vendor type \"Party Planner\" in its seed data, which would have silently reverted the demo event's vendor back to the old name every night. Seed data updated to \"Event Planner\" to match"
       ]
     },
     {

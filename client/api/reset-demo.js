@@ -2324,7 +2324,7 @@ const SEED = {
     {
       "id": "0a3772fe-257e-4d7c-9b46-46a514e3fa51",
       "name": "Bouvier Event Design",
-      "type": "Party Planner",
+      "type": "Event Planner",
       "status": "Deposit Paid",
       "contractAmt": "3750",
       "contactName": "Marge Bouvier-Simpson",
