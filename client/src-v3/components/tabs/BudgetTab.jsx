@@ -1164,7 +1164,7 @@ export function BudgetTab({ eventId, event, adminConfig, showToast, isArchived, 
         {vendors.length > 0 && (
           <select className="form-select" value={filterVendor} onChange={e => setFilterVendor(e.target.value)}>
             <option value="All">All Vendors</option>
-            {vendors.map(v => <option key={v.id} value={v.id}>{v.name}</option>)}
+            {[...vendors].sort((a, b) => a.name.localeCompare(b.name)).map(v => <option key={v.id} value={v.id}>{v.name}</option>)}
           </select>
         )}
         {hasSections && (
@@ -1471,7 +1471,7 @@ export function ExpenseModal({ expense, vendors, adminConfig, onSave, onClose, i
               <label className="form-label">Vendor</label>
               <select className="form-select" value={form.vendorId || ""} onChange={e => set("vendorId", e.target.value)}>
                 <option value="">No vendor</option>
-                {vendors.map(v => <option key={v.id} value={v.id}>{v.name}</option>)}
+                {[...vendors].sort((a, b) => a.name.localeCompare(b.name)).map(v => <option key={v.id} value={v.id}>{v.name}</option>)}
               </select>
             </div>
           </div>

@@ -1,52 +1,15 @@
 {
-  "current": "V4.28.3",
+  "current": "V4.27.2",
   "whatsNew": [
-    "Fixed the expense description shrinking too aggressively on narrow screens to make room for the paid-count pill"
+    "The vendor dropdown on the Budget tab is now sorted alphabetically"
   ],
   "changelog": [
     {
-      "version": "V4.28.3",
-      "date": "2026-08-01",
-      "summary": "Fix: narrow-screen description could collapse to protect the paid-count pill",
+      "version": "V4.27.2",
+      "date": "2026-08-15",
+      "summary": "Vendor dropdown on Budget tab now sorted alphabetically",
       "changes": [
-        "expense-row-desc relies on overflow: hidden, which gives it an automatic minimum width of 0 in a flex row. Once the paid-count pill (V4.28.1/2) was sharing that row, a narrow screen could shrink the description to near-nothing to keep the pill fully visible",
-        "Description now has an explicit 80px minimum width, so it holds a readable minimum size. Once the row is too narrow for both, the pill wraps to its own line below the description instead of the description collapsing further",
-        "Matches standard list-row responsive behavior (as in GitHub, Gmail, Linear): primary identifying text keeps priority over secondary status metadata under space pressure"
-      ]
-    },
-    {
-      "version": "V4.28.2",
-      "date": "2026-08-01",
-      "summary": "Fix: paid-count pill overflowed the fixed-width actions column and covered the amount",
-      "changes": [
-        "The 'X of Y paid' pill added in V4.28.1 was placed in the narrow, fixed-width actions column alongside the edit/delete icons. Its wider text overflowed that column and visually covered the amount figure next to it",
-        "Moved the pill inline next to the expense description, in the row's flexible-width area, where it has room to render fully without affecting the amount column",
-        "The actions column reverts to the original quiet bare chevron, now shown only for expenses with no payment schedule yet \u2014 the pill in the body handles the toggle once a schedule exists, avoiding two redundant controls doing the same thing"
-      ]
-    },
-    {
-      "version": "V4.28.1",
-      "date": "2026-08-01",
-      "summary": "Fix: dead-looking checkbox and low-visibility schedule control on payment-schedule rows",
-      "changes": [
-        "The square checkbox on a schedule-based expense looked identical to the genuinely clickable checkbox on a regular expense but did nothing when clicked, since paid status there is derived, not toggleable. Replaced with a small circular status dot (empty, partially filled, or a solid check) that's visually distinct from the interactive square checkbox used elsewhere",
-        "The payment-schedule expand control was a bare, low-contrast glyph easy to miss next to the edit and delete icons. It's now a labeled pill showing a live count, e.g. '2 of 4 paid', with a chevron, so it reads as a distinct, informative control rather than another small icon",
-        "Guide updated to match: describes the paid-count pill instead of a bare chevron glyph, and the new status dot"
-      ]
-    },
-    {
-      "version": "V4.28.0",
-      "date": "2026-08-01",
-      "summary": "Reworked payment schedule reconciliation to never assume a date or an amount",
-      "changes": [
-        "Collapsed expense rows with a payment schedule now surface the next unpaid payment directly (label, amount, due date, styled red if overdue) with its own Mark Paid button, so paying what's next doesn't require opening the schedule",
-        "If a schedule is fully checked off but doesn't yet cover the full contract amount, the row shows a quiet 'Schedule incomplete \u2014 $X not yet planned' hint instead of a Mark Paid button that has nothing to act on",
-        "The \u25be chevron is now purely a view/edit affordance for the full schedule (add, edit, remove payments) and never marks anything paid by itself",
-        "Removed the old per-payment Mark Paid button that silently stamped today's date with no confirmation. Marking one or several payments paid now works through checkboxes plus a confirm step showing an editable date field for each selected payment, defaulted to today but changeable, so catching up on payments made days or weeks ago never fabricates the date",
-        "Added a Select all remaining checkbox for schedules with more than one unpaid installment, to speed up bulk reconciliation without skipping the per-payment date confirmation",
-        "Payments now always display sorted by due date rather than entry order",
-        "The Edit Expense modal's Paid checkbox previously did nothing once a schedule existed (it wrote to a field the schedule ignores). It's now replaced with an explanatory note directing you to the row for expenses that already have a schedule; unaffected for expenses without one",
-        "No new audit log entries from any of this \u2014 marking payments paid, individually or in bulk, was already exempt from audit logging (only editing the amount on an already-paid payment logs an entry, per V4.23.0)"
+        "Fix: the Vendor dropdown in the Budget tab's filter bar and in Add/Edit Expense now lists vendors alphabetically by name, instead of in the order they were added"
       ]
     },
     {
