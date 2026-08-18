@@ -5,6 +5,7 @@ const EXPENSE_CATEGORIES = [
   "Cake & Desserts",
   "Catering & Bar",
   "DJ / Band / Entertainment",
+  "Event Planner",
   "Florals & Decor",
   "Gifts",
   "Gratuities & Tips",

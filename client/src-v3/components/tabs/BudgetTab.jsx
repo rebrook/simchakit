@@ -1443,7 +1443,13 @@ export function BudgetTab({ eventId, event, adminConfig, showToast, isArchived, 
 // ── ExpenseModal ──────────────────────────────────────────────────────────────
 export function ExpenseModal({ expense, vendors, adminConfig, onSave, onClose, isArchived }) {
   const blank = { id: newExpenseId(), description: "", category: "", vendorId: "", amount: "", budgeted: "", dueDate: "", datePaid: "", eventSection: "", paid: false, notes: "" };
-  const [form, setForm] = useState(expense || blank);
+
+  // A saved category is "custom" if it exists but isn't one of the fixed EXPENSE_CATEGORIES
+  // (this includes the literal string "Custom", which is never itself a valid saved value).
+  const hasCustomCategory = !!(expense && expense.category && !EXPENSE_CATEGORIES.includes(expense.category));
+
+  const [form, setForm] = useState(expense ? { ...expense, category: hasCustomCategory ? "Custom" : expense.category } : blank);
+  const [customCategory, setCustomCategory] = useState(hasCustomCategory ? expense.category : "");
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
   const timeline = (adminConfig?.timeline || []).filter(t => t.title);
 
@@ -1466,6 +1472,12 @@ export function ExpenseModal({ expense, vendors, adminConfig, onSave, onClose, i
                 <option value="">Select category…</option>
                 {EXPENSE_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
               </select>
+              {form.category === "Custom" && (
+                <input className="form-input" value={customCategory}
+                  onChange={e => setCustomCategory(e.target.value)}
+                  placeholder="Specify category"
+                  style={{ marginTop: 6 }} />
+              )}
             </div>
             <div className="form-group">
               <label className="form-label">Vendor</label>
@@ -1524,7 +1536,12 @@ export function ExpenseModal({ expense, vendors, adminConfig, onSave, onClose, i
           <div className="modal-footer">
             <button className="btn btn-ghost" onClick={onClose}>Cancel</button>
             <button className="btn btn-primary" disabled={!form.description?.trim() || !form.amount || isArchived}
-              onClick={() => onSave({ ...form })}>
+              onClick={() => {
+                const finalCategory = form.category === "Custom" && customCategory.trim()
+                  ? customCategory.trim()
+                  : form.category;
+                onSave({ ...form, category: finalCategory });
+              }}>
               {expense ? "Save Changes" : "Add Expense"}
             </button>
           </div>

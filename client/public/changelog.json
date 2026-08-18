@@ -1,9 +1,18 @@
 {
-  "current": "V4.27.3",
+  "current": "V4.27.4",
   "whatsNew": [
-    "Fixed the Budget tab so paid expenses now correctly show their actual payment date"
+    "Event Planner is now a vendor type and expense category, and choosing Custom for an expense lets you specify your own category"
   ],
   "changelog": [
+    {
+      "version": "V4.27.4",
+      "date": "2026-08-18",
+      "summary": "New Event Planner category, plus a working custom category option for expenses",
+      "changes": [
+        "Fix: selecting Custom as an expense category previously saved the literal word Custom with no way to specify what it actually was. Choosing Custom now reveals a field to type your own category, matching the same behavior already available for vendor types",
+        "New: Event Planner has been added as both a vendor type and an expense category, replacing the vendor type previously named Party Planner so the same role uses consistent naming in both places"
+      ]
+    },
     {
       "version": "V4.27.3",
       "date": "2026-08-18",
