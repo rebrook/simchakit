@@ -1,9 +1,17 @@
 {
-  "current": "V4.27.2",
+  "current": "V4.27.3",
   "whatsNew": [
-    "The vendor dropdown on the Budget tab is now sorted alphabetically"
+    "Fixed the Budget tab so paid expenses now correctly show their actual payment date"
   ],
   "changelog": [
+    {
+      "version": "V4.27.3",
+      "date": "2026-08-18",
+      "summary": "Fixed incorrect or missing Paid date on Budget tab expense line items",
+      "changes": [
+        "Fix: the Paid date shown on an expense line item now reads from the correct field. Previously it referenced an unused field that was empty for most expenses (so no Paid date showed at all) and, on rare records carrying a stray leftover value, could display an unrelated date instead of the actual payment date entered in Edit Expense"
+      ]
+    },
     {
       "version": "V4.27.2",
       "date": "2026-08-15",

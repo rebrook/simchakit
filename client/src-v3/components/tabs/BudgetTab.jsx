@@ -525,7 +525,7 @@ function ExpenseRow({
   let metaNode;
   if (variant === "list") {
     const preMeta  = e.category ? [e.category] : [];
-    const postMeta = (e.paid && e.date) ? [`Paid ${fmt(e.date)}`] : [];
+    const postMeta = (e.paid && e.datePaid) ? [`Paid ${fmt(e.datePaid)}`] : [];
     metaNode = (
       <div className="expense-row-meta">
         {preMeta.join(" · ")}
@@ -560,7 +560,7 @@ function ExpenseRow({
       </div>
     );
   } else if (variant === "vendorGroup") {
-    const postMeta = (e.paid && e.date) ? [`Paid ${fmt(e.date)}`] : [];
+    const postMeta = (e.paid && e.datePaid) ? [`Paid ${fmt(e.datePaid)}`] : [];
     metaNode = (
       <div className="expense-row-meta">
         {e.category && <span>{e.category}</span>}
