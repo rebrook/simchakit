@@ -1,4 +1,5 @@
 import { newHouseholdId, newPersonId } from "./ids.js";
+import { resolveMainEvent } from "./sections.js";
 
 // ── Address constants ─────────────────────────────────────────────────────────
 
@@ -129,16 +130,39 @@ function computeHouseholdCounts(people, householdId) {
     kids:      m.filter(p =>  p.isChild).length,
     males:     m.filter(p => isMaleTitle(p.title)).length,
     kosher:    m.filter(p => p.kosher).length,
-    attending: m.filter(p => p.isAttending === true).length,
     total:     m.length,
   };
 }
 
-function getHouseholdAttending(household, people) {
-  const counts = computeHouseholdCounts(people, household.id);
+// Three tiers, in priority order:
+//   1. An explicit Attending Count Override on the household (attendingAdults/
+//      attendingKids) always wins, per field -- set only when fewer people
+//      are attending than invited.
+//   2. Otherwise, if anyone in the household has ever had an Attending
+//      Sub-Events box checked, that per-person attendingSections signal for
+//      the main event is the real answer -- someone has started tracking
+//      attendance at that granularity, so an unchecked person means "not
+//      confirmed," not "not tracked."
+//   3. Otherwise (legacy data, or nobody's touched that checkbox yet), fall
+//      back to the full household headcount -- the same convention already
+//      used by getSubEventStatus() for sub-event chips, so a household that
+//      RSVP'd Yes but was never manually walked through per-person checkboxes
+//      doesn't silently report zero attendees.
+function getHouseholdAttending(household, people, mainEventId) {
+  const counts  = computeHouseholdCounts(people, household.id);
+  const members = getPeopleForHousehold(people, household.id);
+
+  const anyoneTracked = mainEventId && members.some(p => (p.attendingSections || []).length > 0);
+  const computed = anyoneTracked
+    ? {
+        adults: members.filter(p => !p.isChild && (p.attendingSections || []).includes(mainEventId)).length,
+        kids:   members.filter(p =>  p.isChild && (p.attendingSections || []).includes(mainEventId)).length,
+      }
+    : { adults: counts.adults, kids: counts.kids };
+
   return {
-    adults: household.attendingAdults != null ? household.attendingAdults : counts.adults,
-    kids:   household.attendingKids   != null ? household.attendingKids   : counts.kids,
+    adults: household.attendingAdults != null ? household.attendingAdults : computed.adults,
+    kids:   household.attendingKids   != null ? household.attendingKids   : computed.kids,
   };
 }
 
@@ -501,6 +525,7 @@ function exportToInvitationCSV(households, people) {
 // One row per household. Audience: planner, coordinator, full reference.
 function exportGuestsByHousehold(households, people, adminConfig) {
   const timeline = adminConfig?.timeline || [];
+  const mainEvent = resolveMainEvent(timeline);
   const esc = v => {
     let s = String(v || "");
     if (/^[=+\-@\t\r]/.test(s)) s = "'" + s;
@@ -522,7 +547,7 @@ function exportGuestsByHousehold(households, people, adminConfig) {
   const rows = sorted.map(hh => {
     const migrated = migrateCityStateZip(hh);
     const counts   = computeHouseholdCounts(people, hh.id);
-    const attending = getHouseholdAttending(hh, people);
+    const attending = getHouseholdAttending(hh, people, mainEvent?.id);
     const lastName  = (hh.formalName || "").trim().split(" ").filter(Boolean).pop() || "";
     const sections  = (hh.eventSections || []).map(id => {
       const entry = timeline.find(e => e.id === id);

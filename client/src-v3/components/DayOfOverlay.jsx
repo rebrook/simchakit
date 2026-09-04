@@ -19,6 +19,8 @@ import { DAY_OF_TIME_BLOCKS } from "@/constants/events.js";
 import { formatTimeRange, sortTimeline } from "@/utils/dates.js";
 import { Icon } from "@/utils/iconMap.jsx";
 import { iconSvg } from "@/utils/iconSvg.js";
+import { amountPaid, isFullyPaid } from "@/utils/expensePayments.js";
+import { getInvitedPeopleForSection, getConfirmedPeopleForSection } from "@/utils/sections.js";
 
 // ── Cache helpers ────────────────────────────────────────────────────────────
 const CACHE_VERSION = "v1";
@@ -158,7 +160,7 @@ function generatePrintBriefHTML({ adminConfig, timeline, households, people, ven
     : "";
 
   // ── Guest stats ──────────────────────────────────────────────────────────
-  const confirmedHHIds  = new Set(households.filter(h => h.status === "RSVP Yes").map(h => h.id));
+  const confirmedHHIds  = new Set(households.filter(h => h.rsvpStatus === "RSVP Yes").map(h => h.id));
   const confirmedPeople = people.filter(p => confirmedHHIds.has(p.householdId));
   const totalInvited    = people.length;
   const totalConfirmed  = confirmedPeople.length;
@@ -169,9 +171,10 @@ function generatePrintBriefHTML({ adminConfig, timeline, households, people, ven
 
   // ── Sub-event counts ──────────────────────────────────────────────────────
   const subEventCounts = (sectionId) => {
-    const invitedHHIds  = new Set(households.filter(h => (h.invitedSections || []).includes(sectionId)).map(h => h.id));
-    const invitedCount  = people.filter(p => invitedHHIds.has(p.householdId)).length;
-    const confirmedCount = people.filter(p => (p.attendingSections || []).includes(sectionId)).length;
+    const section = timeline.find(e => e.id === sectionId);
+    if (!section) return { invited: 0, confirmed: 0 };
+    const invitedCount   = getInvitedPeopleForSection(households, people, section).length;
+    const confirmedCount = getConfirmedPeopleForSection(people, section).length;
     return { invited: invitedCount, confirmed: confirmedCount };
   };
 
@@ -181,9 +184,9 @@ function generatePrintBriefHTML({ adminConfig, timeline, households, people, ven
   // Outstanding payments
   const fmt$ = (n) => "$" + (parseFloat(n) || 0).toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 });
   const totalBudget   = expenses.reduce((s, e) => s + (parseFloat(e.amount) || 0), 0);
-  const totalPaid     = expenses.filter(e => e.paid).reduce((s, e) => s + (parseFloat(e.amount) || 0), 0);
+  const totalPaid     = expenses.reduce((s, e) => s + amountPaid(e), 0);
   const unpaidExpenses = expenses
-    .filter(e => !e.paid)
+    .filter(e => !isFullyPaid(e))
     .sort((a, b) => (a.dueDate || "9999").localeCompare(b.dueDate || "9999"))
     .slice(0, 8);
 
@@ -230,7 +233,7 @@ function generatePrintBriefHTML({ adminConfig, timeline, households, people, ven
   const vendorRows = confirmedVendors.map(v => {
     const linked   = expenses.filter(e => e.vendorId === v.id);
     const vTotal   = linked.reduce((s, e) => s + (parseFloat(e.amount) || 0), 0);
-    const vPaid    = linked.filter(e => e.paid).reduce((s, e) => s + (parseFloat(e.amount) || 0), 0);
+    const vPaid    = linked.reduce((s, e) => s + amountPaid(e), 0);
     const vBalance = vTotal - vPaid;
     const contact  = [v.contactName, v.phone, v.email].filter(Boolean).join(" · ");
     return `<tr>
@@ -877,7 +880,7 @@ export function DayOfOverlay({ eventId, event, adminConfig, onClose, onPrintBrie
   const checklist      = dayOf.checklist || [];
   const timelineChecks = dayOf.timelineChecks || {};
 
-  const confirmedHHIds  = new Set(households.filter(h => h.status === "RSVP Yes").map(h => h.id));
+  const confirmedHHIds  = new Set(households.filter(h => h.rsvpStatus === "RSVP Yes").map(h => h.id));
   const confirmedPeople = people.filter(p => confirmedHHIds.has(p.householdId));
   const kosherCount     = confirmedPeople.filter(p => p.kosher).length;
   const dietaryPeople   = people.filter(p => p.dietary && p.dietary.trim());

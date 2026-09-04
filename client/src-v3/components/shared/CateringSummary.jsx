@@ -13,7 +13,7 @@ export function CateringSummary({ people, households, adminConfig }) {
     ? new Date(mainEvent.startDate + "T00:00:00").toLocaleDateString("en-US", { month:"long", day:"numeric", year:"numeric" })
     : "";
 
-  const confirmedHHIds  = new Set(households.filter(h => h.status === "RSVP Yes").map(h => h.id));
+  const confirmedHHIds  = new Set(households.filter(h => h.rsvpStatus === "RSVP Yes").map(h => h.id));
   const confirmedPeople = people.filter(p => confirmedHHIds.has(p.householdId));
   const totalConfirmed  = confirmedPeople.length;
   const totalInvited    = people.length;

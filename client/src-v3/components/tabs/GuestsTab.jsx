@@ -29,6 +29,7 @@ import {
   exportGuestsByPerson, generateGuestPrintHTML, exportEmailListCSV, getAddressFields, formatAddress,
   migrateCityStateZip, COUNTRIES,
 } from "@/utils/guests.js";
+import { isInvited, getSubEventStatus, resolveMainEvent } from "@/utils/sections.js";
 import { ArchivedNotice }    from "@/components/shared/ArchivedNotice.jsx";
 import { RsvpPill }          from "@/components/shared/RsvpPill.jsx";
 import { CateringSummary }   from "@/components/shared/CateringSummary.jsx";
@@ -37,32 +38,9 @@ import { Modal }             from "@/components/shared/Modal.jsx";
 import { Icon }              from "@/utils/iconMap.jsx";
 import { useIsMobile }       from "@/hooks/useIsMobile.js";
 
-// ── Sub-event invite + RSVP status (derived) ──────────────────────────────────
-// Each timeline entry (sub-event) carries its own inviteAllByDefault flag (true
-// unless explicitly set to false in Admin Mode). A household's invitedSections
-// is a pure positive list (checked ids only) -- there's no way to explicitly
-// exclude a household from a default-all sub-event, only to opt one into an
-// opt-in-only sub-event. That's a known, accepted limitation, not a bug.
-function isInvited(hh, section) {
-  const explicitlyChecked = (hh.invitedSections || []).includes(section.id);
-  if (explicitlyChecked) return true;
-  return section.inviteAllByDefault !== false; // undefined/absent = true (backward compat)
-}
-
-// Returns null when the household is not invited to this section -- callers
-// treat null as "don't render a chip / row / filter match". An explicit
-// hh.subEventRsvp[section.id] always wins; otherwise status is RSVP Yes if
-// anyone in the household is marked attending, or the household's own real
-// rsvpStatus (Invited, Pending, RSVP No, whatever it actually is) if not --
-// never a hardcoded default that could contradict what's actually been recorded.
-function getSubEventStatus(hh, hhMembers, section) {
-  if (!isInvited(hh, section)) return null;
-  const explicit = hh.subEventRsvp?.[section.id];
-  if (explicit) return explicit;
-  const anyoneAttending = (hhMembers || []).some(p => (p.attendingSections || []).includes(section.id));
-  if (anyoneAttending) return "RSVP Yes";
-  return hh.rsvpStatus || "Invited";
-}
+// isInvited() and getSubEventStatus() now live in @/utils/sections.js so
+// OverviewTab, DayOfOverlay, and the Print Brief share this exact logic
+// instead of each re-deriving their own (previously incorrect) version.
 
 // Shared RSVP status color mapping — used by the main household RsvpPill and the
 // per-sub-event RsvpPill in both GuestsTab and HouseholdModal, so colors never
@@ -215,10 +193,11 @@ export function GuestsTab({ eventId, event, adminConfig, showToast, isArchived, 
   };
 
   // ── Stats ─────────────────────────────────────────────────────────────────
+  const mainEvent        = resolveMainEvent(adminConfig?.timeline);
   const totalPeople     = people.length;
   const totalOutOfTown  = households.filter(h => h.outOfTown).length;
   const totalAttending  = households.filter(h => h.rsvpStatus === "RSVP Yes").reduce((s, h) => {
-    const a = getHouseholdAttending(h, people);
+    const a = getHouseholdAttending(h, people, mainEvent?.id);
     return s + a.adults + a.kids;
   }, 0);
   const totalKosher     = people.filter(p => p.kosher).length;

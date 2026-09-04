@@ -15,6 +15,8 @@ import { Icon }               from "@/utils/iconMap.jsx";
 import { StatCard }          from "@/components/shared/StatCard.jsx";
 import { FocusPanel }        from "@/components/shared/FocusPanel.jsx";
 import { computeFocusItems } from "@/utils/focus.js";
+import { amountPaid } from "@/utils/expensePayments.js";
+import { getInvitedPeopleForSection, getConfirmedPeopleForSection } from "@/utils/sections.js";
 
 // Abbreviate currency for mobile ring cards: $11,831.63 -> $11.8k
 function fmtCurrency(n, compact) {
@@ -271,11 +273,10 @@ export function OverviewTab({ eventId, event, adminConfig, showToast, setActiveT
 
   // Sub-event counts
   const getSubEventCounts = (sectionId) => {
-    const invitedHHIds = new Set(
-      households.filter(h => (h.invitedSections || []).includes(sectionId)).map(h => h.id)
-    );
-    const invitedPeople  = people.filter(p => invitedHHIds.has(p.householdId));
-    const confirmedCount = people.filter(p => (p.attendingSections || []).includes(sectionId)).length;
+    const section = timelineEntries.find(e => e.id === sectionId);
+    if (!section) return { invited: 0, confirmed: 0 };
+    const invitedPeople  = getInvitedPeopleForSection(households, people, section);
+    const confirmedCount = getConfirmedPeopleForSection(people, section).length;
     return { invited: invitedPeople.length, confirmed: confirmedCount };
   };
 
@@ -286,7 +287,7 @@ export function OverviewTab({ eventId, event, adminConfig, showToast, setActiveT
     vendorsBooked, confirmedCount, outOfTownCount,
   } = useMemo(() => ({
     totalBudget:    expenses.reduce((s, e) => s + (parseFloat(e.amount) || 0), 0),
-    totalPaid:      expenses.filter(e => e.paid).reduce((s, e) => s + (parseFloat(e.amount) || 0), 0),
+    totalPaid:      expenses.reduce((s, e) => s + amountPaid(e), 0),
     tasksDone:      tasks.filter(t => t.done && !t.dismissed).length,
     tasksTotal:     tasks.filter(t => !t.dismissed).length,
     vendorsBooked:  vendors.filter(v => ["Booked","Deposit Paid","Paid in Full"].includes(v.status)).length,

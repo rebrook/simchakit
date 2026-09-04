@@ -10,6 +10,8 @@
 //     so the two engines share vocabulary and don't drift.
 // ─────────────────────────────────────────────────────────────────────────────
 
+import { isFullyPaid, amountRemaining } from "./expensePayments.js";
+
 const BOOKED_STATUSES = ["Booked", "Deposit Paid", "Paid in Full"];
 
 /**
@@ -84,7 +86,7 @@ export function computeFocusItems(data, adminConfig) {
   }
 
   // ── Payments due soon (unpaid expenses with dueDate in next 14 days) ────
-  const unpaidWithDue = expenses.filter(e => !e.paid && e.dueDate);
+  const unpaidWithDue = expenses.filter(e => !isFullyPaid(e) && e.dueDate);
   const overduePayments = unpaidWithDue.filter(e => new Date(e.dueDate + "T00:00:00") < today);
   const upcomingPayments = unpaidWithDue.filter(e => {
     const d = new Date(e.dueDate + "T00:00:00");
@@ -92,7 +94,7 @@ export function computeFocusItems(data, adminConfig) {
   });
 
   if (overduePayments.length > 0) {
-    const total = overduePayments.reduce((s, e) => s + (parseFloat(e.amount) || 0), 0);
+    const total = overduePayments.reduce((s, e) => s + amountRemaining(e), 0);
     items.push({
       id: "payments",
       domain: "payments",
@@ -106,7 +108,7 @@ export function computeFocusItems(data, adminConfig) {
       priority: 2,
     });
   } else if (upcomingPayments.length > 0) {
-    const total = upcomingPayments.reduce((s, e) => s + (parseFloat(e.amount) || 0), 0);
+    const total = upcomingPayments.reduce((s, e) => s + amountRemaining(e), 0);
     const soonest = upcomingPayments.sort((a, b) => a.dueDate.localeCompare(b.dueDate))[0];
     const daysOut = Math.ceil((new Date(soonest.dueDate + "T00:00:00") - today) / 86400000);
     items.push({
