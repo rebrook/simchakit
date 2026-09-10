@@ -1,9 +1,29 @@
 {
-  "current": "V4.27.4",
+  "current": "V4.27.6",
   "whatsNew": [
-    "Event Planner is now a vendor type and expense category, and choosing Custom for an expense lets you specify your own category"
+    "Fix: a favor entry's Size was only ever captured once, at the moment someone was added to the favor list, and then stored independently of their guest record. Updating a person's Shirt Size or Pant Size on their guest card afterward had no effect on favors they were already added to, requiring the same size to be set twice"
   ],
   "changelog": [
+    {
+      "version": "V4.27.6",
+      "date": "2026-09-10",
+      "summary": "Favor sizes now stay in sync with the guest list automatically",
+      "changes": [
+        "Fix: a favor entry's Size was only ever captured once, at the moment someone was added to the favor list, and then stored independently of their guest record. Updating a person's Shirt Size or Pant Size on their guest card afterward had no effect on favors they were already added to, requiring the same size to be set twice",
+        "Change: for any favor linked to a guest (added via the Available panel, or matched by name in the Add/Edit modal), Size is now derived live from that person's guest record, the same way Attending is already derived from sub-event confirmation. The Size field in the Add/Edit modal is read-only for these entries with a note pointing to the Guests tab. Favor types set to \"Don't pre-fill \u2014 enter manually\", or favor entries with no linked person, keep a freely editable Size field",
+        "Existing favor rows are reconciled automatically in the background the next time the Favors tab is open \u2014 no manual re-entry needed"
+      ]
+    },
+    {
+      "version": "V4.27.5",
+      "date": "2026-09-10",
+      "summary": "Fixed Favors tab sizing and personalization settings not taking effect",
+      "changes": [
+        "Fix: in the Favors tab's Favor Setup card, the \"Requires sizing?\" and \"Personalized?\" checkboxes saved to the wrong field name internally, so checking them never actually enabled sizing or personalization. The Size field in the add/edit form, the Size Summary card, the Size filter, the size-driven table column, and the export/print grouping all stayed hidden even when the checkboxes appeared checked and saved",
+        "Fix: the Favors export modal's Printable View description always read \"Alphabetical list\" instead of \"Grouped by size with totals,\" for the same underlying reason",
+        "No data changes: person-level size values pulled from the guest list when adding someone to a favor list were saved correctly the whole time; this fix only restores the UI that displays and groups by that data. Existing favor types need their sizing/personalization checkboxes re-checked once and Save Settings clicked again, since the old checkbox state was stored under the wrong key"
+      ]
+    },
     {
       "version": "V4.27.4",
       "date": "2026-08-18",

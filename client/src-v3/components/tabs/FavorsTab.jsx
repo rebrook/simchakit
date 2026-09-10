@@ -127,7 +127,8 @@ export function FavorsTab({
   );
 
   // ── Household + person helpers ────────────────────────────────────────────
-  const hhMap = useMemo(() => Object.fromEntries(households.map(h => [h.id, h])), [households]);
+  const hhMap     = useMemo(() => Object.fromEntries(households.map(h => [h.id, h])), [households]);
+  const peopleMap = useMemo(() => Object.fromEntries(people.map(p => [p.id, p])),     [people]);
 
   const getPersonDisplayName = (p) =>
     (p.firstName || p.lastName) ? `${p.firstName || ""} ${p.lastName || ""}`.trim() : (p.name || "Unnamed");
@@ -182,8 +183,19 @@ export function FavorsTab({
 
   const typeFavors = activeType ? favors.filter(f => f.favorTypeId === activeType.id) : [];
 
+  // Size is derived live from the linked person's guest record (like Attending is derived
+  // from sub-event confirmation) whenever a favor is linked to a person and the favor type
+  // isn't set to manual entry. This is the single source of truth — see getSizeForFavor.
+  const getSizeForFavor = useCallback((f) => {
+    if (f.personId && activeType?.needsSizing && activeType.sizeSource !== "manual") {
+      const p = peopleMap[f.personId];
+      if (p) return (activeType.sizeSource === "pant" ? p.pantSize : p.shirtSize) || "";
+    }
+    return f.size || "";
+  }, [peopleMap, activeType?.needsSizing, activeType?.sizeSource]);
+
   const filtered = typeFavors.filter(f => {
-    if (filterSize !== "all" && f.size !== filterSize) return false;
+    if (filterSize !== "all" && getSizeForFavor(f) !== filterSize) return false;
     if (filterPre  !== "all" && (f.preprint  || "TBD") !== filterPre)  return false;
     if (filterAtt  !== "all") {
       const person = people.find(p => p.id === f.personId);
@@ -220,11 +232,29 @@ export function FavorsTab({
 
   const sizeCounts = useMemo(() => {
     const c = {};
-    typeFavors.forEach(f => { const s = f.size || ""; if (s) c[s] = (c[s] || 0) + 1; });
+    typeFavors.forEach(f => { const s = getSizeForFavor(f); if (s) c[s] = (c[s] || 0) + 1; });
     return c;
-  }, [typeFavors]);
+  }, [typeFavors, getSizeForFavor]);
 
-  const usedSizes = [...new Set(typeFavors.map(f => f.size).filter(Boolean))];
+  const usedSizes = [...new Set(typeFavors.map(f => getSizeForFavor(f)).filter(Boolean))];
+
+  // ── Keep stored favor sizes reconciled with the linked person's guest record ──
+  // getSizeForFavor already makes the UI always show the live value. This effect
+  // writes that live value back onto the favor row itself, so anything reading the
+  // stored `size` field directly (CSV export, printable view) also stays correct
+  // without needing changes there.
+  useEffect(() => {
+    if (isArchived || isViewer) return;
+    if (!activeType || !activeType.needsSizing || activeType.sizeSource === "manual") return;
+    typeFavors.forEach(f => {
+      if (!f.personId) return;
+      const p = peopleMap[f.personId];
+      if (!p) return;
+      const live = (activeType.sizeSource === "pant" ? p.pantSize : p.shirtSize) || "";
+      if ((f.size || "") !== live) save({ ...f, size: live });
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [typeFavors, peopleMap, activeType?.needsSizing, activeType?.sizeSource]);
 
   // ── Config save ───────────────────────────────────────────────────────────
   const saveConfig = async (cfg) => {
@@ -701,7 +731,7 @@ export function FavorsTab({
                               )}
                             </td>
                             {activeType?.needsSizing && (
-                              <td style={{ ...TD, color: "var(--text-secondary)" }}>{f.size || "—"}</td>
+                              <td style={{ ...TD, color: "var(--text-secondary)" }}>{getSizeForFavor(f) || "—"}</td>
                             )}
                             {activeType?.isPersonalized && (
                               <td style={{ ...TD, color: "var(--text-secondary)" }}>{f.printName || "—"}</td>
@@ -888,6 +918,18 @@ export function FavorModal({ favor, favorConfig, people, personNames, sizes, fav
     }
   };
 
+  // Size is derived from the guest record — same treatment as the Attending field
+  // below — whenever this entry is linked to a person and the favor type isn't set
+  // to manual entry. Keep form.size reconciled to the live person record while open.
+  const linkedPerson = form.personId ? people.find(p => p.id === form.personId) : null;
+  const sizeIsDerived = !!linkedPerson && favorConfig.sizeSource !== "manual";
+  const derivedSize   = linkedPerson ? sizeFromPerson(linkedPerson) : "";
+
+  useEffect(() => {
+    if (sizeIsDerived && form.size !== derivedSize) setForm(f => ({ ...f, size: derivedSize }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sizeIsDerived, derivedSize]);
+
   const handleSave = () => {
     if (!form.personName.trim()) return;
     onSave({ ...form, personName: form.personName.trim() });
@@ -929,9 +971,18 @@ export function FavorModal({ favor, favorConfig, people, personNames, sizes, fav
           {favorConfig.needsSizing && (
             <div className="form-row">
               <label className="form-label">Size</label>
-              <select className="form-input" value={form.size || ""} onChange={e => setF("size", e.target.value)}>
-                {["", ...(sizes || [])].map(s => <option key={s} value={s}>{s || "(none)"}</option>)}
-              </select>
+              {sizeIsDerived ? (<>
+                <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text-primary)", padding: "8px 0" }}>
+                  {derivedSize || "Not set on guest record"}
+                </div>
+                <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 2 }}>
+                  Pulled from this person's guest record. Edit their size on the Guests tab.
+                </div>
+              </>) : (
+                <select className="form-input" value={form.size || ""} onChange={e => setF("size", e.target.value)}>
+                  {["", ...(sizes || [])].map(s => <option key={s} value={s}>{s || "(none)"}</option>)}
+                </select>
+              )}
             </div>
           )}
 
