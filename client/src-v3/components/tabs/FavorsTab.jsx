@@ -429,8 +429,8 @@ export function FavorsTab({
 
                   <div style={{ display: "flex", gap: 24, flexWrap: "wrap", marginBottom: 10 }}>
                     {[
-                      { key: "activeType?.needsSizing",    label: "Requires sizing?" },
-                      { key: "activeType?.isPersonalized", label: "Personalized?" },
+                      { key: "needsSizing",    label: "Requires sizing?" },
+                      { key: "isPersonalized", label: "Personalized?" },
                     ].map(({ key, label }) => (
                       <label key={key} style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer", fontSize: 13, color: "var(--text-primary)" }}>
                         <input type="checkbox" checked={!!ft[key]}
@@ -441,7 +441,7 @@ export function FavorsTab({
                     ))}
                   </div>
 
-                  {ft.activeType?.needsSizing && (
+                  {ft.needsSizing && (
                     <div className="form-row" style={{ marginBottom: 10 }}>
                       <label className="form-label">Size to pre-fill from guest list?</label>
                       <select className="form-input" value={ft.sizeSource || "shirt"}
@@ -926,7 +926,7 @@ export function FavorModal({ favor, favorConfig, people, personNames, sizes, fav
             <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 4 }}>Optional — used for grouping and filtering</div>
           </div>
 
-          {favorConfig.activeType?.needsSizing && (
+          {favorConfig.needsSizing && (
             <div className="form-row">
               <label className="form-label">Size</label>
               <select className="form-input" value={form.size || ""} onChange={e => setF("size", e.target.value)}>
@@ -935,7 +935,7 @@ export function FavorModal({ favor, favorConfig, people, personNames, sizes, fav
             </div>
           )}
 
-          {favorConfig.activeType?.isPersonalized && (<>
+          {favorConfig.isPersonalized && (<>
             <div className="form-row">
               <label className="form-label">Name on Favor</label>
               <input className="form-input" value={form.printName || ""}
@@ -1036,7 +1036,7 @@ export function FavorExportModal({ favors, favorConfig, favorType, adminConfig, 
               <div style={{ fontSize: 20, marginBottom: 6 }}><Icon name="printer" context="button" /></div>
               <div style={{ fontWeight: 700, fontSize: 13, color: "var(--text-primary)", marginBottom: 4 }}>Printable View</div>
               <div style={{ fontSize: 11, color: "var(--text-muted)", lineHeight: 1.5 }}>
-                {favorConfig.activeType?.needsSizing ? "Grouped by size with totals. " : "Alphabetical list. "}
+                {favorType?.needsSizing ? "Grouped by size with totals. " : "Alphabetical list. "}
                 Day-of distribution checklist.
               </div>
             </button>
