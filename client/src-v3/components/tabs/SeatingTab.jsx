@@ -544,7 +544,9 @@ export function SeatingTab({ eventId, event, adminConfig, showToast, isArchived,
                         if (!byHousehold[hhName]) byHousehold[hhName] = [];
                         byHousehold[hhName].push(p);
                       });
-                    const sortedByHousehold = Object.entries(byHousehold).sort((a, b) => a[0].localeCompare(b[0]));
+                    const sortedByHousehold = Object.entries(byHousehold).sort((a, b) =>
+                      getLastName(getPersonDisplayName(a[1][0])).localeCompare(getLastName(getPersonDisplayName(b[1][0])))
+                    );
 
                     return (
                       <div key={table.id} onClick={() => handleTableClick(table.id)} style={{ background: "var(--bg-surface)", border: isTarget ? "2px solid var(--accent-primary)" : "1px solid var(--border)", borderRadius: "var(--radius-md)", padding: 16, cursor: isTarget ? "pointer" : "default", transition: "border-color 0.15s, box-shadow 0.15s", boxShadow: isTarget ? "0 0 0 3px var(--accent-light)" : "none" }}>
@@ -772,7 +774,9 @@ export function AssignModal({ table, tables, people, households, sectionId, getP
       if (!byHousehold[hhName]) byHousehold[hhName] = [];
       byHousehold[hhName].push(p);
     });
-  const sortedByHousehold = Object.entries(byHousehold).sort((a, b) => a[0].localeCompare(b[0]));
+  const sortedByHousehold = Object.entries(byHousehold).sort((a, b) =>
+    getLastName(getPersonDisplayName(a[1][0])).localeCompare(getLastName(getPersonDisplayName(b[1][0])))
+  );
 
   return (
     <div className="modal-backdrop" onMouseDown={e => { if (e.target === e.currentTarget) onClose(); }}>

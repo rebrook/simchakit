@@ -1,9 +1,17 @@
 {
-  "current": "V4.27.7",
+  "current": "V4.27.8",
   "whatsNew": [
-    "Fix: table cards and the \"Currently Assigned\" list in Manage Assignments were not sorted at all, showing occupants in raw database order rather than alphabetically. Both now sort by household name, then by last name within each household"
+    "Fix: household groups on table cards and in Manage Assignments were sorting by the household's free-text formal name label, which put groups in the wrong order whenever the first word after the title wasn't a last name. Household groups now sort by the last name of their first (already correctly sorted) member instead, which is reliable regardless of how the household's formal name is written"
   ],
   "changelog": [
+    {
+      "version": "V4.27.8",
+      "date": "2026-09-10",
+      "summary": "Fixed household group ordering on the Seating tab",
+      "changes": [
+        "Fix: household groups on table cards and in Manage Assignments were sorting by the household's free-text formal name label, which put groups in the wrong order whenever the first word after the title wasn't a last name. Household groups now sort by the last name of their first (already correctly sorted) member instead, which is reliable regardless of how the household's formal name is written"
+      ]
+    },
     {
       "version": "V4.27.7",
       "date": "2026-09-10",
