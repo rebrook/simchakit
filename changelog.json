@@ -1,9 +1,18 @@
 {
-  "current": "V4.27.6",
+  "current": "V4.27.7",
   "whatsNew": [
-    "Fix: a favor entry's Size was only ever captured once, at the moment someone was added to the favor list, and then stored independently of their guest record. Updating a person's Shirt Size or Pant Size on their guest card afterward had no effect on favors they were already added to, requiring the same size to be set twice"
+    "Fix: table cards and the \"Currently Assigned\" list in Manage Assignments were not sorted at all, showing occupants in raw database order rather than alphabetically. Both now sort by household name, then by last name within each household"
   ],
   "changelog": [
+    {
+      "version": "V4.27.7",
+      "date": "2026-09-10",
+      "summary": "Seating tab sorting fixed to match the rest of the app",
+      "changes": [
+        "Fix: table cards and the \"Currently Assigned\" list in Manage Assignments were not sorted at all, showing occupants in raw database order rather than alphabetically. Both now sort by household name, then by last name within each household",
+        "Change: the Unseated panel and the Available list in Manage Assignments previously sorted by group, then first name. Both now sort by last name only, matching the convention used elsewhere in the app (e.g. Favors). The group filter dropdown already covers the group-based use case, so group was dropped as a sort key to keep name lookups a single alphabetical pass"
+      ]
+    },
     {
       "version": "V4.27.6",
       "date": "2026-09-10",
