@@ -7,7 +7,24 @@
 // invited guests for any "invite all by default" sub-event. Every consumer now
 // imports from here instead, so there is one true definition of "who's invited"
 // and "who's confirmed" for a sub-event.
+//
+// V4.28.0: person.attendingSections (array, positive-only) replaced by
+// person.sectionRsvp (object map, sectionId -> "Yes" | "No", absent = TBD).
+// This is what makes a real per-person "No" possible for the first time --
+// previously an unconfirmed person and a person who'd explicitly declined
+// were indistinguishable (both just "not in the array"). getPersonSectionStatus()
+// below is the one place that reads this field; every other function in this
+// file and every consumer tab goes through it rather than reading
+// person.sectionRsvp directly, so there's exactly one definition of what an
+// absent key means.
 // ─────────────────────────────────────────────────────────────────────────────
+
+// A person's own status for one sub-event: "Yes" or "No" if explicitly set,
+// "TBD" otherwise (never confirmed either way). This is intentionally the only
+// function in the codebase that reads person.sectionRsvp directly.
+export function getPersonSectionStatus(person, section) {
+  return person.sectionRsvp?.[section.id] || "TBD";
+}
 
 // Each timeline entry (sub-event) carries its own inviteAllByDefault flag (true
 // unless explicitly set to false in Admin Mode). A household's invitedSections
@@ -30,7 +47,7 @@ export function getSubEventStatus(hh, hhMembers, section) {
   if (!isInvited(hh, section)) return null;
   const explicit = hh.subEventRsvp?.[section.id];
   if (explicit) return explicit;
-  const anyoneAttending = (hhMembers || []).some(p => (p.attendingSections || []).includes(section.id));
+  const anyoneAttending = (hhMembers || []).some(p => getPersonSectionStatus(p, section) === "Yes");
   if (anyoneAttending) return "RSVP Yes";
   return hh.rsvpStatus || "Invited";
 }
@@ -44,10 +61,17 @@ export function getInvitedPeopleForSection(households, people, section) {
 }
 
 // People explicitly confirmed attending this section, via each person's own
-// attendingSections. Independent of household-level invite status by design --
-// a person only shows here once someone has actually checked their box.
+// sectionRsvp. Independent of household-level invite status by design -- a
+// person only shows here once someone has actually confirmed them.
 export function getConfirmedPeopleForSection(people, section) {
-  return people.filter(p => (p.attendingSections || []).includes(section.id));
+  return people.filter(p => getPersonSectionStatus(p, section) === "Yes");
+}
+
+// People explicitly confirmed NOT attending this section. Distinct from
+// "unconfirmed" (TBD) -- this only includes people someone has actively
+// marked No, which is the whole point of the tri-state field.
+export function getDeclinedPeopleForSection(people, section) {
+  return people.filter(p => getPersonSectionStatus(p, section) === "No");
 }
 
 // Resolves the event's designated main event from the timeline, falling back
