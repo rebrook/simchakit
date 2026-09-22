@@ -1,7 +1,7 @@
 {
   "current": "V4.27.9",
   "whatsNew": [
-    "Fix: the Favors tab's Attending column had its own logic for determining a person's sub-event status, checking only whether they had explicitly confirmed attendance. A household that RSVP'd No, with no one in it explicitly confirmed, always showed TBD instead of No"
+    "Fix: the Favors tab's Attending column checked only whether a person had an explicit per-person sub-event confirmation, so a household that RSVP'd No with nobody individually confirmed always showed TBD instead of No"
   ],
   "changelog": [
     {
@@ -9,8 +9,9 @@
       "date": "2026-09-10",
       "summary": "Favors tab Attending column now reflects a household's actual RSVP",
       "changes": [
-        "Fix: the Favors tab's Attending column had its own logic for determining a person's sub-event status, checking only whether they had explicitly confirmed attendance. A household that RSVP'd No, with no one in it explicitly confirmed, always showed TBD instead of No",
-        "Change: Attending now uses the shared getSubEventStatus() helper (the same one Guests tab uses), so a household's real recorded RSVP is reflected correctly instead of defaulting to TBD whenever no one has an explicit per-person confirmation"
+        "Fix: the Favors tab's Attending column checked only whether a person had an explicit per-person sub-event confirmation, so a household that RSVP'd No with nobody individually confirmed always showed TBD instead of No",
+        "Change: Attending now checks the person's own sub-event confirmation first (always wins if checked), then falls back to the household's overall RSVP only to catch a household-wide No. A household RSVP of Yes, Invited, or Pending never overrides an individual's own unconfirmed status, since a household confirming attendance doesn't mean every member in it is personally confirmed",
+        "Known limitation: there is currently no way to mark one specific person as not attending while other members of their household are attending the same sub-event and the household's overall RSVP is Yes. That person will show as TBD rather than No until sub-event attendance supports a real per-person Yes/No/TBD state, which is being scoped separately"
       ]
     },
     {

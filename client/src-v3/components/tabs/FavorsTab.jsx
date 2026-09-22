@@ -744,15 +744,24 @@ export function FavorsTab({
                               </td>
                             )}
                             {activeType?.eventSectionId && (() => {
-                              const person = people.find(p => p.id === f.personId);
-                              const hh = person ? hhMap[person.householdId] : null;
+                              const person  = people.find(p => p.id === f.personId);
                               const section = timeline.find(e => e.id === activeType.eventSectionId);
-                              if (!person || !hh || !section) {
-                                return <td style={{ ...TD, textAlign: "center", fontWeight: 600, color: STATUS_STYLE.TBD }}>TBD</td>;
+                              let label = "TBD";
+                              if (person && section) {
+                                if ((person.attendingSections || []).includes(section.id)) {
+                                  label = "Yes"; // this person's own confirmation always wins
+                                } else {
+                                  const hh = hhMap[person.householdId];
+                                  if (hh) {
+                                    const hhMembers = people.filter(p => p.householdId === hh.id);
+                                    const status = getSubEventStatus(hh, hhMembers, section);
+                                    if (status === "RSVP No") label = "No"; // household-wide decline applies to everyone in it
+                                    // any other household status (RSVP Yes, Invited, Pending) leaves this
+                                    // unconfirmed person at TBD -- a household saying yes doesn't mean
+                                    // every individual member is personally confirmed attending
+                                  }
+                                }
                               }
-                              const hhMembers = people.filter(p => p.householdId === hh.id);
-                              const status = getSubEventStatus(hh, hhMembers, section);
-                              const label = status === "RSVP Yes" ? "Yes" : status === "RSVP No" ? "No" : "TBD";
                               return (
                                 <td style={{ ...TD, textAlign: "center", fontWeight: 600, color: STATUS_STYLE[label] }}>
                                   {label}
