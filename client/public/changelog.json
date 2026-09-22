@@ -1,9 +1,18 @@
 {
-  "current": "V4.28.0",
+  "current": "V4.28.1",
   "whatsNew": [
-    "New: each person's attendance for a sub-event they're invited to is now a real three-state Yes/No/TBD, not just an unchecked box. Click a sub-event on a person to cycle through the states. This makes it possible for the first time to mark one specific person as not attending while other members of their household are attending the same sub-event"
+    "New: the Print Brief's Sub-Event Attendance section now shows a Declined figure (with adult/kid breakdown) alongside Invited, Confirmed, and Pending, for anyone explicitly marked not attending that sub-event"
   ],
   "changelog": [
+    {
+      "version": "V4.28.1",
+      "date": "2026-09-10",
+      "summary": "Print Brief now shows a separate Declined figure for each sub-event",
+      "changes": [
+        "New: the Print Brief's Sub-Event Attendance section now shows a Declined figure (with adult/kid breakdown) alongside Invited, Confirmed, and Pending, for anyone explicitly marked not attending that sub-event",
+        "Fix: Pending no longer includes people who've been explicitly marked not attending -- previously a household-wide or per-person No was counted the same as someone who simply hadn't responded yet"
+      ]
+    },
     {
       "version": "V4.28.0",
       "date": "2026-09-10",

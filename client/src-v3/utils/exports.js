@@ -2,7 +2,7 @@ import { sortTimeline, formatEntryMeta } from "./dates.js";
 import { getHouseholdAttending, formatAddress, migrateCityStateZip } from "./guests.js";
 import { computeVendorFinancials, fmt$ } from "./vendors.js";
 import { isFullyPaid } from "./expensePayments.js";
-import { getInvitedPeopleForSection, getConfirmedPeopleForSection, resolveMainEvent } from "./sections.js";
+import { getInvitedPeopleForSection, getConfirmedPeopleForSection, getDeclinedPeopleForSection, resolveMainEvent } from "./sections.js";
 import { PALETTES } from "@/constants/theme.js";
 import { iconSvg } from "@/utils/iconSvg.js";
 
@@ -569,6 +569,12 @@ function generateEventBriefHTML(state, adminConfig) {
     const confirmedPeople = getConfirmedPeopleForSection(people, e);
     const confirmedAdults = confirmedPeople.filter(p => !p.isChild).length;
     const confirmedKids = confirmedPeople.filter(p => p.isChild).length;
+
+    // Count people explicitly not attending this sub-event, so they're pulled
+    // out of "pending" instead of being counted as still awaiting a response
+    const declinedPeople = getDeclinedPeopleForSection(people, e);
+    const declinedAdults = declinedPeople.filter(p => !p.isChild).length;
+    const declinedKids = declinedPeople.filter(p => p.isChild).length;
     return {
       id: e.id,
       icon: e.icon || "📅",
@@ -580,7 +586,10 @@ function generateEventBriefHTML(state, adminConfig) {
       confirmedAdults,
       confirmedKids,
       confirmedTotal: confirmedAdults + confirmedKids,
-      pending: (invitedAdults + invitedKids) - (confirmedAdults + confirmedKids),
+      declinedAdults,
+      declinedKids,
+      declinedTotal: declinedAdults + declinedKids,
+      pending: (invitedAdults + invitedKids) - (confirmedAdults + confirmedKids) - (declinedAdults + declinedKids),
     };
   }).filter(e => e.invitedTotal > 0); // Only show sub-events that have invitations
 
@@ -592,7 +601,7 @@ function generateEventBriefHTML(state, adminConfig) {
             <span style="font-weight:600;font-size:14px;color:#1c1614">${e.title}</span>
             ${e.date ? `<span style="font-size:11px;color:#9c9188;margin-left:auto">${e.date}</span>` : ""}
           </div>
-          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;font-size:12px">
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;font-size:12px">
             <div>
               <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:#9c9188;margin-bottom:2px">Invited</div>
               <div style="font-weight:600;color:#1c1614">${e.invitedTotal} <span style="font-weight:400;color:#5c5248">(${e.invitedAdults} adults, ${e.invitedKids} kids)</span></div>
@@ -600,6 +609,10 @@ function generateEventBriefHTML(state, adminConfig) {
             <div>
               <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:#9c9188;margin-bottom:2px">Confirmed</div>
               <div style="font-weight:600;color:#2d6a4f">${e.confirmedTotal} <span style="font-weight:400;color:#5c5248">(${e.confirmedAdults} adults, ${e.confirmedKids} kids)</span></div>
+            </div>
+            <div>
+              <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:#9c9188;margin-bottom:2px">Declined</div>
+              <div style="font-weight:600;color:#b3261e">${e.declinedTotal} <span style="font-weight:400;color:#5c5248">(${e.declinedAdults} adults, ${e.declinedKids} kids)</span></div>
             </div>
             <div>
               <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:#9c9188;margin-bottom:2px">Pending</div>
