@@ -14,6 +14,7 @@ import { autoSeatByHousehold } from "@/utils/seating.js";
 import { ArchivedNotice }     from "@/components/shared/ArchivedNotice.jsx";
 import { ConfirmDialog }      from "@/components/shared/ConfirmDialog.jsx";
 import { Icon }               from "@/utils/iconMap.jsx";
+import { getPersonSectionStatus } from "@/utils/sections.js";
 
 // Shared with other tabs (e.g. Favors) for consistent last-name-based sorting
 const getLastName = (name) => (name || "").trim().split(" ").pop();
@@ -256,21 +257,21 @@ export function SeatingTab({ eventId, event, adminConfig, showToast, isArchived,
   };
 
   // Scoped people: confirmed for active section.
-  // Fallback: if nobody has attendingSections set yet, show all people so
-  // seating can be used before RSVPs are confirmed per sub-event.
-  const anyoneHasSections = people.some(p => (p.attendingSections||[]).length > 0);
-  const scopedPeople = hasSeating && sectionId
+  // Fallback: if nobody has an explicit sectionRsvp entry yet, show all people
+  // so seating can be used before RSVPs are confirmed per sub-event.
+  const anyoneHasSections = people.some(p => Object.keys(p.sectionRsvp||{}).length > 0);
+  const scopedPeople = hasSeating && sectionId && activeSection
     ? (anyoneHasSections
-        ? people.filter(p => (p.attendingSections||[]).includes(sectionId))
+        ? people.filter(p => getPersonSectionStatus(p, activeSection) === "Yes")
         : people)
     : [];
 
   const getPersonTableId = (p) => p.tableAssignments?.[sectionId] || p.tableId || null;
   const unseated    = scopedPeople.filter(p => !getPersonTableId(p));
-  const tbdPeople   = hasSeating && sectionId
+  const tbdPeople   = hasSeating && sectionId && activeSection
     ? people.filter(p => {
         const hh = householdMap[p.householdId];
-        return hh && (hh.eventSections||[]).includes(sectionId) && (p.attendingSections||[]).length === 0;
+        return hh && (hh.eventSections||[]).includes(sectionId) && getPersonSectionStatus(p, activeSection) === "TBD";
       })
     : [];
 
@@ -641,7 +642,7 @@ export function SeatingTab({ eventId, event, adminConfig, showToast, isArchived,
       {editTable       && <TableModal table={editTable} tableCount={tables.length} onSave={handleEditTable} onClose={() => setEditTable(null)} isArchived={isArchived} />}
 
       {assignModalTable && (
-        <AssignModal table={assignModalTable} tables={tables} people={people} households={households} sectionId={sectionId}
+        <AssignModal table={assignModalTable} tables={tables} people={people} households={households} sectionId={sectionId} section={activeSection}
           getPersonDisplayName={getPersonDisplayName} getPersonGroup={getPersonGroup} getPersonHouseholdName={getPersonHouseholdName}
           groups={groups} onAssign={assignPerson} onUnassign={unassignPerson} onClose={() => setAssignModalTable(null)} />
       )}
@@ -750,14 +751,14 @@ export function SeatingTab({ eventId, event, adminConfig, showToast, isArchived,
 }
 
 // ── AssignModal, TableModal, SeatingExportModal ───────────────────────────────
-export function AssignModal({ table, tables, people, households, sectionId, getPersonDisplayName, getPersonGroup, getPersonHouseholdName, groups, onAssign, onUnassign, onClose }) {
+export function AssignModal({ table, tables, people, households, sectionId, section, getPersonDisplayName, getPersonGroup, getPersonHouseholdName, groups, onAssign, onUnassign, onClose }) {
   const [search, setSearch]           = useState("");
   const [groupFilter, setGroupFilter] = useState("All");
 
   const cap      = parseInt(table.capacity) || 0;
   const getPersonTableId = (p) => sectionId ? (p.tableAssignments?.[sectionId] || null) : p.tableId;
   const assigned = people.filter(p => getPersonTableId(p) === table.id);
-  const available = people.filter(p => !getPersonTableId(p) && (sectionId ? (p.attendingSections||[]).includes(sectionId) : true));
+  const available = people.filter(p => !getPersonTableId(p) && (section ? getPersonSectionStatus(p, section) === "Yes" : true));
 
   const filteredAvailable = available.filter(p => {
     if (groupFilter !== "All" && getPersonGroup(p) !== groupFilter) return false;

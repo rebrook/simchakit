@@ -1,9 +1,22 @@
 {
-  "current": "V4.27.9",
+  "current": "V4.28.0",
   "whatsNew": [
-    "Fix: the Favors tab's Attending column checked only whether a person had an explicit per-person sub-event confirmation, so a household that RSVP'd No with nobody individually confirmed always showed TBD instead of No"
+    "New: each person's attendance for a sub-event they're invited to is now a real three-state Yes/No/TBD, not just an unchecked box. Click a sub-event on a person to cycle through the states. This makes it possible for the first time to mark one specific person as not attending while other members of their household are attending the same sub-event"
   ],
   "changelog": [
+    {
+      "version": "V4.28.0",
+      "date": "2026-09-10",
+      "summary": "Per-person sub-event attendance now supports a real Yes/No/TBD, not just checked-or-blank",
+      "changes": [
+        "New: each person's attendance for a sub-event they're invited to is now a real three-state Yes/No/TBD, not just an unchecked box. Click a sub-event on a person to cycle through the states. This makes it possible for the first time to mark one specific person as not attending while other members of their household are attending the same sub-event",
+        "Change: the Guests tab list now shows explicit red 'No' chips for anyone marked not attending a sub-event, alongside the existing green confirmed chips",
+        "Change: Seating's Unseated list, and the Manage Assignments available list, are unaffected by this beyond now reading the corrected field -- who shows up as confirmed for a sub-event has not changed",
+        "Change: the Favors tab's Attending column, filter, and stat card now reflect each person's own real status directly. This resolves the known limitation noted in V4.27.9 -- a person can now be marked not attending independently of their household's overall RSVP",
+        "One-time data migration completed platform-wide ahead of this release, converting existing per-person confirmations to the new format with no loss of data (verified against every event)",
+        "Note: the Print Brief's Sub-Event Attendance section does not yet show a separate Declined figure -- that is a planned follow-up, not included in this release"
+      ]
+    },
     {
       "version": "V4.27.9",
       "date": "2026-09-10",

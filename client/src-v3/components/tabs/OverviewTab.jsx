@@ -291,7 +291,7 @@ export function OverviewTab({ eventId, event, adminConfig, showToast, setActiveT
     tasksDone:      tasks.filter(t => t.done && !t.dismissed).length,
     tasksTotal:     tasks.filter(t => !t.dismissed).length,
     vendorsBooked:  vendors.filter(v => ["Booked","Deposit Paid","Paid in Full"].includes(v.status)).length,
-    confirmedCount: people.filter(p => (p.attendingSections || []).length > 0).length,
+    confirmedCount: people.filter(p => Object.values(p.sectionRsvp || {}).includes("Yes")).length,
     outOfTownCount: households.filter(h => h.outOfTown).length,
   }), [expenses, tasks, vendors, people, households]);
 

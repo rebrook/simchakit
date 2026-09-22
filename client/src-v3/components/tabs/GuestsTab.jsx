@@ -29,7 +29,7 @@ import {
   exportGuestsByPerson, generateGuestPrintHTML, exportEmailListCSV, getAddressFields, formatAddress,
   migrateCityStateZip, COUNTRIES,
 } from "@/utils/guests.js";
-import { isInvited, getSubEventStatus, resolveMainEvent } from "@/utils/sections.js";
+import { isInvited, getSubEventStatus, getPersonSectionStatus, resolveMainEvent } from "@/utils/sections.js";
 import { ArchivedNotice }    from "@/components/shared/ArchivedNotice.jsx";
 import { RsvpPill }          from "@/components/shared/RsvpPill.jsx";
 import { CateringSummary }   from "@/components/shared/CateringSummary.jsx";
@@ -600,17 +600,20 @@ export function GuestsTab({ eventId, event, adminConfig, showToast, isArchived, 
                                   <span className={`tag ${p.isChild ? "tag-blue" : "tag-muted"}`}>{p.isChild ? "Child" : "Adult"}</span>
                                   {p.title && <span className="tag tag-muted">{p.title}</span>}
                                 </div>
-                                {(p.attendingSections||[]).length > 0 && (
-                                  <div className="member-card-sections">
-                                    {(p.attendingSections).map(id => {
-                                      const s = sections.find(x => x.id === id);
-                                      return <span key={id} className="tag tag-green" style={{fontSize:10}}>{s ? s.label : id}</span>;
-                                    })}
-                                  </div>
-                                )}
-                                {(p.attendingSections||[]).length === 0 && (
-                                  <div className="member-card-sections"><span className="tag tag-muted" style={{fontSize:10}}>Sub-events TBD</span></div>
-                                )}
+                                {(() => {
+                                  const invitedSecs = sections.filter(s => isInvited(hh, s));
+                                  const yes = invitedSecs.filter(s => getPersonSectionStatus(p, s) === "Yes");
+                                  const no  = invitedSecs.filter(s => getPersonSectionStatus(p, s) === "No");
+                                  if (yes.length === 0 && no.length === 0) {
+                                    return <div className="member-card-sections"><span className="tag tag-muted" style={{fontSize:10}}>Sub-events TBD</span></div>;
+                                  }
+                                  return (
+                                    <div className="member-card-sections">
+                                      {yes.map(s => <span key={s.id} className="tag tag-green" style={{fontSize:10}}>{s.label}</span>)}
+                                      {no.map(s => <span key={s.id} className="tag tag-red" style={{fontSize:10}}>{s.label} — No</span>)}
+                                    </div>
+                                  );
+                                })()}
                                 {hasDiet && (
                                   <div className="member-card-detail">
                                     {p.mealChoice && <span><Icon name="utensils" context="badge" style={{marginRight:3}} />{p.mealChoice}</span>}
@@ -645,9 +648,16 @@ export function GuestsTab({ eventId, event, adminConfig, showToast, isArchived, 
                                   <td style={{padding:"6px 10px",color:"var(--text-secondary)"}}>{p.title||"—"}</td>
                                   <td style={{padding:"6px 10px",color:"var(--text-muted)"}}>{p.isChild?"Child":"Adult"}</td>
                                   <td style={{padding:"6px 10px"}}>
-                                    {(p.attendingSections||[]).length===0
-                                      ? <span className="tag tag-muted">TBD</span>
-                                      : (p.attendingSections).map(id=>{const s=sections.find(x=>x.id===id);return <span key={id} className="tag tag-green" style={{marginRight:2,fontSize:10}}>{s?s.label:id}</span>;})}
+                                    {(() => {
+                                      const invitedSecs = sections.filter(s => isInvited(hh, s));
+                                      const yes = invitedSecs.filter(s => getPersonSectionStatus(p, s) === "Yes");
+                                      const no  = invitedSecs.filter(s => getPersonSectionStatus(p, s) === "No");
+                                      if (yes.length === 0 && no.length === 0) return <span className="tag tag-muted">TBD</span>;
+                                      return (<>
+                                        {yes.map(s => <span key={s.id} className="tag tag-green" style={{marginRight:2,fontSize:10}}>{s.label}</span>)}
+                                        {no.map(s => <span key={s.id} className="tag tag-red" style={{marginRight:2,fontSize:10}}>{s.label} — No</span>)}
+                                      </>);
+                                    })()}
                                   </td>
                                   <td style={{padding:"6px 10px",color:"var(--text-muted)"}}>{p.shirtSize||"—"}</td>
                                   <td style={{padding:"6px 10px",color:"var(--text-muted)"}}>{p.pantSize||"—"}</td>
@@ -787,7 +797,7 @@ export function HouseholdModal({ household, members, adminConfig, onSave, onClos
   const [ppl, setPpl] = useState(
     members && members.length > 0 ? members : [{
       id: newPersonId(), householdId: hh.id, firstName: "", lastName: "", title: "",
-      isChild: false, isAttending: null, attendingSections: [], tableId: null,
+      isChild: false, isAttending: null, sectionRsvp: {}, tableId: null,
       shirtSize: "", pantSize: "", mealChoice: "", kosher: false, dietary: "", notes: "",
     }]
   );
@@ -808,7 +818,7 @@ export function HouseholdModal({ household, members, adminConfig, onSave, onClos
   const updateHHContact = (id,field,val) => setHHF("contactLog",(hh.contactLog||[]).map(c=>c.id===id?{...c,[field]:val}:c));
   const deleteHHContact = (id) => setHHF("contactLog",(hh.contactLog||[]).filter(c=>c.id!==id));
 
-  const addPerson = () => setPpl(ps => [...ps, { id: newPersonId(), householdId: hh.id, firstName: "", lastName: "", title: "", isChild: false, isAttending: null, attendingSections: [], tableId: null, shirtSize: "", pantSize: "", mealChoice: "", kosher: false, dietary: "", notes: "" }]);
+  const addPerson = () => setPpl(ps => [...ps, { id: newPersonId(), householdId: hh.id, firstName: "", lastName: "", title: "", isChild: false, isAttending: null, sectionRsvp: {}, tableId: null, shirtSize: "", pantSize: "", mealChoice: "", kosher: false, dietary: "", notes: "" }]);
   const removePerson = id => setPpl(ps => ps.filter(p => p.id !== id));
   const setPF = (id,k,v) => setPpl(ps => ps.map(p => p.id===id ? {...p,[k]:v} : p));
 
@@ -821,7 +831,9 @@ export function HouseholdModal({ household, members, adminConfig, onSave, onClos
         ...p,
         householdId: hh.id,
         name: [p.firstName, p.lastName].filter(Boolean).join(" ") || p.name || "",
-        attendingSections: (p.attendingSections||[]).filter(sid=>invitedIds.includes(sid)),
+        sectionRsvp: Object.fromEntries(
+          Object.entries(p.sectionRsvp || {}).filter(([sid]) => invitedIds.includes(sid))
+        ),
       }));
     onSave({ household: { ...hh, formalName: hh.formalName.trim(), name2: (hh.name2||"").trim() }, people: linked });
   };
@@ -868,16 +880,27 @@ export function HouseholdModal({ household, members, adminConfig, onSave, onClos
         <div className="form-group" style={{marginBottom:10}}>
           <label className="form-label">Attending Sub-Events</label>
           <div style={{display:"flex",flexWrap:"wrap",gap:5,marginTop:2}}>
-            {availableSections.map(s=>(
-              <label key={s.id} style={{display:"flex",alignItems:"center",gap:5,fontSize:12,cursor:"pointer",background:"var(--bg-surface)",border:"1px solid var(--border)",borderRadius:"var(--radius-sm)",padding:"3px 8px"}}>
-                <input type="checkbox" checked={(p.attendingSections||[]).includes(s.id)}
-                  onChange={e=>{const cur=p.attendingSections||[];setPF(p.id,"attendingSections",e.target.checked?[...cur,s.id]:cur.filter(x=>x!==s.id));}}
-                  style={{width:13,height:13,accentColor:"var(--accent-primary)"}} />
-                {s.label}
-              </label>
-            ))}
+            {availableSections.map(s=>{
+              const status = getPersonSectionStatus(p, s);
+              const NEXT = { TBD: "Yes", Yes: "No", No: "TBD" };
+              const tone  = status === "Yes" ? "tag-green" : status === "No" ? "tag-red" : "tag-muted";
+              const glyph = status === "Yes" ? "✓" : status === "No" ? "✕" : "?";
+              return (
+                <button key={s.id} type="button" className={`tag ${tone}`}
+                  style={{display:"flex",alignItems:"center",gap:5,fontSize:12,cursor:"pointer",background:"var(--bg-surface)",border:"1px solid var(--border)",borderRadius:"var(--radius-sm)",padding:"3px 8px"}}
+                  title="Click to cycle: TBD → Yes → No"
+                  onClick={()=>{
+                    const nextStatus = NEXT[status];
+                    const updated = { ...(p.sectionRsvp||{}) };
+                    if (nextStatus === "TBD") delete updated[s.id]; else updated[s.id] = nextStatus;
+                    setPF(p.id,"sectionRsvp",updated);
+                  }}>
+                  <span>{glyph}</span>{s.label}
+                </button>
+              );
+            })}
           </div>
-          <div className="form-hint">Only sub-events this household is invited to appear here.</div>
+          <div className="form-hint">Click a sub-event to cycle TBD → Yes → No. Only sub-events this household is invited to appear here.</div>
         </div>
         ) : null;
       })()}
@@ -924,7 +947,7 @@ export function HouseholdModal({ household, members, adminConfig, onSave, onClos
           const isDefaultAll = s.inviteAllByDefault !== false;
           const status = getSubEventStatus(hh, ppl, s);
           const attendingNames = ppl
-            .filter(p => (p.attendingSections||[]).includes(s.id))
+            .filter(p => getPersonSectionStatus(p, s) === "Yes")
             .map(p => [p.firstName,p.lastName].filter(Boolean).join(" ")||p.name||"Unnamed")
             .join(", ");
           return (

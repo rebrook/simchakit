@@ -16,7 +16,7 @@ import { ArchivedNotice }     from "@/components/shared/ArchivedNotice.jsx";
 import { ConfirmDialog }      from "@/components/shared/ConfirmDialog.jsx";
 import { Icon }               from "@/utils/iconMap.jsx";
 import { supabase }           from "@/lib/supabase.js";
-import { getSubEventStatus }  from "@/utils/sections.js";
+import { getPersonSectionStatus } from "@/utils/sections.js";
 
 // ── Favor type ID helper ───────────────────────────────────────────────────────
 const newFavorTypeId = () => "ft-" + newFavorId();
@@ -147,6 +147,7 @@ export function FavorsTab({
   const favorTypes = localConfig.favorTypes || [];
   const activeType = favorTypes.find(t => t.id === activeFavorTypeId) || favorTypes[0] || null;
   const sectionId  = activeType?.eventSectionId || "";
+  const section    = timeline.find(e => e.id === sectionId) || null;
 
   // Keep activeFavorTypeId in sync
   useEffect(() => {
@@ -200,12 +201,11 @@ export function FavorsTab({
     if (filterPre  !== "all" && (f.preprint  || "TBD") !== filterPre)  return false;
     if (filterAtt  !== "all") {
       const person = people.find(p => p.id === f.personId);
-      if (sectionId) {
-        const confirmed = person && (person.attendingSections || []).includes(sectionId);
-        const tbd = !person || (person.attendingSections || []).length === 0;
-        if (filterAtt === "Yes" && !confirmed) return false;
-        else if (filterAtt === "No"  && (confirmed || tbd)) return false;
-        else if (filterAtt === "TBD" && !tbd) return false;
+      if (section && person) {
+        const status = getPersonSectionStatus(person, section);
+        if (filterAtt !== status) return false;
+      } else if (section) {
+        if (filterAtt !== "TBD") return false; // no linked person = can't be confirmed either way
       }
     }
     if (filterCat !== "all" && (f.category || "") !== filterCat) return false;
@@ -222,13 +222,17 @@ export function FavorsTab({
   const totalFavors  = typeFavors.length;
   const preprintYes  = typeFavors.filter(f => f.preprint === "Yes").length;
   const preprintTBD  = typeFavors.filter(f => (f.preprint || "TBD") === "TBD").length;
-  const attendingYes = sectionId ? typeFavors.filter(f => {
+  const attendingYes = section ? typeFavors.filter(f => {
     const person = people.find(p => p.id === f.personId);
-    return person && (person.attendingSections || []).includes(sectionId);
+    return person && getPersonSectionStatus(person, section) === "Yes";
   }).length : 0;
-  const attendingTBD = sectionId ? typeFavors.filter(f => {
+  const attendingNo = section ? typeFavors.filter(f => {
     const person = people.find(p => p.id === f.personId);
-    return !person || (person.attendingSections || []).length === 0;
+    return person && getPersonSectionStatus(person, section) === "No";
+  }).length : 0;
+  const attendingTBD = section ? typeFavors.filter(f => {
+    const person = people.find(p => p.id === f.personId);
+    return !person || getPersonSectionStatus(person, section) === "TBD";
   }).length : 0;
 
   const sizeCounts = useMemo(() => {
@@ -557,7 +561,7 @@ export function FavorsTab({
             <div className="stat-card">
               <div className="stat-label">Attending</div>
               <div className="stat-value" style={{ color: "var(--green)" }}>{attendingYes}</div>
-              <div className="stat-sub">{attendingTBD} TBD</div>
+              <div className="stat-sub">{attendingTBD} TBD · {attendingNo} No</div>
             </div>
           )}
         </div>
@@ -744,24 +748,8 @@ export function FavorsTab({
                               </td>
                             )}
                             {activeType?.eventSectionId && (() => {
-                              const person  = people.find(p => p.id === f.personId);
-                              const section = timeline.find(e => e.id === activeType.eventSectionId);
-                              let label = "TBD";
-                              if (person && section) {
-                                if ((person.attendingSections || []).includes(section.id)) {
-                                  label = "Yes"; // this person's own confirmation always wins
-                                } else {
-                                  const hh = hhMap[person.householdId];
-                                  if (hh) {
-                                    const hhMembers = people.filter(p => p.householdId === hh.id);
-                                    const status = getSubEventStatus(hh, hhMembers, section);
-                                    if (status === "RSVP No") label = "No"; // household-wide decline applies to everyone in it
-                                    // any other household status (RSVP Yes, Invited, Pending) leaves this
-                                    // unconfirmed person at TBD -- a household saying yes doesn't mean
-                                    // every individual member is personally confirmed attending
-                                  }
-                                }
-                              }
+                              const person = people.find(p => p.id === f.personId);
+                              const label  = person && section ? getPersonSectionStatus(person, section) : "TBD";
                               return (
                                 <td style={{ ...TD, textAlign: "center", fontWeight: 600, color: STATUS_STYLE[label] }}>
                                   {label}
@@ -1026,10 +1014,9 @@ export function FavorModal({ favor, favorConfig, people, personNames, sizes, fav
           {favorConfig.eventSectionId && (() => {
             const person = people.find(p => p.id === form.personId);
             const entry  = (timeline || []).find(e => e.id === favorConfig.eventSectionId);
-            const confirmed = person && (person.attendingSections || []).includes(favorConfig.eventSectionId);
-            const tbd = !person || (person.attendingSections || []).length === 0;
-            const label = confirmed ? "Yes — confirmed" : tbd ? "TBD — attendance not yet set" : "No — not attending this sub-event";
-            const color = confirmed ? "var(--green)" : tbd ? "var(--text-muted)" : "var(--red)";
+            const status = person && entry ? getPersonSectionStatus(person, entry) : "TBD";
+            const label  = status === "Yes" ? "Yes — confirmed" : status === "No" ? "No — not attending this sub-event" : "TBD — attendance not yet set";
+            const color  = status === "Yes" ? "var(--green)" : status === "No" ? "var(--red)" : "var(--text-muted)";
             return (
               <div className="form-row">
                 <label className="form-label">Attending {entry ? `${entry.icon || ""} ${entry.title}` : "sub-event"}</label>
