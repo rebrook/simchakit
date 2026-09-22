@@ -1,9 +1,18 @@
 {
-  "current": "V4.27.8",
+  "current": "V4.27.9",
   "whatsNew": [
-    "Fix: household groups on table cards and in Manage Assignments were sorting by the household's free-text formal name label, which put groups in the wrong order whenever the first word after the title wasn't a last name. Household groups now sort by the last name of their first (already correctly sorted) member instead, which is reliable regardless of how the household's formal name is written"
+    "Fix: the Favors tab's Attending column had its own logic for determining a person's sub-event status, checking only whether they had explicitly confirmed attendance. A household that RSVP'd No, with no one in it explicitly confirmed, always showed TBD instead of No"
   ],
   "changelog": [
+    {
+      "version": "V4.27.9",
+      "date": "2026-09-10",
+      "summary": "Favors tab Attending column now reflects a household's actual RSVP",
+      "changes": [
+        "Fix: the Favors tab's Attending column had its own logic for determining a person's sub-event status, checking only whether they had explicitly confirmed attendance. A household that RSVP'd No, with no one in it explicitly confirmed, always showed TBD instead of No",
+        "Change: Attending now uses the shared getSubEventStatus() helper (the same one Guests tab uses), so a household's real recorded RSVP is reflected correctly instead of defaulting to TBD whenever no one has an explicit per-person confirmation"
+      ]
+    },
     {
       "version": "V4.27.8",
       "date": "2026-09-10",

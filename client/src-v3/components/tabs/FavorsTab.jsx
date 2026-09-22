@@ -16,6 +16,7 @@ import { ArchivedNotice }     from "@/components/shared/ArchivedNotice.jsx";
 import { ConfirmDialog }      from "@/components/shared/ConfirmDialog.jsx";
 import { Icon }               from "@/utils/iconMap.jsx";
 import { supabase }           from "@/lib/supabase.js";
+import { getSubEventStatus }  from "@/utils/sections.js";
 
 // ── Favor type ID helper ───────────────────────────────────────────────────────
 const newFavorTypeId = () => "ft-" + newFavorId();
@@ -744,9 +745,14 @@ export function FavorsTab({
                             )}
                             {activeType?.eventSectionId && (() => {
                               const person = people.find(p => p.id === f.personId);
-                              const confirmed = person && (person.attendingSections || []).includes(activeType?.eventSectionId);
-                              const tbd = !person || (person.attendingSections || []).length === 0;
-                              const label = confirmed ? "Yes" : tbd ? "TBD" : "No";
+                              const hh = person ? hhMap[person.householdId] : null;
+                              const section = timeline.find(e => e.id === activeType.eventSectionId);
+                              if (!person || !hh || !section) {
+                                return <td style={{ ...TD, textAlign: "center", fontWeight: 600, color: STATUS_STYLE.TBD }}>TBD</td>;
+                              }
+                              const hhMembers = people.filter(p => p.householdId === hh.id);
+                              const status = getSubEventStatus(hh, hhMembers, section);
+                              const label = status === "RSVP Yes" ? "Yes" : status === "RSVP No" ? "No" : "TBD";
                               return (
                                 <td style={{ ...TD, textAlign: "center", fontWeight: 600, color: STATUS_STYLE[label] }}>
                                   {label}
