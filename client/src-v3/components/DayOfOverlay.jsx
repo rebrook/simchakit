@@ -165,7 +165,12 @@ function generatePrintBriefHTML({ adminConfig, timeline, households, people, ven
   const totalInvited    = people.length;
   const totalConfirmed  = confirmedPeople.length;
   const kosherCount     = confirmedPeople.filter(p => p.kosher).length;
-  const dietaryPeople   = people.filter(p => p.dietary && p.dietary.trim());
+  const dietaryPeople   = people
+    .filter(p => p.dietary && p.dietary.trim())
+    .sort((a, b) => {
+      const lastNameOf = (p) => (p.lastName || (p.name||"").split(" ").pop() || "").toLowerCase();
+      return lastNameOf(a).localeCompare(lastNameOf(b));
+    });
   const adultsConfirmed = confirmedPeople.filter(p => !p.isChild).length;
   const kidsConfirmed   = confirmedPeople.filter(p => p.isChild).length;
 
@@ -883,7 +888,12 @@ export function DayOfOverlay({ eventId, event, adminConfig, onClose, onPrintBrie
   const confirmedHHIds  = new Set(households.filter(h => h.rsvpStatus === "RSVP Yes").map(h => h.id));
   const confirmedPeople = people.filter(p => confirmedHHIds.has(p.householdId));
   const kosherCount     = confirmedPeople.filter(p => p.kosher).length;
-  const dietaryPeople   = people.filter(p => p.dietary && p.dietary.trim());
+  const dietaryPeople   = people
+    .filter(p => p.dietary && p.dietary.trim())
+    .sort((a, b) => {
+      const lastNameOf = (p) => (p.lastName || (p.name||"").split(" ").pop() || "").toLowerCase();
+      return lastNameOf(a).localeCompare(lastNameOf(b));
+    });
   const totalConfirmed  = confirmedPeople.length;
   const totalInvited    = people.length;
 

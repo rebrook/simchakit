@@ -1,9 +1,19 @@
 {
-  "current": "V4.28.2",
+  "current": "V4.28.3",
   "whatsNew": [
-    "Fix: the seating printable view and both seating CSV exports (by table, by person) built their own occupant lists from scratch with no sort applied, showing people in raw database order instead of the household-then-last-name order already used on-screen in the Seating tab. All three now use the same sort"
+    "Fix: the main Guests tab household list sorted by parsing the last word of each household's free-text formal name label. A household formatted as two different people's names (e.g. \"X and Y\") could sort under the second person's surname instead of matching the household's actual members, inconsistent with how every other list in the app sorts"
   ],
   "changelog": [
+    {
+      "version": "V4.28.3",
+      "date": "2026-09-10",
+      "summary": "Guest list and dietary lists now sort by real last names, not label text",
+      "changes": [
+        "Fix: the main Guests tab household list sorted by parsing the last word of each household's free-text formal name label. A household formatted as two different people's names (e.g. \"X and Y\") could sort under the second person's surname instead of matching the household's actual members, inconsistent with how every other list in the app sorts",
+        "Change: household sort now uses the alphabetically-lowest real surname among that household's actual linked people, matching the same approach already used for the Seating tab's household groupings",
+        "Fix: the Dietary Requirements list (Catering Summary, and both the desktop and mobile Day-Of view) had no sort at all, showing people in raw database order. All three now sort by last name"
+      ]
+    },
     {
       "version": "V4.28.2",
       "date": "2026-09-10",

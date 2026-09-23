@@ -27,7 +27,12 @@ export function CateringSummary({ people, households, adminConfig }) {
   const mealTotals = {};
   people.forEach(p => { const m = p.mealChoice||""; if (m) mealTotals[m] = (mealTotals[m]||0)+1; });
   const noMealChoice    = confirmedPeople.filter(p => !p.mealChoice).length;
-  const dietaryPeople   = people.filter(p => p.dietary && p.dietary.trim());
+  const dietaryPeople   = people
+    .filter(p => p.dietary && p.dietary.trim())
+    .sort((a, b) => {
+      const lastNameOf = (p) => (p.lastName || (p.name||"").split(" ").pop() || "").toLowerCase();
+      return lastNameOf(a).localeCompare(lastNameOf(b));
+    });
 
   const getPersonName = (p) =>
     (p.firstName||p.lastName) ? `${p.firstName||""} ${p.lastName||""}`.trim() : (p.name||"");

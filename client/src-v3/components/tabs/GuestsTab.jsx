@@ -242,6 +242,20 @@ export function GuestsTab({ eventId, event, adminConfig, showToast, isArchived, 
   }), [households]);
 
   // ── Filtering ─────────────────────────────────────────────────────────────
+  // Sort key per household: the alphabetically-lowest real surname among its
+  // linked people, not a parse of the free-text formalName label -- the label
+  // can join two different surnames ("... and ..."), use a generic word like
+  // "Family", or list members in a different order than their surname would
+  // sort in, any of which broke a naive "last word of the label" sort.
+  const hhSortKey = Object.fromEntries(households.map(hh => {
+    const lastNames = getPeopleForHousehold(people, hh.id)
+      .map(p => (p.lastName || (p.name||"").split(" ").pop() || "").toLowerCase())
+      .filter(Boolean)
+      .sort();
+    const key = lastNames[0] || (hh.formalName||"").trim().split(" ").filter(Boolean).pop()?.toLowerCase() || "";
+    return [hh.id, key];
+  }));
+
   const filtered = households.filter(hh => {
     if (groupFilter  !== "All" && hh.group  !== groupFilter)  return false;
     // Desktop uses statusFilter select; mobile uses mobileChip
@@ -276,11 +290,7 @@ export function GuestsTab({ eventId, event, adminConfig, showToast, isArchived, 
       if (!(hh.formalName||"").toLowerCase().includes(s) && !memberMatch) return false;
     }
     return true;
-  }).sort((a, b) => {
-    const la = (a.formalName||"").trim().split(" ").filter(Boolean).pop()?.toLowerCase() || "";
-    const lb = (b.formalName||"").trim().split(" ").filter(Boolean).pop()?.toLowerCase() || "";
-    return la.localeCompare(lb);
-  });
+  }).sort((a, b) => (hhSortKey[a.id]||"").localeCompare(hhSortKey[b.id]||""));
 
   // ── Sub-event row chips (glance-level, read-only) ──────────────────────────
   // Hidden entirely for events with 0-1 sub-events — a single sub-event would
