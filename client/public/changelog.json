@@ -1,9 +1,17 @@
 {
-  "current": "V4.28.1",
+  "current": "V4.28.2",
   "whatsNew": [
-    "New: the Print Brief's Sub-Event Attendance section now shows a Declined figure (with adult/kid breakdown) alongside Invited, Confirmed, and Pending, for anyone explicitly marked not attending that sub-event"
+    "Fix: the seating printable view and both seating CSV exports (by table, by person) built their own occupant lists from scratch with no sort applied, showing people in raw database order instead of the household-then-last-name order already used on-screen in the Seating tab. All three now use the same sort"
   ],
   "changelog": [
+    {
+      "version": "V4.28.2",
+      "date": "2026-09-10",
+      "summary": "Seating exports and printable view now match the on-screen sort order",
+      "changes": [
+        "Fix: the seating printable view and both seating CSV exports (by table, by person) built their own occupant lists from scratch with no sort applied, showing people in raw database order instead of the household-then-last-name order already used on-screen in the Seating tab. All three now use the same sort"
+      ]
+    },
     {
       "version": "V4.28.1",
       "date": "2026-09-10",

@@ -48,14 +48,35 @@ function exportSeatingByTable(tables, people, households, sectionId) {
       ? `${p.firstName || ""} ${p.lastName || ""}`.trim()
       : (p.name || "Unnamed");
 
+  const getLastName = (p) => p.lastName || (p.name || "").split(" ").pop() || "";
+
+  // Group by household, sort within household by last name, then sort household
+  // groups by their first (already-sorted) member's last name -- matches the
+  // household-then-last-name order shown on-screen in the Seating tab, instead
+  // of leaving people in raw database order.
+  const sortByHousehold = (occupants) => {
+    const byHousehold = {};
+    occupants
+      .slice()
+      .sort((a, b) => getLastName(a).localeCompare(getLastName(b)))
+      .forEach(p => {
+        const hhId = p.householdId || "unknown";
+        if (!byHousehold[hhId]) byHousehold[hhId] = [];
+        byHousehold[hhId].push(p);
+      });
+    return Object.values(byHousehold)
+      .sort((a, b) => getLastName(a[0]).localeCompare(getLastName(b[0])))
+      .flat();
+  };
+
   const getTableId = (p) => sectionId ? (p.tableAssignments?.[sectionId] || null) : p.tableId;
 
   // Build column arrays — one per table, plus Unassigned
   const cols = tables.map(t => ({
     header: t.name,
-    names:  people.filter(p => getTableId(p) === t.id).map(getDisplayName),
+    names:  sortByHousehold(people.filter(p => getTableId(p) === t.id)).map(getDisplayName),
   }));
-  const unassigned = people.filter(p => !getTableId(p)).map(getDisplayName);
+  const unassigned = sortByHousehold(people.filter(p => !getTableId(p))).map(getDisplayName);
   if (unassigned.length > 0) cols.push({ header: "Unassigned", names: unassigned });
 
   if (cols.length === 0) return "No tables or people found.";
@@ -117,14 +138,35 @@ function generateSeatingPrintHTML(tables, people, households, eventName, eventDa
 
   const getTableId = (p) => sectionId ? (p.tableAssignments?.[sectionId] || null) : p.tableId;
 
+  const getLastName = (p) => p.lastName || (p.name || "").split(" ").pop() || "";
+
+  // Group by household, sort within household by last name, then sort household
+  // groups by their first (already-sorted) member's last name -- matches the
+  // household-then-last-name order shown on-screen in the Seating tab, instead
+  // of leaving people in raw database order.
+  const sortByHousehold = (occupants) => {
+    const byHousehold = {};
+    occupants
+      .slice()
+      .sort((a, b) => getLastName(a).localeCompare(getLastName(b)))
+      .forEach(p => {
+        const hhId = p.householdId || "unknown";
+        if (!byHousehold[hhId]) byHousehold[hhId] = [];
+        byHousehold[hhId].push(p);
+      });
+    return Object.values(byHousehold)
+      .sort((a, b) => getLastName(a[0]).localeCompare(getLastName(b[0])))
+      .flat();
+  };
+
   const titleLine = eventName
     ? (sectionTitle ? `${eventName} · ${sectionTitle}` : eventName)
     : "Seating Chart";
 
-  const unassigned = people.filter(p => !getTableId(p));
+  const unassigned = sortByHousehold(people.filter(p => !getTableId(p)));
 
   const tableCards = tables.map(t => {
-    const occupants = people.filter(p => getTableId(p) === t.id);
+    const occupants = sortByHousehold(people.filter(p => getTableId(p) === t.id));
     const rows = occupants.map(p => {
       const hh = hhMap[p.householdId] || {};
       const flags = [];
