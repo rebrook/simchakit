@@ -1,10 +1,24 @@
 {
-  "current": "V4.29.0",
+  "current": "V4.30.0",
   "whatsNew": [
-    "Fix: kosher-flagged guests with no dietary notes now appear by name in the Catering Summary's Dietary Requirements list, not just in the totals",
-    "New: Meal Choice and Kosher meal required now sync automatically so they can't disagree, with an optional Kosher Meal Label setting in Admin Mode \u2192 Guests"
+    "New: flag any timeline sub-event as Meal served for a separate confirmed/kosher/meal-choice breakout in the Catering Summary, useful for events with more than one catering moment (dinner, brunch, reception)",
+    "Fix: Catering Summary counts now reflect each guest's actual per-sub-event attendance instead of their household's overall RSVP status, so a guest who personally declined a meal no longer counts toward it",
+    "Change: the Dietary Requirements list is now one unified list tagged by sub-event, with a dedicated copy button per catering breakout for sharing a single vendor's numbers"
   ],
   "changelog": [
+    {
+      "version": "V4.30.0",
+      "date": "2026-09-24",
+      "summary": "Catering Summary now tracks attendance per sub-event instead of whole-household RSVP",
+      "changes": [
+        "New: timeline sub-events can be flagged Meal served at this sub-event in Admin Mode. Once one or more are flagged, the Catering Summary builds a separate confirmed, kosher, and meal-choice breakout for each one, so an event with multiple catering moments (a Friday night dinner, a Sunday brunch, the reception) gets accurate separate headcounts instead of one merged number",
+        "Fix: the Catering Summary previously based confirmed attendance on whole-household RSVP status, so a guest personally declined for a specific sub-event but whose household had RSVP'd Yes overall still counted toward the meal, kosher, and dietary totals. Attendance is now read at the individual, per-sub-event level once a sub-event is flagged",
+        "Change: once a meal-serving sub-event is flagged, Confirmed Attending and Total Invited at the top of the card become a deduped headcount across every flagged sub-event, matching the number a venue asks for when confirming total attendance. Guests declined from every meal-serving sub-event, or not invited to any, no longer appear in the counts at all",
+        "Change: the Dietary Requirements list is now a single unified list across all flagged sub-events, with each guest tagged by which sub-event(s) they are relevant for, instead of one flat Confirmed/Pending badge",
+        "New: a per-sub-event Copy button on each catering breakout, in addition to the existing whole-card copy, so a specific vendor's numbers can be shared without the rest of the event's catering details",
+        "Note: events with no sub-event flagged Meal served yet continue to show one combined total based on household RSVP status, unchanged from before"
+      ]
+    },
     {
       "version": "V4.29.0",
       "date": "2026-09-24",

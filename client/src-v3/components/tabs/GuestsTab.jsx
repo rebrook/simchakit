@@ -1296,7 +1296,7 @@ export function TimelineEntryModal({ entry, onSave, onClose }) {
   const initParts = (timeStr) => parseTimeParts(timeStr);
   const [form, setForm] = useState(entry
     ? { ...entry, inviteAllByDefault: entry.inviteAllByDefault !== false }
-    : { id: newTimelineId(), icon: "", title: "", startDate: "", startTime: "", endDate: "", endTime: "", venue: "", notes: "", isMainEvent: false, inviteAllByDefault: true });
+    : { id: newTimelineId(), icon: "", title: "", startDate: "", startTime: "", endDate: "", endTime: "", venue: "", notes: "", isMainEvent: false, servesMeal: false, inviteAllByDefault: true });
   const setF = (k,v) => setForm(f=>({...f,[k]:v}));
   const sp0 = initParts(form.startTime); const ep0 = initParts(form.endTime);
   const [sH,setSH]=useState(sp0.h);const [sM,setSM]=useState(sp0.m);const [sAP,setSAP]=useState(sp0.ap);
@@ -1325,6 +1325,13 @@ export function TimelineEntryModal({ entry, onSave, onClose }) {
             <input type="checkbox" checked={!!form.isMainEvent} onChange={e=>setF("isMainEvent",e.target.checked)} style={{width:15,height:15,accentColor:"var(--accent-primary)"}} />
             Count down to this event (sets date and venue for the countdown clock)
           </label>
+          <label style={{display:"flex",alignItems:"center",gap:8,cursor:"pointer",fontSize:13,color:"var(--text-primary)",marginBottom:10}}>
+            <input type="checkbox" checked={!!form.servesMeal} onChange={e=>setF("servesMeal",e.target.checked)} style={{width:15,height:15,accentColor:"var(--accent-primary)"}} />
+            Meal served at this sub-event
+          </label>
+          <div className="form-hint" style={{marginBottom:10}}>
+            Flag every sub-event where a meal is served (e.g. Friday night dinner, Sunday brunch, the reception). The Catering Summary on the Guests tab builds a separate confirmed/kosher/meal-choice breakout for each one flagged here.
+          </div>
           <label style={{display:"flex",alignItems:"center",gap:8,cursor:"pointer",fontSize:13,color:"var(--text-primary)",marginBottom:4}}>
             <input type="checkbox" checked={form.inviteAllByDefault !== false} onChange={e=>setF("inviteAllByDefault",e.target.checked)} style={{width:15,height:15,accentColor:"var(--accent-primary)"}} />
             Invite all households by default
