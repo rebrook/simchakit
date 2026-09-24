@@ -1,9 +1,20 @@
 {
-  "current": "V4.28.3",
+  "current": "V4.29.0",
   "whatsNew": [
-    "Fix: the main Guests tab household list sorted by parsing the last word of each household's free-text formal name label. A household formatted as two different people's names (e.g. \"X and Y\") could sort under the second person's surname instead of matching the household's actual members, inconsistent with how every other list in the app sorts"
+    "Fix: kosher-flagged guests with no dietary notes now appear by name in the Catering Summary's Dietary Requirements list, not just in the totals",
+    "New: Meal Choice and Kosher meal required now sync automatically so they can't disagree, with an optional Kosher Meal Label setting in Admin Mode \u2192 Guests"
   ],
   "changelog": [
+    {
+      "version": "V4.29.0",
+      "date": "2026-09-24",
+      "summary": "Kosher meal tracking: dietary list visibility fix and Meal Choice / Kosher checkbox sync",
+      "changes": [
+        "Fix: the Catering Summary's Dietary Requirements list only showed guests with free-text dietary notes, so a guest flagged Kosher meal required with no separate notes counted in the kosher total but never appeared by name in the list. Kosher-flagged guests now always appear, with a generic \"Kosher meal\" label when no notes are entered",
+        "Change: the Meal Choice dropdown and the Kosher meal required checkbox on a person's record now stay in sync automatically. Selecting the kosher meal option checks the box, checking the box selects the kosher meal option, and clearing either one clears the other",
+        "New: an optional Kosher Meal Label field in Admin Mode \u2192 Guests names which Meal Choice entry should be treated as the kosher option for this sync. Leave it blank to match any meal choice containing the word kosher"
+      ]
+    },
     {
       "version": "V4.28.3",
       "date": "2026-09-10",

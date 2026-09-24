@@ -30,6 +30,7 @@ export function AdminPanel({ eventId, userId, calendarToken: initialCalendarToke
     theme:       { name: "", icon: "", palette: "rose", ...(config?.theme || {}) },
     groups:      config?.groups      || DEFAULT_GROUPS,
     mealChoices: config?.mealChoices || DEFAULT_MEALS,
+    kosherMealLabel: config?.kosherMealLabel || "",
     shirtSizes:  config?.shirtSizes  || SHIRT_SIZES.filter(s => s),
     hotelBlocks: config?.hotelBlocks
       ? config.hotelBlocks
@@ -570,6 +571,11 @@ export function AdminPanel({ eventId, userId, calendarToken: initialCalendarToke
                 </div>
                 <button className="btn btn-secondary btn-sm" onClick={() => set("mealChoices",[...(form.mealChoices||[]),""])}>+ Add Meal Choice</button>
                 <button className="btn btn-ghost btn-sm" style={{marginLeft:8,color:"var(--text-muted)",opacity:0.7}} onClick={() => set("mealChoices",DEFAULT_MEALS)}>Reset to defaults</button>
+                <div className="form-group" style={{marginTop:14}}>
+                  <label className="form-label">Kosher Meal Label</label>
+                  <input className="form-input" value={form.kosherMealLabel||""} onChange={e => set("kosherMealLabel",e.target.value)} placeholder="Kosher" />
+                  <div className="form-hint">Must exactly match one of the Meal Choice entries above. Selecting that option in a guest's Meal Choice will automatically check Kosher meal required, and vice versa. Leave blank to match any meal choice containing the word "kosher".</div>
+                </div>
               </div>
 
               <div className="divider" />

@@ -17,7 +17,7 @@ import {
 import { useEventData, peoplePromoteColumns } from "@/hooks/useEventData.js";
 import { writeAuditLog }      from "@/utils/auditLog.js";
 import { useSearchHighlight } from "@/hooks/useSearchHighlight.js";
-import { RSVP_STATUSES, TITLES, DEFAULT_GROUPS, DEFAULT_MEALS } from "@/constants/guest-constants.js";
+import { RSVP_STATUSES, TITLES, DEFAULT_GROUPS, DEFAULT_MEALS, isKosherMealChoice } from "@/constants/guest-constants.js";
 import { SHIRT_SIZES }        from "@/constants/theme.js";
 import { TL_HOURS, TL_MINUTES } from "@/constants/ui.js";
 import { parseTimeParts, buildTime, sortTimeline } from "@/utils/dates.js";
@@ -792,6 +792,10 @@ export function HouseholdModal({ household, members, adminConfig, onSave, onClos
   const mealChoices = adminConfig?.mealChoices   || DEFAULT_MEALS;
   const sizes       = ["", ...(adminConfig?.shirtSizes || SHIRT_SIZES.filter(s => s))];
   const isEdit      = !!household;
+  // The Meal Choice value that the Kosher checkbox syncs to when checked.
+  // Uses adminConfig.kosherMealLabel if set, else the first mealChoices
+  // entry that matches the "kosher" substring rule (see isKosherMealChoice).
+  const kosherMealValue = mealChoices.find(m => isKosherMealChoice(m, adminConfig)) || "";
 
   const [step,            setStep]            = useState(1);
   const [activeTab,       setActiveTab]       = useState("details");
@@ -927,11 +931,26 @@ export function HouseholdModal({ household, members, adminConfig, onSave, onClos
       <div className="form-grid-2">
         <div className="form-group" style={{marginBottom:10}}>
           <label className="form-label">Meal Choice</label>
-          <select className="form-select" value={p.mealChoice||""} onChange={e=>setPF(p.id,"mealChoice",e.target.value)}><option value="">(none)</option>{mealChoices.map(m=><option key={m} value={m}>{m}</option>)}</select>
+          <select className="form-select" value={p.mealChoice||""} onChange={e=>{
+            const val = e.target.value;
+            const wasKosher = isKosherMealChoice(p.mealChoice, adminConfig);
+            const nowKosher = isKosherMealChoice(val, adminConfig);
+            setPF(p.id,"mealChoice",val);
+            if (nowKosher) setPF(p.id,"kosher",true);
+            else if (wasKosher) setPF(p.id,"kosher",false);
+          }}><option value="">(none)</option>{mealChoices.map(m=><option key={m} value={m}>{m}</option>)}</select>
         </div>
         <div className="form-group" style={{marginBottom:10}}>
           <label style={{display:"flex",alignItems:"center",gap:7,fontSize:13,cursor:"pointer"}}>
-            <input type="checkbox" checked={!!p.kosher} onChange={e=>setPF(p.id,"kosher",e.target.checked)} style={{width:15,height:15,accentColor:"var(--accent-primary)"}} />
+            <input type="checkbox" checked={!!p.kosher} onChange={e=>{
+              const checked = e.target.checked;
+              setPF(p.id,"kosher",checked);
+              if (checked) {
+                if (kosherMealValue) setPF(p.id,"mealChoice",kosherMealValue);
+              } else if (isKosherMealChoice(p.mealChoice, adminConfig)) {
+                setPF(p.id,"mealChoice","");
+              }
+            }} style={{width:15,height:15,accentColor:"var(--accent-primary)"}} />
             Kosher meal required
           </label>
         </div>

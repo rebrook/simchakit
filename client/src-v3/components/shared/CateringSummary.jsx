@@ -28,7 +28,7 @@ export function CateringSummary({ people, households, adminConfig }) {
   people.forEach(p => { const m = p.mealChoice||""; if (m) mealTotals[m] = (mealTotals[m]||0)+1; });
   const noMealChoice    = confirmedPeople.filter(p => !p.mealChoice).length;
   const dietaryPeople   = people
-    .filter(p => p.dietary && p.dietary.trim())
+    .filter(p => (p.dietary && p.dietary.trim()) || p.kosher)
     .sort((a, b) => {
       const lastNameOf = (p) => (p.lastName || (p.name||"").split(" ").pop() || "").toLowerCase();
       return lastNameOf(a).localeCompare(lastNameOf(b));
@@ -64,7 +64,7 @@ export function CateringSummary({ people, households, adminConfig }) {
         lines.push(`DIETARY REQUIREMENTS (all guests)`);
         dietaryPeople.forEach(p => {
           const flag = confirmedHHIds.has(p.householdId) ? "✓" : "?";
-          lines.push(`  [${flag}] ${getPersonName(p)} (${getHHName(p)}) — ${p.dietary}`);
+          lines.push(`  [${flag}] ${getPersonName(p)} (${getHHName(p)}) — ${p.dietary || "Kosher meal"}`);
         });
         lines.push("  (✓ = confirmed attending, ? = RSVP pending)");
       }
@@ -172,7 +172,7 @@ export function CateringSummary({ people, households, adminConfig }) {
                       <span style={{ fontSize:10, fontWeight:700, padding:"2px 6px", borderRadius:99, flexShrink:0, background:confirmed?"var(--green-light)":"var(--gold-light)", color:confirmed?"var(--green)":"var(--gold)" }}>{confirmed?"✓ Confirmed":"? Pending"}</span>
                       <span style={{ fontWeight:600, color:"var(--text-primary)" }}>{getPersonName(p)}</span>
                       <span style={{ color:"var(--text-muted)", fontSize:12 }}>{getHHName(p)}</span>
-                      <span style={{ color:"var(--orange)", fontWeight:500, marginLeft:"auto", fontSize:12 }}>{p.dietary}</span>
+                      <span style={{ color:"var(--orange)", fontWeight:500, marginLeft:"auto", fontSize:12 }}>{p.dietary || "Kosher meal"}</span>
                     </div>
                   );
                 })}
