@@ -576,12 +576,19 @@ export function SeatingTab({ eventId, event, adminConfig, showToast, isArchived,
                             {sortedByHousehold.map(([hhName, members]) => (
                               <div key={hhName}>
                                 <div style={{ fontSize: 10, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.5px", padding: "4px 0 2px" }}>{hhName}</div>
-                                {members.map(p => (
-                                  <div key={p.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "2px 4px", borderRadius: 4, fontSize: 13 }}>
-                                    <span style={{ color: "var(--text-primary)" }}>{getPersonDisplayName(p)}</span>
-                                    <button className="icon-btn icon-btn-danger" style={{ padding: "1px 3px", fontSize: 10 }} onClick={e => { e.stopPropagation(); unassignPerson(p.id); }}><Icon name="x" context="button" /></button>
-                                  </div>
-                                ))}
+                                {members.map(p => {
+                                  const pStatus = activeSection ? getPersonSectionStatus(p, activeSection) : "Yes";
+                                  return (
+                                    <div key={p.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "2px 4px", borderRadius: 4, fontSize: 13 }}>
+                                      <span style={{ display: "flex", alignItems: "center", gap: 6, minWidth: 0 }}>
+                                        <span style={{ color: "var(--text-primary)" }}>{getPersonDisplayName(p)}</span>
+                                        {pStatus === "No" && <span style={{ fontSize: 9, fontWeight: 700, padding: "1px 5px", borderRadius: 99, background: "var(--red-light)", color: "var(--red)", flexShrink: 0 }}>Declined</span>}
+                                        {pStatus === "TBD" && <span style={{ fontSize: 9, fontWeight: 700, padding: "1px 5px", borderRadius: 99, background: "var(--gold-light)", color: "var(--gold)", flexShrink: 0 }}>TBD</span>}
+                                      </span>
+                                      <button className="icon-btn icon-btn-danger" style={{ padding: "1px 3px", fontSize: 10 }} onClick={e => { e.stopPropagation(); unassignPerson(p.id); }}><Icon name="x" context="button" /></button>
+                                    </div>
+                                  );
+                                })}
                               </div>
                             ))}
                           </div>
@@ -782,7 +789,7 @@ export function AssignModal({ table, tables, people, households, sectionId, sect
   return (
     <div className="modal-backdrop" onMouseDown={e => { if (e.target === e.currentTarget) onClose(); }}>
       <div className="modal" style={{ maxWidth: 540 }} onClick={e => e.stopPropagation()}>
-        <div className="modal-header"><div className="modal-title">Manage — {table.name}</div><button className="icon-btn" title="Close" onClick={onClose}><Icon name="x" context="button" /></button></div>
+        <div className="modal-header"><div className="modal-title">Manage: {table.name}</div><button className="icon-btn" title="Close" onClick={onClose}><Icon name="x" context="button" /></button></div>
         <div className="modal-body">
           <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
             <span style={{ fontSize: 13, color: "var(--text-secondary)" }}>{assigned.length} of {cap} seats filled</span>
@@ -797,12 +804,19 @@ export function AssignModal({ table, tables, people, households, sectionId, sect
                 {sortedByHousehold.map(([hhName, members]) => (
                   <div key={hhName}>
                     <div style={{ fontSize: 10, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", padding: "5px 10px 2px", background: "var(--bg-subtle)" }}>{hhName}</div>
-                    {members.map(p => (
-                      <div key={p.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "5px 10px", borderTop: "1px solid var(--border)" }}>
-                        <span style={{ fontSize: 13 }}>{getPersonDisplayName(p)}</span>
-                        <button className="icon-btn icon-btn-danger" onClick={() => onUnassign(p.id)} title="Unassign"><Icon name="x" context="button" /></button>
-                      </div>
-                    ))}
+                    {members.map(p => {
+                      const pStatus = section ? getPersonSectionStatus(p, section) : "Yes";
+                      return (
+                        <div key={p.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "5px 10px", borderTop: "1px solid var(--border)" }}>
+                          <span style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13 }}>
+                            {getPersonDisplayName(p)}
+                            {pStatus === "No" && <span style={{ fontSize: 9, fontWeight: 700, padding: "1px 5px", borderRadius: 99, background: "var(--red-light)", color: "var(--red)" }}>Declined</span>}
+                            {pStatus === "TBD" && <span style={{ fontSize: 9, fontWeight: 700, padding: "1px 5px", borderRadius: 99, background: "var(--gold-light)", color: "var(--gold)" }}>TBD</span>}
+                          </span>
+                          <button className="icon-btn icon-btn-danger" onClick={() => onUnassign(p.id)} title="Unassign"><Icon name="x" context="button" /></button>
+                        </div>
+                      );
+                    })}
                   </div>
                 ))}
               </div>

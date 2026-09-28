@@ -1,11 +1,18 @@
 {
-  "current": "V4.30.0",
+  "current": "V4.30.1",
   "whatsNew": [
-    "New: flag any timeline sub-event as Meal served for a separate confirmed/kosher/meal-choice breakout in the Catering Summary, useful for events with more than one catering moment (dinner, brunch, reception)",
-    "Fix: Catering Summary counts now reflect each guest's actual per-sub-event attendance instead of their household's overall RSVP status, so a guest who personally declined a meal no longer counts toward it",
-    "Change: the Dietary Requirements list is now one unified list tagged by sub-event, with a dedicated copy button per catering breakout for sharing a single vendor's numbers"
+    "Fix: the Seating tab now flags a guest with a Declined or TBD tag right on their seat if their sub-event attendance changes after they were already assigned, instead of the change only showing up later at export or print"
   ],
   "changelog": [
+    {
+      "version": "V4.30.1",
+      "date": "2026-09-28",
+      "summary": "Seating chart now flags guests whose attendance changed after being seated",
+      "changes": [
+        "Fix: the Seating tab's table chart and Manage Assignments modal read from the full guest list, while the export/print modal reads from only those confirmed attending the active sub-event. A guest seated while confirmed, then later marked declined or TBD for that sub-event (at the household or individual level), stayed visible as an ordinary seated guest on the chart with no indication anything had changed, only disappearing once you got to export or print. Both views now show a small Declined or TBD tag directly next to that guest's name",
+        "Note: assigning a new guest to a table was already correctly restricted to guests confirmed attending the active sub-event; this fix is about a guest's status changing after they were already seated, not about who can be newly assigned"
+      ]
+    },
     {
       "version": "V4.30.0",
       "date": "2026-09-24",
