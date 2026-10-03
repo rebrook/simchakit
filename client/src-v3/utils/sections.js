@@ -74,6 +74,26 @@ export function getDeclinedPeopleForSection(people, section) {
   return people.filter(p => getPersonSectionStatus(p, section) === "No");
 }
 
+// Splits any list of people into adult and kid counts using person.isChild.
+// The one place in the codebase that defines "adult" vs "kid" for headcounts,
+// so every surface that shows a split agrees by construction.
+export function splitAdultsKids(people) {
+  const list  = people || [];
+  const kids  = list.filter(p => p.isChild).length;
+  return { adults: list.length - kids, kids, total: list.length };
+}
+
+// Invited, confirmed, and declined headcounts for one sub-event, each split
+// into adults and kids. Built only on the helpers above, so "invited",
+// "confirmed", and "declined" keep exactly one definition each.
+export function getSectionHeadcount(households, people, section) {
+  return {
+    invited:   splitAdultsKids(getInvitedPeopleForSection(households, people, section)),
+    confirmed: splitAdultsKids(getConfirmedPeopleForSection(people, section)),
+    declined:  splitAdultsKids(getDeclinedPeopleForSection(people, section)),
+  };
+}
+
 // Resolves the event's designated main event from the timeline, falling back
 // to the first entry if none is explicitly flagged -- the same guard already
 // used independently in OverviewTab.jsx and DayOfOverlay.jsx, now shared so

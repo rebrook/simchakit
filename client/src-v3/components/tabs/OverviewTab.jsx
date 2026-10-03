@@ -16,7 +16,7 @@ import { StatCard }          from "@/components/shared/StatCard.jsx";
 import { FocusPanel }        from "@/components/shared/FocusPanel.jsx";
 import { computeFocusItems } from "@/utils/focus.js";
 import { amountPaid } from "@/utils/expensePayments.js";
-import { getInvitedPeopleForSection, getConfirmedPeopleForSection } from "@/utils/sections.js";
+import { getSectionHeadcount } from "@/utils/sections.js";
 
 // Abbreviate currency for mobile ring cards: $11,831.63 -> $11.8k
 function fmtCurrency(n, compact) {
@@ -274,10 +274,12 @@ export function OverviewTab({ eventId, event, adminConfig, showToast, setActiveT
   // Sub-event counts
   const getSubEventCounts = (sectionId) => {
     const section = timelineEntries.find(e => e.id === sectionId);
-    if (!section) return { invited: 0, confirmed: 0 };
-    const invitedPeople  = getInvitedPeopleForSection(households, people, section);
-    const confirmedCount = getConfirmedPeopleForSection(people, section).length;
-    return { invited: invitedPeople.length, confirmed: confirmedCount };
+    if (!section) return { invited: 0, confirmed: 0, invitedAdults: 0, invitedKids: 0, confirmedAdults: 0, confirmedKids: 0 };
+    const hc = getSectionHeadcount(households, people, section);
+    return {
+      invited: hc.invited.total,     invitedAdults: hc.invited.adults,     invitedKids: hc.invited.kids,
+      confirmed: hc.confirmed.total, confirmedAdults: hc.confirmed.adults, confirmedKids: hc.confirmed.kids,
+    };
   };
 
 
@@ -540,7 +542,7 @@ export function OverviewTab({ eventId, event, adminConfig, showToast, setActiveT
                       <div className="timeline-meta">{formatEntryMeta(item)}</div>
                       {counts.invited > 0 && (
                         <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 4, display: "flex", alignItems: "center", gap: 4 }}>
-                          <Icon name="guests" context="inline" /> {counts.invited} invited · {counts.confirmed} confirmed
+                          <Icon name="guests" context="inline" /> {counts.invited} invited ({counts.invitedAdults} adults, {counts.invitedKids} kids) · {counts.confirmed} confirmed ({counts.confirmedAdults} adults, {counts.confirmedKids} kids)
                         </div>
                       )}
                     </div>

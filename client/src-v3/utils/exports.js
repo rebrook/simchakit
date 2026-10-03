@@ -2,7 +2,7 @@ import { sortTimeline, formatEntryMeta } from "./dates.js";
 import { getHouseholdAttending, formatAddress, migrateCityStateZip } from "./guests.js";
 import { computeVendorFinancials, fmt$ } from "./vendors.js";
 import { isFullyPaid } from "./expensePayments.js";
-import { getInvitedPeopleForSection, getConfirmedPeopleForSection, getDeclinedPeopleForSection, resolveMainEvent } from "./sections.js";
+import { getSectionHeadcount, resolveMainEvent } from "./sections.js";
 import { PALETTES } from "@/constants/theme.js";
 import { iconSvg } from "@/utils/iconSvg.js";
 
@@ -600,23 +600,18 @@ function generateEventBriefHTML(state, adminConfig) {
 
   // ── Sub-Event Attendance ────────────────────────────────────────────────────
   const subEventAttendance = timeline.map(e => {
-    // People in households invited to this sub-event, respecting each
-    // section's inviteAllByDefault flag -- not just households explicitly
-    // checked.
-    const invitedPeople = getInvitedPeopleForSection(households, people, e);
-    const invitedAdults = invitedPeople.filter(p => !p.isChild).length;
-    const invitedKids = invitedPeople.filter(p => p.isChild).length;
-
-    // Count people confirmed for this sub-event
-    const confirmedPeople = getConfirmedPeopleForSection(people, e);
-    const confirmedAdults = confirmedPeople.filter(p => !p.isChild).length;
-    const confirmedKids = confirmedPeople.filter(p => p.isChild).length;
-
-    // Count people explicitly not attending this sub-event, so they're pulled
-    // out of "pending" instead of being counted as still awaiting a response
-    const declinedPeople = getDeclinedPeopleForSection(people, e);
-    const declinedAdults = declinedPeople.filter(p => !p.isChild).length;
-    const declinedKids = declinedPeople.filter(p => p.isChild).length;
+    // Invited, confirmed, and declined headcounts (each split into adults and
+    // kids) come from the shared helper in sections.js, so this report and
+    // every in-app surface use one definition. Invited respects each
+    // section's inviteAllByDefault flag; declined people are pulled out of
+    // "pending" instead of being counted as still awaiting a response.
+    const hc = getSectionHeadcount(households, people, e);
+    const invitedAdults   = hc.invited.adults;
+    const invitedKids     = hc.invited.kids;
+    const confirmedAdults = hc.confirmed.adults;
+    const confirmedKids   = hc.confirmed.kids;
+    const declinedAdults  = hc.declined.adults;
+    const declinedKids    = hc.declined.kids;
     return {
       id: e.id,
       icon: e.icon || "📅",

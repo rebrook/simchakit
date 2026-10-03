@@ -1,9 +1,21 @@
 {
-  "current": "V4.30.1",
+  "current": "V4.31.0",
   "whatsNew": [
-    "Fix: the Seating tab now flags a guest with a Declined or TBD tag right on their seat if their sub-event attendance changes after they were already assigned, instead of the change only showing up later at export or print"
+    "New: see how many adults and kids are coming to each sub-event on the Overview timeline cards",
+    "New: adults and kids split added to the Catering Summary and to the Seating tab's Seated and Unseated cards"
   ],
   "changelog": [
+    {
+      "version": "V4.31.0",
+      "date": "2026-09-28",
+      "summary": "Adult and kid breakdown of attendance for each sub-event",
+      "changes": [
+        "New: the Overview tab timeline cards now show invited and confirmed counts for each sub-event split into adults and kids, so you can see how many adults and how many kids are coming to each event at a glance",
+        "New: the Catering Summary shows the adults and kids split on the top Confirmed Attending tile (counted once per guest across all meal-serving sub-events), on each sub-event breakout, and in both copy-to-clipboard outputs",
+        "New: the Seating tab's Seated and Unseated stat cards show an adults and kids split, to help judge whether more Kids tables or adult seats are needed",
+        "Change: adult and kid counts now come from one shared definition used by the Overview, Catering Summary, Seating tab, and Print Brief. The Print Brief output is unchanged"
+      ]
+    },
     {
       "version": "V4.30.1",
       "date": "2026-09-28",

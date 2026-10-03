@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { DEFAULT_MEALS } from "@/constants/guest-constants.js";
-import { isInvited, getPersonSectionStatus } from "@/utils/sections.js";
+import { isInvited, getPersonSectionStatus, splitAdultsKids } from "@/utils/sections.js";
 import { sortTimeline } from "@/utils/dates.js";
 
 export function CateringSummary({ people, households, adminConfig }) {
@@ -49,7 +49,8 @@ export function CateringSummary({ people, households, adminConfig }) {
     const kosherConfirmed = confirmed.filter(p => p.kosher).length;
     const kosherTotal     = relevant.filter(p => p.kosher).length;
 
-    return { section, relevant, confirmed, mealCounts, mealTotals, noMealChoice, kosherConfirmed, kosherTotal };
+    const confirmedSplit = splitAdultsKids(confirmed);
+    return { section, relevant, confirmed, confirmedSplit, mealCounts, mealTotals, noMealChoice, kosherConfirmed, kosherTotal };
   }) : [];
 
   // ── Fallback mode: no sub-event flagged yet, behaves exactly as before ──
@@ -83,6 +84,8 @@ export function CateringSummary({ people, households, adminConfig }) {
   const totalInvited      = unionRelevantPeople.length;
   const unconfirmed       = totalInvited - totalConfirmed;
   const unionConfirmedIds = new Set(unionConfirmedPeople.map(p => p.id));
+  const totalSplit        = splitAdultsKids(unionConfirmedPeople);
+  const splitText = (sp) => `${sp.adults} adults, ${sp.kids} kids`;
 
   // ── Unified Dietary Requirements list, tagged per section ──────────────
   // dietary/kosher are single fields on the person record (don't vary by
@@ -112,7 +115,7 @@ export function CateringSummary({ people, households, adminConfig }) {
   const buildSectionLines = (b) => {
     const lines = [];
     lines.push(`${b.section.icon ? b.section.icon + " " : ""}${b.section.title.toUpperCase()}`);
-    lines.push(`  Confirmed: ${b.confirmed.length}    Invited: ${b.relevant.length}`);
+    lines.push(`  Confirmed: ${b.confirmed.length} (${splitText(b.confirmedSplit)})    Invited: ${b.relevant.length}`);
     if (style === "plated") {
       lines.push("  Meal Choices (confirmed):");
       [...new Set([...meals, ...Object.keys(b.mealCounts)])].forEach(m => {
@@ -142,7 +145,7 @@ export function CateringSummary({ people, households, adminConfig }) {
 
   const handleCopyAll = () => {
     const lines = [...buildHeaderLines(), ""];
-    lines.push(`CONFIRMED ATTENDING: ${totalConfirmed}`);
+    lines.push(`CONFIRMED ATTENDING: ${totalConfirmed} (${splitText(totalSplit)})`);
     lines.push(`TOTAL INVITED:       ${totalInvited}`);
     if (unconfirmed > 0) lines.push(`AWAITING RSVP:       ${unconfirmed}`);
     if (preciseMode) {
@@ -204,13 +207,14 @@ export function CateringSummary({ people, households, adminConfig }) {
         <div style={{ marginTop:16 }}>
           <div style={{ display:"flex", gap:12, flexWrap:"wrap", marginBottom:16 }}>
             {[
-              { label:"Confirmed Attending", value:totalConfirmed, cls:"stat-green" },
+              { label:"Confirmed Attending", value:totalConfirmed, cls:"stat-green", sub:splitText(totalSplit) },
               { label:"Total Invited",        value:totalInvited,   cls:""           },
               { label:"Awaiting RSVP",        value:unconfirmed,    cls:unconfirmed>0?"stat-gold":"stat-green" },
             ].map(s => (
               <div key={s.label} className="stat-card" style={{ flex:"1 1 110px", minWidth:100, padding:"12px 14px" }}>
                 <div className="stat-label">{s.label}</div>
                 <div className={`stat-value ${s.cls}`} style={{ fontSize:22 }}>{s.value}</div>
+                {s.sub && <div className="stat-sub">{s.sub}</div>}
               </div>
             ))}
           </div>
@@ -279,7 +283,7 @@ export function CateringSummary({ people, households, adminConfig }) {
                 <div style={{ fontSize:14, fontWeight:700, color:"var(--text-primary)" }}>
                   {b.section.icon ? b.section.icon + " " : ""}{b.section.title}
                   <span style={{ fontWeight:400, fontSize:12, color:"var(--text-muted)", marginLeft:8 }}>
-                    {b.confirmed.length} confirmed · {b.relevant.length} invited
+                    {b.confirmed.length} confirmed ({splitText(b.confirmedSplit)}) · {b.relevant.length} invited
                   </span>
                 </div>
                 <button className="btn btn-ghost btn-sm" onClick={()=>handleCopySection(b)}>{copyMsg[b.section.id] || "📋 Copy this section"}</button>
