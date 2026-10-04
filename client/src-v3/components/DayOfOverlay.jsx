@@ -20,7 +20,7 @@ import { formatTimeRange, sortTimeline } from "@/utils/dates.js";
 import { Icon } from "@/utils/iconMap.jsx";
 import { iconSvg } from "@/utils/iconSvg.js";
 import { amountPaid, isFullyPaid } from "@/utils/expensePayments.js";
-import { getInvitedPeopleForSection, getConfirmedPeopleForSection } from "@/utils/sections.js";
+import { getInvitedPeopleForSection, getConfirmedPeopleForSection, getMealPopulation, splitAdultsKids } from "@/utils/sections.js";
 
 // ── Cache helpers ────────────────────────────────────────────────────────────
 const CACHE_VERSION = "v1";
@@ -160,19 +160,23 @@ function generatePrintBriefHTML({ adminConfig, timeline, households, people, ven
     : "";
 
   // ── Guest stats ──────────────────────────────────────────────────────────
-  const confirmedHHIds  = new Set(households.filter(h => h.rsvpStatus === "RSVP Yes").map(h => h.id));
-  const confirmedPeople = people.filter(p => confirmedHHIds.has(p.householdId));
-  const totalInvited    = people.length;
+  // Guest numbers come from the same shared helper as the Catering Summary,
+  // so both screens agree on who is relevant and who is confirmed: guests
+  // invited to a meal-serving sub-event (and not declined) and each person's
+  // own Yes for it. With no sub-event flagged, falls back to household RSVP.
+  const pop             = getMealPopulation(households, people, timeline.filter(e => e.servesMeal));
+  const confirmedPeople = pop.confirmed;
+  const confirmedIds    = new Set(confirmedPeople.map(p => p.id));
+  const totalInvited    = pop.relevant.length;
   const totalConfirmed  = confirmedPeople.length;
   const kosherCount     = confirmedPeople.filter(p => p.kosher).length;
-  const dietaryPeople   = people
-    .filter(p => p.dietary && p.dietary.trim())
+  const dietaryPeople   = pop.relevant
+    .filter(p => (p.dietary && p.dietary.trim()) || p.kosher)
     .sort((a, b) => {
       const lastNameOf = (p) => (p.lastName || (p.name||"").split(" ").pop() || "").toLowerCase();
       return lastNameOf(a).localeCompare(lastNameOf(b));
     });
-  const adultsConfirmed = confirmedPeople.filter(p => !p.isChild).length;
-  const kidsConfirmed   = confirmedPeople.filter(p => p.isChild).length;
+  const { adults: adultsConfirmed, kids: kidsConfirmed } = splitAdultsKids(confirmedPeople);
 
   // ── Sub-event counts ──────────────────────────────────────────────────────
   const subEventCounts = (sectionId) => {
@@ -284,10 +288,10 @@ function generatePrintBriefHTML({ adminConfig, timeline, households, people, ven
   const dietaryRows = dietaryPeople.length > 0
     ? dietaryPeople.map(p => {
         const name = [p.firstName, p.lastName].filter(Boolean).join(" ") || p.name || "Guest";
-        const isConf = confirmedHHIds.has(p.householdId);
+        const isConf = confirmedIds.has(p.id);
         return `<tr>
           <td><span class="${isConf ? "badge-green" : "badge-gold"}">${isConf ? iconSvg("check", "badge", { color: "#2d6a4f" }) : "?"}</span> ${escHtml(name)}</td>
-          <td>${escHtml(p.dietary)}</td>
+          <td>${escHtml(p.dietary || "Kosher meal")}</td>
         </tr>`;
       }).join("")
     : `<tr><td colspan="2" class="meta">No dietary requirements recorded.</td></tr>`;
@@ -885,17 +889,19 @@ export function DayOfOverlay({ eventId, event, adminConfig, onClose, onPrintBrie
   const checklist      = dayOf.checklist || [];
   const timelineChecks = dayOf.timelineChecks || {};
 
-  const confirmedHHIds  = new Set(households.filter(h => h.rsvpStatus === "RSVP Yes").map(h => h.id));
-  const confirmedPeople = people.filter(p => confirmedHHIds.has(p.householdId));
+  // Same shared population as the Catering Summary (see sections.js).
+  const pop             = getMealPopulation(households, people, timeline.filter(e => e.servesMeal));
+  const confirmedPeople = pop.confirmed;
+  const confirmedIds    = new Set(confirmedPeople.map(p => p.id));
   const kosherCount     = confirmedPeople.filter(p => p.kosher).length;
-  const dietaryPeople   = people
-    .filter(p => p.dietary && p.dietary.trim())
+  const dietaryPeople   = pop.relevant
+    .filter(p => (p.dietary && p.dietary.trim()) || p.kosher)
     .sort((a, b) => {
       const lastNameOf = (p) => (p.lastName || (p.name||"").split(" ").pop() || "").toLowerCase();
       return lastNameOf(a).localeCompare(lastNameOf(b));
     });
   const totalConfirmed  = confirmedPeople.length;
-  const totalInvited    = people.length;
+  const totalInvited    = pop.relevant.length;
 
   const mainEvent = timeline.find(e => e.isMainEvent);
   const mainEventDate = mainEvent?.startDate || timeline[0]?.startDate || null;
@@ -1124,12 +1130,12 @@ export function DayOfOverlay({ eventId, event, adminConfig, onClose, onPrintBrie
                 <div style={{ marginTop:10, display:"flex", flexDirection:"column", gap:3 }}>
                   {dietaryPeople.map(p => {
                     const name = [p.firstName,p.lastName].filter(Boolean).join(" ") || p.name || "Guest";
-                    const isConf = confirmedHHIds.has(p.householdId);
+                    const isConf = confirmedIds.has(p.id);
                     return (
                       <div key={p.id} style={{ display:"flex", alignItems:"center", gap:8, padding:"4px 0", borderTop:"1px solid var(--border)", fontSize:12 }}>
                         <span style={{ fontSize:10, fontWeight:700, padding:"1px 6px", borderRadius:99, flexShrink:0, background:isConf?"var(--green-light)":"var(--gold-light)", color:isConf?"var(--green)":"var(--gold)" }}>{isConf?<Icon name="check" context="badge" />:"?"}</span>
                         <span style={{ fontWeight:600, color:"var(--text-primary)" }}>{name}</span>
-                        <span style={{ color:"var(--orange)", marginLeft:"auto", fontSize:11 }}>{p.dietary}</span>
+                        <span style={{ color:"var(--orange)", marginLeft:"auto", fontSize:11 }}>{p.dietary || "Kosher meal"}</span>
                       </div>
                     );
                   })}

@@ -1,10 +1,22 @@
 {
-  "current": "V4.31.0",
+  "current": "V4.31.1",
   "whatsNew": [
-    "New: see how many adults and kids are coming to each sub-event on the Overview timeline cards",
-    "New: adults and kids split added to the Catering Summary and to the Seating tab's Seated and Unseated cards"
+    "Fix: Day-of Mode's confirmed, invited, kosher, and dietary numbers now match the Catering Summary, and no longer count guests who declined",
+    "Fix: the Guests tab Kosher Meals card now shows confirmed kosher meals, with any pending noted, instead of every guest flagged kosher"
   ],
   "changelog": [
+    {
+      "version": "V4.31.1",
+      "date": "2026-10-04",
+      "summary": "Day-of Mode and the Guests tab Kosher Meals card now match the Catering Summary",
+      "changes": [
+        "Fix: Day-of Mode counted attendance from whole-household RSVP status, so a guest who personally declined a meal-serving sub-event but whose household answered Yes still counted as confirmed, and Invited counted everyone on the list. Confirmed, Invited, Adults, Kids, Kosher, and Dietary now use the same per-guest, per-sub-event rule as the Catering Summary, in the on-screen overlay, the mobile view, and the printed brief",
+        "Fix: the Dietary list in Day-of Mode now includes guests flagged Kosher meal required who have no dietary notes, and its confirmed/pending marker is per guest instead of per household",
+        "Fix: the Kosher Meals card on the Guests tab counted every guest with the Kosher box checked, including guests who declined. It now shows the number confirmed for a meal-serving sub-event, with kosher guests still awaiting an answer noted as pending",
+        "Change: the rule for who counts toward meal headcounts now lives in one shared helper used by the Catering Summary, Day-of Mode, and the Guests tab, so these screens cannot drift apart. Catering Summary results are unchanged",
+        "Note: events with no sub-event flagged Meal served continue to use household RSVP status, unchanged from before"
+      ]
+    },
     {
       "version": "V4.31.0",
       "date": "2026-09-28",

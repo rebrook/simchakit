@@ -29,7 +29,7 @@ import {
   exportGuestsByPerson, generateGuestPrintHTML, exportEmailListCSV, getAddressFields, formatAddress,
   migrateCityStateZip, COUNTRIES,
 } from "@/utils/guests.js";
-import { isInvited, getSubEventStatus, getPersonSectionStatus, resolveMainEvent } from "@/utils/sections.js";
+import { isInvited, getSubEventStatus, getPersonSectionStatus, resolveMainEvent, getMealPopulation } from "@/utils/sections.js";
 import { ArchivedNotice }    from "@/components/shared/ArchivedNotice.jsx";
 import { RsvpPill }          from "@/components/shared/RsvpPill.jsx";
 import { CateringSummary }   from "@/components/shared/CateringSummary.jsx";
@@ -200,7 +200,12 @@ export function GuestsTab({ eventId, event, adminConfig, showToast, isArchived, 
     const a = getHouseholdAttending(h, people, mainEvent?.id);
     return s + a.adults + a.kids;
   }, 0);
-  const totalKosher     = people.filter(p => p.kosher).length;
+  // Kosher meals required uses the same shared population as the Catering
+  // Summary and Day-of Mode: confirmed for a meal-serving sub-event, declined
+  // guests excluded. Kosher guests still awaiting an answer show as pending.
+  const mealPop         = getMealPopulation(households, people, sortTimeline(adminConfig?.timeline || []).filter(e => e.servesMeal));
+  const totalKosher     = mealPop.confirmed.filter(p => p.kosher).length;
+  const kosherPending   = mealPop.relevant.filter(p => p.kosher).length - totalKosher;
   const totalKippot     = people.filter(p => isMaleTitle(p.title)).length;
   const totalAddresses  = households.filter(h => h.address1).length;
   const totalSTDSent    = households.filter(h => h.saveTheDateSent).length;
@@ -377,7 +382,7 @@ export function GuestsTab({ eventId, event, adminConfig, showToast, isArchived, 
           { label:"Invites Sent",   value:`${totalInviteSent}/${households.length}`, sub:"invitations mailed",
             cls: totalInviteSent===households.length && households.length>0 ? "stat-green" : "" },
           { label:"Kippot Needed",  value:totalKippot,    sub:"males on guest list",                          cls:"stat-accent" },
-          { label:"Kosher Meals",   value:totalKosher,    sub:"required",                                     cls:""            },
+          { label:"Kosher Meals",   value:totalKosher,    sub:kosherPending>0 ? `required, ${kosherPending} pending` : "required", cls:"" },
           { label:"Addresses",      value:`${totalAddresses}/${households.length}`, sub:"complete",
             cls: totalAddresses===households.length ? "stat-green" : "stat-red" },
         ].map(s=>(

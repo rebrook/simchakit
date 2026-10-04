@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { DEFAULT_MEALS } from "@/constants/guest-constants.js";
-import { isInvited, getPersonSectionStatus, splitAdultsKids } from "@/utils/sections.js";
+import { getMealPopulation, splitAdultsKids } from "@/utils/sections.js";
 import { sortTimeline } from "@/utils/dates.js";
 
 export function CateringSummary({ people, households, adminConfig }) {
@@ -29,17 +29,14 @@ export function CateringSummary({ people, households, adminConfig }) {
   // orders), so each gets its own breakout below rather than one merged
   // number that would conflate different meals with different vendors.
   const mealSections = sortTimeline(adminConfig?.timeline || []).filter(e => e.servesMeal);
-  const preciseMode  = mealSections.length > 0;
+
+  // Who is relevant and who is confirmed comes from the shared helper in
+  // sections.js, so this card and Day-of Mode always use the same definition.
+  const pop        = getMealPopulation(households, people, mealSections);
+  const preciseMode = pop.preciseMode;
 
   // ── Precise mode: one breakout per flagged sub-event ───────────────────
-  const sectionBreakouts = preciseMode ? mealSections.map(section => {
-    const relevant = people.filter(p => {
-      const hh = hhById(p.householdId);
-      if (!hh || !isInvited(hh, section)) return false;
-      return getPersonSectionStatus(p, section) !== "No"; // declined this section -> excluded entirely
-    });
-    const confirmed = relevant.filter(p => getPersonSectionStatus(p, section) === "Yes");
-
+  const sectionBreakouts = pop.sectionBreakouts.map(({ section, relevant, confirmed }) => {
     const mealCounts = {};
     confirmed.forEach(p => { const m = p.mealChoice||""; if (m) mealCounts[m] = (mealCounts[m]||0)+1; });
     const mealTotals = {};
@@ -51,11 +48,10 @@ export function CateringSummary({ people, households, adminConfig }) {
 
     const confirmedSplit = splitAdultsKids(confirmed);
     return { section, relevant, confirmed, confirmedSplit, mealCounts, mealTotals, noMealChoice, kosherConfirmed, kosherTotal };
-  }) : [];
+  });
 
   // ── Fallback mode: no sub-event flagged yet, behaves exactly as before ──
-  const confirmedHHIds        = new Set(households.filter(h => h.rsvpStatus === "RSVP Yes").map(h => h.id));
-  const fallbackConfirmed     = people.filter(p => confirmedHHIds.has(p.householdId));
+  const fallbackConfirmed     = preciseMode ? [] : pop.confirmed;
   const fallbackMealCounts    = {};
   fallbackConfirmed.forEach(p => { const m = p.mealChoice||""; if (m) fallbackMealCounts[m] = (fallbackMealCounts[m]||0)+1; });
   const fallbackMealTotals    = {};
@@ -66,20 +62,8 @@ export function CateringSummary({ people, households, adminConfig }) {
 
   // ── Top-of-card numbers: deduped union across sections in precise mode --
   // this is the number that answers "how many people are you inviting" ----
-  let unionRelevantPeople, unionConfirmedPeople;
-  if (preciseMode) {
-    const relevantMap  = new Map();
-    const confirmedMap = new Map();
-    sectionBreakouts.forEach(b => {
-      b.relevant.forEach(p => relevantMap.set(p.id, p));
-      b.confirmed.forEach(p => confirmedMap.set(p.id, p));
-    });
-    unionRelevantPeople  = [...relevantMap.values()];
-    unionConfirmedPeople = [...confirmedMap.values()];
-  } else {
-    unionRelevantPeople  = people;
-    unionConfirmedPeople = fallbackConfirmed;
-  }
+  const unionRelevantPeople  = pop.relevant;
+  const unionConfirmedPeople = pop.confirmed;
   const totalConfirmed    = unionConfirmedPeople.length;
   const totalInvited      = unionRelevantPeople.length;
   const unconfirmed       = totalInvited - totalConfirmed;

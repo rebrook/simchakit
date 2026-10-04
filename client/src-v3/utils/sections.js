@@ -94,6 +94,56 @@ export function getSectionHeadcount(households, people, section) {
   };
 }
 
+// The population behind every "who needs a meal" headcount: Catering Summary,
+// Day-of Mode, and anything that follows. One definition, so those screens
+// can never disagree about who is relevant or confirmed.
+//
+// mealSections is the list of timeline entries flagged servesMeal (callers
+// order them, e.g. with sortTimeline). When at least one is flagged
+// (preciseMode), each gets a breakout: "relevant" is people invited to that
+// sub-event and not declined it, "confirmed" is the subset whose own
+// sectionRsvp is Yes. relevant/confirmed at the top level are the deduped
+// unions across sub-events, so a guest at two meals counts once.
+// With nothing flagged, falls back to the household RSVP rule: everyone is
+// relevant, confirmed is everyone in an RSVP Yes household.
+export function getMealPopulation(households, people, mealSections) {
+  const sections = mealSections || [];
+  if (sections.length === 0) {
+    const yesHHIds = new Set((households || []).filter(h => h.rsvpStatus === "RSVP Yes").map(h => h.id));
+    return {
+      preciseMode: false,
+      sectionBreakouts: [],
+      relevant: people || [],
+      confirmed: (people || []).filter(p => yesHHIds.has(p.householdId)),
+    };
+  }
+  const hhById = new Map();
+  (households || []).forEach(h => { if (!hhById.has(h.id)) hhById.set(h.id, h); });
+
+  const sectionBreakouts = sections.map(section => {
+    const relevant = (people || []).filter(p => {
+      const hh = hhById.get(p.householdId);
+      if (!hh || !isInvited(hh, section)) return false;
+      return getPersonSectionStatus(p, section) !== "No";
+    });
+    const confirmed = relevant.filter(p => getPersonSectionStatus(p, section) === "Yes");
+    return { section, relevant, confirmed };
+  });
+
+  const relevantMap  = new Map();
+  const confirmedMap = new Map();
+  sectionBreakouts.forEach(b => {
+    b.relevant.forEach(p => relevantMap.set(p.id, p));
+    b.confirmed.forEach(p => confirmedMap.set(p.id, p));
+  });
+  return {
+    preciseMode: true,
+    sectionBreakouts,
+    relevant:  [...relevantMap.values()],
+    confirmed: [...confirmedMap.values()],
+  };
+}
+
 // Resolves the event's designated main event from the timeline, falling back
 // to the first entry if none is explicitly flagged -- the same guard already
 // used independently in OverviewTab.jsx and DayOfOverlay.jsx, now shared so
