@@ -656,7 +656,7 @@ function generateEventBriefHTML(state, adminConfig) {
               <div style="font-weight:600;color:#b3261e">${e.declinedTotal} <span style="font-weight:400;color:#5c5248">(${e.declinedAdults} adults, ${e.declinedKids} kids)</span></div>
             </div>
             <div>
-              <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:#9c9188;margin-bottom:2px">Pending</div>
+              <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:#9c9188;margin-bottom:2px">Awaiting</div>
               <div style="font-weight:600;color:${e.pending > 0 ? "#b8962e" : "#2d6a4f"}">${e.pending}</div>
             </div>
           </div>
@@ -831,13 +831,14 @@ ${subEventHTML}
 <!-- Guest Summary -->
 ${sectionHead(`${iconSvg("guests", "inline")} Guest Summary`)}
 <div class="stat-row">
-  ${statBox("Invited", totalPeople, "#1c1614")}
+  ${statBox("Expected", totalPeople, "#1c1614")}
   ${statBox("Confirmed", confirmedPpl, "#2d6a4f")}
-  ${statBox("Pending", pendingPpl, "#b8962e")}
+  ${statBox("Awaiting", pendingPpl, "#b8962e")}
   ${statBox("Kids Attending", totalKids, "#1c1614")}
   ${statBox("Kosher Meals", totalKosher, "#1c1614")}
   ${statBox("Out of Town", outOfTown, "#1c1614")}
 </div>
+<p style="font-size:10px;color:#9c9188;margin:6px 0 10px">${timeline.some(e => e.servesMeal) ? "Expected = confirmed + awaiting. Guests who declined are not counted." : "Expected = everyone on the guest list (no sub-event is marked Meal served)."}</p>
 ${dietaryRows}
 
 <!-- Vendors -->

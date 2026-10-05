@@ -1,19 +1,28 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// SimchaKit V4.8.0 — StatCard.jsx
+// SimchaKit V4.32.0: StatCard.jsx
 // Reusable stat card with optional conic-gradient ring or progress bar.
 // Props:
-//   label        — uppercase stat label (required)
-//   value        — primary display value (number or formatted string, required)
-//   numericValue — raw number for pct calc when value is a formatted string
-//   total        — denominator (number); when provided, renders fraction + ring/bar
-//   totalDisplay — optional formatted string for denominator (e.g. "$28,000")
-//   tone         — "green" | "accent" | "gold" (default "accent")
-//   sub          — verb/caption for pct ("confirmed", "paid", etc.)
-//   subFallback  — caption when total is 0 or absent ("No budget set")
-//   display      — "ring" renders conic-gradient ring; otherwise progress bar
-//   onClick, title, className, style — passthrough to the button wrapper
-//   secondary    — if true, renders in the lighter secondary treatment (no ring/bar)
+//   label       : uppercase stat label (required)
+//   value       : primary display value (number or formatted string, required)
+//   numericValue: raw number for pct calc when value is a formatted string
+//   total       : denominator (number); when provided, renders fraction + ring/bar
+//   totalDisplay: optional formatted string for denominator (e.g. "$28,000")
+//   tone        : "green" | "accent" | "gold" (default "accent")
+//   sub         : verb/caption for pct ("confirmed", "paid", etc.)
+//   subFallback : caption when total is 0 or absent ("No budget set")
+//   display     : "ring" renders conic-gradient ring; otherwise progress bar
+//   onClick, title, className, style: passthrough to the button wrapper
+//   secondary   : if true, renders in the lighter secondary treatment (no ring/bar)
+//   info        : optional string or array of strings: adds a small "i" button that
+//                  opens a popover explaining how the number is counted. A card with
+//                  info renders as a plain container with a transparent full-card
+//                  button on top for onClick (a button cannot contain the "i" button),
+//                  so the card looks and behaves the same. Cards without info render
+//                  exactly as before, as a single button.
 // ─────────────────────────────────────────────────────────────────────────────
+
+import { useState } from "react";
+import { InfoPopover } from "@/components/shared/InfoPopover.jsx";
 
 const TONE_COLORS = {
   green:  "var(--green)",
@@ -42,7 +51,9 @@ export function StatCard({
   style,
   secondary = false,
   display,
+  info,
 }) {
+  const [kbFocus, setKbFocus] = useState(false);
   const hasFraction = total !== undefined && total !== null;
   const numVal      = numericValue !== undefined ? numericValue : (typeof value === "number" ? value : parseFloat(value) || 0);
   const pct         = hasFraction && total > 0 ? Math.round((numVal / total) * 100) : 0;
@@ -59,15 +70,11 @@ export function StatCard({
   // Conic-gradient ring: arc = tone color, remainder = muted track
   const ringGradient = `conic-gradient(${fillColor} ${pct}%, var(--bg-muted) 0)`;
 
-  return (
-    <button
-      type="button"
-      className={cardClass}
-      onClick={onClick}
-      title={title}
-      style={{ cursor: "pointer", display: "block", textAlign: "left", font: "inherit", ...style }}
-    >
-      {useRing && !isEmpty ? (
+  // Keep the label clear of the "i" button on cards that have one
+  const labelStyle = info ? { paddingRight: 22 } : undefined;
+
+  const body = (
+      useRing && !isEmpty ? (
         /* ── Ring layout: ring left, text stack right ───────────── */
         <div className="stat-ring-layout">
           <div
@@ -82,7 +89,7 @@ export function StatCard({
             <span className="stat-ring-pct">{pct}%</span>
           </div>
           <div className="stat-ring-text">
-            <div className="stat-label">{label}</div>
+            <div className="stat-label" style={labelStyle}>{label}</div>
             <div className={`stat-value ${colorClass}`}>
               {value} <span className="stat-denom">/ {totalDisplay ?? total}</span>
             </div>
@@ -96,7 +103,7 @@ export function StatCard({
       ) : (
         /* ── Standard stacked layout (bar or no-fraction) ──────── */
         <>
-          <div className="stat-label">{label}</div>
+          <div className="stat-label" style={labelStyle}>{label}</div>
 
           <div className={`stat-value ${colorClass}`}>
             {hasFraction ? (
@@ -138,7 +145,50 @@ export function StatCard({
             <div className="stat-sub">{sub}</div>
           )}
         </>
+      )
+  );
+
+  // No info popover: render exactly as before, a single button.
+  if (!info) {
+    return (
+      <button
+        type="button"
+        className={cardClass}
+        onClick={onClick}
+        title={title}
+        style={{ cursor: "pointer", display: "block", textAlign: "left", font: "inherit", ...style }}
+      >
+        {body}
+      </button>
+    );
+  }
+
+  // With an info popover: a plain container, with a transparent full-card
+  // button on top for navigation and the "i" button as its sibling.
+  return (
+    <div
+      className={cardClass}
+      style={{ position: "relative", textAlign: "left", cursor: onClick ? "pointer" : "default", ...style }}
+    >
+      {body}
+      {onClick && (
+        <button
+          type="button"
+          onClick={onClick}
+          title={title}
+          aria-label={title || label}
+          onFocus={(e) => setKbFocus(e.currentTarget.matches(":focus-visible"))}
+          onBlur={() => setKbFocus(false)}
+          style={{
+            position: "absolute", top: 0, right: 0, bottom: 0, left: 0,
+            width: "100%", height: "100%", margin: 0, padding: 0,
+            background: "transparent", border: "none", borderRadius: "inherit",
+            cursor: "pointer", zIndex: 1,
+            outline: kbFocus ? "2px solid var(--accent-primary)" : "none", outlineOffset: -2,
+          }}
+        />
       )}
-    </button>
+      <InfoPopover text={info} style={{ position: "absolute", top: 10, right: 10, zIndex: 2 }} />
+    </div>
   );
 }

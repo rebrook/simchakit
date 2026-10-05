@@ -14,6 +14,8 @@ import { autoSeatByHousehold } from "@/utils/seating.js";
 import { ArchivedNotice }     from "@/components/shared/ArchivedNotice.jsx";
 import { ConfirmDialog }      from "@/components/shared/ConfirmDialog.jsx";
 import { Icon }               from "@/utils/iconMap.jsx";
+import { InfoPopover }        from "@/components/shared/InfoPopover.jsx";
+import { METRIC_HELP }        from "@/constants/metrics.js";
 import { getPersonSectionStatus, splitAdultsKids } from "@/utils/sections.js";
 
 // Shared with other tabs (e.g. Favors) for consistent last-name-based sorting
@@ -435,8 +437,8 @@ export function SeatingTab({ eventId, event, adminConfig, showToast, isArchived,
         <div className="stat-grid" style={{ marginBottom: 20 }}>
           <div className="stat-card"><div className="stat-label">Tables</div><div className="stat-value">{tables.length}</div></div>
           <div className="stat-card"><div className="stat-label">Total Seats</div><div className="stat-value">{totalSeats}</div></div>
-          <div className="stat-card"><div className="stat-label">Seated</div><div className="stat-value" style={{ color: "var(--green)" }}>{seated}</div><div className="stat-sub">of {totalPeople} people ({peopleSplit.adults} adults, {peopleSplit.kids} kids)</div></div>
-          <div className="stat-card"><div className="stat-label">Unseated</div><div className="stat-value" style={{ color: unseated.length > 0 ? "var(--red)" : "var(--green)" }}>{unseated.length}</div>{unseated.length > 0 && <div className="stat-sub">{unseatedSplit.adults} adults, {unseatedSplit.kids} kids</div>}{tbdPeople.length > 0 && <div className="stat-sub">{tbdPeople.length} TBD</div>}</div>
+          <div className="stat-card" style={{ position: "relative" }}><div className="stat-label" style={{ paddingRight: 22 }}>Seated</div><InfoPopover text={METRIC_HELP.seated()} style={{ position: "absolute", top: 10, right: 10 }} /><div className="stat-value" style={{ color: "var(--green)" }}>{seated}</div><div className="stat-sub">of {totalPeople} people ({peopleSplit.adults} adults, {peopleSplit.kids} kids)</div></div>
+          <div className="stat-card" style={{ position: "relative" }}><div className="stat-label" style={{ paddingRight: 22 }}>Unseated</div><InfoPopover text={METRIC_HELP.unseated()} style={{ position: "absolute", top: 10, right: 10 }} /><div className="stat-value" style={{ color: unseated.length > 0 ? "var(--red)" : "var(--green)" }}>{unseated.length}</div>{unseated.length > 0 && <div className="stat-sub">{unseatedSplit.adults} adults, {unseatedSplit.kids} kids</div>}{tbdPeople.length > 0 && <div className="stat-sub">{tbdPeople.length} TBD</div>}</div>
         </div>
 
         {/* Capacity meter — demand (confirmed) vs supply (seats) */}

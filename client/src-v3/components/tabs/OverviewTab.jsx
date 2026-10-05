@@ -17,6 +17,7 @@ import { FocusPanel }        from "@/components/shared/FocusPanel.jsx";
 import { computeFocusItems } from "@/utils/focus.js";
 import { amountPaid } from "@/utils/expensePayments.js";
 import { getSectionHeadcount, getMealPopulation } from "@/utils/sections.js";
+import { METRIC_HELP } from "@/constants/metrics.js";
 
 // Abbreviate currency for mobile ring cards: $11,831.63 -> $11.8k
 function fmtCurrency(n, compact) {
@@ -296,7 +297,7 @@ export function OverviewTab({ eventId, event, adminConfig, showToast, setActiveT
     outOfTownCount: households.filter(h => h.outOfTown).length,
   }), [expenses, tasks, vendors, people, households]);
 
-  // RSVPs Confirmed ring: the same shared meal population as the Catering
+  // Confirmed ring: the same shared meal population as the Catering
   // Summary and Day-of Mode. Confirmed is each guest's own Yes for a
   // meal-serving sub-event; the total excludes guests who declined, so the
   // ring can reach 100% once every guest has answered. With no sub-event
@@ -441,15 +442,17 @@ export function OverviewTab({ eventId, event, adminConfig, showToast, setActiveT
       {/* Stat cards — primary (fractional with completion rings) */}
       <div className="stat-grid" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))" }}>
         <StatCard
-          label="RSVPs Confirmed"
+          label={mealPop.preciseMode ? "Confirmed for meals" : "Confirmed"}
           value={confirmedCount}
           total={invitedCount}
+          totalDisplay={`${invitedCount} ${mealPop.preciseMode ? "expected" : "guests"}`}
           tone="green"
           display="ring"
           sub="confirmed"
           subFallback="No guests added"
           onClick={() => setActiveTab && setActiveTab("guests")}
           title="Go to guests tab"
+          info={METRIC_HELP.confirmed({ precise: mealPop.preciseMode })}
         />
         <StatCard
           label="Budget Paid"
@@ -491,10 +494,10 @@ export function OverviewTab({ eventId, event, adminConfig, showToast, setActiveT
       {/* Stat cards — secondary (simple counts) */}
       <div className="stat-grid-secondary">
         <StatCard
-          label="Guests Invited"
+          label="Total Guests"
           value={people.length}
           tone="accent"
-          sub={`${households.length} household${households.length !== 1 ? "s" : ""}`}
+          sub={`${households.length} household${households.length !== 1 ? "s" : ""}, everyone on the list`}
           onClick={() => setActiveTab && setActiveTab("guests")}
           title="Go to guests tab"
           secondary

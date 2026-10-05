@@ -2,6 +2,8 @@ import { useState } from "react";
 import { DEFAULT_MEALS } from "@/constants/guest-constants.js";
 import { getMealPopulation, splitAdultsKids } from "@/utils/sections.js";
 import { sortTimeline } from "@/utils/dates.js";
+import { InfoPopover } from "@/components/shared/InfoPopover.jsx";
+import { METRIC_HELP } from "@/constants/metrics.js";
 
 export function CateringSummary({ people, households, adminConfig }) {
   const [open,    setOpen]    = useState(false);
@@ -65,6 +67,8 @@ export function CateringSummary({ people, households, adminConfig }) {
   const unionRelevantPeople  = pop.relevant;
   const unionConfirmedPeople = pop.confirmed;
   const totalConfirmed    = unionConfirmedPeople.length;
+  // totalInvited is the "Expected" count on screen: confirmed plus awaiting,
+  // with guests who declined left out (see constants/metrics.js).
   const totalInvited      = unionRelevantPeople.length;
   const unconfirmed       = totalInvited - totalConfirmed;
   const unionConfirmedIds = new Set(unionConfirmedPeople.map(p => p.id));
@@ -99,7 +103,7 @@ export function CateringSummary({ people, households, adminConfig }) {
   const buildSectionLines = (b) => {
     const lines = [];
     lines.push(`${b.section.icon ? b.section.icon + " " : ""}${b.section.title.toUpperCase()}`);
-    lines.push(`  Confirmed: ${b.confirmed.length} (${splitText(b.confirmedSplit)})    Invited: ${b.relevant.length}`);
+    lines.push(`  Confirmed: ${b.confirmed.length} (${splitText(b.confirmedSplit)})    Expected: ${b.relevant.length}`);
     if (style === "plated") {
       lines.push("  Meal Choices (confirmed):");
       [...new Set([...meals, ...Object.keys(b.mealCounts)])].forEach(m => {
@@ -109,7 +113,7 @@ export function CateringSummary({ people, households, adminConfig }) {
       if (b.noMealChoice > 0) lines.push(`    ${"No selection".padEnd(20)} ${b.noMealChoice}`);
     }
     if (style !== "buffet-headcount") {
-      lines.push(`  Kosher meals: ${b.kosherConfirmed}${b.kosherTotal!==b.kosherConfirmed?` (${b.kosherTotal} total invited)`:""}`);
+      lines.push(`  Kosher meals: ${b.kosherConfirmed}${b.kosherTotal!==b.kosherConfirmed?` (${b.kosherTotal} expected)`:""}`);
     }
     return lines;
   };
@@ -120,18 +124,18 @@ export function CateringSummary({ people, households, adminConfig }) {
     dietaryPeople.forEach(({ person: p, tags }) => {
       const tagText = preciseMode
         ? tags.map(t => `${t.section.title}: ${t.confirmed ? "✓" : "?"}`).join(", ")
-        : (unionConfirmedIds.has(p.id) ? "✓ Confirmed" : "? Pending");
+        : (unionConfirmedIds.has(p.id) ? "✓ Confirmed" : "? Awaiting");
       lines.push(`  ${getPersonName(p)} (${getHHName(p)}): ${p.dietary || "Kosher meal"} [${tagText}]`);
     });
-    lines.push("  (✓ = confirmed attending that sub-event, ? = RSVP pending)");
+    lines.push("  (✓ = confirmed for that sub-event, ? = awaiting an answer)");
     return lines;
   };
 
   const handleCopyAll = () => {
     const lines = [...buildHeaderLines(), ""];
-    lines.push(`CONFIRMED ATTENDING: ${totalConfirmed} (${splitText(totalSplit)})`);
-    lines.push(`TOTAL INVITED:       ${totalInvited}`);
-    if (unconfirmed > 0) lines.push(`AWAITING RSVP:       ${unconfirmed}`);
+    lines.push(`CONFIRMED: ${totalConfirmed} (${splitText(totalSplit)})`);
+    lines.push(`EXPECTED:  ${totalInvited}`);
+    if (unconfirmed > 0) lines.push(`AWAITING:  ${unconfirmed}`);
     if (preciseMode) {
       sectionBreakouts.forEach(b => { lines.push(""); lines.push(...buildSectionLines(b)); });
     } else {
@@ -146,7 +150,7 @@ export function CateringSummary({ people, households, adminConfig }) {
       }
       if (style !== "buffet-headcount") {
         lines.push("");
-        lines.push(`KOSHER MEALS: ${fallbackKosherConfirmed}${fallbackKosherTotal!==fallbackKosherConfirmed?` (${fallbackKosherTotal} total invited)`:""}`);
+        lines.push(`KOSHER MEALS: ${fallbackKosherConfirmed}${fallbackKosherTotal!==fallbackKosherConfirmed?` (${fallbackKosherTotal} expected)`:""}`);
       }
     }
     lines.push(...buildDietaryLines());
@@ -172,7 +176,7 @@ export function CateringSummary({ people, households, adminConfig }) {
           <div className="card-title" style={{ marginBottom:0 }}>🍽 Catering Summary</div>
           {!open && (
             <div className="card-subtitle" style={{ marginBottom:0, marginTop:3 }}>
-              {totalConfirmed} confirmed · {totalInvited} invited
+              {totalConfirmed} confirmed · {totalInvited} expected
               {!preciseMode && style === "plated" && Object.keys(fallbackMealCounts).length > 0 &&
                 ` · ${Object.keys(fallbackMealCounts).length} meal choice${Object.keys(fallbackMealCounts).length!==1?"s":""}`}
               {!preciseMode && style !== "buffet-headcount" && fallbackKosherTotal > 0 && ` · ${fallbackKosherConfirmed} kosher`}
@@ -191,14 +195,18 @@ export function CateringSummary({ people, households, adminConfig }) {
         <div style={{ marginTop:16 }}>
           <div style={{ display:"flex", gap:12, flexWrap:"wrap", marginBottom:16 }}>
             {[
-              { label:"Confirmed Attending", value:totalConfirmed, cls:"stat-green", sub:splitText(totalSplit) },
-              { label:"Total Invited",        value:totalInvited,   cls:""           },
-              { label:"Awaiting RSVP",        value:unconfirmed,    cls:unconfirmed>0?"stat-gold":"stat-green" },
+              { label:"Confirmed", value:totalConfirmed, cls:"stat-green", sub:splitText(totalSplit),
+                info: METRIC_HELP.confirmed({ precise: preciseMode }) },
+              { label:"Expected",  value:totalInvited,   cls:"", sub:`${totalConfirmed} confirmed + ${unconfirmed} awaiting`,
+                info: METRIC_HELP.expected({ precise: preciseMode }) },
+              { label:"Awaiting",  value:unconfirmed,    cls:unconfirmed>0?"stat-gold":"stat-green",
+                info: METRIC_HELP.awaiting({ precise: preciseMode }) },
             ].map(s => (
-              <div key={s.label} className="stat-card" style={{ flex:"1 1 110px", minWidth:100, padding:"12px 14px" }}>
-                <div className="stat-label">{s.label}</div>
+              <div key={s.label} className="stat-card" style={{ flex:"1 1 110px", minWidth:100, padding:"12px 14px", position:"relative" }}>
+                <div className="stat-label" style={{ paddingRight:22 }}>{s.label}</div>
                 <div className={`stat-value ${s.cls}`} style={{ fontSize:22 }}>{s.value}</div>
                 {s.sub && <div className="stat-sub">{s.sub}</div>}
+                <InfoPopover text={s.info} style={{ position:"absolute", top:10, right:10 }} />
               </div>
             ))}
           </div>
@@ -212,13 +220,13 @@ export function CateringSummary({ people, households, adminConfig }) {
           {!preciseMode && style === "plated" && (
             <div style={{ marginBottom:16 }}>
               <div style={{ fontSize:12, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.05em", color:"var(--text-muted)", marginBottom:8 }}>
-                Meal Choices — Confirmed Attending
+                Meal Choices: Confirmed
               </div>
               <div style={{ border:"1px solid var(--border)", borderRadius:"var(--radius-md)", overflow:"hidden" }}>
                 <table style={{ width:"100%", borderCollapse:"collapse", fontSize:13 }}>
                   <thead>
                     <tr style={{ background:"var(--bg-subtle)" }}>
-                      {["Meal","Confirmed","Total Invited"].map((h,i) => (
+                      {["Meal","Confirmed","Expected"].map((h,i) => (
                         <th key={h} style={{ padding:"8px 12px", textAlign:i===0?"left":"right", fontWeight:700, fontSize:11, textTransform:"uppercase", letterSpacing:"0.05em", color:"var(--text-muted)", borderBottom:"1px solid var(--border)" }}>{h}</th>
                       ))}
                     </tr>
@@ -250,7 +258,7 @@ export function CateringSummary({ people, households, adminConfig }) {
               <span style={{ fontSize:13, fontWeight:600, color:"var(--text-primary)" }}>Kosher meals required:</span>
               <span style={{ fontSize:18, fontWeight:800, color:"var(--accent-primary)", fontFamily:"var(--font-display)" }}>{fallbackKosherConfirmed}</span>
               {fallbackKosherTotal !== fallbackKosherConfirmed && (
-                <span style={{ fontSize:12, color:"var(--text-muted)" }}>({fallbackKosherTotal} total invited · {fallbackKosherTotal-fallbackKosherConfirmed} RSVP pending)</span>
+                <span style={{ fontSize:12, color:"var(--text-muted)" }}>({fallbackKosherTotal} expected · {fallbackKosherTotal-fallbackKosherConfirmed} awaiting)</span>
               )}
             </div>
           )}
@@ -267,7 +275,7 @@ export function CateringSummary({ people, households, adminConfig }) {
                 <div style={{ fontSize:14, fontWeight:700, color:"var(--text-primary)" }}>
                   {b.section.icon ? b.section.icon + " " : ""}{b.section.title}
                   <span style={{ fontWeight:400, fontSize:12, color:"var(--text-muted)", marginLeft:8 }}>
-                    {b.confirmed.length} confirmed ({splitText(b.confirmedSplit)}) · {b.relevant.length} invited
+                    {b.confirmed.length} confirmed ({splitText(b.confirmedSplit)}) · {b.relevant.length} expected
                   </span>
                 </div>
                 <button className="btn btn-ghost btn-sm" onClick={()=>handleCopySection(b)}>{copyMsg[b.section.id] || "📋 Copy this section"}</button>
@@ -279,7 +287,7 @@ export function CateringSummary({ people, households, adminConfig }) {
                     <table style={{ width:"100%", borderCollapse:"collapse", fontSize:13 }}>
                       <thead>
                         <tr style={{ background:"var(--bg-subtle)" }}>
-                          {["Meal","Confirmed","Invited"].map((h,i) => (
+                          {["Meal","Confirmed","Expected"].map((h,i) => (
                             <th key={h} style={{ padding:"7px 10px", textAlign:i===0?"left":"right", fontWeight:700, fontSize:11, textTransform:"uppercase", letterSpacing:"0.05em", color:"var(--text-muted)", borderBottom:"1px solid var(--border)" }}>{h}</th>
                           ))}
                         </tr>
@@ -311,7 +319,7 @@ export function CateringSummary({ people, households, adminConfig }) {
                   <span style={{ fontSize:12, fontWeight:600, color:"var(--text-primary)" }}>Kosher meals required:</span>
                   <span style={{ fontSize:16, fontWeight:800, color:"var(--accent-primary)", fontFamily:"var(--font-display)" }}>{b.kosherConfirmed}</span>
                   {b.kosherTotal !== b.kosherConfirmed && (
-                    <span style={{ fontSize:11, color:"var(--text-muted)" }}>({b.kosherTotal} total invited · {b.kosherTotal-b.kosherConfirmed} RSVP pending)</span>
+                    <span style={{ fontSize:11, color:"var(--text-muted)" }}>({b.kosherTotal} expected · {b.kosherTotal-b.kosherConfirmed} awaiting)</span>
                   )}
                 </div>
               )}
@@ -342,7 +350,7 @@ export function CateringSummary({ people, households, adminConfig }) {
                       </div>
                     ) : (
                       <span style={{ fontSize:10, fontWeight:700, padding:"2px 6px", borderRadius:99, flexShrink:0, background:unionConfirmedIds.has(p.id)?"var(--green-light)":"var(--gold-light)", color:unionConfirmedIds.has(p.id)?"var(--green)":"var(--gold)" }}>
-                        {unionConfirmedIds.has(p.id)?"✓ Confirmed":"? Pending"}
+                        {unionConfirmedIds.has(p.id)?"✓ Confirmed":"? Awaiting"}
                       </span>
                     )}
                     <span style={{ fontWeight:600, color:"var(--text-primary)" }}>{getPersonName(p)}</span>

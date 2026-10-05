@@ -33,6 +33,8 @@ import { isInvited, getSubEventStatus, getPersonSectionStatus, resolveMainEvent,
 import { ArchivedNotice }    from "@/components/shared/ArchivedNotice.jsx";
 import { RsvpPill }          from "@/components/shared/RsvpPill.jsx";
 import { CateringSummary }   from "@/components/shared/CateringSummary.jsx";
+import { InfoPopover }       from "@/components/shared/InfoPopover.jsx";
+import { METRIC_HELP }       from "@/constants/metrics.js";
 import { ConfirmDialog }     from "@/components/shared/ConfirmDialog.jsx";
 import { Modal }             from "@/components/shared/Modal.jsx";
 import { Icon }              from "@/utils/iconMap.jsx";
@@ -374,22 +376,25 @@ export function GuestsTab({ eventId, event, adminConfig, showToast, isArchived, 
 
       <div className="stat-grid" style={{gridTemplateColumns:"repeat(auto-fit,minmax(130px,1fr))",marginBottom:20}}>
         {[
-          { label:"Total Guests",   value:totalPeople,    sub:`${households.length} households`,              cls:"stat-accent" },
-          { label:"Attending",      value:totalAttending, sub:`${rsvpYes} households confirmed`,               cls:"stat-green"  },
+          { label:"Total Guests",   value:totalPeople,    sub:`${households.length} households, everyone on the list`, cls:"stat-accent" },
+          { label:"Attending",      value:totalAttending, sub:`at ${mainEvent?.title || "the main event"}`,    cls:"stat-green",
+            info: METRIC_HELP.attending({ eventTitle: mainEvent?.title, rsvpYesHouseholds: rsvpYes }) },
           { label:"Out of Town",    value:totalOutOfTown, sub:"hotel block needed",                            cls:"stat-gold"   },
           { label:"STD Sent",       value:`${totalSTDSent}/${households.length}`,  sub:"save the dates",
             cls: totalSTDSent===households.length && households.length>0 ? "stat-green" : "" },
           { label:"Invites Sent",   value:`${totalInviteSent}/${households.length}`, sub:"invitations mailed",
             cls: totalInviteSent===households.length && households.length>0 ? "stat-green" : "" },
           { label:"Kippot Needed",  value:totalKippot,    sub:"males on guest list",                          cls:"stat-accent" },
-          { label:"Kosher Meals",   value:totalKosher,    sub:kosherPending>0 ? `required, ${kosherPending} pending` : "required", cls:"" },
+          { label:"Kosher Meals",   value:totalKosher,    sub:kosherPending>0 ? `required, ${kosherPending} pending` : "required", cls:"",
+            info: METRIC_HELP.kosher({ pending: kosherPending }) },
           { label:"Addresses",      value:`${totalAddresses}/${households.length}`, sub:"complete",
             cls: totalAddresses===households.length ? "stat-green" : "stat-red" },
         ].map(s=>(
-          <div className="stat-card" key={s.label}>
-            <div className="stat-label">{s.label}</div>
+          <div className="stat-card" key={s.label} style={s.info ? { position: "relative" } : undefined}>
+            <div className="stat-label" style={s.info ? { paddingRight: 22 } : undefined}>{s.label}</div>
             <div className={`stat-value ${s.cls}`}>{s.value}</div>
             <div className="stat-sub">{s.sub}</div>
+            {s.info && <InfoPopover text={s.info} style={{ position: "absolute", top: 10, right: 10 }} />}
           </div>
         ))}
       </div>

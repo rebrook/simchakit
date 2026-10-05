@@ -2,7 +2,7 @@
 
 A real-time event planning web app for celebrations — B'nei Mitzvot, weddings, and other simchas.
 
-![Version](https://img.shields.io/badge/version-4.31.3-blue)
+![Version](https://img.shields.io/badge/version-4.32.0-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
 ## Hosted Version
@@ -26,7 +26,7 @@ A real-time event planning web app for celebrations — B'nei Mitzvot, weddings,
 ## Features
 
 - **Shared Access** — invite co-planners as Editors (full access) or Viewers (read-only), or a Ritual Coordinator (ceremony and prep only) for clergy or tutors; collaborators covered by the event owner's purchase
-- **Guest Management** — households, people, formal names, dietary requirements, RSVP tracking
+- **Guest Management** — households, people, formal names, dietary requirements, RSVP tracking; guest counts use one vocabulary on every screen (Total Guests, Confirmed, Awaiting, Expected), with tap-to-open explanations of how each number is counted
 - **Sub-Event Support** — track attendance across multiple events (service, kiddush, reception); optional per-sub-event RSVP status with row-level chips and dedicated filtering on the Guests tab, a per-sub-event "invite all by default" setting in Admin Mode for events where only a handful of households attend a given sub-event, and a real per-person Yes/No/TBD attendance status for each sub-event a household is invited to; sub-events can also be flagged "meal served" so the Catering Summary produces a separate confirmed/kosher/meal-choice breakout per catering moment; confirmed and invited counts for each sub-event are also shown split into adults and kids
 - **Budget Tracking** — expenses, payments, vendor costs, gratuity calculator; optional partial/installment payment schedules per expense (V3 only)
 - **Vendor Management** — contacts, contracts, payment schedules

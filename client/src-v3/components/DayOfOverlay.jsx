@@ -18,6 +18,8 @@ import { useEventData }       from "@/hooks/useEventData.js";
 import { DAY_OF_TIME_BLOCKS } from "@/constants/events.js";
 import { formatTimeRange, sortTimeline } from "@/utils/dates.js";
 import { Icon } from "@/utils/iconMap.jsx";
+import { InfoPopover } from "@/components/shared/InfoPopover.jsx";
+import { METRIC_HELP } from "@/constants/metrics.js";
 import { iconSvg } from "@/utils/iconSvg.js";
 import { amountPaid, isFullyPaid } from "@/utils/expensePayments.js";
 import { getInvitedPeopleForSection, getConfirmedPeopleForSection, getMealPopulation, splitAdultsKids } from "@/utils/sections.js";
@@ -351,12 +353,13 @@ ${timeline.length === 0
 ${sectionHead("guests", "Guest Summary")}
 <div class="stat-row">
   <div class="stat-box"><div class="stat-num">${totalConfirmed}</div><div class="stat-lbl">Confirmed</div></div>
-  <div class="stat-box"><div class="stat-num">${totalInvited}</div><div class="stat-lbl">Invited</div></div>
+  <div class="stat-box"><div class="stat-num">${totalInvited}</div><div class="stat-lbl">Expected</div></div>
   <div class="stat-box"><div class="stat-num">${adultsConfirmed}</div><div class="stat-lbl">Adults</div></div>
   <div class="stat-box"><div class="stat-num">${kidsConfirmed}</div><div class="stat-lbl">Kids</div></div>
   <div class="stat-box"><div class="stat-num">${kosherCount}</div><div class="stat-lbl">Kosher</div></div>
   <div class="stat-box"><div class="stat-num">${dietaryPeople.length}</div><div class="stat-lbl">Dietary</div></div>
 </div>
+<p style="font-size:10px;color:#7a6f68;margin:6px 0 10px;">${timeline.some(e => e.servesMeal) ? "Expected = confirmed + awaiting. Guests who declined are not counted." : "Expected = everyone on the guest list (no sub-event is marked Meal served)."}</p>
 ${dietaryPeople.length > 0 ? `
 <table><thead><tr><th>Guest</th><th>Dietary Requirement</th></tr></thead><tbody>${dietaryRows}</tbody></table>
 ` : ""}
@@ -433,6 +436,8 @@ export function DayOfItemModal({ item, onSave, onClose }) {
 
 // ── Mobile Day-of View ────────────────────────────────────────────────────────
 function MobileDayOf({ timeline, adminConfig, confirmedVendors, ceremonyRoles, confirmedPeople, dietaryPeople, kosherCount, totalConfirmed, totalInvited, eventName, eventDate, coPlanners, onClose }) {
+  // True once a sub-event is flagged Meal served; picks the popover wording.
+  const mealPrecise = (adminConfig?.timeline || timeline || []).some(e => e.servesMeal);
   const [clock, setClock] = useState(formatClock);
   const [nowMs, setNowMs] = useState(() => Date.now());
   const nowRef = useRef(null);
@@ -783,10 +788,18 @@ function MobileDayOf({ timeline, adminConfig, confirmedVendors, ceremonyRoles, c
             Guest snapshot
           </div>
           <div className="dayof-m-stats-grid">
-            <div className="dayof-m-stat"><div className="dayof-m-stat-value">{totalConfirmed}</div><div className="dayof-m-stat-label">Confirmed</div></div>
-            <div className="dayof-m-stat"><div className="dayof-m-stat-value">{totalInvited}</div><div className="dayof-m-stat-label">Invited</div></div>
-            <div className="dayof-m-stat"><div className="dayof-m-stat-value">{kosherCount}</div><div className="dayof-m-stat-label">Kosher</div></div>
-            <div className="dayof-m-stat"><div className="dayof-m-stat-value">{dietaryPeople.length}</div><div className="dayof-m-stat-label">Dietary</div></div>
+            {[
+              { label: "Confirmed", value: totalConfirmed,        info: METRIC_HELP.confirmed({ precise: mealPrecise }) },
+              { label: "Expected",  value: totalInvited,          info: METRIC_HELP.expected({ precise: mealPrecise }) },
+              { label: "Kosher",    value: kosherCount,           info: METRIC_HELP.kosherDayOf() },
+              { label: "Dietary",   value: dietaryPeople.length,  info: METRIC_HELP.dietary() },
+            ].map(st => (
+              <div className="dayof-m-stat" key={st.label} style={{ position: "relative" }}>
+                <div className="dayof-m-stat-value">{st.value}</div>
+                <div className="dayof-m-stat-label">{st.label}</div>
+                <InfoPopover text={st.info} style={{ position: "absolute", top: 6, right: 6 }} />
+              </div>
+            ))}
           </div>
         </div>
 
@@ -1115,14 +1128,15 @@ export function DayOfOverlay({ eventId, event, adminConfig, onClose, onPrintBrie
               <div style={{ fontSize:10, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.05em", color:"var(--text-muted)", marginBottom:8 }}>Key Numbers</div>
               <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:8 }}>
                 {[
-                  { label:"Confirmed", value:totalConfirmed, cls:"stat-green" },
-                  { label:"Invited",   value:totalInvited,   cls:""           },
-                  { label:"Kosher",    value:kosherCount,    cls:kosherCount>0?"stat-gold":"" },
-                  { label:"Dietary",   value:dietaryPeople.length, cls:dietaryPeople.length>0?"stat-accent":"" },
+                  { label:"Confirmed", value:totalConfirmed, cls:"stat-green", info: METRIC_HELP.confirmed({ precise: pop.preciseMode }) },
+                  { label:"Expected",  value:totalInvited,   cls:"",           info: METRIC_HELP.expected({ precise: pop.preciseMode }) },
+                  { label:"Kosher",    value:kosherCount,    cls:kosherCount>0?"stat-gold":"", info: METRIC_HELP.kosherDayOf() },
+                  { label:"Dietary",   value:dietaryPeople.length, cls:dietaryPeople.length>0?"stat-accent":"", info: METRIC_HELP.dietary() },
                 ].map(s => (
-                  <div key={s.label} className="stat-card" style={{ padding:"8px 10px", textAlign:"center" }}>
+                  <div key={s.label} className="stat-card" style={{ padding:"8px 10px", textAlign:"center", position:"relative" }}>
                     <div className="stat-label">{s.label}</div>
                     <div className={`stat-value ${s.cls}`} style={{ fontSize:18 }}>{s.value}</div>
+                    <InfoPopover text={s.info} style={{ position:"absolute", top:6, right:6 }} />
                   </div>
                 ))}
               </div>

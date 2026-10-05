@@ -1,11 +1,23 @@
 {
-  "current": "V4.31.3",
+  "current": "V4.32.0",
   "whatsNew": [
-    "Fix: seating suggestions and the over-capacity warning now reflect current seat assignments",
-    "Fix: the By Person guest export now shows table names",
-    "Fix: the demo event now shows per-sub-event attendance, seating, and a per-meal Catering Summary after each nightly reset"
+    "New: tap the small i on a guest-count card to see exactly how the number is counted",
+    "Change: the same four words are now used for guest counts everywhere: Total Guests, Confirmed, Awaiting, and Expected",
+    "Change: the Overview ring and the Attending card now say which event they count"
   ],
   "changelog": [
+    {
+      "version": "V4.32.0",
+      "date": "2026-10-05",
+      "summary": "One vocabulary for guest counts, with tap-to-open explanations of how each number is counted",
+      "changes": [
+        "New: small i buttons on the guest-count stat cards open a short explanation of how that number is counted. They open on tap or click, so they work on phones, and close with Escape or a tap elsewhere. They appear on the Overview Confirmed ring, the Guests tab Attending and Kosher Meals cards, the Catering Summary tiles, Day-of Mode's four key numbers, and the Seating tab's Seated and Unseated cards",
+        "Change: guest counts now use the same four words on every screen. Total Guests is everyone on the guest list, Confirmed is a guest's own Yes, Awaiting is invited with no answer yet, and Expected is confirmed plus awaiting with guests who declined left out. This replaces Invited and Total Invited on the Catering Summary, Day-of Mode, and Print Brief, Awaiting RSVP and Pending on those screens, and Guests Invited on the Overview. The numbers themselves are unchanged",
+        "Change: the Overview ring now says what it counts, Confirmed for meals out of the guests expected, and the Guests tab Attending card names the event it counts. The Catering Summary's Expected tile shows how it adds up (confirmed plus awaiting), and the copy-to-clipboard text sent to a caterer uses the same words",
+        "Change: the Print Brief now includes a one-line key explaining Expected, and its per-sub-event section uses Awaiting in place of Pending",
+        "Note: events with no sub-event flagged Meal served continue to follow household RSVP status, and the explanations say so"
+      ]
+    },
     {
       "version": "V4.31.3",
       "date": "2026-10-04",
