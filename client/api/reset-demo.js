@@ -3578,6 +3578,7 @@ const SEED = {
         "endTime": "",
         "venue": "The Springfield Grill",
         "notes": "Out of towners, family, close friends",
+        "servesMeal": true,
         "isMainEvent": false
       },
       {
@@ -3602,6 +3603,7 @@ const SEED = {
         "endTime": "",
         "venue": "Temple Beth Springfield",
         "notes": "",
+        "servesMeal": true,
         "isMainEvent": false
       },
       {
@@ -3614,6 +3616,7 @@ const SEED = {
         "endTime": "23:00",
         "venue": "Springfield Country Club",
         "notes": "",
+        "servesMeal": true,
         "isMainEvent": false
       }
     ],
@@ -3755,6 +3758,29 @@ const SEED = {
   }
 };
 
+// Derive each seeded guest's per-sub-event answers (sectionRsvp, V4.28.0+) from
+// the attendance data already in the seed, so the seed does not have to be
+// hand-edited and the demo works from every nightly reset:
+//   - a guest who has answered (isAttending true) is Yes for each sub-event in
+//     their attendingSections or seated in (a seat means they are attending),
+//     and No for the other sub-events; with neither, they are left TBD;
+//   - a guest who declined (isAttending false) is No for every sub-event;
+//   - a guest who has not answered (isAttending null) is left TBD.
+// attendingSections stays in the seed data, but the app no longer reads it.
+function withSectionRsvp(people, timeline) {
+  return people.map(p => {
+    if (p.sectionRsvp) return p;
+    const rsvp = {};
+    if (p.isAttending === true) {
+      const yes = new Set([...(p.attendingSections || []), ...Object.keys(p.tableAssignments || {})]);
+      if (yes.size > 0) (timeline || []).forEach(e => { rsvp[e.id] = yes.has(e.id) ? "Yes" : "No"; });
+    } else if (p.isAttending === false) {
+      (timeline || []).forEach(e => { rsvp[e.id] = "No"; });
+    }
+    return { ...p, sectionRsvp: rsvp };
+  });
+}
+
 // Wrap records into V3 schema rows: { id, event_id, data, ...indexedCols }
 function toRows(eventId, records, indexedCols = {}) {
   const now = new Date().toISOString();
@@ -3817,7 +3843,7 @@ export default async function handler(req, res) {
     // 4. Insert fresh seed data — all IDs are unique UUIDs, safe to insert
     const inserts = [
       { table: "households",     rows: toRows(DEMO_EVENT_ID, SEED.households,    { group_name: "group", status: "status", out_of_town: "outOfTown" }) },
-      { table: "people",         rows: toRows(DEMO_EVENT_ID, SEED.people)         },
+      { table: "people",         rows: toRows(DEMO_EVENT_ID, withSectionRsvp(SEED.people, SEED.adminConfig.timeline)) },
       { table: "expenses",       rows: toRows(DEMO_EVENT_ID, SEED.expenses)       },
       { table: "vendors",        rows: toRows(DEMO_EVENT_ID, SEED.vendors)        },
       { table: "tasks",          rows: toRows(DEMO_EVENT_ID, SEED.tasks)          },

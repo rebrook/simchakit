@@ -11,6 +11,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { isFullyPaid, amountRemaining } from "./expensePayments.js";
+import { getConfirmedPeopleForSection } from "./sections.js";
 
 const BOOKED_STATUSES = ["Booked", "Deposit Paid", "Paid in Full"];
 
@@ -165,7 +166,8 @@ export function computeFocusItems(data, adminConfig) {
         t.sectionId === sid || (sections.length === 1 && !t.sectionId)
       );
       const totalSeats = sectionTables.reduce((s, t) => s + (parseInt(t.capacity) || 0), 0);
-      const confirmed = people.filter(p => (p.attendingSections || []).includes(sid)).length;
+      // Each guest's own Yes for this sub-event (sectionRsvp, V4.28.0+).
+      const confirmed = getConfirmedPeopleForSection(people, { id: sid }).length;
       const gap = confirmed - totalSeats;
       if (gap > 0) {
         totalGap += gap;

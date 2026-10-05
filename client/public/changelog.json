@@ -1,10 +1,35 @@
 {
-  "current": "V4.31.1",
+  "current": "V4.31.3",
   "whatsNew": [
-    "Fix: Day-of Mode's confirmed, invited, kosher, and dietary numbers now match the Catering Summary, and no longer count guests who declined",
-    "Fix: the Guests tab Kosher Meals card now shows confirmed kosher meals, with any pending noted, instead of every guest flagged kosher"
+    "Fix: seating suggestions and the over-capacity warning now reflect current seat assignments",
+    "Fix: the By Person guest export now shows table names",
+    "Fix: the demo event now shows per-sub-event attendance, seating, and a per-meal Catering Summary after each nightly reset"
   ],
   "changelog": [
+    {
+      "version": "V4.31.3",
+      "date": "2026-10-04",
+      "summary": "Seating suggestions, the seat-gap warning, and the By Person export's Table column now use current seating and RSVP data; demo data refreshed",
+      "changes": [
+        "Fix: the Smart Suggestions seating checks read the old single-table field, which is cleared whenever a seat is assigned. Once the RSVP deadline passed, every guest looked unseated, and the over-capacity warning could never fire. Unseated guests are now the guests confirmed for a sub-event who have no seat in it (counted once per guest), and a table's fill counts its actual assignments",
+        "Fix: the outstanding-RSVPs suggestion read a household status field that some households do not carry, so those households could be missed. It now reads the same RSVP status field as the rest of the app",
+        "Fix: the What Needs You Next seat-gap warning counted confirmed guests from the old per-person attendance list that was retired in V4.28.0, so it could miss gaps on newer events and use out-of-date answers on older ones. It now counts each guest's own Yes for the sub-event",
+        "Fix: the By Person export's Table column printed a raw table id from the old single-table field, which is empty for current seat assignments. It now shows the table name, with the sub-event name added when a guest is seated at more than one",
+        "Fix: the demo event's nightly reset restored guests without per-sub-event answers, so the demo's sub-event counts and seating showed no confirmed guests. The reset now builds each guest's answers from the demo data, and the demo's three meal sub-events are flagged Meal served so it shows the per-sub-event Catering Summary"
+      ]
+    },
+    {
+      "version": "V4.31.2",
+      "date": "2026-10-04",
+      "summary": "Attendance counts on the Guests tab, Overview, Print Brief, and guest export now use each guest's current answer",
+      "changes": [
+        "Fix: the Guests tab Attending card, the By Household export's attending columns, and the household attending calculation read the old per-person attendance list that was retired in V4.28.0. That data stopped updating at the time of the migration, so guests whose answer changed afterward were counted by their old answer. They now use each guest's current sub-event answer for the main event; manual Attending Count Overrides still win, and households with no answers yet still count their full headcount",
+        "Fix: the By Person export's Attending Sub-events column read the same retired list and could show out-of-date sub-events. It now lists the sub-events each guest is currently confirmed Yes for",
+        "Fix: the Print Brief's Guest Summary counted the whole guest list for Invited, Kids, Kosher Meals, and the dietary list, including guests who declined, and counted Pending by household. Invited, Confirmed, Pending, Kids Attending, Kosher Meals, and the dietary table now use the same rules as the Catering Summary and Day-of Mode, so the printout matches the screens. Kosher guests without dietary notes now appear in the dietary table",
+        "Change: the Overview's RSVPs Confirmed ring now shows Confirmed out of the guests still expected, with guests who declined left out of the total, so the ring can reach 100 percent once every guest has answered. It uses the same rules as the Catering Summary; events with no sub-event flagged Meal served follow household RSVP status",
+        "Change: the Print Brief's Kids box is now labeled Kids Attending and counts confirmed kids"
+      ]
+    },
     {
       "version": "V4.31.1",
       "date": "2026-10-04",

@@ -12,7 +12,7 @@ import { getHouseholdAttending } from "./guests.js";
 // keeping households together where possible.
 //
 // Parameters:
-//   scopedPeople  — all people confirmed for the active section (attendingSections includes sectionId)
+//   scopedPeople  — all people confirmed for the active section (their own sectionRsvp is Yes for sectionId)
 //   sortedTables  — tables scoped to the active section, in display order
 //   households    — all household records (for override lookups)
 //   sectionId     — the active section id (used to read existing tableAssignments)

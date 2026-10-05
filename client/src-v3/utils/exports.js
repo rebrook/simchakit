@@ -1,8 +1,8 @@
 import { sortTimeline, formatEntryMeta } from "./dates.js";
-import { getHouseholdAttending, formatAddress, migrateCityStateZip } from "./guests.js";
+import { formatAddress, migrateCityStateZip } from "./guests.js";
 import { computeVendorFinancials, fmt$ } from "./vendors.js";
 import { isFullyPaid } from "./expensePayments.js";
-import { getSectionHeadcount, resolveMainEvent } from "./sections.js";
+import { getSectionHeadcount, getMealPopulation, splitAdultsKids, resolveMainEvent } from "./sections.js";
 import { PALETTES } from "@/constants/theme.js";
 import { iconSvg } from "@/utils/iconSvg.js";
 
@@ -550,15 +550,19 @@ function generateEventBriefHTML(state, adminConfig) {
     : "";
 
   // ── Guest summary ──────────────────────────────────────────────────────────
-  const totalPeople   = people.length;
-  const confirmedHH   = households.filter(h => h.rsvpStatus === "RSVP Yes");
-  const pendingHH     = households.filter(h => h.rsvpStatus === "Invited" || h.rsvpStatus === "Pending");
-  const confirmedPpl  = confirmedHH.reduce((s, h) => {
-    const a = getHouseholdAttending(h, people, mainEvent?.id); return s + a.adults + a.kids;
-  }, 0);
-  const totalKids     = people.filter(p => p.isChild).length;
-  const totalKosher   = people.filter(p => p.kosher).length;
-  const dietaryPpl    = people.filter(p => p.dietary && p.dietary.trim());
+  // Same shared meal population as the Catering Summary and Day-of Mode, so
+  // the numbers on this printout match the screens: guests invited to a
+  // meal-serving sub-event (declined guests excluded), each guest's own Yes
+  // for it. With no sub-event flagged Meal served, falls back to household
+  // RSVP status. A printout can't be corrected after it is handed out, so
+  // these must agree with what the planner sees on screen.
+  const pop           = getMealPopulation(households, people, timeline.filter(e => e.servesMeal));
+  const totalPeople   = pop.relevant.length;
+  const confirmedPpl  = pop.confirmed.length;
+  const pendingPpl    = totalPeople - confirmedPpl;
+  const totalKids     = splitAdultsKids(pop.confirmed).kids;
+  const totalKosher   = pop.confirmed.filter(p => p.kosher).length;
+  const dietaryPpl    = pop.relevant.filter(p => (p.dietary && p.dietary.trim()) || p.kosher);
   const outOfTown     = households.filter(h => h.outOfTown).length;
 
   // ── Vendor section (confirmed only) ───────────────────────────────────────
@@ -676,7 +680,7 @@ function generateEventBriefHTML(state, adminConfig) {
           return `<div style="display:flex;gap:12px;padding:5px 0;border-bottom:1px solid #f0ece6;font-size:12px">
             <span style="font-weight:600;min-width:140px">${name}</span>
             <span style="color:#5c5248">${hh?.formalName || ""}</span>
-            <span style="color:#9c4a12;margin-left:auto">${p.dietary}</span>
+            <span style="color:#9c4a12;margin-left:auto">${p.dietary || "Kosher meal"}</span>
           </div>`;
         }).join("")}
       </div>` : "";
@@ -829,8 +833,8 @@ ${sectionHead(`${iconSvg("guests", "inline")} Guest Summary`)}
 <div class="stat-row">
   ${statBox("Invited", totalPeople, "#1c1614")}
   ${statBox("Confirmed", confirmedPpl, "#2d6a4f")}
-  ${statBox("Pending", pendingHH.reduce((s,h)=>s+(h.adultCount||0)+(h.kidCount||0),0)||pendingHH.length, "#b8962e")}
-  ${statBox("Kids", totalKids, "#1c1614")}
+  ${statBox("Pending", pendingPpl, "#b8962e")}
+  ${statBox("Kids Attending", totalKids, "#1c1614")}
   ${statBox("Kosher Meals", totalKosher, "#1c1614")}
   ${statBox("Out of Town", outOfTown, "#1c1614")}
 </div>

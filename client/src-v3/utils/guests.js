@@ -138,11 +138,12 @@ function computeHouseholdCounts(people, householdId) {
 //   1. An explicit Attending Count Override on the household (attendingAdults/
 //      attendingKids) always wins, per field -- set only when fewer people
 //      are attending than invited.
-//   2. Otherwise, if anyone in the household has ever had an Attending
-//      Sub-Events box checked, that per-person attendingSections signal for
-//      the main event is the real answer -- someone has started tracking
-//      attendance at that granularity, so an unchecked person means "not
-//      confirmed," not "not tracked."
+//   2. Otherwise, if anyone in the household has an explicit Yes or No for
+//      the main event in their own sectionRsvp (the per-person sub-event
+//      status that replaced the old attendingSections array in V4.28.0),
+//      that is the real answer -- someone has started tracking attendance at
+//      that granularity, so a person who is TBD or No means "not confirmed,"
+//      not "not tracked." Only Yes counts as attending.
 //   3. Otherwise (legacy data, or nobody's touched that checkbox yet), fall
 //      back to the full household headcount -- the same convention already
 //      used by getSubEventStatus() for sub-event chips, so a household that
@@ -152,11 +153,12 @@ function getHouseholdAttending(household, people, mainEventId) {
   const counts  = computeHouseholdCounts(people, household.id);
   const members = getPeopleForHousehold(people, household.id);
 
-  const anyoneTracked = mainEventId && members.some(p => (p.attendingSections || []).length > 0);
+  const mainStatus = (p) => p.sectionRsvp?.[mainEventId];
+  const anyoneTracked = mainEventId && members.some(p => mainStatus(p) === "Yes" || mainStatus(p) === "No");
   const computed = anyoneTracked
     ? {
-        adults: members.filter(p => !p.isChild && (p.attendingSections || []).includes(mainEventId)).length,
-        kids:   members.filter(p =>  p.isChild && (p.attendingSections || []).includes(mainEventId)).length,
+        adults: members.filter(p => !p.isChild && mainStatus(p) === "Yes").length,
+        kids:   members.filter(p =>  p.isChild && mainStatus(p) === "Yes").length,
       }
     : { adults: counts.adults, kids: counts.kids };
 
@@ -573,8 +575,32 @@ function exportGuestsByHousehold(households, people, adminConfig) {
 
 // ── Guest export: By Person ──────────────────────────────────────────────────
 // One row per individual. Audience: catering, favors vendor, day-of staff.
-function exportGuestsByPerson(households, people, adminConfig) {
+function exportGuestsByPerson(households, people, adminConfig, tables) {
   const timeline = adminConfig?.timeline || [];
+  // Table column: seat assignments live in p.tableAssignments (one table per
+  // sub-event), so the column shows table names from there. One assignment
+  // prints just the table name; several print "Sub-event: Table" pairs in
+  // timeline order. The old single p.tableId is only a fallback for events
+  // seated before per-sub-event seating.
+  const tableById = Object.fromEntries((tables || []).map(t => [t.id, t]));
+  const haveTables = (tables || []).length > 0;
+  // A table that no longer exists prints blank when names are available,
+  // rather than a raw id.
+  const tableName = (id) => tableById[id]?.name || (haveTables ? "" : id);
+  const tableLabel = (p) => {
+    const order = (sid) => { const i = timeline.findIndex(e => e.id === sid); return i === -1 ? 9999 : i; };
+    const named = Object.entries(p.tableAssignments || {})
+      .filter(([, tid]) => tid)
+      .map(([sid, tid]) => ({ sid, name: tableName(tid) }))
+      .filter(x => x.name)
+      .sort((a, b) => order(a.sid) - order(b.sid));
+    if (named.length === 0) return p.tableId ? tableName(p.tableId) : "";
+    if (named.length === 1) return named[0].name;
+    return named.map(({ sid, name }) => {
+      const entry = timeline.find(e => e.id === sid);
+      return `${entry ? entry.title : sid}: ${name}`;
+    }).join("; ");
+  };
   const esc = v => {
     let s = String(v || "");
     if (/^[=+\-@\t\r]/.test(s)) s = "'" + s;
@@ -594,10 +620,12 @@ function exportGuestsByPerson(households, people, adminConfig) {
   });
   const rows = sorted.map(p => {
     const hh      = hhMap[p.householdId] || {};
-    const sections = (p.attendingSections || []).map(id => {
-      const entry = timeline.find(e => e.id === id);
-      return entry ? (entry.icon ? entry.icon + " " + entry.title : entry.title) : id;
-    }).join("; ");
+    // Sub-events this person is confirmed for (their own sectionRsvp is Yes),
+    // in timeline order.
+    const sections = timeline
+      .filter(e => p.sectionRsvp?.[e.id] === "Yes")
+      .map(entry => entry.icon ? entry.icon + " " + entry.title : entry.title)
+      .join("; ");
     return [
       p.firstName || "", p.lastName || "", p.title || "",
       hh.formalName || hh.name2 || "",
@@ -608,7 +636,7 @@ function exportGuestsByPerson(households, people, adminConfig) {
       p.kosher ? "Yes" : "",
       p.dietary || "",
       p.shirtSize || "",
-      p.tableId ? (p.tableId) : "",
+      tableLabel(p),
       sections
     ];
   });

@@ -16,7 +16,7 @@ import { StatCard }          from "@/components/shared/StatCard.jsx";
 import { FocusPanel }        from "@/components/shared/FocusPanel.jsx";
 import { computeFocusItems } from "@/utils/focus.js";
 import { amountPaid } from "@/utils/expensePayments.js";
-import { getSectionHeadcount } from "@/utils/sections.js";
+import { getSectionHeadcount, getMealPopulation } from "@/utils/sections.js";
 
 // Abbreviate currency for mobile ring cards: $11,831.63 -> $11.8k
 function fmtCurrency(n, compact) {
@@ -242,7 +242,7 @@ export function OverviewTab({ eventId, event, adminConfig, showToast, setActiveT
     const lines = [eventName];
     if (eventDate) lines.push(formatDate(eventDate));
     if (eventVenue) lines.push(eventVenue);
-    if (people.length > 0) lines.push(`${confirmedCount} of ${people.length} guests confirmed`);
+    if (invitedCount > 0) lines.push(`${confirmedCount} of ${invitedCount} guests confirmed`);
 
     try {
       if (navigator.share) {
@@ -286,16 +286,27 @@ export function OverviewTab({ eventId, event, adminConfig, showToast, setActiveT
   // Stats — memoized so the 1s countdown tick doesn't refilter
   const {
     totalBudget, totalPaid, tasksDone, tasksTotal,
-    vendorsBooked, confirmedCount, outOfTownCount,
+    vendorsBooked, outOfTownCount,
   } = useMemo(() => ({
     totalBudget:    expenses.reduce((s, e) => s + (parseFloat(e.amount) || 0), 0),
     totalPaid:      expenses.reduce((s, e) => s + amountPaid(e), 0),
     tasksDone:      tasks.filter(t => t.done && !t.dismissed).length,
     tasksTotal:     tasks.filter(t => !t.dismissed).length,
     vendorsBooked:  vendors.filter(v => ["Booked","Deposit Paid","Paid in Full"].includes(v.status)).length,
-    confirmedCount: people.filter(p => Object.values(p.sectionRsvp || {}).includes("Yes")).length,
     outOfTownCount: households.filter(h => h.outOfTown).length,
   }), [expenses, tasks, vendors, people, households]);
+
+  // RSVPs Confirmed ring: the same shared meal population as the Catering
+  // Summary and Day-of Mode. Confirmed is each guest's own Yes for a
+  // meal-serving sub-event; the total excludes guests who declined, so the
+  // ring can reach 100% once every guest has answered. With no sub-event
+  // flagged Meal served, it falls back to household RSVP status.
+  const mealPop = useMemo(
+    () => getMealPopulation(households, people, (config.timeline || []).filter(e => e.servesMeal)),
+    [households, people, config.timeline]
+  );
+  const confirmedCount = mealPop.confirmed.length;
+  const invitedCount   = mealPop.relevant.length;
 
   // Completion tone: green when done, baseTone otherwise.
   // Uses >= and rounds to cents for currency (floats).
@@ -432,7 +443,7 @@ export function OverviewTab({ eventId, event, adminConfig, showToast, setActiveT
         <StatCard
           label="RSVPs Confirmed"
           value={confirmedCount}
-          total={people.length}
+          total={invitedCount}
           tone="green"
           display="ring"
           sub="confirmed"

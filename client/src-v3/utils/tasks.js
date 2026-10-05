@@ -1,4 +1,5 @@
 import { computeVendorFinancials, fmt$ } from "./vendors.js";
+import { getConfirmedPeopleForSection } from "./sections.js";
 
 // Task utilities — due status and smart suggestions computation
 
@@ -173,7 +174,13 @@ function computeSuggestions(state) {
 
   // ── Guests: RSVP deadline passed with pending households ──────────────────
   const rsvpDeadline = config.rsvpDeadline;
-  const rsvpPending  = households.filter(h => h.status==="Invited"||h.status==="Pending").length;
+  // rsvpStatus is the field the rest of the app reads; older household rows may
+  // only carry the legacy status key, and a household with neither is treated
+  // as not yet heard from.
+  const rsvpPending  = households.filter(h => {
+    const st = h.rsvpStatus || h.status || "Invited";
+    return st === "Invited" || st === "Pending";
+  }).length;
   if (rsvpDeadline && rsvpPending > 0) {
     const due  = new Date(rsvpDeadline + "T00:00:00");
     const diff = Math.ceil((due - today) / (1000*60*60*24));
@@ -243,7 +250,26 @@ function computeSuggestions(state) {
 
   // ── Seating: unseated people after RSVP deadline or within 60 days ─────────
   if (people.length > 0 && tables.length > 0) {
-    const unseatedCount = people.filter(p => !p.tableId).length;
+    // Guests who still need a table: for every sub-event that has tables, the
+    // guests confirmed Yes for it who have no seat in it, counted once per
+    // guest. Seat assignments live in tableAssignments (one table per
+    // sub-event); the old single tableId is only read for legacy events whose
+    // tables were never tied to a sub-event.
+    const seatedIn = (p, sid) => !!(p.tableAssignments && p.tableAssignments[sid]);
+    const tableSectionIds = [...new Set(tables.map(t => t.sectionId).filter(Boolean))];
+    let unseatedCount;
+    if (tableSectionIds.length > 0) {
+      const needsSeat = new Set();
+      tableSectionIds.forEach(sid => {
+        getConfirmedPeopleForSection(people, { id: sid })
+          .forEach(p => { if (!seatedIn(p, sid)) needsSeat.add(p.id); });
+      });
+      unseatedCount = needsSeat.size;
+    } else {
+      unseatedCount = people.filter(p =>
+        !p.tableId && !(p.tableAssignments && Object.keys(p.tableAssignments).length > 0)
+      ).length;
+    }
     if (unseatedCount > 0) {
       const rsvpDeadline = config.rsvpDeadline;
       const mainEvt      = (config.timeline||[]).find(e => e.isMainEvent);
@@ -287,7 +313,9 @@ function computeSuggestions(state) {
 
   // ── Seating: tables over capacity ─────────────────────────────────────────
   tables.forEach(t => {
-    const filled = people.filter(p => p.tableId === t.id).length;
+    const filled = people.filter(p =>
+      (p.tableAssignments && Object.values(p.tableAssignments).includes(t.id)) || p.tableId === t.id
+    ).length;
     const cap    = parseInt(t.capacity) || 0;
     if (filled > cap && !alreadyHasTask(t.name)) {
       suggestions.push({
