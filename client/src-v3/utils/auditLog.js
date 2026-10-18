@@ -20,9 +20,14 @@
 // Never blocks the caller and never throws -- failures are logged to the
 // console and surfaced via the existing "simchakit:audit-error" event so
 // AppShell can show its toast, same pattern as before.
+//
+// V4.33.0: AUDIT_LABELS.gifts reads gift.givers (a gift can now have more
+// than one giver) via getGiftGivers()/formatGiverNames() in utils/gifts.js,
+// with the legacy single fromName shape handled automatically there.
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { supabase } from "@/lib/supabase.js";
+import { getGiftGivers, formatGiverNames } from "@/utils/gifts.js";
 
 // ── Audit log detail labels per collection (used when itemOrDetail is an item, not a string) ──
 export const AUDIT_LABELS = {
@@ -32,7 +37,7 @@ export const AUDIT_LABELS = {
   expenses:      item => item.description || "an expense",
   tasks:         item => item.task || "a task",
   prep:          item => item.title || "a prep item",
-  gifts:         item => item.fromName || "a gift",
+  gifts:         item => formatGiverNames(getGiftGivers(item)) || "a gift",
   favors:        item => item.guestName || "a favor",
   tables:        item => item.name || "a table",
   ceremonyRoles: item => item.role || "a ceremony role",

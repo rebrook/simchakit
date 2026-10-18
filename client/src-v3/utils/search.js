@@ -1,4 +1,5 @@
 import { buildCalendarEvents } from "./calendar.js";
+import { getGiftGivers, formatGiverNames } from "./gifts.js";
 
 // Global search across all collections
 
@@ -76,14 +77,19 @@ function searchCollection(state, query) {
   }));
   if (prepResults.length) results.prep = prepResults;
 
-  // Gifts
-  const giftResults = (state?.gifts || []).filter(g =>
-    match(g.fromName, g.giftType, g.description, g.notes)
-  ).map(g => ({
-    id: g.id, tab: "gifts", collection: "gifts",
-    primary: g.fromName || "Unknown",
-    secondary: [g.giftType, g.amount ? `$${parseFloat(g.amount).toLocaleString("en-US",{minimumFractionDigits:0,maximumFractionDigits:0})}` : ""].filter(Boolean).join(" · "),
-  }));
+  // Gifts — a gift can have more than one giver (see utils/gifts.js), so a
+  // match on any giver's name counts, and the display name joins all givers.
+  const giftResults = (state?.gifts || []).filter(g => {
+    const givers = getGiftGivers(g);
+    return givers.some(gv => match(gv.name)) || match(g.giftType, g.description, g.notes);
+  }).map(g => {
+    const givers = getGiftGivers(g);
+    return {
+      id: g.id, tab: "gifts", collection: "gifts",
+      primary: formatGiverNames(givers) || "Unknown",
+      secondary: [g.giftType, g.amount ? `$${parseFloat(g.amount).toLocaleString("en-US",{minimumFractionDigits:0,maximumFractionDigits:0})}` : ""].filter(Boolean).join(" · "),
+    };
+  });
   if (giftResults.length) results.gifts = giftResults;
 
   // Favors

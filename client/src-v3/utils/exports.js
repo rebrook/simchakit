@@ -3,6 +3,7 @@ import { formatAddress, migrateCityStateZip } from "./guests.js";
 import { computeVendorFinancials, fmt$ } from "./vendors.js";
 import { isFullyPaid } from "./expensePayments.js";
 import { getSectionHeadcount, getMealPopulation, splitAdultsKids, resolveMainEvent } from "./sections.js";
+import { getGiftGivers } from "./gifts.js";
 import { PALETTES } from "@/constants/theme.js";
 import { iconSvg } from "@/utils/iconSvg.js";
 
@@ -280,47 +281,76 @@ ${unassignedSection}
 </body></html>`;
 }
 
+// Gift export and print helpers operate per giver, not per gift, since a
+// gift can now have more than one giver (see utils/gifts.js). Each giver
+// gets its own row/block, including its own address and thank-you status,
+// plus a reference back to any co-givers on the same gift. A gift with
+// three givers for one necklace produces three rows, not one, because the
+// unit of a mailing checklist is the family receiving a thank-you, not the
+// physical item.
+
 function exportGiftsCSV(gifts, households) {
   const hhMap = Object.fromEntries(households.map(h => [h.id, h]));
-  const getAddress = (g) => {
-    if (g.householdId && hhMap[g.householdId]) {
-      const hh = hhMap[g.householdId];
-      return formatAddress(migrateCityStateZip(hh));
+  const getAddress = (giver) => {
+    if (giver.householdId && hhMap[giver.householdId]) {
+      return formatAddress(migrateCityStateZip(hhMap[giver.householdId]));
     }
-    return formatAddress(g);
+    return formatAddress(giver);
   };
   const getLastName = (name) => (name || "").trim().split(" ").pop();
-  const headers = ["From","Address","Gift Type","Description","Amount","Date Received","Attended","Thank You Written","Thank You Mailed","Notes"];
-  const sorted  = [...gifts].sort((a,b) => getLastName(a.fromName).localeCompare(getLastName(b.fromName)));
-  const rows    = sorted.map(g => [
-    g.fromName || "",
-    getAddress(g),
-    g.giftType || "",
-    g.description || "",
-    g.amount != null ? g.amount : "",
-    g.dateReceived || "",
-    g.attended === true ? "Yes" : g.attended === false ? "No" : "",
-    g.thankYouWritten ? "Yes" : "No",
-    g.thankYouMailed  ? "Yes" : "No",
-    g.notes || "",
-  ].map(csvEsc).join(","));
-  return [headers.map(csvEsc).join(","), ...rows].join("\n");
+
+  const headers = ["From","Address","Co-Givers","Gift Type","Description","Amount","Date Received","Attended","Thank You Written","Thank You Mailed","Notes"];
+
+  const rows = [];
+  gifts.forEach(g => {
+    const givers = getGiftGivers(g);
+    givers.forEach(giver => {
+      const others = givers.filter(x => x.id !== giver.id).map(x => x.name).filter(Boolean).join("; ");
+      rows.push({
+        sortName: giver.name || "",
+        values: [
+          giver.name || "",
+          getAddress(giver),
+          others,
+          g.giftType || "",
+          g.description || "",
+          g.amount != null ? g.amount : "",
+          g.dateReceived || "",
+          g.attended === true ? "Yes" : g.attended === false ? "No" : "",
+          giver.thankYouWritten ? "Yes" : "No",
+          giver.thankYouMailed  ? "Yes" : "No",
+          g.notes || "",
+        ],
+      });
+    });
+  });
+  rows.sort((a, b) => getLastName(a.sortName).localeCompare(getLastName(b.sortName)));
+
+  return [headers.map(csvEsc).join(","), ...rows.map(r => r.values.map(csvEsc).join(","))].join("\n");
 }
 
 function generateGiftPrintHTML(gifts, households, eventName, eventDate, theme) {
   const pal = PALETTES[theme?.palette] || PALETTES.rose;
   const hhMap = Object.fromEntries(households.map(h => [h.id, h]));
 
-  const getAddress = (g) => {
-    if (g.householdId && hhMap[g.householdId]) {
-      const hh = hhMap[g.householdId];
-      return formatAddress(migrateCityStateZip(hh));
+  const getAddress = (giver) => {
+    if (giver.householdId && hhMap[giver.householdId]) {
+      return formatAddress(migrateCityStateZip(hhMap[giver.householdId]));
     }
-    return formatAddress(g);
+    return formatAddress(giver);
   };
 
   const getLastName = (name) => (name || "").trim().split(" ").pop();
-  const sorted = [...gifts].sort((a,b) => getLastName(a.fromName).localeCompare(getLastName(b.fromName)));
+
+  const entries = [];
+  gifts.forEach(g => {
+    const givers = getGiftGivers(g);
+    givers.forEach(giver => {
+      const others = givers.filter(x => x.id !== giver.id).map(x => x.name).filter(Boolean);
+      entries.push({ gift: g, giver, others });
+    });
+  });
+  entries.sort((a, b) => getLastName(a.giver.name).localeCompare(getLastName(b.giver.name)));
 
   const totalMonetary = gifts.reduce((s,g) => s + (parseFloat(g.amount)||0), 0);
 
@@ -328,25 +358,28 @@ function generateGiftPrintHTML(gifts, households, eventName, eventDate, theme) {
     ? new Date(eventDate + "T00:00:00").toLocaleDateString("en-US", { weekday:"long", month:"long", day:"numeric", year:"numeric" })
     : "";
 
-  const donorBlocks = sorted.map(g => {
-    const addr    = getAddress(g);
+  const donorBlocks = entries.map(({ gift: g, giver, others }) => {
+    const addr    = getAddress(giver);
     const amt     = g.amount != null ? `<span style="font-weight:700;color:#2d6a4f">$${parseFloat(g.amount).toLocaleString()}</span>` : "";
-    const writtenBadge = g.thankYouWritten
+    const writtenBadge = giver.thankYouWritten
       ? `<span style="background:#d8f3dc;color:#2d6a4f;font-size:10px;font-weight:700;padding:2px 7px;border-radius:99px;margin-left:6px">${iconSvg("check", "badge", { color: "#2d6a4f", style: "display:inline-block;vertical-align:middle;margin-right:2px" })} Written</span>` : "";
-    const mailedBadge  = g.thankYouMailed
+    const mailedBadge  = giver.thankYouMailed
       ? `<span style="background:#dbeafe;color:#1e4d8c;font-size:10px;font-weight:700;padding:2px 7px;border-radius:99px;margin-left:4px">${iconSvg("check", "badge", { color: "#1e4d8c", style: "display:inline-block;vertical-align:middle;margin-right:2px" })} Mailed</span>` : "";
-    const pendingBadge = (!g.thankYouWritten)
+    const pendingBadge = (!giver.thankYouWritten)
       ? `<span style="background:#fde8e8;color:#9b2335;font-size:10px;font-weight:700;padding:2px 7px;border-radius:99px;margin-left:6px">Pending</span>` : "";
     const attendedStr  = g.attended === true ? "Attended" : g.attended === false ? "Did not attend" : "";
+    const coGiversNote = others.length > 0
+      ? `<div style="font-size:11px;color:#9c9188;margin-top:2px;font-style:italic">Given with ${others.join(", ")}</div>` : "";
 
     return `
       <div style="margin-bottom:18px;page-break-inside:avoid;border:1px solid ${pal["accent-medium"]};border-radius:8px;overflow:hidden">
         <div style="display:flex;justify-content:space-between;align-items:flex-start;padding:8px 12px;background:${pal["accent-light"]};border-bottom:1px solid ${pal["accent-medium"]}">
           <div>
             <div style="font-family:'Cormorant Garamond',Georgia,serif;font-size:16px;font-weight:700;color:#1c1614">
-              ${g.fromName || "Unknown"}${pendingBadge}${writtenBadge}${mailedBadge}
+              ${giver.name || "Unknown"}${pendingBadge}${writtenBadge}${mailedBadge}
             </div>
             ${addr ? `<div style="font-size:12px;color:#5c5248;margin-top:2px">${addr}</div>` : `<div style="font-size:12px;color:#c9c2b6;font-style:italic;margin-top:2px">No address on file</div>`}
+            ${coGiversNote}
           </div>
           <div style="text-align:right;font-size:11px;color:#9c9188">
             ${attendedStr ? `<div>${attendedStr}</div>` : ""}
@@ -355,7 +388,7 @@ function generateGiftPrintHTML(gifts, households, eventName, eventDate, theme) {
         </div>
         <div style="padding:8px 12px;font-size:13px">
           <span style="font-weight:600;color:#1c1614">${g.giftType || "Gift"}</span>
-          ${g.description ? `<span style="color:#5c5248"> — ${g.description}</span>` : ""}
+          ${g.description ? `<span style="color:#5c5248"> · ${g.description}</span>` : ""}
           ${amt ? `<span style="margin-left:8px">${amt}</span>` : ""}
           ${g.notes ? `<div style="margin-top:4px;font-size:11px;color:#9c9188;font-style:italic">${g.notes}</div>` : ""}
         </div>
