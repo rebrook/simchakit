@@ -297,6 +297,154 @@
       flex-shrink: 0;
     }
 
+    /* ── Sidebar event switcher: dropdown (V4.40.0) ── */
+    .sidebar-switcher-wrap {
+      position: relative;
+      margin-bottom: 12px;
+    }
+    .sidebar-switcher-wrap .sidebar-switcher { margin-bottom: 0; }
+    .sidebar-switcher:focus-visible,
+    .sidebar-switcher-item:focus-visible,
+    .sidebar-switcher-all:focus-visible {
+      outline: 2px solid var(--accent-primary);
+      outline-offset: 2px;
+    }
+    .sidebar-switcher .sidebar-switcher-chevron { transition: transform 0.15s ease; }
+    .sidebar-switcher.open .sidebar-switcher-chevron { transform: rotate(180deg); }
+    .sidebar-switcher-pop {
+      position: absolute;
+      top: calc(100% + 4px);
+      left: 0;
+      right: 0;
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-lg);
+      padding: 6px;
+      animation: fade-in 0.12s ease;
+      z-index: 300;
+    }
+    .sidebar-switcher-scroll {
+      max-height: min(60vh, 360px);
+      overflow-y: auto;
+      overflow-x: hidden;
+      scrollbar-width: thin;
+    }
+    .sidebar-switcher-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+    .sidebar-switcher-group {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      color: var(--text-muted);
+      padding: 8px 10px 4px;
+    }
+    .sidebar-switcher-note {
+      font-size: 12px;
+      color: var(--text-muted);
+      padding: 8px 10px;
+    }
+    .sidebar-switcher-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 10px;
+      border-radius: var(--radius-sm);
+      color: var(--text-secondary);
+      text-decoration: none;
+      font-family: var(--font-body);
+      transition: background 0.12s ease, color 0.12s ease;
+    }
+    .sidebar-switcher-item:hover {
+      background: var(--bg-subtle);
+      color: var(--text-primary);
+      text-decoration: none;
+    }
+    .sidebar-switcher-item.current {
+      background: var(--accent-light);
+      color: var(--accent-dark);
+    }
+    .sidebar-switcher-item-icon {
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      background: var(--bg-subtle);
+      color: var(--accent-primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .sidebar-switcher-item.current .sidebar-switcher-item-icon {
+      background: var(--accent-primary);
+      color: var(--accent-text);
+    }
+    .sidebar-switcher-item-text {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+      flex: 1;
+    }
+    .sidebar-switcher-item-name {
+      font-size: 13px;
+      font-weight: 600;
+      line-height: 1.25;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      overflow-wrap: anywhere;
+    }
+    .sidebar-switcher-item-meta {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 1px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .sidebar-switcher-item.current .sidebar-switcher-item-meta { color: var(--accent-primary); }
+    .sidebar-switcher-item-tag {
+      font-size: 10px;
+      font-weight: 600;
+      padding: 1px 6px;
+      border-radius: 999px;
+      background: var(--bg-subtle);
+      color: var(--text-muted);
+    }
+    .sidebar-switcher-item-check {
+      color: var(--accent-primary);
+      flex-shrink: 0;
+      display: flex;
+    }
+    .sidebar-switcher-all {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      margin-top: 4px;
+      padding: 9px 10px;
+      border: none;
+      border-top: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: none;
+      cursor: pointer;
+      font-family: var(--font-body);
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--accent-primary);
+      text-align: left;
+      transition: background 0.12s ease;
+    }
+    .sidebar-switcher-all:hover { background: var(--bg-subtle); }
+    @media (prefers-reduced-motion: reduce) {
+      .sidebar-switcher .sidebar-switcher-chevron { transition: none; }
+      .sidebar-switcher-pop { animation: none; }
+    }
+
     /* ── Sidebar navigation ── */
     .sidebar-nav {
       flex: 1;

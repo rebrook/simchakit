@@ -43,6 +43,8 @@ import { CalendarTab }        from "@/components/tabs/CalendarTab.jsx";
 
 // ── Event type icons — imported from shared constants ─────────────────────
 import { EVENT_TYPE_ICON_KEYS } from "@/constants/events.js";
+import { EventSwitcher }        from "@/components/shell/EventSwitcher.jsx";
+import { getPaletteHint, clearPaletteHint } from "@/utils/userEvents.js";
 
 // ── Tab labels for the top bar ──────────────────────────────────────────────
 const TAB_LABELS = {
@@ -165,7 +167,7 @@ function localDateString(date) {
 // ─────────────────────────────────────────────────────────────────────────────
 import { displayNameWithEmail } from "@/utils/displayName.js";
 
-export function AppShell({ session, eventId, onBack, isDemoMode = false, displayName: userDisplayName = null }) {
+export function AppShell({ session, eventId, onBack, onSelectEvent = null, isDemoMode = false, displayName: userDisplayName = null }) {
   const [activeTab,       setActiveTab]       = useState(() => {
     const route = parseEventRoute(window.location.pathname);
     const tab   = route?.tab;
@@ -415,6 +417,7 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false, display
       const { data, error } = await query.single();
 
       if (error || !data) {
+        clearPaletteHint();
         setLoadStatus("error");
         return;
       }
@@ -427,6 +430,7 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false, display
         type: cfg.type || data.type || "other",
       });
       setLoadStatus("ready");
+      clearPaletteHint();
     }
     load();
   }, [eventId, session?.user?.id]);
@@ -644,9 +648,13 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false, display
 
   // ── Loading / error states ────────────────────────────────────────────────
   if (loadStatus === "loading") {
+    // After a switcher selection, borrow the target event's palette so the
+    // loading screen does not flash rose. Null for picker selections and
+    // reloads, which keep the default rose.
+    const paletteHint = getPaletteHint(eventId);
     return (
       <div className="app-shell">
-        <ThemeProvider palette="rose" customColor="" />
+        <ThemeProvider palette={paletteHint?.palette || "rose"} customColor={paletteHint?.customColor || ""} />
         <div style={{ display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", minHeight:"100vh", gap:16 }}>
           <img src="/apple-touch-icon.png" alt="SimchaKit" style={{ width: 48, height: 48, borderRadius: 10 }} />
           <div style={{ fontFamily:"var(--font-display)", fontSize:20, color:"var(--text-primary)" }}>Loading...</div>
@@ -845,8 +853,15 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false, display
           onLogoSaved={onLogoSaved}
         />
 
-        {/* Event switcher */}
-        <button className="sidebar-switcher" onClick={onBack} title="Back to Events">
+        {/* Event switcher (desktop sidebar). Demo mode passes no onSelectEvent,
+            so the switcher stays a plain back-to-events button there. */}
+        <EventSwitcher
+          eventId={eventId}
+          userId={session?.user?.id ?? null}
+          adminConfig={adminConfig}
+          onSelectEvent={isDemoMode ? null : onSelectEvent}
+          onBack={onBack}
+        >
           <span className="sidebar-switcher-emoji"><Icon name={eventTypeIconKey} context="chip" /></span>
           <div style={{ minWidth: 0, flex: 1 }}>
             <div className="sidebar-switcher-name">{adminConfig?.name || "Untitled Event"}</div>
@@ -858,9 +873,7 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false, display
               {switcherDate}
             </div>
           </div>
-          <span className="sidebar-switcher-chevron"><Icon name="chevronRight" context="inline" /></span>
-          {/* TODO: inline event switcher dropdown */}
-        </button>
+        </EventSwitcher>
 
         {/* Nav items */}
         <nav className="sidebar-nav">

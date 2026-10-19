@@ -325,6 +325,7 @@ function AppContent({ session, isCallback, inviteError, onDismissInviteError }) 
   if (selectedEventId) {
     return (
       <ErrorBoundary
+        key={selectedEventId}
         source="app-shell"
         title="Something went wrong"
         message="SimchaKit hit an unexpected error. You can try again, or head back to your events."
@@ -340,6 +341,7 @@ function AppContent({ session, isCallback, inviteError, onDismissInviteError }) 
           session={session}
           eventId={selectedEventId}
           displayName={displayName}
+          onSelectEvent={selectEvent}
           onBack={() => {
             window.history.pushState({}, "", "/");
             setSelectedEventId(null);

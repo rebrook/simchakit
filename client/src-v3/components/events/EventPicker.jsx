@@ -17,6 +17,12 @@ import { PaywallGate }           from "./PaywallGate.jsx";
 import { Icon }                  from "@/utils/iconMap.jsx";
 import { EVENT_TYPE_ICON_KEYS }  from "@/constants/events.js";
 import { hasEventPassed }        from "@/utils/dates.js";
+import {
+  EVENT_LIST_COLUMNS,
+  formatEventDate,
+  sortOwnedEvents,
+  mapCollaboratedRows,
+} from "@/utils/userEvents.js";
 
 // ── Palette + type maps (mirrors V2 index.html exactly) ──────────────────────
 const PALETTES = {
@@ -43,15 +49,6 @@ const EVENT_TYPE_LABELS = {
   "other":        "Celebration",
 };
 
-
-function formatDate(d) {
-  if (!d) return "";
-  const parts = d.split("-");
-  if (parts.length !== 3) return d;
-  const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
-  const m = parseInt(parts[1], 10) - 1;
-  return months[m] + " " + parseInt(parts[2], 10) + ", " + parts[0];
-}
 
 // ─────────────────────────────────────────────────────────────────────────────
 import { displayName, displayNameWithEmail } from "@/utils/displayName.js";
@@ -149,7 +146,7 @@ export function EventPicker({ session, displayName: userDisplayName, onSelectEve
     const [eventsResult, purchasesResult, collabResult, collabCountResult] = await Promise.all([
       supabase
         .from("events")
-        .select("id, name, type, archived, admin_config, created_at, updated_at")
+        .select(EVENT_LIST_COLUMNS)
         .eq("owner_id", userId)
         .order("created_at", { ascending: true }),
       supabase
@@ -159,7 +156,7 @@ export function EventPicker({ session, displayName: userDisplayName, onSelectEve
         .eq("status", "completed"),
       supabase
         .from("event_collaborators")
-        .select("role, event_id, invited_by_email, invited_by_name, events(id, name, type, archived, admin_config, created_at, updated_at)")
+        .select(`role, event_id, invited_by_email, invited_by_name, events(${EVENT_LIST_COLUMNS})`)
         .eq("user_id", userId)
         .not("accepted_at", "is", null),
       supabase
@@ -181,10 +178,7 @@ export function EventPicker({ session, displayName: userDisplayName, onSelectEve
     });
 
     // Sort owned: active events first, archived last
-    const sorted = [...(eventsResult.data || [])].sort((a, b) => {
-      if (a.archived !== b.archived) return a.archived ? 1 : -1;
-      return new Date(a.created_at) - new Date(b.created_at);
-    });
+    const sorted = sortOwnedEvents(eventsResult.data);
 
     // Attach collaborator count to each owned event
     const sortedWithCounts = sorted.map(ev => ({
@@ -193,13 +187,7 @@ export function EventPicker({ session, displayName: userDisplayName, onSelectEve
     }));
 
     // Build collaborated events list -- attach role for badge display
-    const collabRows = (collabResult.data || []).filter(r => r.events);
-    const collabEventsData = collabRows.map(r => ({
-      ...r.events,
-      _collaboratorRole:    r.role,
-      _invitedByEmail:      r.invited_by_email || null,
-      _invitedByName:       r.invited_by_name  || null,
-    }));
+    const collabEventsData = mapCollaboratedRows(collabResult.data);
 
     setEvents(sortedWithCounts);
     setCollaboratedEvents(collabEventsData);
@@ -218,7 +206,7 @@ export function EventPicker({ session, displayName: userDisplayName, onSelectEve
     const themeIcon = cfg.theme?.icon || "";
     const timeline = cfg.timeline || [];
     const mainEntry = timeline.find(t => t.isMainEvent);
-    const dateStr  = formatDate(mainEntry?.startDate || "");
+    const dateStr  = formatEventDate(mainEntry?.startDate || "");
     const isPast   = mainEntry?.startDate ? hasEventPassed(mainEntry.startDate) : false;
     return { palette, typeIconKey, themeIcon, dateStr, themeName: cfg.theme?.name || "", isPast };
   }

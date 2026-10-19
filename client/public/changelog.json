@@ -1,10 +1,26 @@
 {
-  "current": "V4.39.0",
+  "current": "V4.40.0",
   "whatsNew": [
-    "UX: Gifts tab thank-you toggles are now labeled Written/Mailed buttons, not color-only checkboxes",
-    "UX: Gifts tab rows now have dividers and a hover highlight, and Amount/Received columns are sortable"
+    "UX: The event name at the top of the sidebar now opens a one-click list of your events, so you can switch events without going back to the picker",
+    "Fix: switching between events, including with the browser back and forward buttons, now fully reloads the new event"
   ],
   "changelog": [
+    {
+      "version": "V4.40.0",
+      "date": "2026-10-19",
+      "summary": "Sidebar event switcher opens an inline list of your events",
+      "changes": [
+        "New: clicking the event name at the top of the desktop sidebar now opens a list of your events, including events shared with you, so you can switch with one click instead of going back to the event picker",
+        "New: each row shows the event type icon, name, and date; the current event is checked, archived events are tagged, and All events at the bottom of the list still opens the full event picker",
+        "New: rows are real links, so Cmd-click or Ctrl-click opens an event in a new tab; the list closes with Escape or a click outside it, and the arrow keys move between rows",
+        "Fix: switching between two events, including with the browser back and forward buttons, now fully reloads the new event, so the previous event's tab, open dialogs, and permissions no longer carry over",
+        "Change: the loading screen shown while a switched event loads now uses that event's colors",
+        "Change: the event picker and the switcher now share one event list, sort order, and date format, so they cannot drift apart",
+        "Change: narrow screens and demo mode keep the existing back to events behavior"
+      ],
+      "roadmap": [],
+      "knownIssues": []
+    },
     {
       "version": "V4.39.0",
       "date": "2026-10-19",
