@@ -82,6 +82,24 @@ function allGiversComplete(givers) {
   return (givers || []).length > 0 && givers.every(g => g.thankYouWritten && g.thankYouMailed);
 }
 
+// ── Outstanding thank-you notes across a list of gifts (V4.38.0) ─────────────
+// One shared definition for the Overview focus panel and the Gifts nav badge,
+// so the two can never disagree. Counted per giver, since each giver is
+// thanked separately. A note is outstanding until it is both written and
+// mailed. toWrite and toMail partition the outstanding notes: toWrite is any
+// giver not yet written, toMail is written but not yet mailed.
+function countThankYousOutstanding(gifts) {
+  let toWrite = 0;
+  let toMail = 0;
+  (gifts || []).forEach(g => {
+    getGiftGivers(g).forEach(gv => {
+      if (!gv.thankYouWritten) toWrite += 1;
+      else if (!gv.thankYouMailed) toMail += 1;
+    });
+  });
+  return { total: toWrite + toMail, toWrite, toMail };
+}
+
 export {
   newGiverId,
   getGiftGivers,
@@ -91,4 +109,5 @@ export {
   anyGiverNeedsWritten,
   anyGiverNeedsMailed,
   allGiversComplete,
+  countThankYousOutstanding,
 };

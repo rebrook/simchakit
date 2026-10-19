@@ -21,7 +21,7 @@
 
 import { isFullyPaid, amountRemaining } from "./expensePayments.js";
 import { getConfirmedPeopleForSection } from "./sections.js";
-import { getGiftGivers } from "./gifts.js";
+import { countThankYousOutstanding } from "./gifts.js";
 
 const BOOKED_STATUSES = ["Booked", "Deposit Paid", "Paid in Full"];
 
@@ -139,23 +139,27 @@ export function computeFocusItems(data, adminConfig) {
   }
 
   // ── Gift thank-yous outstanding (post-event only) ───────────────────────
-  // Once the event has passed, writing thank-yous is one of the few things
-  // actually left to do, and it has no natural deadline of its own the way
-  // a task or a payment does, so it needs its own signal here. Priority 2.5
-  // slots it between overdue payments and this-week tasks: real, but not
-  // as urgent as something with an actual overdue date attached.
+  // Once the event has passed, writing and mailing thank-yous is one of the
+  // few things actually left to do, and it has no natural deadline of its own
+  // the way a task or a payment does, so it needs its own signal here.
+  // Priority 2.5 slots it between overdue payments and this-week tasks: real,
+  // but not as urgent as something with an actual overdue date attached.
+  // V4.38.0: a note counts as outstanding until it is both written AND
+  // mailed (previously only unwritten notes counted), using the shared
+  // countThankYousOutstanding() so the Gifts nav badge reads the same number.
   if (eventHasPassed && gifts.length > 0) {
-    const outstanding = gifts
-      .flatMap(g => getGiftGivers(g))
-      .filter(gv => !gv.thankYouWritten).length;
-    if (outstanding > 0) {
+    const { total, toWrite, toMail } = countThankYousOutstanding(gifts);
+    if (total > 0) {
       items.push({
         id: "gift-thankyous",
         domain: "gifts",
         tone: "accent",
         icon: "gifts",
-        title: `${outstanding} thank-you note${outstanding !== 1 ? "s" : ""} to write`,
-        detail: "From gifts received for the event",
+        title: `${total} thank-you note${total !== 1 ? "s" : ""} outstanding`,
+        detail: [
+          toWrite > 0 ? `${toWrite} to write` : null,
+          toMail  > 0 ? `${toMail} to mail`  : null,
+        ].filter(Boolean).join(", "),
         tab: "gifts",
         priority: 2.5,
       });

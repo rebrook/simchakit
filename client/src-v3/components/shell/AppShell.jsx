@@ -24,6 +24,7 @@ import { Icon }                  from "@/utils/iconMap.jsx";
 import { ErrorBoundary }         from "@/components/shared/ErrorBoundary.jsx";
 import { useSyncStatus }         from "@/utils/syncStatus.js";
 import { isFullyPaid }           from "@/utils/expensePayments.js";
+import { countThankYousOutstanding } from "@/utils/gifts.js";
 import { parseEventRoute, pushEventPath } from "@/utils/router.js";
 
 // ── Tab components ──────────────────────────────────────────────────────────
@@ -232,8 +233,8 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false, display
   const [showNotifPanel, setShowNotifPanel] = useState(false);
 
   // ── Tab badge counts (lightweight Supabase counts) ────────────────────────
-  // V4.18.0: refetches on live changes instead of on tab change (V4.36.2:
-  // households/tasks/expenses, previously people/tasks).
+  // V4.18.0: refetches on live changes instead of on tab change (V4.38.0:
+  // households/tasks/expenses/gifts, previously people/tasks).
   // badgeRealtimeOk tracks whether that channel ever confirmed SUBSCRIBED —
   // if it never does (Realtime unavailable, demo/anon degrade, etc.), the
   // tab-change effect below keeps acting as a fallback so counts don't go
@@ -244,7 +245,7 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false, display
   const fetchBadgeCounts = useCallback(async () => {
     if (!eventId) return;
     const todayStr = localDateString(new Date());
-    const [hh, tsk, exp] = await Promise.all([
+    const [hh, tsk, exp, gft] = await Promise.all([
       // Guests badge: households awaiting RSVP, not a bare total headcount.
       // Reads data->>rsvpStatus, the canonical field the Guests tab and
       // focus.js both use. It deliberately does NOT read the promoted
@@ -271,14 +272,29 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false, display
       // than re-deriving its logic here.
       supabase.from("expenses").select("data").eq("event_id", eventId)
         .lt("data->>dueDate", todayStr),
+      // Gifts badge: thank-you notes outstanding (not yet written or not yet
+      // mailed). Uses the same shared countThankYousOutstanding() as the
+      // focus panel, so the two always agree, and runs client-side because
+      // the givers live in a jsonb array. Only displayed once the event has
+      // passed; see withBadge below.
+      supabase.from("gifts").select("data").eq("event_id", eventId),
     ]);
+    // Surface failed badge queries instead of silently showing no badge, so a
+    // broken filter is diagnosable (same convention as the other background
+    // sync warnings). Expected and harmless for coordinators, whose role
+    // cannot read these tables.
+    [["guests", hh], ["tasks", tsk], ["budget", exp], ["gifts", gft]].forEach(([name, res]) => {
+      if (res.error) console.warn(`[SimchaKit] badge count failed (${name}):`, res.error.message);
+    });
     const overdueUnpaid = (exp.data || [])
       .map(row => row.data)
       .filter(e => !isFullyPaid(e)).length;
+    const thankYousOwed = countThankYousOutstanding((gft.data || []).map(row => row.data)).total;
     setBadgeCounts({
       guests: hh.count ?? null,
       tasks:  tsk.count ?? null,
       budget: overdueUnpaid,
+      gifts:  thankYousOwed,
     });
   }, [eventId]);
 
@@ -288,15 +304,25 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false, display
     fetchBadgeCounts();
   }, [eventId, loadStatus, fetchBadgeCounts]);
 
+  // Realtime-triggered refetches are debounced: a bulk action (a CSV import
+  // saves households one at a time) fires one event per row, and each refetch
+  // runs four queries. Waiting for a quiet moment turns that burst into one.
+  const badgeRefetchTimer = useRef(null);
+  const scheduleBadgeRefetch = useCallback(() => {
+    clearTimeout(badgeRefetchTimer.current);
+    badgeRefetchTimer.current = setTimeout(fetchBadgeCounts, 400);
+  }, [fetchBadgeCounts]);
+
   // Live updates: refetch whenever a relevant row changes
   useEffect(() => {
     if (!eventId || loadStatus !== "ready") return;
     badgeRealtimeOk.current = false;
     const channel = supabase
       .channel(`badges:${eventId}`)
-      .on("postgres_changes", { event: "*", schema: "public", table: "households", filter: `event_id=eq.${eventId}` }, fetchBadgeCounts)
-      .on("postgres_changes", { event: "*", schema: "public", table: "tasks",      filter: `event_id=eq.${eventId}` }, fetchBadgeCounts)
-      .on("postgres_changes", { event: "*", schema: "public", table: "expenses",   filter: `event_id=eq.${eventId}` }, fetchBadgeCounts)
+      .on("postgres_changes", { event: "*", schema: "public", table: "households", filter: `event_id=eq.${eventId}` }, scheduleBadgeRefetch)
+      .on("postgres_changes", { event: "*", schema: "public", table: "tasks",      filter: `event_id=eq.${eventId}` }, scheduleBadgeRefetch)
+      .on("postgres_changes", { event: "*", schema: "public", table: "expenses",   filter: `event_id=eq.${eventId}` }, scheduleBadgeRefetch)
+      .on("postgres_changes", { event: "*", schema: "public", table: "gifts",      filter: `event_id=eq.${eventId}` }, scheduleBadgeRefetch)
       .subscribe((status) => {
         if (status === "SUBSCRIBED") {
           badgeRealtimeOk.current = true;
@@ -304,8 +330,11 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false, display
           console.warn("[SimchaKit] Realtime unavailable for tab badges — falling back to tab-change refresh");
         }
       });
-    return () => supabase.removeChannel(channel);
-  }, [eventId, loadStatus, fetchBadgeCounts]);
+    return () => {
+      clearTimeout(badgeRefetchTimer.current);
+      supabase.removeChannel(channel);
+    };
+  }, [eventId, loadStatus, scheduleBadgeRefetch]);
 
   // Fallback only: if Realtime never confirmed SUBSCRIBED above, tab changes
   // still nudge a refresh so badges don't go stale indefinitely (e.g. demo/
@@ -482,24 +511,36 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false, display
 
   const visibleTabIdSet = new Set(tabs.map(t => t.id));
 
-  // Merge live badge counts onto tab objects
-  const BADGE_MAP = { guests: "guests", tasks: "tasks", budget: "budget" };
-  const tabsWithBadges = tabs.map(t => {
+  // Merge live badge counts onto tab objects. One helper for every nav
+  // surface so the badge rules cannot diverge between them. Each badge also
+  // carries a plain-language label (badgeLabel) for screen readers and
+  // desktop tooltips, since a bare number does not say what it counts.
+  // Gifts is post-event only, matching focus.js, which only surfaces
+  // thank-yous once the event has passed.
+  const eventHasPassed = daysToEvent !== null && daysToEvent < 0;
+  const BADGE_MAP = { guests: "guests", tasks: "tasks", budget: "budget", gifts: "gifts" };
+  const BADGE_LABELS = {
+    guests: n => `${n} household${n !== 1 ? "s" : ""} awaiting RSVP`,
+    tasks:  n => `${n} open task${n !== 1 ? "s" : ""}`,
+    budget: n => `${n} overdue payment${n !== 1 ? "s" : ""}`,
+    gifts:  n => `${n} thank-you note${n !== 1 ? "s" : ""} outstanding`,
+  };
+  const withBadge = t => {
     const countKey = BADGE_MAP[t.id];
-    const count = countKey ? badgeCounts[countKey] : undefined;
-    return count != null && count > 0 ? { ...t, badge: count } : t;
-  });
+    if (!countKey || (t.id === "gifts" && !eventHasPassed)) return t;
+    const count = badgeCounts[countKey];
+    return count != null && count > 0
+      ? { ...t, badge: count, badgeLabel: BADGE_LABELS[countKey](count) }
+      : t;
+  };
+  const tabsWithBadges = tabs.map(withBadge);
 
   // Sidebar groups filtered to visible tabs
   const sidebarGroups = isCoordinator
     ? [{ label: "Ceremony & Prep", tabs: tabsWithBadges }]
     : SIDEBAR_GROUPS.map(g => ({
         ...g,
-        tabs: g.tabs.filter(t => visibleTabIdSet.has(t.id)).map(t => {
-          const countKey = BADGE_MAP[t.id];
-          const count = countKey ? badgeCounts[countKey] : undefined;
-          return count != null && count > 0 ? { ...t, badge: count } : t;
-        }),
+        tabs: g.tabs.filter(t => visibleTabIdSet.has(t.id)).map(withBadge),
       })).filter(g => g.tabs.length > 0);
 
   // Mobile bottom bar / More drawer splits
@@ -780,7 +821,7 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false, display
             </span>
           </button>
           {daysToEvent > 0 && (
-            <button className="icon-btn dayof-reminder-dismiss" title="Dismiss" onClick={dismissDayOfBanner}>
+            <button className="icon-btn dayof-reminder-dismiss" title="Dismiss" aria-label="Dismiss Day-of Mode reminder" onClick={dismissDayOfBanner}>
               <Icon name="x" context="button" />
             </button>
           )}
@@ -836,7 +877,10 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false, display
                   <Icon name={tab.icon} context="nav" />
                   <span className="sidebar-item-label">{tab.label}</span>
                   {tab.badge != null && tab.badge > 0 && (
-                    <span className="sidebar-item-badge">{tab.badge}</span>
+                    <>
+                      <span className="sidebar-item-badge" aria-hidden="true" title={tab.badgeLabel}>{tab.badge}</span>
+                      <span className="sr-only">{tab.badgeLabel}</span>
+                    </>
                   )}
                 </button>
               ))}
@@ -1142,7 +1186,10 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false, display
             <span className="bottom-nav-icon"><Icon name={tab.icon} context="navMobile" /></span>
             <span className="bottom-nav-label">{tab.label}</span>
             {tab.badge != null && tab.badge > 0 && (
-              <span className="bottom-nav-badge">{tab.badge}</span>
+              <>
+                <span className="bottom-nav-badge" aria-hidden="true" title={tab.badgeLabel}>{tab.badge}</span>
+                <span className="sr-only">{tab.badgeLabel}</span>
+              </>
             )}
           </button>
         ))}
@@ -1152,6 +1199,12 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false, display
         >
           <span className="bottom-nav-icon"><Icon name="moreHorizontal" context="navMobile" /></span>
           <span className="bottom-nav-label">More</span>
+          {moreDrawerTabs.some(t => t.badge) && (
+            <>
+              <span className="bottom-nav-more-dot" aria-hidden="true" />
+              <span className="sr-only">Something in More needs attention</span>
+            </>
+          )}
         </button>
       </div>
 
@@ -1175,7 +1228,10 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false, display
             <span className="more-drawer-item-icon"><Icon name={tab.icon} context="menu" /></span>
             <span className="more-drawer-item-label">{tab.label}</span>
             {tab.badge != null && tab.badge > 0 && (
-              <span className="more-drawer-item-badge">{tab.badge}</span>
+              <>
+                <span className="more-drawer-item-badge" aria-hidden="true" title={tab.badgeLabel}>{tab.badge}</span>
+                <span className="sr-only">{tab.badgeLabel}</span>
+              </>
             )}
             <span className="more-drawer-item-chevron"><Icon name="chevronRight" context="inline" /></span>
           </button>

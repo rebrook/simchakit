@@ -1,10 +1,31 @@
 {
-  "current": "V4.37.2",
+  "current": "V4.38.0",
   "whatsNew": [
-    "Fix: the Guests tab loaded households without telling the data layer to keep the indexed RSVP status, group, and out-of-town columns up to date, so those columns stopped updating after each household's first save. They now update on every save",
-    "Fix: a database trigger now derives those three columns from the household record on every insert and update, so no screen or import path can leave them stale again, and a one-time resync corrected existing households across all events"
+    "New: after the event has passed, the Gifts nav badge shows how many thank-you notes are still outstanding. A note counts until it is both written and mailed, each giver is counted separately, and the badge disappears when every note is done",
+    "Change: the Overview What Needs You Next thank-you item now uses the same count, so it includes notes written but not yet mailed and shows how many are left to write and how many to mail",
+    "New: every nav badge now carries a plain-language label (for example, overdue payments on Budget) that screen readers announce and desktop users see on hover",
+    "New: on mobile, a small dot on the More button shows when a tab inside it, such as Gifts, has something outstanding",
+    "Change: nav badge counts refresh once after a burst of changes, such as a guest list import, instead of after every row",
+    "Fix: a failed nav badge lookup is now logged for diagnosis instead of silently showing no badge",
+    "Fix: the mobile Day-of Mode reminder banner's dismiss button now has a proper accessible name",
+    "Guide: updated the Guests, Budget, Gifts, Admin Mode Timeline, Day-of Mode, and Mobile navigation sections to describe the new nav badges, the Day-of Mode reminder banner, and how untimed timeline entries are handled"
   ],
   "changelog": [
+    {
+      "version": "V4.38.0",
+      "date": "2026-10-19",
+      "summary": "Nav badges now cover thank-you notes, carry plain-language labels, and the guide is brought up to date",
+      "changes": [
+        "New: after the event has passed, the Gifts nav badge shows how many thank-you notes are still outstanding. A note counts until it is both written and mailed, each giver is counted separately, and the badge disappears when every note is done",
+        "Change: the Overview What Needs You Next thank-you item now uses the same count, so it includes notes written but not yet mailed and shows how many are left to write and how many to mail",
+        "New: every nav badge now carries a plain-language label (for example, overdue payments on Budget) that screen readers announce and desktop users see on hover",
+        "New: on mobile, a small dot on the More button shows when a tab inside it, such as Gifts, has something outstanding",
+        "Change: nav badge counts refresh once after a burst of changes, such as a guest list import, instead of after every row",
+        "Fix: a failed nav badge lookup is now logged for diagnosis instead of silently showing no badge",
+        "Fix: the mobile Day-of Mode reminder banner's dismiss button now has a proper accessible name",
+        "Guide: updated the Guests, Budget, Gifts, Admin Mode Timeline, Day-of Mode, and Mobile navigation sections to describe the new nav badges, the Day-of Mode reminder banner, and how untimed timeline entries are handled"
+      ]
+    },
     {
       "version": "V4.37.2",
       "date": "2026-10-19",

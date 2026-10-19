@@ -348,6 +348,19 @@
     }
     .sidebar-item.active .sidebar-item-badge { color: rgba(255,255,255,0.85); }
 
+    /* Visually hidden, still read by screen readers (nav badge labels) */
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      margin: -1px;
+      padding: 0;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
     /* ── Sidebar Day-of Mode entry ── */
     .sidebar-dayof {
       display: flex;
@@ -1973,6 +1986,16 @@
       .bottom-nav-icon { font-size: 18px; line-height: 1; }
       .bottom-nav-label { font-size: 11px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
       .bottom-nav-tab.active .bottom-nav-label { font-weight: 700; }
+      /* Dot on the More button when a tab inside the drawer has a badge */
+      .bottom-nav-more-dot {
+        position: absolute;
+        top: 6px;
+        right: calc(50% - 14px);
+        width: 8px;
+        height: 8px;
+        background: var(--accent-primary);
+        border-radius: 50%;
+      }
       .bottom-nav-badge {
         position: absolute;
         top: 4px;
