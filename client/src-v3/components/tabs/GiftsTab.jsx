@@ -1,5 +1,5 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// SimchaKit V4.33.1 — GiftsTab.jsx
+// SimchaKit V4.33.2 — GiftsTab.jsx
 // Uses useEventData for Supabase persistence.
 // A gift can now be given by more than one household (gift.givers array) —
 // see utils/gifts.js for the data model and legacy-shape migration. Shared
@@ -11,6 +11,13 @@
 // through in its payload. V4.33.0 rebuilt the form state field by field
 // instead of spreading the whole gift, which dropped _rowId and made every
 // edit save() as a new row instead of updating the existing one.
+//
+// V4.33.2: V4.33.1 was incomplete. handleSave() also needs _createdAt and
+// _updatedAt carried through, not just _rowId. useEventData's save_row RPC
+// is an optimistic-concurrency update keyed on _updatedAt, so omitting it
+// made every edit report a false conflict and silently revert to the
+// server's pre-edit copy instead of saving. handleAdd/handleEdit also now
+// check save()'s return value instead of always reporting success.
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useState, useEffect, useRef } from "react";
@@ -59,8 +66,26 @@ export function GiftsTab({ eventId, event, adminConfig, showToast, isArchived, i
     return next;
   });
 
-  const handleAdd    = async (g) => { if (isArchived || isViewer) return; await save(g); showToast("Gift added");   setShowModal(false); };
-  const handleEdit   = async (g) => { if (isArchived || isViewer) return; await save(g); showToast("Gift updated"); setEditGift(null);   };
+  const handleAdd = async (g) => {
+    if (isArchived || isViewer) return;
+    const result = await save(g);
+    if (result?.error) { showToast("Couldn't add the gift. Try again."); return; }
+    showToast("Gift added");
+    setShowModal(false);
+  };
+
+  const handleEdit = async (g) => {
+    if (isArchived || isViewer) return;
+    const result = await save(g);
+    if (result?.error) { showToast("Couldn't save the gift. Try again."); return; }
+    // A conflict means someone else saved this gift first; save() has already
+    // replaced the local copy with the server's current version and the hook
+    // fires its own "simchakit:save-conflict" event for AppShell to toast.
+    // Keep the modal open here rather than discarding what was just typed.
+    if (result?.conflict) return;
+    showToast("Gift updated");
+    setEditGift(null);
+  };
   const handleDelete = async (id) => {
     if (isArchived || isViewer) return;
     const g = gifts.find(x => x.id === id);
@@ -539,9 +564,20 @@ export function GiftModal({ gift, households, onSave, onClose, isArchived }) {
       amount: form.amount !== "" ? parseFloat(form.amount) : null,
       givers: cleanGivers,
     };
-    // Carry the existing row's _rowId through on edit, or save() has nothing
-    // to match against and inserts a new row instead of updating this one.
-    if (gift?._rowId != null) payload._rowId = gift._rowId;
+    // Carry the existing row's internal tracking fields through on edit.
+    // _rowId tells save() which row to update instead of inserting a new
+    // one. _updatedAt is just as essential: save_row() is an optimistic-
+    // concurrency RPC that only applies the write when _updatedAt still
+    // matches the server's copy — omitting it means the check always
+    // fails, the RPC reports a conflict, and save() quietly reverts local
+    // state to the server's old (pre-edit) data instead of persisting
+    // the edit. _createdAt is carried along too for consistency, though
+    // it isn't used by the concurrency check itself.
+    if (gift) {
+      payload._rowId     = gift._rowId;
+      payload._createdAt = gift._createdAt;
+      payload._updatedAt = gift._updatedAt;
+    }
     onSave(payload);
   };
 

@@ -1,9 +1,19 @@
 {
-  "current": "V4.33.1",
+  "current": "V4.33.2",
   "whatsNew": [
-    "Fix: editing a gift no longer creates a duplicate row. If you saw the same gift appear more than once after editing it, that's why, and the duplicates can be deleted individually"
+    "Fix: gift edits were silently failing to save and reverting to the old data. This is now fixed; please check any gift you edited recently and re-enter anything that didn't stick"
   ],
   "changelog": [
+    {
+      "version": "V4.33.2",
+      "date": "2026-10-19",
+      "summary": "Fixed gift edits silently failing to save and reverting to the old data",
+      "changes": [
+        "Fix: editing an existing gift through the Add/Edit form could appear to save, show a success message, and close normally, but the edit never actually reached the database. Reopening the gift, even after a page refresh, showed the old data. The V4.33.1 fix for duplicate rows was incomplete: it carried the row's identity through on save but not its last-saved timestamp, which the save path requires to confirm no one else changed the row first. Without it, every edit was being treated as out of date and discarded. Both are now carried through correctly",
+        "Fix: saving a gift now checks whether the save actually succeeded instead of always reporting success. A failed save keeps the form open instead of closing and discarding what was typed",
+        "Note: this does not recover any edits lost to the bug before this fix. Fields edited and believed saved since V4.33.0 should be checked and re-entered if still wrong"
+      ]
+    },
     {
       "version": "V4.33.1",
       "date": "2026-10-18",
