@@ -1,12 +1,23 @@
 {
-  "current": "V4.36.1",
+  "current": "V4.37.0",
   "whatsNew": [
-    "Fix: a timeline entry with a date but no start time was invisible to Day-of Mode's now/next detection, so an event with only an untimed entry showed Mazal tov, all events have wrapped up even on the event date itself. Untimed entries are now treated as all-day",
-    "Fix: a timeline entry with a start time but no end time was excluded from Day-of Mode the same way; it now defaults to a 1 hour block",
-    "Fix: an untimed timeline entry could sort before every other entry on its day instead of in its correct position, as a side effect of the same underlying issue",
-    "New: timeline entries in Admin Mode now show a No time set or No end time tag when either is missing, so the Day-of Mode fallback behavior above is visible instead of silent"
+    "Change: the Guests nav badge now counts households still awaiting RSVP instead of the total guest count, so it reads zero once everyone has responded rather than showing the same number forever",
+    "New: a Budget nav badge now shows the count of overdue unpaid expenses, matching the same definition already used by the Overview focus panel",
+    "Fix: the Tasks nav badge was filtering on a field no part of the app actually writes, so it had been showing the total task count rather than the open task count since it shipped. It now correctly excludes completed and dismissed tasks",
+    "Nav badges stay a neutral accent color in every case; urgency coloring remains the focus panel's job, not the nav's"
   ],
   "changelog": [
+    {
+      "version": "V4.37.0",
+      "date": "2026-10-19",
+      "summary": "Nav badges now reflect what actually needs attention instead of running totals",
+      "changes": [
+        "Change: the Guests nav badge now counts households still awaiting RSVP instead of the total guest count, so it reads zero once everyone has responded rather than showing the same number forever",
+        "New: a Budget nav badge now shows the count of overdue unpaid expenses, matching the same definition already used by the Overview focus panel",
+        "Fix: the Tasks nav badge was filtering on a field no part of the app actually writes, so it had been showing the total task count rather than the open task count since it shipped. It now correctly excludes completed and dismissed tasks",
+        "Nav badges stay a neutral accent color in every case; urgency coloring remains the focus panel's job, not the nav's"
+      ]
+    },
     {
       "version": "V4.36.1",
       "date": "2026-10-19",

@@ -23,6 +23,7 @@ import { NotificationPanel }     from "@/components/shared/NotificationPanel.jsx
 import { Icon }                  from "@/utils/iconMap.jsx";
 import { ErrorBoundary }         from "@/components/shared/ErrorBoundary.jsx";
 import { useSyncStatus }         from "@/utils/syncStatus.js";
+import { isFullyPaid }           from "@/utils/expensePayments.js";
 import { parseEventRoute, pushEventPath } from "@/utils/router.js";
 
 // ── Tab components ──────────────────────────────────────────────────────────
@@ -231,7 +232,8 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false, display
   const [showNotifPanel, setShowNotifPanel] = useState(false);
 
   // ── Tab badge counts (lightweight Supabase counts) ────────────────────────
-  // V4.18.0: refetches on live people/tasks changes instead of on tab change.
+  // V4.18.0: refetches on live changes instead of on tab change (V4.36.2:
+  // households/tasks/expenses, previously people/tasks).
   // badgeRealtimeOk tracks whether that channel ever confirmed SUBSCRIBED —
   // if it never does (Realtime unavailable, demo/anon degrade, etc.), the
   // tab-change effect below keeps acting as a fallback so counts don't go
@@ -241,14 +243,41 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false, display
 
   const fetchBadgeCounts = useCallback(async () => {
     if (!eventId) return;
-    const [ppl, tsk] = await Promise.all([
-      supabase.from("people").select("*", { count: "exact", head: true }).eq("event_id", eventId),
+    const todayStr = localDateString(new Date());
+    const [hh, tsk, exp] = await Promise.all([
+      // Guests badge: households awaiting RSVP, not a bare total headcount.
+      // status is the promoted column (SK-A6), synced from rsvpStatus.
+      // Built as status IS NULL OR status NOT IN (...) rather than a plain
+      // .not(..., "in", ...), because SQL's three-valued logic means a bare
+      // NOT IN silently drops never-set (NULL) households instead of
+      // counting them as awaiting, which is the one group most clearly
+      // still awaiting a response.
+      supabase.from("households").select("*", { count: "exact", head: true })
+        .eq("event_id", eventId)
+        .or('status.is.null,status.not.in.("RSVP Yes","RSVP No")'),
+      // Tasks badge: was filtering on data->>completed, a field no consumer
+      // in this codebase (focus.js, DayOfOverlay.jsx) actually writes or
+      // reads; the real fields are done and dismissed, matching focus.js's
+      // own !t.done && !t.dismissed definition of "active."
       supabase.from("tasks").select("*", { count: "exact", head: true }).eq("event_id", eventId)
-        .or("data->>completed.is.null,data->>completed.neq.true"),
+        .or("data->>done.is.null,data->>done.neq.true")
+        .or("data->>dismissed.is.null,data->>dismissed.neq.true"),
+      // Budget badge: "overdue and unpaid" can't be expressed as a single
+      // jsonb column filter, since isFullyPaid() sums a payments[] schedule
+      // for V3's installment feature rather than reading a flat paid field.
+      // Narrow server-side to just the (small) set of expenses overdue by
+      // date, then reuse the real isFullyPaid() helper client-side rather
+      // than re-deriving its logic here.
+      supabase.from("expenses").select("data").eq("event_id", eventId)
+        .lt("data->>dueDate", todayStr),
     ]);
+    const overdueUnpaid = (exp.data || [])
+      .map(row => row.data)
+      .filter(e => !isFullyPaid(e)).length;
     setBadgeCounts({
-      guests: ppl.count ?? null,
+      guests: hh.count ?? null,
       tasks:  tsk.count ?? null,
+      budget: overdueUnpaid,
     });
   }, [eventId]);
 
@@ -264,8 +293,9 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false, display
     badgeRealtimeOk.current = false;
     const channel = supabase
       .channel(`badges:${eventId}`)
-      .on("postgres_changes", { event: "*", schema: "public", table: "people", filter: `event_id=eq.${eventId}` }, fetchBadgeCounts)
-      .on("postgres_changes", { event: "*", schema: "public", table: "tasks",  filter: `event_id=eq.${eventId}` }, fetchBadgeCounts)
+      .on("postgres_changes", { event: "*", schema: "public", table: "households", filter: `event_id=eq.${eventId}` }, fetchBadgeCounts)
+      .on("postgres_changes", { event: "*", schema: "public", table: "tasks",      filter: `event_id=eq.${eventId}` }, fetchBadgeCounts)
+      .on("postgres_changes", { event: "*", schema: "public", table: "expenses",   filter: `event_id=eq.${eventId}` }, fetchBadgeCounts)
       .subscribe((status) => {
         if (status === "SUBSCRIBED") {
           badgeRealtimeOk.current = true;
@@ -452,7 +482,7 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false, display
   const visibleTabIdSet = new Set(tabs.map(t => t.id));
 
   // Merge live badge counts onto tab objects
-  const BADGE_MAP = { guests: "guests", tasks: "tasks" };
+  const BADGE_MAP = { guests: "guests", tasks: "tasks", budget: "budget" };
   const tabsWithBadges = tabs.map(t => {
     const countKey = BADGE_MAP[t.id];
     const count = countKey ? badgeCounts[countKey] : undefined;
