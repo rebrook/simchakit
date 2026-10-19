@@ -1,11 +1,23 @@
 {
-  "current": "V4.36.0",
+  "current": "V4.36.1",
   "whatsNew": [
-    "New: within 7 days of the main event, a dismissible gold reminder banner appears beneath the mobile header on every tab, tapping it opens Day-of Mode directly (V3 only)",
-    "New: on the day of the event itself, the banner switches to It's today and cannot be dismissed",
-    "New: the banner's dismissal is remembered for the rest of that calendar day and reappears the next morning if still within the 7 day window"
+    "Fix: a timeline entry with a date but no start time was invisible to Day-of Mode's now/next detection, so an event with only an untimed entry showed Mazal tov, all events have wrapped up even on the event date itself. Untimed entries are now treated as all-day",
+    "Fix: a timeline entry with a start time but no end time was excluded from Day-of Mode the same way; it now defaults to a 1 hour block",
+    "Fix: an untimed timeline entry could sort before every other entry on its day instead of in its correct position, as a side effect of the same underlying issue",
+    "New: timeline entries in Admin Mode now show a No time set or No end time tag when either is missing, so the Day-of Mode fallback behavior above is visible instead of silent"
   ],
   "changelog": [
+    {
+      "version": "V4.36.1",
+      "date": "2026-10-19",
+      "summary": "Fixed Day-of Mode incorrectly showing all events as wrapped up when a timeline entry was missing a time",
+      "changes": [
+        "Fix: a timeline entry with a date but no start time was invisible to Day-of Mode's now/next detection, so an event with only an untimed entry showed Mazal tov, all events have wrapped up even on the event date itself. Untimed entries are now treated as all-day",
+        "Fix: a timeline entry with a start time but no end time was excluded from Day-of Mode the same way; it now defaults to a 1 hour block",
+        "Fix: an untimed timeline entry could sort before every other entry on its day instead of in its correct position, as a side effect of the same underlying issue",
+        "New: timeline entries in Admin Mode now show a No time set or No end time tag when either is missing, so the Day-of Mode fallback behavior above is visible instead of silent"
+      ]
+    },
     {
       "version": "V4.36.0",
       "date": "2026-10-19",

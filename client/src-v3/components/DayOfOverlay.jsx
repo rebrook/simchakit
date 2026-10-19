@@ -77,13 +77,37 @@ function buildTimestamp(dateStr, timeStr) {
   return d.getTime();
 }
 
-// Build start/end timestamps for an entry, handling midnight crossing
+// Build start/end timestamps for an entry, handling midnight crossing.
+//
+// Bug fix (V4.36.1): this used to return null/null whenever startTime was
+// blank, which made the entry invisible to every consumer below (now/next
+// detection, allPast, both run-of-show render paths, and the intra-day sort
+// in groupTimelineByDate). A dated-but-untimed entry looked identical to
+// one with no date at all. Two cases are handled explicitly instead of
+// falling through to null:
+//   - No start time at all: treat the entry as all-day (local midnight to
+//     the next local midnight) on its date.
+//   - Start time given but no end time: default to a 1 hour block. This is
+//     a judgment call on duration, not a value the user entered, and the
+//     corresponding AdminPanel warning tag exists so it's not a silent
+//     assumption.
 function entryTimestamps(entry, fallbackDate) {
   const dateStr = entry.startDate || fallbackDate || null;
+  if (!dateStr) return { startMs: null, endMs: null };
+
   const startMs = buildTimestamp(dateStr, entry.startTime);
   let endMs = buildTimestamp(dateStr, entry.endTime);
-  // endTime < startTime means midnight crossing: add 24h to end
-  if (startMs !== null && endMs !== null && endMs <= startMs) {
+
+  if (startMs === null) {
+    const d = new Date(dateStr + "T00:00:00");
+    if (isNaN(d.getTime())) return { startMs: null, endMs: null };
+    return { startMs: d.getTime(), endMs: d.getTime() + 24 * 60 * 60 * 1000 };
+  }
+
+  if (endMs === null) {
+    endMs = startMs + 60 * 60 * 1000;
+  } else if (endMs <= startMs) {
+    // endTime < startTime means midnight crossing: add 24h to end
     endMs += 24 * 60 * 60 * 1000;
   }
   return { startMs, endMs };

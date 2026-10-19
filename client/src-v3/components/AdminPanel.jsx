@@ -480,6 +480,8 @@ export function AdminPanel({ eventId, userId, calendarToken: initialCalendarToke
                           <span style={{fontWeight:600,fontSize:14,color:"var(--text-primary)"}}>{entry.title}</span>
                           {entry.isMainEvent && <span className="tag tag-accent" style={{fontSize:11}}><Icon name="star" context="badge" style={{ marginRight: 3 }} /> Main Event</span>}
                           {entry.inviteAllByDefault === false && <span className="tag tag-muted" style={{fontSize:11}}>Opt-in only</span>}
+                          {entry.startDate && !entry.startTime && <span className="tag tag-gold" style={{fontSize:11}}><Icon name="alertTriangle" context="badge" style={{ marginRight: 3 }} /> No time set</span>}
+                          {entry.startDate && entry.startTime && !entry.endTime && <span className="tag tag-gold" style={{fontSize:11}}><Icon name="alertTriangle" context="badge" style={{ marginRight: 3 }} /> No end time (defaults to 1 hr)</span>}
                         </div>
                         <div style={{fontSize:12,color:"var(--text-muted)",marginTop:2}}>{formatEntryMeta(entry)}</div>
                       </div>
