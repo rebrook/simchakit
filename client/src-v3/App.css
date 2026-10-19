@@ -4650,3 +4650,79 @@
       cursor: pointer;
     }
     .dayof-m-notify:active { filter: brightness(0.9); }
+
+    /* ── Gifts tab: labeled thank-you chips, row dividers, sticky header (V4.39.0) ── */
+    .gift-table-head-row th {
+      position: sticky;
+      top: 0;
+      background: var(--bg-subtle);
+      z-index: 2;
+    }
+    .gift-row { border-top: 1px solid var(--border); }
+    .gift-row:first-child { border-top: none; }
+    .gift-row:hover { background: var(--bg-subtle); }
+    .gift-giver-line {
+      height: 32px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .gift-giver-line + .gift-giver-line {
+      border-top: 1px dashed var(--border);
+    }
+    .gift-sort-th {
+      background: none;
+      border: none;
+      cursor: pointer;
+      font: inherit;
+      color: inherit;
+      padding: 0;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .gift-sort-th:hover { color: var(--text-primary); }
+    .gift-actions {
+      display: flex;
+      gap: 4px;
+      justify-content: flex-end;
+      opacity: 0.45;
+      transition: opacity 0.15s;
+    }
+    .gift-row:hover .gift-actions,
+    .gift-actions:focus-within {
+      opacity: 1;
+    }
+    .gift-ty-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      height: 26px;
+      padding: 0 10px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: var(--bg-surface);
+      font-family: var(--font-body);
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .gift-ty-chip:hover { border-color: var(--text-muted); }
+    .gift-ty-chip:disabled { cursor: default; opacity: 0.6; }
+    .gift-ty-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      border: 1.5px solid currentColor;
+      display: inline-block;
+      opacity: 0.5;
+      flex-shrink: 0;
+    }
+    .gift-ty-chip.on .gift-ty-dot { background: currentColor; opacity: 1; }
+    .gift-ty-chip.written.on { background: var(--green-light); border-color: var(--green); color: var(--green); }
+    .gift-ty-chip.mailed.on  { background: var(--blue-light);  border-color: var(--blue);  color: var(--blue); }
+    @media (max-width: 760px) {
+      .gift-ty-chip { height: 44px; padding: 0 14px; font-size: 13px; }
+    }

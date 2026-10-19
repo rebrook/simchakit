@@ -1,13 +1,26 @@
 {
-  "current": "V4.38.2",
+  "current": "V4.39.0",
   "whatsNew": [
-    "Fix: the Overview What Needs You Next payment item and the Budget nav badge only looked at an expense's own due date, while the Budget tab judges an expense with a payment schedule by its unpaid installments' due dates. A late installment could show Overdue on the tab and be missed by both. All three now use the same rule",
-    "Fix: the overdue and due-soon dollar totals on the Overview now add up only the late or upcoming installments, instead of the whole remaining balance of each expense, so one late deposit no longer inflates the figure",
-    "Fix: a payment due today read as due tomorrow on the Overview; it now reads due today",
-    "New: the Outstanding card on the Budget tab now also shows how many items are overdue (for example, 14 unpaid items, 2 overdue), so the Budget badge number can be found on the tab",
-    "Guide: the Budget section's overdue badge entry now describes the installment rule, the new card detail, and how the Overview totals are calculated"
+    "UX: Gifts tab thank-you toggles are now labeled Written/Mailed buttons, not color-only checkboxes",
+    "UX: Gifts tab rows now have dividers and a hover highlight, and Amount/Received columns are sortable"
   ],
   "changelog": [
+    {
+      "version": "V4.39.0",
+      "date": "2026-10-19",
+      "summary": "Gifts tab thank-you status and list layout rebuilt for accessibility",
+      "changes": [
+        "New: the Gifts tab's Written and Mailed thank-you toggles are now labeled buttons with a filled or empty dot, instead of two unlabeled color-only checkboxes, so status reads without hovering or relying on color",
+        "New: the Amount and Received column headers are now sortable; the default order (most recent date received, then last name) is unchanged until a column is clicked",
+        "Fix: gift rows now have visible dividers and a hover highlight, so one gift's givers can no longer be mistaken for the next gift's",
+        "Fix: the gift type and description are now one combined column that wraps instead of being split across two columns with the description truncated",
+        "Fix: Attended is now shown as text (Attended, Did not attend, Unknown) instead of a color-only icon",
+        "Change: Delete moves into a menu next to Edit on desktop, and Edit and Delete are combined into a single menu button on mobile cards; the existing delete confirmation step is unchanged",
+        "Change: on a phone, a gift with a single giver shows one Thank-you label instead of repeating the giver's name"
+      ],
+      "roadmap": [],
+      "knownIssues": []
+    },
     {
       "version": "V4.38.2",
       "date": "2026-10-19",

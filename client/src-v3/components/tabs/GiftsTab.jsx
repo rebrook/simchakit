@@ -56,12 +56,46 @@ export function GiftsTab({ eventId, event, adminConfig, showToast, isArchived, i
   const [showExport,    setShowExport]    = useState(false);
   const [printHTML,     setPrintHTML]     = useState(null);
 
-  // Mobile card layout
-  const [isMobile,      setIsMobile]      = useState(() => window.innerWidth < 640);
+  // Mobile card layout (760px matches the app-wide table-to-card breakpoint)
+  const [isMobile,      setIsMobile]      = useState(() => window.innerWidth < 760);
   const [expandedCards, setExpandedCards] = useState(new Set());
 
+  // Column sorting (Amount / Received). null sortBy keeps the original default:
+  // date received descending, then last name.
+  const [sortBy,  setSortBy]  = useState(null); // null | "amount" | "received"
+  const [sortDir, setSortDir] = useState("desc"); // "asc" | "desc"
+
+  const toggleSort = (col) => {
+    if (sortBy === col) {
+      setSortDir(d => d === "desc" ? "asc" : "desc");
+    } else {
+      setSortBy(col);
+      setSortDir("desc");
+    }
+  };
+
+  // Per-row "more" menu (desktop Delete-only menu, mobile Edit+Delete menu)
+  const [openMenuId, setOpenMenuId] = useState(null);
+  const menuRefs = useRef({});
+  const setMenuRef = (id) => (node) => { menuRefs.current[id] = node; };
+
   useEffect(() => {
-    const handler = () => setIsMobile(window.innerWidth < 640);
+    if (openMenuId == null) return;
+    const handleClick = (e) => {
+      const node = menuRefs.current[openMenuId];
+      if (node && !node.contains(e.target)) setOpenMenuId(null);
+    };
+    const handleKey = (e) => { if (e.key === "Escape") setOpenMenuId(null); };
+    document.addEventListener("mousedown", handleClick);
+    document.addEventListener("keydown", handleKey);
+    return () => {
+      document.removeEventListener("mousedown", handleClick);
+      document.removeEventListener("keydown", handleKey);
+    };
+  }, [openMenuId]);
+
+  useEffect(() => {
+    const handler = () => setIsMobile(window.innerWidth < 760);
     window.addEventListener("resize", handler);
     return () => window.removeEventListener("resize", handler);
   }, []);
@@ -150,12 +184,28 @@ export function GiftsTab({ eventId, event, adminConfig, showToast, isArchived, i
     }
     return true;
   }).sort((a, b) => {
-    if (a.dateReceived && b.dateReceived) {
-      const diff = new Date(b.dateReceived) - new Date(a.dateReceived);
+    if (sortBy === "amount") {
+      const av = parseFloat(a.amount) || 0, bv = parseFloat(b.amount) || 0;
+      const diff = sortDir === "asc" ? av - bv : bv - av;
       if (diff !== 0) return diff;
+    } else if (sortBy === "received") {
+      if (a.dateReceived && b.dateReceived) {
+        const diff = sortDir === "asc"
+          ? new Date(a.dateReceived) - new Date(b.dateReceived)
+          : new Date(b.dateReceived) - new Date(a.dateReceived);
+        if (diff !== 0) return diff;
+      } else if (a.dateReceived && !b.dateReceived) return -1;
+      else if (!a.dateReceived && b.dateReceived) return 1;
+    } else {
+      // Default: date received descending
+      if (a.dateReceived && b.dateReceived) {
+        const diff = new Date(b.dateReceived) - new Date(a.dateReceived);
+        if (diff !== 0) return diff;
+      }
+      if (a.dateReceived && !b.dateReceived) return -1;
+      if (!a.dateReceived && b.dateReceived) return 1;
     }
-    if (a.dateReceived && !b.dateReceived) return -1;
-    if (!a.dateReceived && b.dateReceived) return 1;
+    // Tiebreaker (and default secondary sort): last name
     const aName = getGiftGivers(a)[0]?.name || "";
     const bName = getGiftGivers(b)[0]?.name || "";
     return lastNameOf(aName).localeCompare(lastNameOf(bName));
@@ -271,14 +321,22 @@ export function GiftsTab({ eventId, event, adminConfig, showToast, isArchived, i
         <div style={{ overflowX: "auto" }}>
           <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
             <thead>
-              <tr style={{ borderBottom: "1px solid var(--border)" }}>
+              <tr className="gift-table-head-row">
                 <th style={TH}>From</th>
-                <th style={TH}>Type</th>
-                <th style={TH}>Description</th>
-                <th style={{ ...TH, textAlign: "right" }}>Amount</th>
-                <th style={TH}>Received</th>
-                <th style={{ ...TH, textAlign: "center" }}>Attended</th>
-                <th style={{ ...TH, textAlign: "center", width: 64 }}>Actions</th>
+                <th style={TH}>Gift</th>
+                <th style={{ ...TH, textAlign: "right" }} aria-sort={sortBy === "amount" ? (sortDir === "asc" ? "ascending" : "descending") : "none"}>
+                  <button type="button" className="gift-sort-th" style={{ justifyContent: "flex-end", width: "100%" }} onClick={() => toggleSort("amount")}>
+                    Amount {sortBy === "amount" && <span aria-hidden="true">{sortDir === "asc" ? "↑" : "↓"}</span>}
+                  </button>
+                </th>
+                <th style={TH} aria-sort={sortBy === "received" ? (sortDir === "asc" ? "ascending" : "descending") : "none"}>
+                  <button type="button" className="gift-sort-th" onClick={() => toggleSort("received")}>
+                    Received {(sortBy === "received" || sortBy == null) && <span aria-hidden="true">{sortBy === "received" ? (sortDir === "asc" ? "↑" : "↓") : "↓"}</span>}
+                  </button>
+                </th>
+                <th style={TH}>Thank-you note</th>
+                <th style={TH}>Attended</th>
+                <th style={{ ...TH, textAlign: "right", width: 80 }}><span className="sr-only">Actions</span></th>
               </tr>
             </thead>
             <tbody>
@@ -289,28 +347,14 @@ export function GiftsTab({ eventId, event, adminConfig, showToast, isArchived, i
                   const tc     = TYPE_COLORS[g.giftType] || TYPE_COLORS["Other"];
                   const givers = getGiftGivers(g);
                   return (
-                    <tr key={g.id || g._rowId} id={`row-${g.id}`}>
+                    <tr key={g.id || g._rowId} id={`row-${g.id}`} className="gift-row">
                       <td style={TD}>
                         {givers.map((gv, i) => (
-                          <div key={gv.id || i} style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: i < givers.length - 1 ? 4 : 0 }}>
+                          <div key={gv.id || i} className="gift-giver-line">
                             <span style={{ fontWeight: 600, color: "var(--text-primary)", fontSize: 13 }}>{gv.name || "—"}</span>
                             {gv.householdId && (
-                              <span style={{ fontSize: 11, color: "var(--accent-medium)" }} title="Linked to guest list">●</span>
+                              <span style={{ fontSize: 11, color: "var(--accent-medium)" }} title="Linked to guest list">● guest</span>
                             )}
-                            <button type="button" aria-label={`${gv.thankYouWritten ? "Mark not written" : "Mark written"} for ${gv.name || "this giver"}`}
-                              disabled={isViewer}
-                              onClick={() => toggleGiverWritten(g.id, gv.id)}
-                              title={gv.thankYouWritten ? "Written" : "Not yet written"}
-                              style={{ width: 18, height: 18, padding: 0, borderRadius: 5, border: `1.5px solid ${gv.thankYouWritten ? "var(--green)" : "var(--border)"}`, background: gv.thankYouWritten ? "var(--green)" : "transparent", display: "inline-flex", alignItems: "center", justifyContent: "center", cursor: isViewer ? "default" : "pointer", flexShrink: 0 }}>
-                              {gv.thankYouWritten && <span style={{ color: "white", fontSize: 10, fontWeight: 700 }}><Icon name="check" context="badge" /></span>}
-                            </button>
-                            <button type="button" aria-label={`${gv.thankYouMailed ? "Mark not mailed" : "Mark mailed"} for ${gv.name || "this giver"}`}
-                              disabled={isViewer}
-                              onClick={() => toggleGiverMailed(g.id, gv.id)}
-                              title={gv.thankYouMailed ? "Mailed" : "Not yet mailed"}
-                              style={{ width: 18, height: 18, padding: 0, borderRadius: 5, border: `1.5px solid ${gv.thankYouMailed ? "var(--blue)" : "var(--border)"}`, background: gv.thankYouMailed ? "var(--blue)" : "transparent", display: "inline-flex", alignItems: "center", justifyContent: "center", cursor: isViewer ? "default" : "pointer", flexShrink: 0 }}>
-                              {gv.thankYouMailed && <span style={{ color: "white", fontSize: 10, fontWeight: 700 }}><Icon name="check" context="badge" /></span>}
-                            </button>
                           </div>
                         ))}
                       </td>
@@ -318,28 +362,63 @@ export function GiftsTab({ eventId, event, adminConfig, showToast, isArchived, i
                         <span style={{ fontSize: 11, fontWeight: 700, padding: "2px 8px", borderRadius: 99, background: tc.bg, color: tc.color, whiteSpace: "nowrap" }}>
                           {g.giftType}
                         </span>
+                        {g.description && (
+                          <div style={{ marginTop: 4, color: "var(--text-secondary)", fontSize: 13, overflowWrap: "anywhere" }}>
+                            {g.description}
+                          </div>
+                        )}
                       </td>
-                      <td style={{ ...TD, color: "var(--text-secondary)", maxWidth: 200, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}
-                        title={g.description || undefined}>
-                        {g.description || "—"}
-                      </td>
-                      <td style={{ ...TD, textAlign: "right", fontWeight: 700, color: "var(--green)", fontFamily: "var(--font-mono)", fontSize: 13 }}>
+                      <td style={{ ...TD, textAlign: "right", fontWeight: 700, color: g.amount != null ? "var(--green)" : "var(--text-muted)", fontFamily: "var(--font-mono)", fontSize: 13 }}>
                         {g.amount != null ? `$${parseFloat(g.amount).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : "—"}
                       </td>
                       <td style={{ ...TD, fontSize: 12, color: "var(--text-muted)", whiteSpace: "nowrap" }}>
                         {g.dateReceived ? new Date(g.dateReceived + "T00:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "—"}
                       </td>
-                      <td style={{ ...TD, textAlign: "center" }}>
-                        <div style={{ width: 22, height: 22, borderRadius: 6, border: `2px solid ${g.attended === true ? "var(--green)" : g.attended === false ? "var(--red)" : "var(--border)"}`, background: g.attended === true ? "var(--green)" : g.attended === false ? "var(--red)" : "transparent", display: "inline-flex", alignItems: "center", justifyContent: "center", opacity: g.attended == null ? 0.4 : 1 }}
-                          title={g.attended === true ? "Attended" : g.attended === false ? "Did not attend" : "Unknown"}>
-                          {g.attended === true  && <svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4L3.5 6.5L9 1" stroke="white" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg>}
-                          {g.attended === false && <svg width="8"  height="8" viewBox="0 0 8 8"  fill="none"><path d="M1 1L7 7M7 1L1 7" stroke="white" strokeWidth="1.6" strokeLinecap="round"/></svg>}
-                        </div>
+                      <td style={TD}>
+                        {givers.map((gv, i) => (
+                          <div key={gv.id || i} className="gift-giver-line" style={{ gap: 6 }}>
+                            <button type="button"
+                              className={`gift-ty-chip written${gv.thankYouWritten ? " on" : ""}`}
+                              aria-pressed={!!gv.thankYouWritten}
+                              aria-label={`${gv.thankYouWritten ? "Mark not written" : "Mark written"} for ${gv.name || "this giver"}`}
+                              disabled={isViewer}
+                              onClick={() => toggleGiverWritten(g.id, gv.id)}>
+                              <span className="gift-ty-dot" aria-hidden="true" />Written
+                            </button>
+                            <button type="button"
+                              className={`gift-ty-chip mailed${gv.thankYouMailed ? " on" : ""}`}
+                              aria-pressed={!!gv.thankYouMailed}
+                              aria-label={`${gv.thankYouMailed ? "Mark not mailed" : "Mark mailed"} for ${gv.name || "this giver"}`}
+                              disabled={isViewer}
+                              onClick={() => toggleGiverMailed(g.id, gv.id)}>
+                              <span className="gift-ty-dot" aria-hidden="true" />Mailed
+                            </button>
+                          </div>
+                        ))}
                       </td>
-                      <td style={{ ...TD, textAlign: "center" }}>
-                        <div style={{ display: "flex", gap: 8, justifyContent: "center" }}>
-                          <button className="icon-btn" title="Edit"   disabled={isArchived || isViewer} onClick={() => setEditGift(g)}><Icon name="pencil" context="badge" /></button>
-                          <button className="icon-btn icon-btn-danger" title="Delete" disabled={isArchived || isViewer} onClick={() => setDeleteConfirm(g)}><Icon name="x" context="badge" /></button>
+                      <td style={TD}>
+                        {g.attended === true  && <span style={{ fontSize: 12, fontWeight: 600, color: "var(--green)" }}>Attended</span>}
+                        {g.attended === false && <span style={{ fontSize: 12, fontWeight: 600, color: "var(--red)" }}>Did not attend</span>}
+                        {g.attended == null   && <span style={{ fontSize: 12, color: "var(--text-muted)" }}>Unknown</span>}
+                      </td>
+                      <td style={{ ...TD, textAlign: "right" }}>
+                        <div className="gift-actions">
+                          <button className="icon-btn" title="Edit" disabled={isArchived || isViewer} onClick={() => setEditGift(g)}><Icon name="pencil" context="badge" /></button>
+                          <div className="header-overflow-wrap" ref={setMenuRef(g.id)}>
+                            <button type="button" className="icon-btn" title="More" aria-haspopup="true" aria-expanded={openMenuId === g.id}
+                              disabled={isArchived || isViewer}
+                              onClick={() => setOpenMenuId(openMenuId === g.id ? null : g.id)}>
+                              <Icon name="moreHorizontal" context="badge" />
+                            </button>
+                            {openMenuId === g.id && (
+                              <div className="header-overflow-menu" role="menu">
+                                <button type="button" className="header-overflow-item" role="menuitem"
+                                  onClick={() => { setOpenMenuId(null); setDeleteConfirm(g); }}>
+                                  <Icon name="x" context="menu" /> Delete
+                                </button>
+                              </div>
+                            )}
+                          </div>
                         </div>
                       </td>
                     </tr>
@@ -382,10 +461,26 @@ export function GiftsTab({ eventId, event, adminConfig, showToast, isArchived, i
                         ${parseFloat(g.amount).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       </div>
                     )}
-                    {/* Actions */}
-                    <div style={{ display: "flex", flexDirection: "column", gap: 8, flexShrink: 0 }}>
-                      <button className="icon-btn" title="Edit"   disabled={isArchived || isViewer} onClick={() => setEditGift(g)}><Icon name="pencil" context="badge" /></button>
-                      <button className="icon-btn icon-btn-danger" title="Delete" disabled={isArchived || isViewer} onClick={() => setDeleteConfirm(g)}><Icon name="x" context="badge" /></button>
+                    {/* Actions: Edit + Delete collapsed into one 44px menu button */}
+                    <div className="header-overflow-wrap" style={{ flexShrink: 0 }} ref={setMenuRef(g.id)}>
+                      <button type="button" className="icon-btn" title="More actions" aria-haspopup="true" aria-expanded={openMenuId === g.id}
+                        disabled={isArchived || isViewer}
+                        onClick={() => setOpenMenuId(openMenuId === g.id ? null : g.id)}
+                        style={{ width: 44, height: 44 }}>
+                        <Icon name="moreHorizontal" context="badge" />
+                      </button>
+                      {openMenuId === g.id && (
+                        <div className="header-overflow-menu" role="menu">
+                          <button type="button" className="header-overflow-item" role="menuitem"
+                            onClick={() => { setOpenMenuId(null); setEditGift(g); }}>
+                            <Icon name="pencil" context="menu" /> Edit
+                          </button>
+                          <button type="button" className="header-overflow-item" role="menuitem"
+                            onClick={() => { setOpenMenuId(null); setDeleteConfirm(g); }}>
+                            <Icon name="x" context="menu" /> Delete
+                          </button>
+                        </div>
+                      )}
                     </div>
                     {/* Expand chevron: a real button so it is keyboard reachable, labeled, and a 44px tap target */}
                     <button
@@ -400,28 +495,52 @@ export function GiftsTab({ eventId, event, adminConfig, showToast, isArchived, i
                   </div>
 
                   {/* Per-giver thank-you status — always visible, not gated behind expand */}
-                  <div style={{ padding: "0 14px 12px", display: "flex", flexDirection: "column", gap: 6 }}>
-                    {givers.map(gv => (
-                      <div key={gv.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
-                        <div style={{ flex: 1, minWidth: 0, fontSize: 12, color: "var(--text-secondary)", overflowWrap: "anywhere" }}>
-                          {gv.name || "—"}{gv.householdId && <span style={{ color: "var(--accent-medium)" }}> ●</span>}
-                        </div>
-                        <div style={{ display: "flex", gap: 8, alignItems: "center", flexShrink: 0 }}>
-                          <span style={{ fontSize: 10, color: "var(--text-muted)", fontWeight: 600 }}>W</span>
-                          <button type="button" aria-label={`${gv.thankYouWritten ? "Mark not written" : "Mark written"} for ${gv.name || "this giver"}`}
-                            disabled={isViewer} onClick={() => toggleGiverWritten(g.id, gv.id)}
-                            style={{ width: 44, height: 44, padding: 0, borderRadius: 6, border: `2px solid ${gv.thankYouWritten ? "var(--green)" : "var(--border)"}`, background: gv.thankYouWritten ? "var(--green)" : "transparent", display: "inline-flex", alignItems: "center", justifyContent: "center", cursor: isViewer ? "default" : "pointer" }}>
-                            {gv.thankYouWritten && <span style={{ color: "white", fontSize: 13, fontWeight: 700 }}><Icon name="check" context="badge" /></span>}
+                  <div style={{ padding: "0 14px 12px", display: "flex", flexDirection: "column" }}>
+                    {givers.length === 1 ? (
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
+                        <span style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.04em", color: "var(--text-muted)" }}>Thank-you</span>
+                        <div style={{ display: "flex", gap: 6, alignItems: "center", flexShrink: 0 }}>
+                          <button type="button"
+                            className={`gift-ty-chip written${givers[0].thankYouWritten ? " on" : ""}`}
+                            aria-pressed={!!givers[0].thankYouWritten}
+                            aria-label={`${givers[0].thankYouWritten ? "Mark not written" : "Mark written"} for ${givers[0].name || "this giver"}`}
+                            disabled={isViewer} onClick={() => toggleGiverWritten(g.id, givers[0].id)}>
+                            <span className="gift-ty-dot" aria-hidden="true" />Written
                           </button>
-                          <span style={{ fontSize: 10, color: "var(--text-muted)", fontWeight: 600 }}>M</span>
-                          <button type="button" aria-label={`${gv.thankYouMailed ? "Mark not mailed" : "Mark mailed"} for ${gv.name || "this giver"}`}
-                            disabled={isViewer} onClick={() => toggleGiverMailed(g.id, gv.id)}
-                            style={{ width: 44, height: 44, padding: 0, borderRadius: 6, border: `2px solid ${gv.thankYouMailed ? "var(--blue)" : "var(--border)"}`, background: gv.thankYouMailed ? "var(--blue)" : "transparent", display: "inline-flex", alignItems: "center", justifyContent: "center", cursor: isViewer ? "default" : "pointer" }}>
-                            {gv.thankYouMailed && <span style={{ color: "white", fontSize: 13, fontWeight: 700 }}><Icon name="check" context="badge" /></span>}
+                          <button type="button"
+                            className={`gift-ty-chip mailed${givers[0].thankYouMailed ? " on" : ""}`}
+                            aria-pressed={!!givers[0].thankYouMailed}
+                            aria-label={`${givers[0].thankYouMailed ? "Mark not mailed" : "Mark mailed"} for ${givers[0].name || "this giver"}`}
+                            disabled={isViewer} onClick={() => toggleGiverMailed(g.id, givers[0].id)}>
+                            <span className="gift-ty-dot" aria-hidden="true" />Mailed
                           </button>
                         </div>
                       </div>
-                    ))}
+                    ) : (
+                      givers.map((gv, i) => (
+                        <div key={gv.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8, paddingTop: i > 0 ? 10 : 0, marginTop: i > 0 ? 10 : 0, borderTop: i > 0 ? "1px dashed var(--border)" : "none" }}>
+                          <div style={{ flex: 1, minWidth: 0, fontSize: 12, color: "var(--text-secondary)", overflowWrap: "anywhere" }}>
+                            {gv.name || "—"}{gv.householdId && <span style={{ color: "var(--accent-medium)" }}> ● guest</span>}
+                          </div>
+                          <div style={{ display: "flex", gap: 6, alignItems: "center", flexShrink: 0 }}>
+                            <button type="button"
+                              className={`gift-ty-chip written${gv.thankYouWritten ? " on" : ""}`}
+                              aria-pressed={!!gv.thankYouWritten}
+                              aria-label={`${gv.thankYouWritten ? "Mark not written" : "Mark written"} for ${gv.name || "this giver"}`}
+                              disabled={isViewer} onClick={() => toggleGiverWritten(g.id, gv.id)}>
+                              <span className="gift-ty-dot" aria-hidden="true" />Written
+                            </button>
+                            <button type="button"
+                              className={`gift-ty-chip mailed${gv.thankYouMailed ? " on" : ""}`}
+                              aria-pressed={!!gv.thankYouMailed}
+                              aria-label={`${gv.thankYouMailed ? "Mark not mailed" : "Mark mailed"} for ${gv.name || "this giver"}`}
+                              disabled={isViewer} onClick={() => toggleGiverMailed(g.id, gv.id)}>
+                              <span className="gift-ty-dot" aria-hidden="true" />Mailed
+                            </button>
+                          </div>
+                        </div>
+                      ))
+                    )}
                   </div>
 
                   {/* Expanded details */}
