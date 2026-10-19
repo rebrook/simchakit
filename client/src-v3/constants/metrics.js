@@ -79,4 +79,15 @@ export const METRIC_HELP = {
     "Guests confirmed for this sub-event who do not have a table yet.",
     "Guests still awaiting an answer are shown separately as TBD.",
   ],
+
+  vendorContract: () => [
+    "Contract is the amount you entered for this vendor.",
+    "Billed in Budget totals every expense currently linked to this vendor in the Budget tab, which can grow after signing if extras are added later.",
+    "Use Sync, shown when the two differ, to update the contract amount to match.",
+  ],
+
+  vendorRemaining: () => [
+    "Remaining is Total Contracted minus Total Paid, added up across every vendor.",
+    "It can go negative if a vendor has payments logged in Budget but no contract amount entered yet, or if a vendor has been paid more than its own contract.",
+  ],
 };

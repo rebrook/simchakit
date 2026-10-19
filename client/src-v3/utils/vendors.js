@@ -47,10 +47,10 @@ function computeVendorFinancials(vendor, expenses) {
   const totalPaid       = linked.reduce((s,e) => s + amountPaid(e), 0);
   const totalScheduled  = linked.reduce((s,e) => s + (totalAmount(e) - amountPaid(e)), 0);
   const contractAmt     = parseFloat(vendor.contractAmt) || 0;
-  const totalLinked     = totalPaid + totalScheduled;
-  const unscheduled     = Math.max(0, contractAmt - totalLinked);
+  const totalBilled     = totalPaid + totalScheduled;
+  const unscheduled     = Math.max(0, contractAmt - totalBilled);
   const paidPct         = contractAmt > 0 ? Math.min(100, (totalPaid / contractAmt) * 100) : 0;
-  return { totalPaid, totalScheduled, contractAmt, unscheduled, paidPct, linkedCount: linked.length };
+  return { totalPaid, totalScheduled, totalBilled, contractAmt, unscheduled, paidPct, linkedCount: linked.length };
 }
 
 function getLastContacted(vendor) {

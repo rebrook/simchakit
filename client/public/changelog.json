@@ -1,12 +1,23 @@
 {
-  "current": "V4.34.1",
+  "current": "V4.35.0",
   "whatsNew": [
-    "Fix: icon buttons (edit, delete, close, and similar small controls) were rendering below the recommended 44px minimum tap target on phone screens, making them easy to miss or mis-tap",
-    "Fix: a household row's Edit and Delete buttons were not picking up the larger phone sizing at all, due to a leftover style that locked them to a smaller size",
-    "Fix: the same leftover-style issue was found and fixed on expense row and vendor row Edit and Delete buttons",
-    "Fix: spacing between adjacent buttons was tightened where needed so the larger buttons do not sit too close together"
+    "New: vendor cards and Vendor Quick View now show a Billed in Budget line whenever it differs from the vendor's Contract amount, for example after linking a new expense to a vendor following the original signing",
+    "New: a Sync button appears in that case to update the Contract amount to match, with a confirmation step before anything changes and a record kept in the Activity Log",
+    "New: an info icon on Contract explains how it relates to Billed in Budget",
+    "New: an info icon on the Vendors tab's Total Paid card explains why the remaining amount can show as negative"
   ],
   "changelog": [
+    {
+      "version": "V4.35.0",
+      "date": "2026-10-19",
+      "summary": "Vendors tab now shows when a vendor's contract amount is out of date with the Budget tab, with a one-click way to update it",
+      "changes": [
+        "New: vendor cards and Vendor Quick View now show a Billed in Budget line whenever it differs from the vendor's Contract amount, for example after linking a new expense to a vendor following the original signing",
+        "New: a Sync button appears in that case to update the Contract amount to match, with a confirmation step before anything changes and a record kept in the Activity Log",
+        "New: an info icon on Contract explains how it relates to Billed in Budget",
+        "New: an info icon on the Vendors tab's Total Paid card explains why the remaining amount can show as negative"
+      ]
+    },
     {
       "version": "V4.34.1",
       "date": "2026-10-19",

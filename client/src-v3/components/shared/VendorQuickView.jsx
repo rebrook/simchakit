@@ -1,7 +1,9 @@
 import { VENDOR_STATUS_STYLES } from "@/constants/vendor-constants.js";
 import { computeVendorFinancials, fmt$ } from "@/utils/vendors.js";
+import { InfoPopover }       from "@/components/shared/InfoPopover.jsx";
+import { METRIC_HELP }       from "@/constants/metrics.js";
 
-export function VendorQuickView({ vendor, expenses, onEdit, onClose, isArchived }) {
+export function VendorQuickView({ vendor, expenses, onEdit, onSync, onClose, isArchived, isViewer }) {
   const fin = computeVendorFinancials(vendor, expenses);
   const sc  = VENDOR_STATUS_STYLES[vendor.status] || VENDOR_STATUS_STYLES["Researching"];
   const fmt = (d) => d ? new Date(d+"T00:00:00").toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"}) : "";
@@ -77,9 +79,25 @@ export function VendorQuickView({ vendor, expenses, onEdit, onClose, isArchived 
           <div className="vqv-section">
             <div className="vqv-section-title">Financials</div>
             <div className="vqv-fin-row">
-              <span className="vqv-fin-label">Contract</span>
+              <span className="vqv-fin-label" style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
+                Contract
+                <InfoPopover text={METRIC_HELP.vendorContract()} />
+              </span>
               <span className="vqv-fin-val">{fin.contractAmt > 0 ? fmt$(fin.contractAmt) : "—"}</span>
             </div>
+            {fin.linkedCount > 0 && Math.round(fin.totalBilled * 100) !== Math.round(fin.contractAmt * 100) && (
+              <div className="vqv-fin-row">
+                <span className="vqv-fin-label">Billed in Budget</span>
+                <span className="vqv-fin-val" style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+                  {fmt$(fin.totalBilled)}
+                  {!isArchived && !isViewer && (
+                    <button type="button" className="btn btn-secondary btn-sm"
+                      style={{ fontSize: 11, padding: "2px 8px" }}
+                      onClick={() => onSync(vendor)}>Sync</button>
+                  )}
+                </span>
+              </div>
+            )}
             <div className="vqv-fin-row">
               <span className="vqv-fin-label">Paid</span>
               <span className="vqv-fin-val green">{fmt$(fin.totalPaid)}</span>

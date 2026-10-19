@@ -20,6 +20,9 @@ import { ArchivedNotice }    from "@/components/shared/ArchivedNotice.jsx";
 import { VendorQuickView }   from "@/components/shared/VendorQuickView.jsx";
 import { VendorModal }       from "@/components/shared/VendorModal.jsx";
 import { ConfirmDialog }     from "@/components/shared/ConfirmDialog.jsx";
+import { InfoPopover }       from "@/components/shared/InfoPopover.jsx";
+import { METRIC_HELP }       from "@/constants/metrics.js";
+import { writeAuditLog }     from "@/utils/auditLog.js";
 import { Icon }              from "@/utils/iconMap.jsx";
 
 export function VendorsTab({ eventId, event, adminConfig, showToast, isArchived, isViewer, searchHighlight, clearSearchHighlight, setTopbarSubtitle }) {
@@ -30,6 +33,7 @@ export function VendorsTab({ eventId, event, adminConfig, showToast, isArchived,
   const [editing,       setEditing]       = useState(null);
   const [quickView,     setQuickView]     = useState(null);
   const [deleteConfirm, setDeleteConfirm] = useState(null);
+  const [syncConfirm,   setSyncConfirm]   = useState(null);
   const [filterType,    setFilterType]    = useState("all");
   const [filterStatus,  setFilterStatus]  = useState("all");
   const [filterFollowUp, setFilterFollowUp] = useState(false);
@@ -96,6 +100,17 @@ export function VendorsTab({ eventId, event, adminConfig, showToast, isArchived,
     showToast("Vendor removed");
   };
 
+  const handleSyncContract = async (vendor, newAmt) => {
+    const oldAmt  = parseFloat(vendor.contractAmt) || 0;
+    const result  = await save({ ...vendor, contractAmt: newAmt });
+    setSyncConfirm(null);
+    if (result?.error) { showToast("Couldn't update the contract amount. Try again."); return; }
+    if (result?.conflict) return;
+    writeAuditLog(eventId, "vendors", "Updated",
+      `Synced contract amount for ${vendor.name || "this vendor"}: ${fmt$(oldAmt)} updated to ${fmt$(newAmt)}`);
+    showToast("Contract amount updated");
+  };
+
   // ── Topbar subtitle (must be before loading guard — hooks can't follow conditional returns) ──
   const subtitle = `${vendors.length} vendor${vendors.length!==1?"s":""} tracked${booked > 0 ? ` · ${booked} confirmed` : ""}`;
   useEffect(() => {
@@ -139,10 +154,11 @@ export function VendorsTab({ eventId, event, adminConfig, showToast, isArchived,
           <div className="stat-value">{fmt$(totalContract)}</div>
           <div className="stat-sub">across all vendors</div>
         </div>
-        <div className="stat-card">
-          <div className="stat-label">Total Paid</div>
+        <div className="stat-card" style={{ position: "relative" }}>
+          <div className="stat-label" style={{ paddingRight: 22 }}>Total Paid</div>
           <div className="stat-value stat-green">{fmt$(totalPaid)}</div>
           <div className="stat-sub">{fmt$(totalContract - totalPaid)} remaining</div>
+          <InfoPopover text={METRIC_HELP.vendorRemaining()} style={{ position: "absolute", top: 10, right: 10 }} />
         </div>
         <div className="stat-card" style={{ cursor: needsFollowUp > 0 ? "pointer" : "default" }}
           onClick={() => needsFollowUp > 0 && setFilterFollowUp(f => !f)}>
@@ -258,11 +274,27 @@ export function VendorsTab({ eventId, event, adminConfig, showToast, isArchived,
                 {/* Financials */}
                 <div className="vendor-card-financials">
                   <div className="vendor-fin-row">
-                    <span>Contract</span>
+                    <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
+                      Contract
+                      <InfoPopover text={METRIC_HELP.vendorContract()} />
+                    </span>
                     <span className="vendor-fin-val">
                       {fin.contractAmt > 0 ? fmt$(fin.contractAmt) : "—"}
                     </span>
                   </div>
+                  {fin.linkedCount > 0 && Math.round(fin.totalBilled * 100) !== Math.round(fin.contractAmt * 100) && (
+                    <div className="vendor-fin-row">
+                      <span>Billed in Budget</span>
+                      <span className="vendor-fin-val" style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+                        {fmt$(fin.totalBilled)}
+                        {!isArchived && !isViewer && (
+                          <button type="button" className="btn btn-secondary btn-sm"
+                            style={{ fontSize: 11, padding: "2px 8px" }}
+                            onClick={() => setSyncConfirm(v)}>Sync</button>
+                        )}
+                      </span>
+                    </div>
+                  )}
                   <div className="vendor-fin-row">
                     <span>Paid</span>
                     <span className="vendor-fin-val green">{fmt$(fin.totalPaid)}</span>
@@ -368,8 +400,10 @@ export function VendorsTab({ eventId, event, adminConfig, showToast, isArchived,
           vendor={quickView}
           expenses={expenses}
           onEdit={(v) => { setQuickView(null); setEditing(v); setShowAdd(true); }}
+          onSync={(v) => { setQuickView(null); setSyncConfirm(v); }}
           onClose={() => setQuickView(null)}
           isArchived={isArchived}
+          isViewer={isViewer}
         />
       )}
 
@@ -393,6 +427,20 @@ export function VendorsTab({ eventId, event, adminConfig, showToast, isArchived,
           onClose={() => setDeleteConfirm(null)}
         />
       )}
+
+      {/* Sync contract amount confirm */}
+      {syncConfirm && (() => {
+        const syncFin = computeVendorFinancials(syncConfirm, expenses);
+        return (
+          <ConfirmDialog
+            title="Sync Contract Amount"
+            message={`Update this vendor's contract amount from ${syncFin.contractAmt > 0 ? fmt$(syncFin.contractAmt) : "$0"} to ${fmt$(syncFin.totalBilled)} to match what's billed in Budget?`}
+            confirmLabel="Update Contract Amount"
+            onConfirm={() => handleSyncContract(syncConfirm, syncFin.totalBilled)}
+            onClose={() => setSyncConfirm(null)}
+          />
+        );
+      })()}
     </div>
   );
 }
