@@ -4524,9 +4524,9 @@
       font-size: 15px;
       font-weight: 600;
       color: var(--text-primary);
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
+      /* Wrap instead of truncating: a contact's name is the thing you need to
+         read at the venue (V4.38.1). */
+      overflow-wrap: anywhere;
     }
     .dayof-m-contact-role {
       font-size: 12px;

@@ -1,16 +1,25 @@
 {
-  "current": "V4.38.0",
+  "current": "V4.38.1",
   "whatsNew": [
-    "New: after the event has passed, the Gifts nav badge shows how many thank-you notes are still outstanding. A note counts until it is both written and mailed, each giver is counted separately, and the badge disappears when every note is done",
-    "Change: the Overview What Needs You Next thank-you item now uses the same count, so it includes notes written but not yet mailed and shows how many are left to write and how many to mail",
-    "New: every nav badge now carries a plain-language label (for example, overdue payments on Budget) that screen readers announce and desktop users see on hover",
-    "New: on mobile, a small dot on the More button shows when a tab inside it, such as Gifts, has something outstanding",
-    "Change: nav badge counts refresh once after a burst of changes, such as a guest list import, instead of after every row",
-    "Fix: a failed nav badge lookup is now logged for diagnosis instead of silently showing no badge",
-    "Fix: the mobile Day-of Mode reminder banner's dismiss button now has a proper accessible name",
-    "Guide: updated the Guests, Budget, Gifts, Admin Mode Timeline, Day-of Mode, and Mobile navigation sections to describe the new nav badges, the Day-of Mode reminder banner, and how untimed timeline entries are handled"
+    "Fix: on mobile, a gift's giver names are no longer cut off with an ellipsis. The card title and each giver's row now wrap onto as many lines as needed, which matters most for gifts given by several households",
+    "Fix: the Day-of Mode contacts list no longer cuts off long contact names on a phone; they now wrap",
+    "Change: the Gifts tab's Thank Yous Pending card is now Thank Yous Outstanding. It counts every giver whose note is not yet both written and mailed, and its sub-line shows how many are to write and how many are to mail. It now matches the Gifts nav badge and the Overview thank-you item, and together with Thank Yous Complete it accounts for every giver",
+    "Fix: the expand arrow on mobile Gifts cards is now a proper button with a 44px tap target, keyboard access, and a screen reader label that reports whether details are shown",
+    "Guide: corrected the Gifts section, which said Thank Yous Complete counted gifts when it counts givers, and described the new Outstanding card and the phone card layout"
   ],
   "changelog": [
+    {
+      "version": "V4.38.1",
+      "date": "2026-10-19",
+      "summary": "Fixed names being cut off on mobile Gifts cards and made the Gifts thank-you numbers agree everywhere",
+      "changes": [
+        "Fix: on mobile, a gift's giver names are no longer cut off with an ellipsis. The card title and each giver's row now wrap onto as many lines as needed, which matters most for gifts given by several households",
+        "Fix: the Day-of Mode contacts list no longer cuts off long contact names on a phone; they now wrap",
+        "Change: the Gifts tab's Thank Yous Pending card is now Thank Yous Outstanding. It counts every giver whose note is not yet both written and mailed, and its sub-line shows how many are to write and how many are to mail. It now matches the Gifts nav badge and the Overview thank-you item, and together with Thank Yous Complete it accounts for every giver",
+        "Fix: the expand arrow on mobile Gifts cards is now a proper button with a 44px tap target, keyboard access, and a screen reader label that reports whether details are shown",
+        "Guide: corrected the Gifts section, which said Thank Yous Complete counted gifts when it counts givers, and described the new Outstanding card and the phone card layout"
+      ]
+    },
     {
       "version": "V4.38.0",
       "date": "2026-10-19",

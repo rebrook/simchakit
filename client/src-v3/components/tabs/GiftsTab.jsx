@@ -33,6 +33,7 @@ import { newGiftId }           from "@/utils/ids.js";
 import {
   getGiftGivers, withGivers, newGiverId, formatGiverNames,
   anyGiverNeedsWritten, anyGiverNeedsMailed, allGiversComplete, lastNameOf,
+  countThankYousOutstanding,
 }                               from "@/utils/gifts.js";
 import { exportGiftsCSV, generateGiftPrintHTML } from "@/utils/exports.js";
 import { getAddressFields, formatAddress, migrateCityStateZip, COUNTRIES } from "@/utils/guests.js";
@@ -128,7 +129,9 @@ export function GiftsTab({ eventId, event, adminConfig, showToast, isArchived, i
   const allGivers     = gifts.flatMap(g => getGiftGivers(g));
   const totalMonetary = gifts.reduce((s, g) => s + (parseFloat(g.amount) || 0), 0);
   const cashTotal     = gifts.filter(g => g.giftType === "Cash / Check").reduce((s, g) => s + (parseFloat(g.amount) || 0), 0);
-  const tyPending     = allGivers.filter(gv => !gv.thankYouWritten).length;
+  // Outstanding = not yet both written and mailed, from the shared helper so
+  // this card, the Gifts nav badge, and the Overview focus item always agree.
+  const { total: tyOutstanding, toWrite: tyToWrite, toMail: tyToMail } = countThankYousOutstanding(gifts);
   const tyComplete    = allGivers.filter(gv => gv.thankYouWritten && gv.thankYouMailed).length;
 
   // ── Filter + sort ──────────────────────────────────────────────────────────
@@ -221,11 +224,11 @@ export function GiftsTab({ eventId, event, adminConfig, showToast, isArchived, i
           </div>
         </div>
         <div className="stat-card">
-          <div className="stat-label">Thank Yous Pending</div>
-          <div className="stat-value" style={{ color: tyPending > 0 ? "var(--red)" : "var(--green)" }}>
-            {tyPending}
+          <div className="stat-label">Thank Yous Outstanding</div>
+          <div className="stat-value" style={{ color: tyOutstanding > 0 ? "var(--red)" : "var(--green)" }}>
+            {tyOutstanding}
           </div>
-          <div className="stat-sub">not yet written, per giver</div>
+          <div className="stat-sub">{tyOutstanding > 0 ? `${tyToWrite} to write, ${tyToMail} to mail` : "all written and mailed"}</div>
         </div>
         <div className="stat-card">
           <div className="stat-label">Thank Yous Complete</div>
@@ -364,7 +367,7 @@ export function GiftsTab({ eventId, event, adminConfig, showToast, isArchived, i
                   <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 14px" }}>
                     {/* Name(s) + type */}
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontWeight: 700, fontSize: 14, color: "var(--text-primary)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                      <div style={{ fontWeight: 700, fontSize: 14, color: "var(--text-primary)", overflowWrap: "anywhere" }}>
                         {formatGiverNames(givers) || "—"}
                       </div>
                       <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 3, flexWrap: "wrap" }}>
@@ -384,15 +387,23 @@ export function GiftsTab({ eventId, event, adminConfig, showToast, isArchived, i
                       <button className="icon-btn" title="Edit"   disabled={isArchived || isViewer} onClick={() => setEditGift(g)}><Icon name="pencil" context="badge" /></button>
                       <button className="icon-btn icon-btn-danger" title="Delete" disabled={isArchived || isViewer} onClick={() => setDeleteConfirm(g)}><Icon name="x" context="badge" /></button>
                     </div>
-                    {/* Expand chevron */}
-                    <div onClick={() => toggleExpand(g.id)} style={{ cursor: "pointer", color: "var(--text-muted)", fontSize: 16, flexShrink: 0, padding: "0 2px", transform: isExpanded ? "rotate(90deg)" : "none", transition: "transform 0.2s ease" }}>›</div>
+                    {/* Expand chevron: a real button so it is keyboard reachable, labeled, and a 44px tap target */}
+                    <button
+                      type="button"
+                      onClick={() => toggleExpand(g.id)}
+                      aria-expanded={isExpanded}
+                      aria-label={isExpanded ? "Hide gift details" : "Show gift details"}
+                      style={{ width: 44, height: 44, flexShrink: 0, padding: 0, background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)", fontSize: 16, display: "inline-flex", alignItems: "center", justifyContent: "center" }}
+                    >
+                      <span aria-hidden="true" style={{ display: "inline-block", transform: isExpanded ? "rotate(90deg)" : "none", transition: "transform 0.2s ease" }}>›</span>
+                    </button>
                   </div>
 
                   {/* Per-giver thank-you status — always visible, not gated behind expand */}
                   <div style={{ padding: "0 14px 12px", display: "flex", flexDirection: "column", gap: 6 }}>
                     {givers.map(gv => (
                       <div key={gv.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
-                        <div style={{ fontSize: 12, color: "var(--text-secondary)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                        <div style={{ flex: 1, minWidth: 0, fontSize: 12, color: "var(--text-secondary)", overflowWrap: "anywhere" }}>
                           {gv.name || "—"}{gv.householdId && <span style={{ color: "var(--accent-medium)" }}> ●</span>}
                         </div>
                         <div style={{ display: "flex", gap: 8, alignItems: "center", flexShrink: 0 }}>
