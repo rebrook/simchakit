@@ -1,6 +1,12 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // SimchaKit V3.0.0 — VendorsTab.jsx
 // Ported from V2. Uses useEventData for Supabase persistence.
+//
+// V4.33.3: handleSave/handleDelete now check save()/remove()'s return value
+// instead of always reporting success. A failed save keeps the modal open
+// instead of closing and discarding what was typed; a conflict is left to
+// AppShell's existing "simchakit:save-conflict" toast rather than doubling
+// up with a second one here.
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useState, useEffect } from "react";
@@ -70,15 +76,23 @@ export function VendorsTab({ eventId, event, adminConfig, showToast, isArchived,
 
   // ── Mutations ──────────────────────────────────────────────────────────────
   const handleSave = async (data) => {
-    await save(data);
+    const wasEditing = !!editing;
+    const result = await save(data);
+    if (result?.error) { showToast("Couldn't save the vendor. Try again."); return; }
+    // A conflict means someone else saved this vendor first; save() has
+    // already replaced the local copy with the server's current version and
+    // the hook fires its own "simchakit:save-conflict" event for AppShell to
+    // toast. Keep the modal open here rather than discarding what was typed.
+    if (result?.conflict) return;
     setShowAdd(false);
     setEditing(null);
-    showToast(editing ? "Vendor updated" : "Vendor added");
+    showToast(wasEditing ? "Vendor updated" : "Vendor added");
   };
 
   const handleDelete = async (id) => {
-    await remove(id);
+    const result = await remove(id);
     setDeleteConfirm(null);
+    if (result?.error) { showToast("Couldn't delete the vendor. Try again."); return; }
     showToast("Vendor removed");
   };
 

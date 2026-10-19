@@ -1,5 +1,5 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// SimchaKit V4.33.2 — GiftsTab.jsx
+// SimchaKit V4.33.3 — GiftsTab.jsx
 // Uses useEventData for Supabase persistence.
 // A gift can now be given by more than one household (gift.givers array) —
 // see utils/gifts.js for the data model and legacy-shape migration. Shared
@@ -7,17 +7,22 @@
 // notes) still live at the top level; only the "from" and thank-you status
 // are per-giver.
 //
-// V4.33.1: GiftModal's handleSave() now carries the edited gift's _rowId
-// through in its payload. V4.33.0 rebuilt the form state field by field
-// instead of spreading the whole gift, which dropped _rowId and made every
-// edit save() as a new row instead of updating the existing one.
+// V4.33.1: GiftModal's handleSave() carries the edited gift's _rowId through
+// in its payload. V4.33.0 rebuilt the form state field by field instead of
+// spreading the whole gift, which dropped _rowId and made every edit
+// save() as a new row instead of updating the existing one.
 //
 // V4.33.2: V4.33.1 was incomplete. handleSave() also needs _createdAt and
 // _updatedAt carried through, not just _rowId. useEventData's save_row RPC
 // is an optimistic-concurrency update keyed on _updatedAt, so omitting it
 // made every edit report a false conflict and silently revert to the
-// server's pre-edit copy instead of saving. handleAdd/handleEdit also now
+// server's pre-edit copy instead of saving. handleAdd/handleEdit also
 // check save()'s return value instead of always reporting success.
+//
+// V4.33.3: handleDelete/toggleGiverWritten/toggleGiverMailed now check
+// save()/remove()'s return value too, for the same reason as V4.33.2's
+// handleAdd/handleEdit fix — these were the three remaining spots in this
+// file that always reported success regardless of what actually happened.
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useState, useEffect, useRef } from "react";
@@ -86,12 +91,15 @@ export function GiftsTab({ eventId, event, adminConfig, showToast, isArchived, i
     showToast("Gift updated");
     setEditGift(null);
   };
+
   const handleDelete = async (id) => {
     if (isArchived || isViewer) return;
     const g = gifts.find(x => x.id === id);
-    if (g) await remove(g._rowId);
-    showToast("Gift deleted");
+    if (!g) { setDeleteConfirm(null); return; }
+    const result = await remove(g._rowId);
     setDeleteConfirm(null);
+    if (result?.error) { showToast("Couldn't delete the gift. Try again."); return; }
+    showToast("Gift deleted");
   };
 
   const toggleGiverWritten = async (giftId, giverId) => {
@@ -99,7 +107,9 @@ export function GiftsTab({ eventId, event, adminConfig, showToast, isArchived, i
     const g = gifts.find(x => x.id === giftId);
     if (!g) return;
     const givers = getGiftGivers(g).map(gv => gv.id === giverId ? { ...gv, thankYouWritten: !gv.thankYouWritten } : gv);
-    await save(withGivers(g, givers));
+    const result = await save(withGivers(g, givers));
+    if (result?.error) { showToast("Couldn't update thank-you status. Try again."); return; }
+    if (result?.conflict) return; // AppShell already surfaces a conflict toast
     showToast("Thank-you note updated");
   };
 
@@ -108,7 +118,9 @@ export function GiftsTab({ eventId, event, adminConfig, showToast, isArchived, i
     const g = gifts.find(x => x.id === giftId);
     if (!g) return;
     const givers = getGiftGivers(g).map(gv => gv.id === giverId ? { ...gv, thankYouMailed: !gv.thankYouMailed } : gv);
-    await save(withGivers(g, givers));
+    const result = await save(withGivers(g, givers));
+    if (result?.error) { showToast("Couldn't update thank-you status. Try again."); return; }
+    if (result?.conflict) return; // AppShell already surfaces a conflict toast
     showToast("Thank-you mailed updated");
   };
 
@@ -568,11 +580,8 @@ export function GiftModal({ gift, households, onSave, onClose, isArchived }) {
     // _rowId tells save() which row to update instead of inserting a new
     // one. _updatedAt is just as essential: save_row() is an optimistic-
     // concurrency RPC that only applies the write when _updatedAt still
-    // matches the server's copy — omitting it means the check always
-    // fails, the RPC reports a conflict, and save() quietly reverts local
-    // state to the server's old (pre-edit) data instead of persisting
-    // the edit. _createdAt is carried along too for consistency, though
-    // it isn't used by the concurrency check itself.
+    // matches the server's copy. _createdAt is carried along too for
+    // consistency, though it isn't used by the concurrency check itself.
     if (gift) {
       payload._rowId     = gift._rowId;
       payload._createdAt = gift._createdAt;

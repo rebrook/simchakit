@@ -1,6 +1,15 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // SimchaKit V3.0.0 — TasksTab.jsx
 // Ported from V2. Uses useEventData for Supabase persistence.
+//
+// V4.33.3: handleAdd/handleEdit/handleDelete/completeTask/handleLinkConfirm/
+// handleDismissSuggestion/handleRestoreSuggestions now check save()/remove()'s
+// return value instead of always reporting success. A failed save keeps the
+// relevant dialog open instead of closing and discarding what was typed; a
+// conflict is left to AppShell's existing "simchakit:save-conflict" toast
+// rather than doubling up here. handleLinkConfirm also now stops short of
+// completing the task if its linked write-back (marking an expense paid or
+// a prep item complete) fails, instead of completing the task anyway.
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useState, useEffect, useMemo } from "react";
@@ -362,7 +371,8 @@ export function TasksTab({ eventId, event, adminConfig, showToast, isArchived, i
 
   const handleAdd = async (t) => {
     if (isArchived) return;
-    await save(t);
+    const result = await save(t);
+    if (result?.error) { showToast("Couldn't add the task. Try again."); return; }
     showToast("Task added");
     setShowModal(false);
     setPrefilledTask(null);
@@ -370,7 +380,9 @@ export function TasksTab({ eventId, event, adminConfig, showToast, isArchived, i
 
   const handleEdit = async (t) => {
     if (isArchived) return;
-    await save(t);
+    const result = await save(t);
+    if (result?.error) { showToast("Couldn't save the task. Try again."); return; }
+    if (result?.conflict) return; // AppShell already surfaces a conflict toast
     showToast("Task updated");
     setEditTask(null);
   };
@@ -378,13 +390,16 @@ export function TasksTab({ eventId, event, adminConfig, showToast, isArchived, i
   const handleDelete = async (id) => {
     if (isArchived) return;
     const t = tasks.find(x => x.id === id);
-    if (t) await remove(t._rowId);
-    showToast("Task deleted");
+    if (!t) { setDeleteConfirm(null); return; }
+    const result = await remove(t._rowId);
     setDeleteConfirm(null);
+    if (result?.error) { showToast("Couldn't delete the task. Try again."); return; }
+    showToast("Task deleted");
   };
 
   const completeTask = async (t) => {
-    await save({ ...t, done: !t.done });
+    const result = await save({ ...t, done: !t.done });
+    if (result?.error) { showToast("Couldn't update the task. Try again."); return; }
     showToast(t.done ? "Task reopened" : "Task completed");
   };
 
@@ -419,16 +434,24 @@ export function TasksTab({ eventId, event, adminConfig, showToast, isArchived, i
     if (withWriteBack) {
       if (action === "markPaid") {
         const exp = expenses.find(e => e.id === task.sourceId);
-        if (exp) await saveExpense({ ...exp, paid: true });
-        showToast("Expense marked paid");
+        if (exp) {
+          const result = await saveExpense({ ...exp, paid: true });
+          // Stop here on failure rather than completing the task anyway,
+          // since the person asked for both to happen together.
+          if (result?.error) { showToast("Couldn't mark the expense paid. Try again."); return; }
+          showToast("Expense marked paid");
+        }
       }
       if (action === "markPrepComplete") {
         const item = prep.find(p => p.id === task.sourceId);
-        if (item) await savePrep({ ...item, status: "Complete", progress: 100 });
-        showToast("Prep item marked complete");
+        if (item) {
+          const result = await savePrep({ ...item, status: "Complete", progress: 100 });
+          if (result?.error) { showToast("Couldn't mark the prep item complete. Try again."); return; }
+          showToast("Prep item marked complete");
+        }
       }
     }
-    completeTask(task);
+    await completeTask(task);
     setLinkConfirm(null);
   };
 
@@ -448,15 +471,18 @@ export function TasksTab({ eventId, event, adminConfig, showToast, isArchived, i
   const handleDismissSuggestion = async (s) => {
     if (isArchived) return;
     const existing = tasks.find(t => t.id === s.id);
-    if (existing) await save({ ...existing, dismissed: true });
-    else await save({ id: s.id, dismissed: true });
+    const result = existing
+      ? await save({ ...existing, dismissed: true })
+      : await save({ id: s.id, dismissed: true });
+    if (result?.error) { showToast("Couldn't dismiss the suggestion. Try again."); return; }
     showToast(`Suggestion dismissed — use "Restore" to undo`);
   };
 
   const handleRestoreSuggestions = async () => {
     if (isArchived) return;
     const dismissed = tasks.filter(t => t.dismissed);
-    for (const t of dismissed) await save({ ...t, dismissed: false });
+    const results = await Promise.all(dismissed.map(t => save({ ...t, dismissed: false })));
+    if (results.some(r => r?.error)) showToast("Some suggestions couldn't be restored. Try again.");
   };
 
   const stateForSuggestions = useMemo(() => ({

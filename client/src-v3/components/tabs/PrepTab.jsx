@@ -3,6 +3,12 @@
 // Ported from V2. Uses useEventData for Supabase persistence.
 // Clergy/tutor contacts editable by owners and coordinators (V3.20.0).
 // Unified clergy edit modal replaces per-contact modals (V3.20.5).
+//
+// V4.33.3: handleAdd/handleEdit/handleDelete/handleStatusChange/loadTemplate
+// now check save()/remove()'s return value instead of always reporting
+// success. A failed save keeps the modal open instead of closing and
+// discarding what was typed; a conflict is left to AppShell's existing
+// "simchakit:save-conflict" toast rather than doubling up here.
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useState, useEffect } from "react";
@@ -66,15 +72,33 @@ export function PrepTab({ eventId, event, adminConfig, showToast, isArchived, is
   // Owners and coordinators can edit clergy. Editors and viewers cannot.
   const canEditClergy = !isArchived && (collaboratorRole === "owner" || collaboratorRole === "coordinator");
 
-  const saveItem   = async (item) => { await save(item); };
-  const handleAdd  = async (item) => { if (isArchived || isViewer) return; await saveItem(item); showToast("Prep item added");   setShowModal(false); };
-  const handleEdit = async (item) => { if (isArchived || isViewer) return; await saveItem(item); showToast("Prep item updated"); setEditItem(null);   };
+  const saveItem = async (item) => save(item);
+
+  const handleAdd = async (item) => {
+    if (isArchived || isViewer) return;
+    const result = await saveItem(item);
+    if (result?.error) { showToast("Couldn't add the prep item. Try again."); return; }
+    showToast("Prep item added");
+    setShowModal(false);
+  };
+
+  const handleEdit = async (item) => {
+    if (isArchived || isViewer) return;
+    const result = await saveItem(item);
+    if (result?.error) { showToast("Couldn't save the prep item. Try again."); return; }
+    if (result?.conflict) return; // AppShell already surfaces a conflict toast
+    showToast("Prep item updated");
+    setEditItem(null);
+  };
+
   const handleDelete = async (id) => {
     if (isArchived || isViewer) return;
     const p = prep.find(x => x.id === id);
-    if (p) await remove(p._rowId);
-    showToast("Prep item deleted");
+    if (!p) { setDeleteConfirm(null); return; }
+    const result = await remove(p._rowId);
     setDeleteConfirm(null);
+    if (result?.error) { showToast("Couldn't delete the prep item. Try again."); return; }
+    showToast("Prep item deleted");
   };
 
   const toggleNotes = (id) => setExpandedNotes(n => ({ ...n, [id]: !n[id] }));
@@ -82,7 +106,9 @@ export function PrepTab({ eventId, event, adminConfig, showToast, isArchived, is
   const handleStatusChange = async (id, status) => {
     if (isArchived || isViewer) return;
     const p = prep.find(x => x.id === id);
-    if (p) await save({ ...p, status, progress: statusToPercent(status) });
+    if (!p) return;
+    const result = await save({ ...p, status, progress: statusToPercent(status) });
+    if (result?.error) showToast("Couldn't update status. Try again.");
   };
 
   const eventType   = adminConfig?.type;
@@ -92,7 +118,8 @@ export function PrepTab({ eventId, event, adminConfig, showToast, isArchived, is
     const builder = PREP_TEMPLATES[eventType];
     if (!builder) return;
     const items = builder();
-    for (const it of items) await save(it);
+    const results = await Promise.all(items.map(it => save(it)));
+    if (results.some(r => r?.error)) { showToast("Some template items couldn't be added. Try again."); return; }
     showToast("Template loaded");
   };
 

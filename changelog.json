@@ -1,9 +1,20 @@
 {
-  "current": "V4.33.2",
+  "current": "V4.33.3",
   "whatsNew": [
-    "Fix: gift edits were silently failing to save and reverting to the old data. This is now fixed; please check any gift you edited recently and re-enter anything that didn't stick"
+    "Fix: save and delete actions across Gifts, Vendors, Favors, Prep, Tasks, and Budget now report what actually happened instead of always showing success"
   ],
   "changelog": [
+    {
+      "version": "V4.33.3",
+      "date": "2026-10-19",
+      "summary": "Save and delete actions across Gifts, Vendors, Favors, Prep, Tasks, and Budget now report what actually happened",
+      "changes": [
+        "Fix: adding, editing, or deleting a gift, vendor, favor, prep item, task, or budget expense always showed a success message, even when the save failed or was rejected because someone else changed the same record first. Every one of these now checks whether the save actually succeeded. A failed save keeps the form open instead of closing and discarding what was typed",
+        "Fix: completing a task that is linked to a budget expense or a prep item, and choosing to update that linked record too, no longer marks the task complete if the linked update fails. Both now succeed together or neither does",
+        "Fix: deleting a favor type used to remove its favors and show success even if some of those favors failed to delete. It now says so if that happens",
+        "Note: this audit also confirmed the duplicate-row and reverted-edit bugs fixed in V4.33.1 and V4.33.2 were specific to the Gifts tab and did not affect Vendors, Favors, Prep, Tasks, or Budget"
+      ]
+    },
     {
       "version": "V4.33.2",
       "date": "2026-10-19",

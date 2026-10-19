@@ -4,6 +4,12 @@
 // favorConfig saved directly to events.admin_config via Supabase + onConfigSaved.
 // Field names match Supabase schema: personName, personId, printName,
 // preprint ("TBD"/"Yes"/"No"), attending ("TBD"/"Yes"/"No"), size, category, notes.
+//
+// V4.33.3: handleAdd/handleEdit/handleDelete/cyclePre/addFromPanel/
+// deleteFavorType now check save()/remove()'s return value instead of
+// always reporting success. A failed save keeps the modal open instead of
+// closing and discarding what was typed; a conflict is left to AppShell's
+// existing "simchakit:save-conflict" toast rather than doubling up here.
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useState, useMemo, useEffect, useCallback, useRef } from "react";
@@ -269,10 +275,11 @@ export function FavorsTab({
     const newAdminConfig = { ...(adminConfig || {}), favorConfig: cfgToSave };
     const { error } = await supabase.from("events").update({ admin_config: newAdminConfig }).eq("id", eventId);
     setConfigSaving(false);
-    if (error) { showToast("Failed to save favor settings"); return; }
+    if (error) { showToast("Failed to save favor settings"); return { error }; }
     onConfigSaved?.(newAdminConfig);
     showToast("Favor settings saved");
     if (cfgToSave.givingFavors) setSetupOpen(false);
+    return { ok: true };
   };
 
   const setFC = (key, val) => setLocalConfig(prev => ({ ...prev, [key]: val }));
@@ -298,23 +305,43 @@ export function FavorsTab({
   const deleteFavorType = async (typeId) => {
     if (isArchived || isViewer) return;
     const toDelete = favors.filter(f => f.favorTypeId === typeId);
-    for (const f of toDelete) await remove(f._rowId);
+    const removeResults = await Promise.all(toDelete.map(f => remove(f._rowId)));
+    const someRemoveFailed = removeResults.some(r => r?.error);
     const next = { ...localConfig, favorTypes: (localConfig.favorTypes || []).filter(t => t.id !== typeId) };
     setLocalConfig(next);
-    await saveConfig(next);
+    const configResult = await saveConfig(next); // saveConfig shows its own toast on failure
     if (activeFavorTypeId === typeId) setActiveFavorTypeId(next.favorTypes[0]?.id || null);
+    if (configResult?.error) return; // saveConfig already reported this
+    if (someRemoveFailed) { showToast("Favor type removed, but some of its favors couldn't be deleted"); return; }
     showToast("Favor type deleted");
   };
 
   // ── CRUD ──────────────────────────────────────────────────────────────────
-  const handleAdd    = async (f)  => { if (isArchived || isViewer) return; await save({ ...f, favorTypeId: activeType?.id }); showToast("Favor added");   setShowModal(false); };
-  const handleEdit   = async (f)  => { if (isArchived || isViewer) return; await save(f);                                      showToast("Favor updated"); setEditFavor(null);  };
+  const handleAdd = async (f) => {
+    if (isArchived || isViewer) return;
+    const result = await save({ ...f, favorTypeId: activeType?.id });
+    if (result?.error) { showToast("Couldn't add the favor. Try again."); return; }
+    showToast("Favor added");
+    setShowModal(false);
+  };
+
+  const handleEdit = async (f) => {
+    if (isArchived || isViewer) return;
+    const result = await save(f);
+    if (result?.error) { showToast("Couldn't save the favor. Try again."); return; }
+    if (result?.conflict) return; // AppShell already surfaces a conflict toast
+    showToast("Favor updated");
+    setEditFavor(null);
+  };
+
   const handleDelete = async (id) => {
     if (isArchived || isViewer) return;
     const f = favors.find(x => x.id === id);
-    if (f) await remove(f._rowId);
-    showToast("Favor deleted");
+    if (!f) { setDeleteConfirm(null); return; }
+    const result = await remove(f._rowId);
     setDeleteConfirm(null);
+    if (result?.error) { showToast("Couldn't delete the favor. Try again."); return; }
+    showToast("Favor deleted");
   };
 
   const cyclePre = async (id) => {
@@ -322,7 +349,8 @@ export function FavorsTab({
     const f = favors.find(x => x.id === id);
     if (!f) return;
     const next = { "TBD": "Yes", "Yes": "No", "No": "TBD" };
-    await save({ ...f, preprint: next[f.preprint || "TBD"] || "TBD" });
+    const result = await save({ ...f, preprint: next[f.preprint || "TBD"] || "TBD" });
+    if (result?.error) showToast("Couldn't update pre-printed status. Try again.");
   };
 
   // ── Add person from available panel ───────────────────────────────────────
@@ -332,12 +360,13 @@ export function FavorsTab({
     const sizeVal = activeType.sizeSource === "pant"   ? p.pantSize  || ""
                   : activeType.sizeSource === "manual" ? ""
                   : p.shirtSize || "";
-    await save({
+    const result = await save({
       id: newFavorId(), personId: p.id, personName: name,
       favorTypeId: activeType.id,
       size: sizeVal, printName: "", preprint: "TBD",
       notes: "", category: "",
     });
+    if (result?.error) { showToast("Couldn't add the favor. Try again."); return; }
     showToast("Favor added");
   };
 

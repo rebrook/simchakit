@@ -2,6 +2,13 @@
 // SimchaKit V3.0.0 — BudgetTab.jsx
 // Ported from V2. Uses useEventData for Supabase persistence.
 // Recharts used for Budget Insights charts (already installed as project dep).
+//
+// V4.33.3: togglePaid/confirmPaid/handleSave/handleDelete/the gratuity
+// calculator's onAddExpense now check save()/remove()'s return value
+// instead of always reporting success. A failed save keeps the modal open
+// instead of closing and discarding what was typed; a conflict is left to
+// AppShell's existing "simchakit:save-conflict" toast rather than doubling
+// up here.
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useState, useEffect, useMemo } from "react";
@@ -1005,13 +1012,15 @@ export function BudgetTab({ eventId, event, adminConfig, showToast, isArchived, 
     if (isArchived || isViewer) return;
     // Marking unpaid — always immediate
     if (expense.paid) {
-      await save({ ...expense, paid: false, datePaid: "" });
+      const result = await save({ ...expense, paid: false, datePaid: "" });
+      if (result?.error) { showToast("Couldn't update the expense. Try again."); return; }
       showToast("Marked unpaid");
       return;
     }
     // Marking paid — if date already set, proceed immediately
     if (expense.datePaid || expense.date) {
-      await save({ ...expense, paid: true });
+      const result = await save({ ...expense, paid: true });
+      if (result?.error) { showToast("Couldn't update the expense. Try again."); return; }
       showToast("Marked paid");
       return;
     }
@@ -1025,9 +1034,10 @@ export function BudgetTab({ eventId, event, adminConfig, showToast, isArchived, 
     if (!pendingPaidId) return;
     const exp = expenses.find(e => (e.id || e._rowId) === pendingPaidId);
     if (!exp) return;
-    await save({ ...exp, paid: true, datePaid: pendingPaidDate || new Date().toISOString().slice(0, 10) });
-    showToast("Marked paid");
+    const result = await save({ ...exp, paid: true, datePaid: pendingPaidDate || new Date().toISOString().slice(0, 10) });
     setPendingPaidId(null); setPendingPaidIdx(null); setPendingPaidDate("");
+    if (result?.error) { showToast("Couldn't update the expense. Try again."); return; }
+    showToast("Marked paid");
   };
 
   const cancelPaid = () => {
@@ -1037,14 +1047,22 @@ export function BudgetTab({ eventId, event, adminConfig, showToast, isArchived, 
   const toggleNotes = (id) => setExpandedNotes(n => ({ ...n, [id]: !n[id] }));
 
   const handleSave = async (data) => {
-    await save(data);
+    const wasEditing = !!editing;
+    const result = await save(data);
+    if (result?.error) { showToast("Couldn't save the expense. Try again."); return; }
+    // A conflict means someone else saved this expense first; save() has
+    // already replaced the local copy with the server's current version and
+    // the hook fires its own "simchakit:save-conflict" event for AppShell to
+    // toast. Keep the modal open here rather than discarding what was typed.
+    if (result?.conflict) return;
     setShowAdd(false);
     setEditing(null);
-    showToast(editing ? "Expense updated" : "Expense added");
+    showToast(wasEditing ? "Expense updated" : "Expense added");
   };
 
   const handleDelete = async (e) => {
-    await remove(e._rowId);
+    const result = await remove(e._rowId);
+    if (result?.error) { showToast("Couldn't delete the expense. Try again."); return; }
     showToast("Expense deleted");
   };
 
@@ -1141,7 +1159,11 @@ export function BudgetTab({ eventId, event, adminConfig, showToast, isArchived, 
         <GratuityCalculator
           expenses={expenses}
           vendors={vendors}
-          onAddExpense={async (exp) => { await save(exp); showToast("Gratuity added to budget"); }}
+          onAddExpense={async (exp) => {
+            const result = await save(exp);
+            if (result?.error) { showToast("Couldn't add the gratuity. Try again."); return; }
+            showToast("Gratuity added to budget");
+          }}
           isArchived={isArchived}
         />
       )}
