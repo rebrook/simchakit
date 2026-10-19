@@ -1,9 +1,19 @@
 {
-  "current": "V4.37.1",
+  "current": "V4.37.2",
   "whatsNew": [
-    "Fix: the Guests nav badge read a stored copy of each household's RSVP status that had fallen out of sync with the real status, so it counted households as awaiting even when every RSVP was in. It now reads the same RSVP field the Guests tab uses, so the two always agree"
+    "Fix: the Guests tab loaded households without telling the data layer to keep the indexed RSVP status, group, and out-of-town columns up to date, so those columns stopped updating after each household's first save. They now update on every save",
+    "Fix: a database trigger now derives those three columns from the household record on every insert and update, so no screen or import path can leave them stale again, and a one-time resync corrected existing households across all events"
   ],
   "changelog": [
+    {
+      "version": "V4.37.2",
+      "date": "2026-10-19",
+      "summary": "Fixed the stored copy of each household's RSVP status, group, and out-of-town flag falling out of sync",
+      "changes": [
+        "Fix: the Guests tab loaded households without telling the data layer to keep the indexed RSVP status, group, and out-of-town columns up to date, so those columns stopped updating after each household's first save. They now update on every save",
+        "Fix: a database trigger now derives those three columns from the household record on every insert and update, so no screen or import path can leave them stale again, and a one-time resync corrected existing households across all events"
+      ]
+    },
     {
       "version": "V4.37.1",
       "date": "2026-10-19",

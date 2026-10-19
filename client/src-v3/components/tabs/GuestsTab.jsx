@@ -14,7 +14,7 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, Cell, PieChart, Pie, LabelList,
 } from "recharts";
-import { useEventData, peoplePromoteColumns } from "@/hooks/useEventData.js";
+import { useEventData, peoplePromoteColumns, householdPromoteColumns } from "@/hooks/useEventData.js";
 import { writeAuditLog }      from "@/utils/auditLog.js";
 import { useSearchHighlight } from "@/hooks/useSearchHighlight.js";
 import { RSVP_STATUSES, TITLES, DEFAULT_GROUPS, DEFAULT_MEALS, isKosherMealChoice } from "@/constants/guest-constants.js";
@@ -57,7 +57,7 @@ const statusStyle = {
 
 // ── GuestsTab ─────────────────────────────────────────────────────────────────
 export function GuestsTab({ eventId, event, adminConfig, showToast, isArchived, isViewer, searchHighlight, clearSearchHighlight, setTopbarSubtitle }) {
-  const { items: households, loading: hLoading, save: saveHouseholdRow, remove: removeHouseholdRow } = useEventData(eventId, "households");
+  const { items: households, loading: hLoading, save: saveHouseholdRow, remove: removeHouseholdRow } = useEventData(eventId, "households", { promoteColumns: householdPromoteColumns });
   const { items: people,     loading: pLoading, save: savePersonRow,    remove: removePersonRow }     = useEventData(eventId, "people", { promoteColumns: peoplePromoteColumns });
   const { items: tables,     loading: tLoading }                                                       = useEventData(eventId, "tables");
 
