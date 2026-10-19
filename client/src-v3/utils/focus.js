@@ -19,7 +19,7 @@
 // surfaces in their place, since that is the thing actually left to do.
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { isFullyPaid, amountRemaining } from "./expensePayments.js";
+import { getOpenPayments } from "./vendors.js";
 import { getConfirmedPeopleForSection } from "./sections.js";
 import { countThankYousOutstanding } from "./gifts.js";
 
@@ -98,41 +98,53 @@ export function computeFocusItems(data, adminConfig) {
     });
   }
 
-  // ── Payments due soon (unpaid expenses with dueDate in next 14 days) ────
-  const unpaidWithDue = expenses.filter(e => !isFullyPaid(e) && e.dueDate);
-  const overduePayments = unpaidWithDue.filter(e => new Date(e.dueDate + "T00:00:00") < today);
-  const upcomingPayments = unpaidWithDue.filter(e => {
-    const d = new Date(e.dueDate + "T00:00:00");
+  // ── Payments (overdue, or due within the next 14 days) ──────────────────
+  // V4.38.2: built from getOpenPayments() so a scheduled expense is judged by
+  // its own installment dates, the same rule as the Budget tab's Overdue tag
+  // and the Budget nav badge (previously only the expense's own dueDate was
+  // read, so a late installment on a scheduled expense could be missed). The
+  // dollar figures now sum only the late or imminent installments, not the
+  // expense's whole remaining balance.
+  const openPayments = expenses.flatMap(e => getOpenPayments(e).map(p => ({ ...p, expense: e })));
+  const dueOn = p => new Date(p.dueDate + "T00:00:00");
+  const overdueOpen = openPayments.filter(p => dueOn(p) < today);
+  const upcomingOpen = openPayments.filter(p => {
+    const d = dueOn(p);
     return d >= today && d <= new Date(today.getTime() + 14 * 86400000);
   });
+  const overdueExpenses = [...new Set(overdueOpen.map(p => p.expense))];
 
-  if (overduePayments.length > 0) {
-    const total = overduePayments.reduce((s, e) => s + amountRemaining(e), 0);
+  if (overdueOpen.length > 0) {
+    const total = overdueOpen.reduce((s, p) => s + p.amount, 0);
     items.push({
       id: "payments",
       domain: "payments",
       tone: "red",
       icon: "alertTriangle",
       title: `$${total.toLocaleString()} in overdue payments`,
-      detail: overduePayments.length === 1
-        ? truncate(overduePayments[0].description || overduePayments[0].vendor || "Payment", 60)
-        : `${overduePayments.length} payment${overduePayments.length !== 1 ? "s" : ""} past due`,
+      detail: overdueExpenses.length === 1
+        ? truncate(overdueExpenses[0].description || overdueExpenses[0].vendor || "Payment", 60)
+        : `${overdueExpenses.length} payments past due`,
       tab: "budget",
       priority: 2,
     });
-  } else if (upcomingPayments.length > 0) {
-    const total = upcomingPayments.reduce((s, e) => s + amountRemaining(e), 0);
-    const soonest = upcomingPayments.sort((a, b) => a.dueDate.localeCompare(b.dueDate))[0];
-    const daysOut = Math.ceil((new Date(soonest.dueDate + "T00:00:00") - today) / 86400000);
+  } else if (upcomingOpen.length > 0) {
+    const total = upcomingOpen.reduce((s, p) => s + p.amount, 0);
+    const soonest = [...upcomingOpen].sort((a, b) => a.dueDate.localeCompare(b.dueDate))[0];
+    const name = truncate(soonest.expense.description || soonest.expense.vendor || "Payment", 40);
+    const daysOut = Math.ceil((dueOn(soonest) - today) / 86400000);
     items.push({
       id: "payments",
       domain: "payments",
       tone: "gold",
       icon: "banknote",
       title: `$${total.toLocaleString()} due within 2 weeks`,
-      detail: daysOut <= 1
-        ? `${truncate(soonest.description || soonest.vendor || "Payment", 40)} due tomorrow`
-        : `${truncate(soonest.description || soonest.vendor || "Payment", 40)} due in ${daysOut} days`,
+      // A payment due today used to read "due tomorrow" (the check was daysOut <= 1).
+      detail: daysOut <= 0
+        ? `${name} due today`
+        : daysOut === 1
+          ? `${name} due tomorrow`
+          : `${name} due in ${daysOut} days`,
       tab: "budget",
       priority: 4,
     });

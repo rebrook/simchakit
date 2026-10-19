@@ -1,6 +1,6 @@
 // Vendor and budget utilities — financials, due dates, and currency formatting
 
-import { hasPayments, isFullyPaid, totalAmount, amountPaid } from "./expensePayments.js";
+import { hasPayments, isFullyPaid, totalAmount, amountPaid, amountRemaining } from "./expensePayments.js";
 
 // For an expense with a payment schedule, find the earliest due date among
 // its not-yet-paid installments. Returns null if there's nothing scheduled
@@ -22,6 +22,25 @@ function getDueStatus(expense) {
   if (diff < 0)  return { label: "Overdue", cls: "expense-row-overdue", diff };
   if (diff <= 14) return { label: `Due in ${diff}d`, cls: "expense-row-due", diff };
   return { label: `Due ${new Date(dueDate+"T00:00:00").toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"})}`, cls: "expense-row-due", diff };
+}
+
+// The dated amounts still owed on an expense (V4.38.2). One entry per unpaid,
+// dated installment for a scheduled expense, or one entry for the expense's own
+// dueDate and remaining balance otherwise. Undated installments are left out,
+// the same "no due date means not surfaced" rule getDueStatus() uses, so
+// anything built from this agrees with the Budget tab's Overdue tag. Used by
+// the Overview focus panel so its overdue and due-soon dollar figures count
+// only the late or imminent installments, not the whole remaining balance.
+function getOpenPayments(expense) {
+  if (isFullyPaid(expense)) return [];
+  if (hasPayments(expense)) {
+    return (expense.payments || [])
+      .filter(p => p.status !== "paid" && p.dueDate)
+      .map(p => ({ dueDate: p.dueDate, amount: parseFloat(p.amount) || 0, label: p.label || "" }));
+  }
+  return expense.dueDate
+    ? [{ dueDate: expense.dueDate, amount: amountRemaining(expense), label: "" }]
+    : [];
 }
 
 function getNextDue(expenses) {
@@ -70,6 +89,7 @@ function fmt$(n) {
 export {
   getDueStatus,
   getNextDue,
+  getOpenPayments,
   computeVendorFinancials,
   getLastContacted,
   fmt$,

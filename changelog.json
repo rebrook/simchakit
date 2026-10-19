@@ -1,13 +1,25 @@
 {
-  "current": "V4.38.1",
+  "current": "V4.38.2",
   "whatsNew": [
-    "Fix: on mobile, a gift's giver names are no longer cut off with an ellipsis. The card title and each giver's row now wrap onto as many lines as needed, which matters most for gifts given by several households",
-    "Fix: the Day-of Mode contacts list no longer cuts off long contact names on a phone; they now wrap",
-    "Change: the Gifts tab's Thank Yous Pending card is now Thank Yous Outstanding. It counts every giver whose note is not yet both written and mailed, and its sub-line shows how many are to write and how many are to mail. It now matches the Gifts nav badge and the Overview thank-you item, and together with Thank Yous Complete it accounts for every giver",
-    "Fix: the expand arrow on mobile Gifts cards is now a proper button with a 44px tap target, keyboard access, and a screen reader label that reports whether details are shown",
-    "Guide: corrected the Gifts section, which said Thank Yous Complete counted gifts when it counts givers, and described the new Outstanding card and the phone card layout"
+    "Fix: the Overview What Needs You Next payment item and the Budget nav badge only looked at an expense's own due date, while the Budget tab judges an expense with a payment schedule by its unpaid installments' due dates. A late installment could show Overdue on the tab and be missed by both. All three now use the same rule",
+    "Fix: the overdue and due-soon dollar totals on the Overview now add up only the late or upcoming installments, instead of the whole remaining balance of each expense, so one late deposit no longer inflates the figure",
+    "Fix: a payment due today read as due tomorrow on the Overview; it now reads due today",
+    "New: the Outstanding card on the Budget tab now also shows how many items are overdue (for example, 14 unpaid items, 2 overdue), so the Budget badge number can be found on the tab",
+    "Guide: the Budget section's overdue badge entry now describes the installment rule, the new card detail, and how the Overview totals are calculated"
   ],
   "changelog": [
+    {
+      "version": "V4.38.2",
+      "date": "2026-10-19",
+      "summary": "Overdue payments are now counted the same way on the Budget tab, the Budget badge, and the Overview",
+      "changes": [
+        "Fix: the Overview What Needs You Next payment item and the Budget nav badge only looked at an expense's own due date, while the Budget tab judges an expense with a payment schedule by its unpaid installments' due dates. A late installment could show Overdue on the tab and be missed by both. All three now use the same rule",
+        "Fix: the overdue and due-soon dollar totals on the Overview now add up only the late or upcoming installments, instead of the whole remaining balance of each expense, so one late deposit no longer inflates the figure",
+        "Fix: a payment due today read as due tomorrow on the Overview; it now reads due today",
+        "New: the Outstanding card on the Budget tab now also shows how many items are overdue (for example, 14 unpaid items, 2 overdue), so the Budget badge number can be found on the tab",
+        "Guide: the Budget section's overdue badge entry now describes the installment rule, the new card detail, and how the Overview totals are calculated"
+      ]
+    },
     {
       "version": "V4.38.1",
       "date": "2026-10-19",

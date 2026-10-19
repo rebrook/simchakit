@@ -898,6 +898,9 @@ export function BudgetTab({ eventId, event, adminConfig, showToast, isArchived, 
   const totalPaid         = expenses.reduce((s, e) => s + amountPaid(e), 0);
   const totalUnpaid       = totalExpenses - totalPaid;
   const unpaidCount       = expenses.filter(e => !isFullyPaid(e)).length;
+  // Same rule as the Overdue tag on each row and the Budget nav badge, so the
+  // badge number can be found here.
+  const overdueCount      = expenses.filter(e => getDueStatus(e)?.diff < 0).length;
   const hasBudgeted       = expenses.some(e => e.budgeted && parseFloat(e.budgeted) > 0);
   const hasAnyBudgeted    = hasBudgeted;
   const totalBudgeted     = expenses.reduce((s, e) => s + (parseFloat(e.budgeted) || 0), 0);
@@ -1116,7 +1119,7 @@ export function BudgetTab({ eventId, event, adminConfig, showToast, isArchived, 
         <div className="stat-card">
           <div className="stat-label">Outstanding</div>
           <div className="stat-value stat-red">{fmt$(totalUnpaid)}</div>
-          <div className="stat-sub">{unpaidCount} unpaid item{unpaidCount !== 1 ? "s" : ""}</div>
+          <div className="stat-sub">{unpaidCount} unpaid item{unpaidCount !== 1 ? "s" : ""}{overdueCount > 0 ? `, ${overdueCount} overdue` : ""}</div>
         </div>
         <div className="stat-card">
           <div className="stat-label">Next Payment Due</div>

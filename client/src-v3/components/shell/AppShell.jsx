@@ -23,7 +23,7 @@ import { NotificationPanel }     from "@/components/shared/NotificationPanel.jsx
 import { Icon }                  from "@/utils/iconMap.jsx";
 import { ErrorBoundary }         from "@/components/shared/ErrorBoundary.jsx";
 import { useSyncStatus }         from "@/utils/syncStatus.js";
-import { isFullyPaid }           from "@/utils/expensePayments.js";
+import { getDueStatus }          from "@/utils/vendors.js";
 import { countThankYousOutstanding } from "@/utils/gifts.js";
 import { parseEventRoute, pushEventPath } from "@/utils/router.js";
 
@@ -244,7 +244,6 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false, display
 
   const fetchBadgeCounts = useCallback(async () => {
     if (!eventId) return;
-    const todayStr = localDateString(new Date());
     const [hh, tsk, exp, gft] = await Promise.all([
       // Guests badge: households awaiting RSVP, not a bare total headcount.
       // Reads data->>rsvpStatus, the canonical field the Guests tab and
@@ -264,14 +263,14 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false, display
       supabase.from("tasks").select("*", { count: "exact", head: true }).eq("event_id", eventId)
         .or("data->>done.is.null,data->>done.neq.true")
         .or("data->>dismissed.is.null,data->>dismissed.neq.true"),
-      // Budget badge: "overdue and unpaid" can't be expressed as a single
-      // jsonb column filter, since isFullyPaid() sums a payments[] schedule
-      // for V3's installment feature rather than reading a flat paid field.
-      // Narrow server-side to just the (small) set of expenses overdue by
-      // date, then reuse the real isFullyPaid() helper client-side rather
-      // than re-deriving its logic here.
-      supabase.from("expenses").select("data").eq("event_id", eventId)
-        .lt("data->>dueDate", todayStr),
+      // Budget badge: overdue expenses, judged by the same getDueStatus() the
+      // Budget tab uses for its Overdue tag. That rule reads a scheduled
+      // expense's own installment dates, which live inside the payments
+      // array, so it can't be a jsonb column filter (V4.38.2: this used to
+      // prefilter on the expense's own dueDate and could miss a late
+      // installment). An event's expense list is small, so fetch the rows
+      // and apply the real rule client-side.
+      supabase.from("expenses").select("data").eq("event_id", eventId),
       // Gifts badge: thank-you notes outstanding (not yet written or not yet
       // mailed). Uses the same shared countThankYousOutstanding() as the
       // focus panel, so the two always agree, and runs client-side because
@@ -288,7 +287,7 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false, display
     });
     const overdueUnpaid = (exp.data || [])
       .map(row => row.data)
-      .filter(e => !isFullyPaid(e)).length;
+      .filter(e => getDueStatus(e)?.diff < 0).length;
     const thankYousOwed = countThankYousOutstanding((gft.data || []).map(row => row.data)).total;
     setBadgeCounts({
       guests: hh.count ?? null,
