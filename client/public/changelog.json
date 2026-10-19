@@ -1,10 +1,18 @@
 {
-  "current": "V4.33.0",
+  "current": "V4.33.1",
   "whatsNew": [
-    "New: a gift can now be split across more than one giver, e.g. three families pooling on one gift, each with its own thank-you status",
-    "Change: the Gifts tab's thank-you counts, filters, CSV export, and Printable View now work per giver instead of per gift"
+    "Fix: editing a gift no longer creates a duplicate row. If you saw the same gift appear more than once after editing it, that's why, and the duplicates can be deleted individually"
   ],
   "changelog": [
+    {
+      "version": "V4.33.1",
+      "date": "2026-10-18",
+      "summary": "Fixed gift edits saving as duplicate rows instead of updating the existing gift",
+      "changes": [
+        "Fix: editing a gift (through the pencil icon) was saving as a brand-new row every time instead of updating the existing one, so the same gift could appear two or three times in the list after repeated edits. The Add/Edit Gift form now carries the existing row's identity through on save. Inline thank-you toggles in the table and on mobile cards were never affected, only edits made through the full Add/Edit form",
+        "Note: this does not remove duplicate rows already created by the bug. Those can be deleted individually from the Gifts tab like any other gift"
+      ]
+    },
     {
       "version": "V4.33.0",
       "date": "2026-10-18",

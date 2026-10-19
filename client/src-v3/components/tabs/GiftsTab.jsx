@@ -1,11 +1,16 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// SimchaKit V4.33.0 — GiftsTab.jsx
+// SimchaKit V4.33.1 — GiftsTab.jsx
 // Uses useEventData for Supabase persistence.
 // A gift can now be given by more than one household (gift.givers array) —
 // see utils/gifts.js for the data model and legacy-shape migration. Shared
 // gift-level fields (giftType, description, amount, dateReceived, attended,
 // notes) still live at the top level; only the "from" and thank-you status
 // are per-giver.
+//
+// V4.33.1: GiftModal's handleSave() now carries the edited gift's _rowId
+// through in its payload. V4.33.0 rebuilt the form state field by field
+// instead of spreading the whole gift, which dropped _rowId and made every
+// edit save() as a new row instead of updating the existing one.
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useState, useEffect, useRef } from "react";
@@ -529,11 +534,15 @@ export function GiftModal({ gift, households, onSave, onClose, isArchived }) {
       .map(gv => ({ ...gv, name: (gv.name || "").trim() }))
       .filter(gv => gv.name);
     if (cleanGivers.length === 0) return;
-    onSave({
+    const payload = {
       ...form,
       amount: form.amount !== "" ? parseFloat(form.amount) : null,
       givers: cleanGivers,
-    });
+    };
+    // Carry the existing row's _rowId through on edit, or save() has nothing
+    // to match against and inserts a new row instead of updating this one.
+    if (gift?._rowId != null) payload._rowId = gift._rowId;
+    onSave(payload);
   };
 
   const canSave = givers.some(gv => (gv.name || "").trim()) && !isArchived;
