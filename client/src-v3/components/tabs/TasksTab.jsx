@@ -10,6 +10,15 @@
 // rather than doubling up here. handleLinkConfirm also now stops short of
 // completing the task if its linked write-back (marking an expense paid or
 // a prep item complete) fails, instead of completing the task anyway.
+//
+// V4.33.4: fixed a crash opening the edit form on a task with no task text.
+// handleDismissSuggestion creates a bare marker row (id + dismissed only) for
+// a suggestion that was never promoted to a real task; handleRestoreSuggestions
+// used to un-dismiss every dismissed row the same way, turning that marker
+// into a visible blank task. It now deletes marker-only rows on restore
+// instead. TaskModal's Save button also no longer assumes form.task is a
+// string, so any task missing its text, however it got there, can still be
+// opened and deleted safely instead of crashing.
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useState, useEffect, useMemo } from "react";
@@ -96,8 +105,8 @@ export function TaskModal({ task, prefilled, onSave, onClose, isArchived }) {
             <span style={{fontSize:11,color:"var(--text-muted)",marginRight:"auto"}}>* required</span>
             <button className="btn btn-ghost" onClick={onClose}>Cancel</button>
             <button className="btn btn-primary"
-              onClick={() => { if (form.task.trim()) onSave({...form}); }}
-              disabled={!form.task.trim() || isArchived}>
+              onClick={() => { if ((form.task || "").trim()) onSave({...form}); }}
+              disabled={!(form.task || "").trim() || isArchived}>
               {isEdit ? "Save Changes" : "Add Task"}
             </button>
           </div>
@@ -481,7 +490,17 @@ export function TasksTab({ eventId, event, adminConfig, showToast, isArchived, i
   const handleRestoreSuggestions = async () => {
     if (isArchived) return;
     const dismissed = tasks.filter(t => t.dismissed);
-    const results = await Promise.all(dismissed.map(t => save({ ...t, dismissed: false })));
+    const results = await Promise.all(dismissed.map(t => {
+      // handleDismissSuggestion creates a bare marker row (id + dismissed
+      // only, no task text) for a suggestion that was never promoted to a
+      // real task. Un-dismissing a marker like that produces a visible but
+      // blank task, since it never had any text of its own. Delete the
+      // marker instead so Restore just makes the suggestion reappear,
+      // rather than leaving an empty row behind. A real dismissed task
+      // still has its own task text, so it gets un-dismissed as before.
+      const isMarkerOnly = !((t.task || "").trim());
+      return isMarkerOnly ? remove(t._rowId) : save({ ...t, dismissed: false });
+    }));
     if (results.some(r => r?.error)) showToast("Some suggestions couldn't be restored. Try again.");
   };
 

@@ -1,9 +1,19 @@
 {
-  "current": "V4.33.3",
+  "current": "V4.33.4",
   "whatsNew": [
-    "Fix: save and delete actions across Gifts, Vendors, Favors, Prep, Tasks, and Budget now report what actually happened instead of always showing success"
+    "Fix: a dismissed suggestion with nothing attached could come back as a blank task after using Restore, and opening it would crash the page. Both are fixed; any blank task already in your list can be deleted normally"
   ],
   "changelog": [
+    {
+      "version": "V4.33.4",
+      "date": "2026-10-19",
+      "summary": "Fixed a blank task that could appear after restoring a dismissed suggestion, and a crash opening it",
+      "changes": [
+        "Fix: dismissing a Smart Task suggestion that had no task of its own yet creates a small marker so it does not reappear in Suggested Tasks. Restoring dismissed suggestions used to turn that marker into a visible, blank task with no text. It now removes the marker instead, so Restore just makes the suggestion available again",
+        "Fix: opening the edit form on a task with no task text, including any blank task already created by the issue above, no longer crashes the Tasks tab. It can now be opened and deleted normally",
+        "Note: a blank task already sitting in your list from before this fix is safe to delete directly from the Tasks tab"
+      ]
+    },
     {
       "version": "V4.33.3",
       "date": "2026-10-19",
