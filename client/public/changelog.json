@@ -1,12 +1,17 @@
 {
-  "current": "V4.35.0",
+  "current": "V4.35.1",
   "whatsNew": [
-    "New: vendor cards and Vendor Quick View now show a Billed in Budget line whenever it differs from the vendor's Contract amount, for example after linking a new expense to a vendor following the original signing",
-    "New: a Sync button appears in that case to update the Contract amount to match, with a confirmation step before anything changes and a record kept in the Activity Log",
-    "New: an info icon on Contract explains how it relates to Billed in Budget",
-    "New: an info icon on the Vendors tab's Total Paid card explains why the remaining amount can show as negative"
+    "Fix: the Written and Mailed thank-you toggle buttons on the Gifts tab's mobile card view were still 32px, below the 44px minimum tap target, because they weren't using the shared icon button styling the rest of the V4.34.1 fix relied on"
   ],
   "changelog": [
+    {
+      "version": "V4.35.1",
+      "date": "2026-10-19",
+      "summary": "Fixed two more small tap targets on phone that the V4.34.1 pass missed",
+      "changes": [
+        "Fix: the Written and Mailed thank-you toggle buttons on the Gifts tab's mobile card view were still 32px, below the 44px minimum tap target, because they weren't using the shared icon button styling the rest of the V4.34.1 fix relied on"
+      ]
+    },
     {
       "version": "V4.35.0",
       "date": "2026-10-19",

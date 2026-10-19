@@ -395,17 +395,17 @@ export function GiftsTab({ eventId, event, adminConfig, showToast, isArchived, i
                         <div style={{ fontSize: 12, color: "var(--text-secondary)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                           {gv.name || "—"}{gv.householdId && <span style={{ color: "var(--accent-medium)" }}> ●</span>}
                         </div>
-                        <div style={{ display: "flex", gap: 6, alignItems: "center", flexShrink: 0 }}>
+                        <div style={{ display: "flex", gap: 8, alignItems: "center", flexShrink: 0 }}>
                           <span style={{ fontSize: 10, color: "var(--text-muted)", fontWeight: 600 }}>W</span>
                           <button type="button" aria-label={`${gv.thankYouWritten ? "Mark not written" : "Mark written"} for ${gv.name || "this giver"}`}
                             disabled={isViewer} onClick={() => toggleGiverWritten(g.id, gv.id)}
-                            style={{ width: 32, height: 32, padding: 0, borderRadius: 6, border: `2px solid ${gv.thankYouWritten ? "var(--green)" : "var(--border)"}`, background: gv.thankYouWritten ? "var(--green)" : "transparent", display: "inline-flex", alignItems: "center", justifyContent: "center", cursor: isViewer ? "default" : "pointer" }}>
+                            style={{ width: 44, height: 44, padding: 0, borderRadius: 6, border: `2px solid ${gv.thankYouWritten ? "var(--green)" : "var(--border)"}`, background: gv.thankYouWritten ? "var(--green)" : "transparent", display: "inline-flex", alignItems: "center", justifyContent: "center", cursor: isViewer ? "default" : "pointer" }}>
                             {gv.thankYouWritten && <span style={{ color: "white", fontSize: 13, fontWeight: 700 }}><Icon name="check" context="badge" /></span>}
                           </button>
                           <span style={{ fontSize: 10, color: "var(--text-muted)", fontWeight: 600 }}>M</span>
                           <button type="button" aria-label={`${gv.thankYouMailed ? "Mark not mailed" : "Mark mailed"} for ${gv.name || "this giver"}`}
                             disabled={isViewer} onClick={() => toggleGiverMailed(g.id, gv.id)}
-                            style={{ width: 32, height: 32, padding: 0, borderRadius: 6, border: `2px solid ${gv.thankYouMailed ? "var(--blue)" : "var(--border)"}`, background: gv.thankYouMailed ? "var(--blue)" : "transparent", display: "inline-flex", alignItems: "center", justifyContent: "center", cursor: isViewer ? "default" : "pointer" }}>
+                            style={{ width: 44, height: 44, padding: 0, borderRadius: 6, border: `2px solid ${gv.thankYouMailed ? "var(--blue)" : "var(--border)"}`, background: gv.thankYouMailed ? "var(--blue)" : "transparent", display: "inline-flex", alignItems: "center", justifyContent: "center", cursor: isViewer ? "default" : "pointer" }}>
                             {gv.thankYouMailed && <span style={{ color: "white", fontSize: 13, fontWeight: 700 }}><Icon name="check" context="badge" /></span>}
                           </button>
                         </div>
