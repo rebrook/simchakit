@@ -334,7 +334,7 @@ export function GiftsTab({ eventId, event, adminConfig, showToast, isArchived, i
                         </div>
                       </td>
                       <td style={{ ...TD, textAlign: "center" }}>
-                        <div style={{ display: "flex", gap: 4, justifyContent: "center" }}>
+                        <div style={{ display: "flex", gap: 8, justifyContent: "center" }}>
                           <button className="icon-btn" title="Edit"   disabled={isArchived || isViewer} onClick={() => setEditGift(g)}><Icon name="pencil" context="badge" /></button>
                           <button className="icon-btn icon-btn-danger" title="Delete" disabled={isArchived || isViewer} onClick={() => setDeleteConfirm(g)}><Icon name="x" context="badge" /></button>
                         </div>
@@ -380,7 +380,7 @@ export function GiftsTab({ eventId, event, adminConfig, showToast, isArchived, i
                       </div>
                     )}
                     {/* Actions */}
-                    <div style={{ display: "flex", flexDirection: "column", gap: 4, flexShrink: 0 }}>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 8, flexShrink: 0 }}>
                       <button className="icon-btn" title="Edit"   disabled={isArchived || isViewer} onClick={() => setEditGift(g)}><Icon name="pencil" context="badge" /></button>
                       <button className="icon-btn icon-btn-danger" title="Delete" disabled={isArchived || isViewer} onClick={() => setDeleteConfirm(g)}><Icon name="x" context="badge" /></button>
                     </div>

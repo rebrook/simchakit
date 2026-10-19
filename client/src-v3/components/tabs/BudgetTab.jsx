@@ -692,16 +692,16 @@ function ExpenseRow({
       <div className="expense-row-actions">
         {!payHasPayments && (
           <button className="icon-btn" title="Payment schedule"
-            style={{width:22,height:28,fontSize:11,opacity:0.4}}
+            style={{fontSize:11,opacity:0.4}}
             onClick={() => setExpanded(x => !x)}>
             ▾
           </button>
         )}
         <button className="icon-btn" title="Edit"
-          style={{width:28,height:28,fontSize:13}}
+          style={{fontSize:13}}
           disabled={actionsDisabled} onClick={() => { setEditing(e); setShowAdd(true); }}><Icon name="pencil" context="badge" /></button>
         <button className="icon-btn" title="Delete"
-          style={{width:28,height:28,fontSize:13,color:"var(--red)"}}
+          style={{fontSize:13,color:"var(--red)"}}
           disabled={actionsDisabled} onClick={() => setDeleteConfirm(e)}><Icon name="x" context="badge" /></button>
       </div>
       {pendingPaidId === (e.id || e._rowId) && pendingPaidIdx === eIdx && (
@@ -787,11 +787,11 @@ function ExpenseRow({
                     <span style={{ fontSize: 12, color: "var(--text-muted)", minWidth: 90 }}>{p.dueDate ? fmt(p.dueDate) : "No due date"}</span>
                     <PaymentStatusPill status={status} />
                     {!actionsDisabled && (
-                      <button className="icon-btn" title="Edit payment" style={{ width: 24, height: 24, fontSize: 12 }}
+                      <button className="icon-btn" title="Edit payment" style={{ fontSize: 12 }}
                         onClick={() => startEditPayment(p)}><Icon name="pencil" context="badge" /></button>
                     )}
                     {!actionsDisabled && (
-                      <button className="icon-btn" title="Remove payment" style={{ width: 24, height: 24, fontSize: 12, color: "var(--red)" }}
+                      <button className="icon-btn" title="Remove payment" style={{ fontSize: 12, color: "var(--red)" }}
                         onClick={() => setRemovePayment(p)}><Icon name="x" context="badge" /></button>
                     )}
                   </div>

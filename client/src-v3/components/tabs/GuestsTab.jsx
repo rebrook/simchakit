@@ -584,8 +584,8 @@ export function GuestsTab({ eventId, event, adminConfig, showToast, isArchived, 
                     </div>
                   </div>
                   <div className="hh-row-actions" onClick={e=>e.stopPropagation()}>
-                    <button className="icon-btn" style={{width:32,height:32,fontSize:13}} title="Edit" disabled={isArchived || isViewer} onClick={()=>setEditingHH(hh)}><Icon name="pencil" context="inline" /></button>
-                    <button className="icon-btn" style={{width:32,height:32,fontSize:13,color:"var(--red)"}} title="Delete" disabled={isArchived || isViewer} onClick={()=>setDeleteConfirm(hh.id)}><Icon name="x" context="inline" /></button>
+                    <button className="icon-btn" title="Edit" disabled={isArchived || isViewer} onClick={()=>setEditingHH(hh)}><Icon name="pencil" context="inline" /></button>
+                    <button className="icon-btn" style={{color:"var(--red)"}} title="Delete" disabled={isArchived || isViewer} onClick={()=>setDeleteConfirm(hh.id)}><Icon name="x" context="inline" /></button>
                   </div>
                 </div>
 

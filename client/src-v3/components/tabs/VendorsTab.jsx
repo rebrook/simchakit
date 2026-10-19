@@ -337,7 +337,7 @@ export function VendorsTab({ eventId, event, adminConfig, showToast, isArchived,
                   <div className="vendor-card-date">
                     {v.contractDate ? `Signed ${fmt(v.contractDate)}` : formatAddress(v) || ""}
                   </div>
-                  <div style={{display:"flex",gap:4,alignItems:"center"}}>
+                  <div style={{display:"flex",gap:8,alignItems:"center"}}>
                     {v.contractUrl && (
                       <a href={v.contractUrl} target="_blank" rel="noopener noreferrer"
                         className="btn btn-secondary btn-sm"
@@ -347,11 +347,11 @@ export function VendorsTab({ eventId, event, adminConfig, showToast, isArchived,
                       </a>
                     )}
                     <button className="icon-btn" title="Edit"
-                      style={{width:28,height:28,fontSize:13}}
+                      style={{fontSize:13}}
                       disabled={isArchived || isViewer}
                       onClick={() => { setEditing(v); setShowAdd(true); }}><Icon name="pencil" context="badge" /></button>
                     <button className="icon-btn" title="Delete"
-                      style={{width:28,height:28,fontSize:13,color:"var(--red)"}}
+                      style={{fontSize:13,color:"var(--red)"}}
                       disabled={isArchived || isViewer}
                       onClick={() => setDeleteConfirm(v._rowId || v.id)}><Icon name="x" context="badge" /></button>
                   </div>

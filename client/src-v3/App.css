@@ -2061,8 +2061,8 @@
     /* ── Fine-grained mobile sizing (<=640px) ─────────────────────────── */
     @media (max-width: 760px) {
 
-      /* Icon buttons — smaller on phone */
-      .icon-btn { width: 28px; height: 28px; font-size: 14px; }
+      /* Icon buttons: meet 44px minimum tap target on phone; glyph size (font-size) unchanged */
+      .icon-btn { width: 44px; height: 44px; font-size: 14px; }
 
       /* Stat grid — always 2 columns on phone, tighter */
       .stat-grid {
@@ -2169,8 +2169,8 @@
         flex-wrap: wrap;
         margin-top: 6px;
       }
-      /* Make tap targets larger on mobile */
-      .hh-row-actions .icon-btn { width: 44px; height: 44px; font-size: 15px; }
+      /* Tap targets sized via the global .icon-btn mobile rule; just need room between them */
+      .hh-row-actions { gap: 8px; }
     }
     .hh-row-mobile-meta { display: none; }
 
@@ -3056,9 +3056,11 @@
     }
 
     @media (max-width: 760px) {
-      .expense-row { grid-template-columns: 28px 1fr auto 68px; }
+      /* Actions column sizes to content so two 44px tap targets fit without wrapping */
+      .expense-row { grid-template-columns: 28px 1fr auto auto; }
       .expense-row-desc { font-size: 13px; }
       .expense-row-amount { font-size: 13px; }
+      .expense-row-actions { gap: 8px; }
     }
 
     /* Inline paid checkbox */
@@ -3502,6 +3504,12 @@
       transition: background var(--transition);
     }
     .vqv-close:hover { background: rgba(255,255,255,0.35); }
+
+    @media (max-width: 760px) {
+      /* Grow to 44px tap target, repositioned to keep the same visual center */
+      .vqv-close { top: 6px; right: 8px; width: 44px; height: 44px; }
+      .vqv-header-name { padding-right: 56px; }
+    }
 
     .vqv-body { padding: 20px 24px; }
     .vqv-section { margin-bottom: 18px; }

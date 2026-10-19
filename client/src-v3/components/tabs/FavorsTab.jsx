@@ -787,7 +787,7 @@ export function FavorsTab({
                             })()}
                             <td style={{ ...TD, color: "var(--text-muted)", fontSize: 12, maxWidth: 120, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{f.notes || "—"}</td>
                             <td style={{ ...TD, textAlign: "center" }}>
-                              <div style={{ display: "flex", gap: 4, justifyContent: "center" }}>
+                              <div style={{ display: "flex", gap: 8, justifyContent: "center" }}>
                                 <button className="icon-btn" title="Edit"   disabled={isArchived} onClick={() => setEditFavor(f)}><Icon name="pencil" context="badge" /></button>
                                 <button className="icon-btn icon-btn-danger" title="Delete" disabled={isArchived} onClick={() => setDeleteConfirm(f)}><Icon name="x" context="badge" /></button>
                               </div>
