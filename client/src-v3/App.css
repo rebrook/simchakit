@@ -1075,6 +1075,54 @@
       }
     }
 
+    /* ── Day-of reminder banner (mobile only, <=900px) ─────────────────── */
+    .dayof-reminder-banner { display: none; }
+    @media (max-width: 900px) {
+      .dayof-reminder-banner {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        flex-shrink: 0;
+        background: var(--gold-light);
+        border-bottom: 1px solid var(--gold-medium);
+        padding: 2px 6px 2px 8px;
+      }
+      .dayof-reminder-tap {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex: 1;
+        min-width: 0;
+        background: none;
+        border: none;
+        padding: 8px 6px;
+        text-align: left;
+        cursor: pointer;
+        font-family: var(--font-body);
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--gold);
+      }
+      .dayof-reminder-tap svg { flex-shrink: 0; }
+      .dayof-reminder-tap span {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .dayof-reminder-dismiss {
+        flex-shrink: 0;
+        border: none;
+        background: transparent;
+        box-shadow: none;
+        width: auto;
+        height: auto;
+        min-width: 44px;
+        min-height: 44px;
+        padding: 10px;
+        color: var(--gold);
+      }
+    }
+
     /* ── Toast ── */
     .app-toast {
       position: fixed;

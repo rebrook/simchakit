@@ -137,6 +137,29 @@ function formatSwitcherDate(timeline) {
   return `${dateStr} \u00b7 ${diffDays}d out`;
 }
 
+// ── Day-of reminder banner helpers (mobile only) ────────────────────────────
+// daysToEvent mirrors utils/focus.js's own calc exactly (same mainEvent
+// lookup, same strip-time-to-midnight diff) so the two never disagree.
+// focus.js doesn't export its version, so this is a deliberate duplicate,
+// not a drift risk, as long as both stay in step with the comment above.
+function stripTime(date) {
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+}
+
+function getDaysToEvent(timeline) {
+  const today = stripTime(new Date());
+  const mainEvent = (timeline || []).find(e => e.isMainEvent) || null;
+  const eventDate = mainEvent?.startDate ? new Date(mainEvent.startDate + "T00:00:00") : null;
+  return eventDate ? Math.ceil((eventDate - today) / 86400000) : null;
+}
+
+// Local (not UTC) Y-M-D string, so the dismissal boundary lines up with the
+// same midnight getDaysToEvent() already uses, instead of drifting near
+// midnight the way toISOString()'s UTC date would.
+function localDateString(date) {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 import { displayNameWithEmail } from "@/utils/displayName.js";
 
@@ -150,6 +173,7 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false, display
   const [adminConfig,     setAdminConfig]     = useState(null);
   const [loadStatus,      setLoadStatus]      = useState("loading");
   const [showMoreDrawer,  setShowMoreDrawer]  = useState(false);
+  const [dayOfBannerDismissed, setDayOfBannerDismissed] = useState(false);
   const [topbarSubtitle,  setTopbarSubtitle]  = useState(null);
   const [toastMsg,        setToastMsg]        = useState("");
   const [toastVisible,    setToastVisible]    = useState(false);
@@ -381,9 +405,40 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false, display
     return () => window.removeEventListener("keydown", handler);
   }, [showMoreDrawer]);
 
+  // ── Day-of reminder banner: hydrate dismissal from localStorage ──────────
+  // Stored value is the date (local Y-M-D) it was dismissed on, not a bare
+  // boolean, so a stale dismissal from a prior day never carries forward.
+  // This is what makes the banner "return each morning" without any timer.
+  useEffect(() => {
+    if (!eventId) return;
+    try {
+      const stored = localStorage.getItem(`simchakit-dayof-banner-dismissed-${eventId}`);
+      setDayOfBannerDismissed(stored === localDateString(new Date()));
+    } catch {
+      setDayOfBannerDismissed(false);
+    }
+  }, [eventId]);
+
+  const dismissDayOfBanner = useCallback(() => {
+    if (eventId) {
+      try {
+        localStorage.setItem(`simchakit-dayof-banner-dismissed-${eventId}`, localDateString(new Date()));
+      } catch { /* localStorage unavailable; dismissal just won't persist */ }
+    }
+    setDayOfBannerDismissed(true);
+  }, [eventId]);
+
   // ── Build visible tabs from adminConfig.visibleTabs ──────────────────────
   const visibleTabIds = adminConfig?.visibleTabs;
   const isCoordinator = collaboratorRole === "coordinator";
+  const daysToEvent = getDaysToEvent(adminConfig?.timeline);
+  // Not dismissible on the day itself (daysToEvent === 0). The copy and
+  // the lack of a close button both reflect that intentionally.
+  const showDayOfBanner = !isCoordinator
+    && daysToEvent !== null
+    && daysToEvent >= 0
+    && daysToEvent <= 7
+    && (daysToEvent === 0 || !dayOfBannerDismissed);
 
   let tabs;
   if (isCoordinator) {
@@ -681,6 +736,25 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false, display
           </div>
         </div>
       </header>
+
+      {/* ── Day-of reminder banner (mobile only, <=900px, within 7 days) ── */}
+      {showDayOfBanner && (
+        <div className="dayof-reminder-banner">
+          <button className="dayof-reminder-tap" onClick={() => setShowDayOf(true)}>
+            <Icon name="clipboardList" context="inline" />
+            <span>
+              {daysToEvent === 0
+                ? "It's today. Open Day-of Mode"
+                : "The big day is close. Open Day-of Mode"}
+            </span>
+          </button>
+          {daysToEvent > 0 && (
+            <button className="icon-btn dayof-reminder-dismiss" title="Dismiss" onClick={dismissDayOfBanner}>
+              <Icon name="x" context="button" />
+            </button>
+          )}
+        </div>
+      )}
 
       {/* ── Sidebar (desktop only, >900px) ── */}
       <aside className="app-sidebar">

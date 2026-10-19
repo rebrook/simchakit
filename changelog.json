@@ -1,9 +1,21 @@
 {
-  "current": "V4.35.1",
+  "current": "V4.36.0",
   "whatsNew": [
-    "Fix: the Written and Mailed thank-you toggle buttons on the Gifts tab's mobile card view were still 32px, below the 44px minimum tap target, because they weren't using the shared icon button styling the rest of the V4.34.1 fix relied on"
+    "New: within 7 days of the main event, a dismissible gold reminder banner appears beneath the mobile header on every tab, tapping it opens Day-of Mode directly (V3 only)",
+    "New: on the day of the event itself, the banner switches to It's today and cannot be dismissed",
+    "New: the banner's dismissal is remembered for the rest of that calendar day and reappears the next morning if still within the 7 day window"
   ],
   "changelog": [
+    {
+      "version": "V4.36.0",
+      "date": "2026-10-19",
+      "summary": "Mobile Day-of Mode now surfaces itself automatically in the final week before the event",
+      "changes": [
+        "New: within 7 days of the main event, a dismissible gold reminder banner appears beneath the mobile header on every tab, tapping it opens Day-of Mode directly (V3 only)",
+        "New: on the day of the event itself, the banner switches to It's today and cannot be dismissed",
+        "New: the banner's dismissal is remembered for the rest of that calendar day and reappears the next morning if still within the 7 day window"
+      ]
+    },
     {
       "version": "V4.35.1",
       "date": "2026-10-19",
