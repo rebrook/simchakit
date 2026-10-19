@@ -1,12 +1,17 @@
 {
-  "current": "V4.37.0",
+  "current": "V4.37.1",
   "whatsNew": [
-    "Change: the Guests nav badge now counts households still awaiting RSVP instead of the total guest count, so it reads zero once everyone has responded rather than showing the same number forever",
-    "New: a Budget nav badge now shows the count of overdue unpaid expenses, matching the same definition already used by the Overview focus panel",
-    "Fix: the Tasks nav badge was filtering on a field no part of the app actually writes, so it had been showing the total task count rather than the open task count since it shipped. It now correctly excludes completed and dismissed tasks",
-    "Nav badges stay a neutral accent color in every case; urgency coloring remains the focus panel's job, not the nav's"
+    "Fix: the Guests nav badge read a stored copy of each household's RSVP status that had fallen out of sync with the real status, so it counted households as awaiting even when every RSVP was in. It now reads the same RSVP field the Guests tab uses, so the two always agree"
   ],
   "changelog": [
+    {
+      "version": "V4.37.1",
+      "date": "2026-10-19",
+      "summary": "Fixed the Guests nav badge showing a count when every household had already responded",
+      "changes": [
+        "Fix: the Guests nav badge read a stored copy of each household's RSVP status that had fallen out of sync with the real status, so it counted households as awaiting even when every RSVP was in. It now reads the same RSVP field the Guests tab uses, so the two always agree"
+      ]
+    },
     {
       "version": "V4.37.0",
       "date": "2026-10-19",

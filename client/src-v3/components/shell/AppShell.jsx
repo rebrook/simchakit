@@ -246,15 +246,16 @@ export function AppShell({ session, eventId, onBack, isDemoMode = false, display
     const todayStr = localDateString(new Date());
     const [hh, tsk, exp] = await Promise.all([
       // Guests badge: households awaiting RSVP, not a bare total headcount.
-      // status is the promoted column (SK-A6), synced from rsvpStatus.
-      // Built as status IS NULL OR status NOT IN (...) rather than a plain
-      // .not(..., "in", ...), because SQL's three-valued logic means a bare
-      // NOT IN silently drops never-set (NULL) households instead of
-      // counting them as awaiting, which is the one group most clearly
-      // still awaiting a response.
+      // Reads data->>rsvpStatus, the canonical field the Guests tab and
+      // focus.js both use. It deliberately does NOT read the promoted
+      // status column: that column is a denormalized copy that was found
+      // stale on 91 of 92 households in live data (V4.37.1).
+      // Built as IS NULL OR NOT IN (...) rather than a bare NOT IN, because
+      // SQL's three-valued logic would silently drop households with no
+      // rsvpStatus key at all instead of counting them as awaiting.
       supabase.from("households").select("*", { count: "exact", head: true })
         .eq("event_id", eventId)
-        .or('status.is.null,status.not.in.("RSVP Yes","RSVP No")'),
+        .or('data->>rsvpStatus.is.null,data->>rsvpStatus.not.in.("RSVP Yes","RSVP No")'),
       // Tasks badge: was filtering on data->>completed, a field no consumer
       // in this codebase (focus.js, DayOfOverlay.jsx) actually writes or
       // reads; the real fields are done and dismissed, matching focus.js's
