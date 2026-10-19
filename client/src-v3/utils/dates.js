@@ -13,6 +13,18 @@ function getCountdown(targetDate) {
   return { days, hours, minutes, seconds, total };
 }
 
+// Whether an event's main date has fully passed. getCountdown() already reads
+// 00:00:00:00 all day on the event's own date, which still reads fine as
+// "today's the day." This only flips to true the day after, so Overview's
+// past-tense treatment doesn't kick in while the event is still happening.
+function hasEventPassed(dateStr) {
+  if (!dateStr) return false;
+  const target = new Date(dateStr + "T00:00:00");
+  const today  = new Date();
+  today.setHours(0, 0, 0, 0);
+  return target < today;
+}
+
 function formatDate(dateStr) {
   if (!dateStr) return "";
   const d = new Date(dateStr + "T00:00:00");
@@ -80,6 +92,7 @@ function buildTime(h, m, ap) {
 
 export {
   getCountdown,
+  hasEventPassed,
   formatDate,
   formatTime12,
   formatTimeRange,

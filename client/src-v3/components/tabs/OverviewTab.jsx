@@ -2,13 +2,21 @@
 // SimchaKit V3.0.0 — OverviewTab.jsx
 // Ported from V2. Reads aggregated data from Supabase collections.
 // Notes are saved directly to events.quick_notes.
+//
+// V4.34.0: once the main event's date has passed, the countdown hero switches
+// to a past-tense "it happened" treatment instead of sitting frozen at
+// 00:00:00:00, and a quiet "planning another celebration?" card appears
+// below the stat cards linking back to the Event Picker. The actual
+// reprioritization of "What Needs You Next" toward gift thank-yous lives in
+// utils/focus.js, not here. This file just needs to also fetch gifts and
+// pass them through.
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { supabase }           from "@/lib/supabase.js";
 import { useEventData }       from "@/hooks/useEventData.js";
 import { EVENT_TYPE_ICON_KEYS } from "@/constants/events.js";
-import { getCountdown, formatDate, formatEntryMeta, sortTimeline } from "@/utils/dates.js";
+import { getCountdown, hasEventPassed, formatDate, formatEntryMeta, sortTimeline } from "@/utils/dates.js";
 import { GetStartedCard }     from "@/components/shared/GetStartedCard.jsx";
 import { generateEventBriefHTML } from "@/utils/exports.js";
 import { Icon }               from "@/utils/iconMap.jsx";
@@ -43,6 +51,7 @@ export function OverviewTab({ eventId, event, adminConfig, showToast, setActiveT
   const mainEvent = (config.timeline || []).find(e => e.isMainEvent) || null;
   const eventDate = mainEvent?.startDate || null;
   const eventVenue = mainEvent?.venue || null;
+  const eventPassed = eventDate ? hasEventPassed(eventDate) : false;
 
   const [countdown, setCountdown] = useState(() => eventDate ? getCountdown(eventDate) : null);
   const [localNotes, setLocalNotes] = useState(event?.quick_notes || "");
@@ -82,9 +91,10 @@ export function OverviewTab({ eventId, event, adminConfig, showToast, setActiveT
   const { items: vendors, loading: vendorsLoading }         = useEventData(eventId, "vendors");
   const { items: tables, loading: tablesLoading }           = useEventData(eventId, "tables");
   const { items: seatingRows, loading: seatingLoading }     = useEventData(eventId, "seating");
+  const { items: gifts, loading: giftsLoading }             = useEventData(eventId, "gifts");
 
   const dataLoading = householdsLoading || peopleLoading || expensesLoading
-    || tasksLoading || vendorsLoading || tablesLoading || seatingLoading;
+    || tasksLoading || vendorsLoading || tablesLoading || seatingLoading || giftsLoading;
 
   // Ceremony roles — single document, needed for Print Brief
   const [ceremonyRoles, setCeremonyRoles] = useState([]);
@@ -316,8 +326,8 @@ export function OverviewTab({ eventId, event, adminConfig, showToast, setActiveT
 
   // Focus panel items — memoized
   const focusItems = useMemo(
-    () => computeFocusItems({ tasks, expenses, people, households, vendors, tables, seatingRows }, config),
-    [tasks, expenses, people, households, vendors, tables, seatingRows, config],
+    () => computeFocusItems({ tasks, expenses, people, households, vendors, tables, seatingRows, gifts }, config),
+    [tasks, expenses, people, households, vendors, tables, seatingRows, gifts, config],
   );
 
   const STORAGE_KEY = `simchakit-getstarted-dismissed-${eventId || "default"}`;
@@ -385,10 +395,28 @@ export function OverviewTab({ eventId, event, adminConfig, showToast, setActiveT
         />
       )}
 
-      {/* Hero row: countdown + focus panel */}
+      {/* Hero row: countdown (or past-tense) + focus panel */}
       <div className="overview-hero-row">
-        {/* Countdown */}
-        {eventDate && countdown ? (
+        {/* Countdown / past-event hero */}
+        {eventDate && eventPassed ? (
+          <div className="countdown-card" style={{ textAlign: "center" }}>
+            <div style={{ position: "absolute", right: -10, top: "50%", transform: "translateY(-50%)", opacity: 0.10, pointerEvents: "none", userSelect: "none", color: "currentColor" }}>
+              <Icon name={EVENT_TYPE_ICON_KEYS[config.type] || "sparkles"} size={80} strokeWidth={1.25} />
+            </div>
+            <div className="countdown-label">Mazel tov!</div>
+            <div style={{ display: "flex", alignItems: "center", gap: 12, justifyContent: "center" }}>
+              {config.logoUrl && (
+                <img src={config.logoUrl} alt="" className="countdown-logo-img" />
+              )}
+              <div className="countdown-title">{config.name || mainEvent?.title || "The Big Day"}</div>
+            </div>
+            <div className="countdown-date">
+              {formatDate(eventDate)}
+              {mainEvent?.title && config.name && mainEvent.title.trim().toLowerCase() !== config.name.trim().toLowerCase() ? ` · ${mainEvent.title}` : ""}
+              {eventVenue ? ` · ${eventVenue}` : ""}
+            </div>
+          </div>
+        ) : eventDate && countdown ? (
           <div className="countdown-card">
             <div style={{ position: "absolute", right: -10, top: "50%", transform: "translateY(-50%)", opacity: 0.10, pointerEvents: "none", userSelect: "none", color: "currentColor" }}>
               <Icon name={EVENT_TYPE_ICON_KEYS[config.type] || "sparkles"} size={80} strokeWidth={1.25} />
@@ -512,6 +540,22 @@ export function OverviewTab({ eventId, event, adminConfig, showToast, setActiveT
           secondary
         />
       </div>
+
+      {/* Planning another celebration? — quiet, post-event only, links back
+          to the Event Picker. A plain anchor rather than a router call since
+          this file has no prop for returning to the picker; it does a full
+          navigation to "/" rather than an in-app transition. */}
+      {eventPassed && (
+        <div className="card" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, flexWrap: "wrap", marginBottom: 20 }}>
+          <div>
+            <div style={{ fontWeight: 700, color: "var(--text-primary)", marginBottom: 2 }}>Planning another celebration?</div>
+            <div style={{ fontSize: 13, color: "var(--text-muted)" }}>Start a new event whenever you're ready.</div>
+          </div>
+          <a href="/" className="btn btn-secondary" style={{ flexShrink: 0 }}>
+            Start a new event
+          </a>
+        </div>
+      )}
 
       {/* Two-column: timeline + notes */}
       <div className="two-col">

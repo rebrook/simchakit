@@ -1,9 +1,20 @@
 {
-  "current": "V4.33.4",
+  "current": "V4.34.0",
   "whatsNew": [
-    "Fix: a dismissed suggestion with nothing attached could come back as a blank task after using Restore, and opening it would crash the page. Both are fixed; any blank task already in your list can be deleted normally"
+    "New: Overview and the event picker now recognize when your event has already happened, with a wrap-up focused Overview and a Completed badge in your event list"
   ],
   "changelog": [
+    {
+      "version": "V4.34.0",
+      "date": "2026-10-19",
+      "summary": "Overview and the Event Picker now recognize when an event has already happened",
+      "changes": [
+        "New: once an event's main date has passed, the Overview countdown switches from a frozen 00:00:00:00 to a past-tense treatment with a mazel tov message and the event date",
+        "New: What Needs You Next reprioritizes after the event, surfacing outstanding gift thank-you notes and suppressing seating-gap warnings that no longer apply. Overdue tasks and payments still show as before",
+        "New: a quiet \"Planning another celebration?\" card appears on Overview after the event, linking back to the event picker to start a new one",
+        "New: the event picker now shows a Completed badge on any event whose main date has passed, so events are easy to tell apart at a glance once you are managing more than one"
+      ]
+    },
     {
       "version": "V4.33.4",
       "date": "2026-10-19",

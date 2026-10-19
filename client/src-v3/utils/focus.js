@@ -3,15 +3,25 @@
 // Derives the "What Needs You Next" focus items for OverviewTab.
 //
 // Design rules:
-//   - One row per domain max (tasks, payments, rsvps, seating, vendors).
+//   - One row per domain max (tasks, payments, rsvps, seating, vendors, gifts).
 //   - Sorted by urgency: red (overdue) > orange/gold (due soon) > accent (attention).
 //   - Capped at 3 visible, with expandable overflow.
 //   - Field names and status checks mirror computeSuggestions in tasks.js
 //     so the two engines share vocabulary and don't drift.
+//
+// V4.34.0: once the main event's date has passed (see dates.js hasEventPassed,
+// mirrored here as eventHasPassed since this file only has daysToEvent to work
+// with), pre-event-only concerns stop being useful signals. Seating is fixed
+// by then, and guests who hadn't RSVP'd or vendors who weren't booked already
+// aren't actionable the same way anymore. The RSVP-gap and vendor-not-booked
+// items were already gated to daysToEvent > 0, so they already stop on their
+// own; seating gets that same gate added here. A new gift thank-you item
+// surfaces in their place, since that is the thing actually left to do.
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { isFullyPaid, amountRemaining } from "./expensePayments.js";
 import { getConfirmedPeopleForSection } from "./sections.js";
+import { getGiftGivers } from "./gifts.js";
 
 const BOOKED_STATUSES = ["Booked", "Deposit Paid", "Paid in Full"];
 
@@ -19,7 +29,7 @@ const BOOKED_STATUSES = ["Booked", "Deposit Paid", "Paid in Full"];
  * Compute focus items from event data.
  * Returns an array sorted by urgency, one per domain, uncapped (caller caps at 3).
  *
- * @param {Object} data — { tasks, expenses, people, households, vendors, tables, seatingRows }
+ * @param {Object} data — { tasks, expenses, people, households, vendors, tables, seatingRows, gifts }
  * @param {Object} adminConfig — event admin_config (timeline, etc.)
  * @returns {Array<FocusItem>}
  *
@@ -37,6 +47,7 @@ export function computeFocusItems(data, adminConfig) {
     vendors = [],
     tables = [],
     seatingRows = [],
+    gifts = [],
   } = data;
 
   const config = adminConfig || {};
@@ -46,6 +57,7 @@ export function computeFocusItems(data, adminConfig) {
   const mainEvent = (config.timeline || []).find(e => e.isMainEvent) || null;
   const eventDate = mainEvent?.startDate ? new Date(mainEvent.startDate + "T00:00:00") : null;
   const daysToEvent = eventDate ? Math.ceil((eventDate - today) / 86400000) : null;
+  const eventHasPassed = daysToEvent !== null && daysToEvent < 0;
 
   const items = [];
 
@@ -126,6 +138,30 @@ export function computeFocusItems(data, adminConfig) {
     });
   }
 
+  // ── Gift thank-yous outstanding (post-event only) ───────────────────────
+  // Once the event has passed, writing thank-yous is one of the few things
+  // actually left to do, and it has no natural deadline of its own the way
+  // a task or a payment does, so it needs its own signal here. Priority 2.5
+  // slots it between overdue payments and this-week tasks: real, but not
+  // as urgent as something with an actual overdue date attached.
+  if (eventHasPassed && gifts.length > 0) {
+    const outstanding = gifts
+      .flatMap(g => getGiftGivers(g))
+      .filter(gv => !gv.thankYouWritten).length;
+    if (outstanding > 0) {
+      items.push({
+        id: "gift-thankyous",
+        domain: "gifts",
+        tone: "accent",
+        icon: "gifts",
+        title: `${outstanding} thank-you note${outstanding !== 1 ? "s" : ""} to write`,
+        detail: "From gifts received for the event",
+        tab: "gifts",
+        priority: 2.5,
+      });
+    }
+  }
+
   // ── RSVP gap (only surface when event is within 60 days) ────────────────
   // Uses household rsvpStatus to identify non-responders. Counts people (not
   // households) to match the RSVP stat card unit. Excludes declined.
@@ -152,11 +188,14 @@ export function computeFocusItems(data, adminConfig) {
   }
 
   // ── Seating gap (subsumes the standalone banner) ────────────────────────
+  // Suppressed once the event has passed, since seating is fixed by then,
+  // and a leftover "more seats needed" nudge about an event that already
+  // happened is just noise.
   const seatingCfg = seatingRows[0] || {};
   const hasSeat = !!seatingCfg.hasSeating;
   const sections = seatingCfg.enabledSections || (seatingCfg.eventSectionId ? [seatingCfg.eventSectionId] : []);
 
-  if (hasSeat && sections.length > 0 && tables.length > 0) {
+  if (!eventHasPassed && hasSeat && sections.length > 0 && tables.length > 0) {
     let worstGap = 0;
     let worstLabel = "";
     let totalGap = 0;

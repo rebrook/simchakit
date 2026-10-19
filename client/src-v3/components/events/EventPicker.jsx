@@ -1,7 +1,12 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// SimchaKit V4.13.3 — EventPicker.jsx
+// SimchaKit V4.34.0 — EventPicker.jsx
 // Full-page event picker. Matches V2 index.html visual design exactly.
 // Lists user's events, handles create + delete, routes into selected event.
+//
+// V4.34.0: event cards now show a "Completed" badge once the event's main
+// date has passed, using the same hasEventPassed() check OverviewTab uses
+// for its own post-event state, so the two surfaces agree. Suppressed when
+// the event is already Archived, since that badge already implies done.
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useState, useEffect, useCallback } from "react";
@@ -11,6 +16,7 @@ import { DeleteEventConfirm }    from "./DeleteEventConfirm.jsx";
 import { PaywallGate }           from "./PaywallGate.jsx";
 import { Icon }                  from "@/utils/iconMap.jsx";
 import { EVENT_TYPE_ICON_KEYS }  from "@/constants/events.js";
+import { hasEventPassed }        from "@/utils/dates.js";
 
 // ── Palette + type maps (mirrors V2 index.html exactly) ──────────────────────
 const PALETTES = {
@@ -213,7 +219,8 @@ export function EventPicker({ session, displayName: userDisplayName, onSelectEve
     const timeline = cfg.timeline || [];
     const mainEntry = timeline.find(t => t.isMainEvent);
     const dateStr  = formatDate(mainEntry?.startDate || "");
-    return { palette, typeIconKey, themeIcon, dateStr, themeName: cfg.theme?.name || "" };
+    const isPast   = mainEntry?.startDate ? hasEventPassed(mainEntry.startDate) : false;
+    return { palette, typeIconKey, themeIcon, dateStr, themeName: cfg.theme?.name || "", isPast };
   }
 
   // ── Event created callback ────────────────────────────────────────────────
@@ -551,7 +558,7 @@ export function EventPicker({ session, displayName: userDisplayName, onSelectEve
 
 // ── EventCard ─────────────────────────────────────────────────────────────────
 function EventCard({ event, meta, onSelect, onDeleteClick, collaboratorRole = null, invitedByEmail = null, invitedByName = null, collaboratorCount = 0 }) {
-  const { palette, typeIconKey, themeIcon, dateStr, themeName } = meta;
+  const { palette, typeIconKey, themeIcon, dateStr, themeName, isPast } = meta;
   const typeLabel = EVENT_TYPE_LABELS[event.type] || "Celebration";
   const isDark  = document.documentElement.getAttribute("data-theme") === "dark";
   const cardBg  = isDark ? "var(--bg-subtle)" : palette.light;
@@ -596,6 +603,11 @@ function EventCard({ event, meta, onSelect, onDeleteClick, collaboratorRole = nu
           {event.archived && (
             <span className="sk-tag" style={{ background: "var(--gold-light)", color: "var(--gold)", display: "inline-flex", alignItems: "center", gap: 4 }}>
               <Icon name="lock" context="badge" /> Archived
+            </span>
+          )}
+          {isPast && !event.archived && (
+            <span className="sk-tag" style={{ background: "var(--bg-subtle)", color: "var(--text-muted)", border: "1px solid var(--border)", display: "inline-flex", alignItems: "center", gap: 4 }}>
+              <Icon name="check" context="badge" /> Completed
             </span>
           )}
           {!isCollaborator && (
