@@ -16,6 +16,19 @@
 // same pattern utils/guests.js already uses for migrateCityStateZip(). Every
 // gift upgrades to the new shape the next time it is saved, since GiftModal
 // and the inline thank-you toggles always write gift.givers going forward.
+//
+// V4.42.0: a gift record can also hold more than one gift. A family that gives
+// a check and a book set is one record with two items, thanked once, instead of
+// two records with two thank-you toggles.
+//
+// gift.items = [{ id, giftType, description, amount }] is the source of truth.
+// withItems() also writes giftType, description, and amount at the top level as
+// DERIVED summary fields (the single type, or "Combination" when the types
+// differ; the descriptions joined; the amounts summed), so the CSV export, the
+// print list, global search, and the audit log, which read those fields,
+// keep working unchanged. Like givers, no migration is run: getGiftItems()
+// reads a record saved before V4.42.0 as a one-item list, and the record
+// upgrades the next time GiftModal saves it.
 // ─────────────────────────────────────────────────────────────────────────────
 
 const LEGACY_GIVER_FIELDS = [
@@ -54,6 +67,76 @@ function withGivers(gift, givers) {
   const clean = { ...gift };
   LEGACY_GIVER_FIELDS.forEach(f => delete clean[f]);
   return { ...clean, givers };
+}
+
+// ── Gift items (V4.42.0) ─────────────────────────────────────────────────────
+function newItemId() {
+  return "itm_" + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+}
+
+// Read a gift's items. A record saved before V4.42.0 has one gift described by
+// its top-level giftType, description, and amount, so it reads as one item.
+// The synthesized id is stable (derived from the gift's id) so React keys do
+// not change between renders.
+function getGiftItems(gift) {
+  if (!gift) return [];
+  if (Array.isArray(gift.items) && gift.items.length > 0) return gift.items;
+  return [{
+    id:          gift.id ? `${gift.id}_item` : newItemId(),
+    giftType:    gift.giftType || "",
+    description: gift.description || "",
+    amount:      gift.amount != null && gift.amount !== "" ? gift.amount : null,
+  }];
+}
+
+// An item's amount as a number, or null when it has none.
+function itemAmount(item) {
+  const n = parseFloat(item?.amount);
+  return Number.isFinite(n) ? n : null;
+}
+
+// Sum of the amounts that are present, rounded to cents; null when no item has one.
+function sumItemAmounts(items) {
+  let total = 0;
+  let any = false;
+  (items || []).forEach(it => {
+    const n = itemAmount(it);
+    if (n !== null) { total += n; any = true; }
+  });
+  return any ? Math.round(total * 100) / 100 : null;
+}
+
+// A record's total value across its items.
+function getGiftTotal(gift) {
+  return sumItemAmounts(getGiftItems(gift));
+}
+
+// Summary type for a list of items: the one type when they all match,
+// "Combination" when they differ, empty when none is set.
+function summaryGiftType(items) {
+  const types = [...new Set((items || []).map(it => it.giftType).filter(Boolean))];
+  if (types.length === 0) return "";
+  return types.length === 1 ? types[0] : "Combination";
+}
+
+// Summary description: a single item's own description as typed; with several
+// items, each item's description (or its type when it has none), joined.
+function summaryDescription(items) {
+  const list = items || [];
+  if (list.length === 1) return list[0].description || "";
+  return list.map(it => it.description || it.giftType).filter(Boolean).join("; ");
+}
+
+// Return the gift with its items set and the derived top-level summary fields
+// (giftType, description, amount) recomputed from them.
+function withItems(gift, items) {
+  return {
+    ...gift,
+    items,
+    giftType:    summaryGiftType(items),
+    description: summaryDescription(items),
+    amount:      sumItemAmounts(items),
+  };
 }
 
 // ── Display helpers ──────────────────────────────────────────────────────────
@@ -104,6 +187,14 @@ export {
   newGiverId,
   getGiftGivers,
   withGivers,
+  newItemId,
+  getGiftItems,
+  itemAmount,
+  sumItemAmounts,
+  getGiftTotal,
+  summaryGiftType,
+  summaryDescription,
+  withItems,
   lastNameOf,
   formatGiverNames,
   anyGiverNeedsWritten,

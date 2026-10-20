@@ -1,11 +1,27 @@
 {
-  "current": "V4.41.0",
+  "current": "V4.42.0",
   "whatsNew": [
-    "UX: The Guests tab banner now names guests who still owe a sub-event answer, with a Show them button that lists exactly who",
-    "UX: Overview sub-events, What Needs You Next, and the Print Brief now show who is still awaiting an answer",
-    "Fix: the banner no longer says all RSVPs are received while guests still owe a sub-event answer"
+    "UX: One giver can now send more than one gift in a single record, with one thank-you note for all of them",
+    "Fix: Cash / Check Total now includes a check that came with other gifts"
   ],
   "changelog": [
+    {
+      "version": "V4.42.0",
+      "date": "2026-10-20",
+      "summary": "A gift record can hold more than one gift from the same giver",
+      "changes": [
+        "New: the Add/Edit Gift form now lets one giver send more than one gift in a single record, using Add another gift, each with its own type, amount, and description",
+        "New: a record with several gifts shows each gift on its own line in the table, shows a type tag for each and a gift count on phone cards, and lists every gift when the card is expanded",
+        "New: Total Gifts now counts each gift, so a check and a book set from one family count as two, and the card notes how many entries they came from",
+        "Fix: Cash / Check Total now counts a check that arrives alongside other gifts, which a record typed Combination previously left out",
+        "Change: a giver with several gifts needs one thank-you note, so Written and Mailed stay tracked once per giver; the Gifts badge and the Overview thank-you item are unchanged",
+        "Change: the type filter, search, and the Amount sort now look at every gift in a record, and the sort uses the record total",
+        "Change: the guide's gift entries now describe multiple gifts per record and correct the stat names and the CSV description (one row per giver)",
+        "Change: records saved before this release keep working with no migration and upgrade to the new shape the next time they are saved"
+      ],
+      "roadmap": [],
+      "knownIssues": []
+    },
     {
       "version": "V4.41.0",
       "date": "2026-10-20",

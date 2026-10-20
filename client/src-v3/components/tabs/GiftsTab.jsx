@@ -3,9 +3,15 @@
 // Uses useEventData for Supabase persistence.
 // A gift can now be given by more than one household (gift.givers array) —
 // see utils/gifts.js for the data model and legacy-shape migration. Shared
-// gift-level fields (giftType, description, amount, dateReceived, attended,
-// notes) still live at the top level; only the "from" and thank-you status
-// are per-giver.
+// gift-level fields (dateReceived, attended, notes) still live at the top
+// level; only the "from" and thank-you status are per-giver.
+//
+// V4.42.0: a record can hold more than one gift (gift.items), for a giver who
+// sends, say, a check and a book set. Each item has its own type, description,
+// and amount; the record keeps one set of givers, one thank-you per giver, and
+// one date received. giftType, description, and amount at the top level are now
+// derived summary fields written by withItems(); everything on this tab reads
+// the items.
 //
 // V4.33.1: GiftModal's handleSave() carries the edited gift's _rowId through
 // in its payload. V4.33.0 rebuilt the form state field by field instead of
@@ -34,6 +40,7 @@ import {
   getGiftGivers, withGivers, newGiverId, formatGiverNames,
   anyGiverNeedsWritten, anyGiverNeedsMailed, allGiversComplete, lastNameOf,
   countThankYousOutstanding,
+  getGiftItems, getGiftTotal, itemAmount, withItems, newItemId,
 }                               from "@/utils/gifts.js";
 import { exportGiftsCSV, generateGiftPrintHTML } from "@/utils/exports.js";
 import { getAddressFields, formatAddress, migrateCityStateZip, COUNTRIES } from "@/utils/guests.js";
@@ -161,8 +168,11 @@ export function GiftsTab({ eventId, event, adminConfig, showToast, isArchived, i
 
   // ── Stats ──────────────────────────────────────────────────────────────────
   const allGivers     = gifts.flatMap(g => getGiftGivers(g));
-  const totalMonetary = gifts.reduce((s, g) => s + (parseFloat(g.amount) || 0), 0);
-  const cashTotal     = gifts.filter(g => g.giftType === "Cash / Check").reduce((s, g) => s + (parseFloat(g.amount) || 0), 0);
+  // Counted per item, so a check plus a book from one family reads as two gifts
+  // and only the check counts toward the Cash / Check total.
+  const allItems      = gifts.flatMap(g => getGiftItems(g));
+  const totalMonetary = allItems.reduce((s, it) => s + (itemAmount(it) || 0), 0);
+  const cashTotal     = allItems.filter(it => it.giftType === "Cash / Check").reduce((s, it) => s + (itemAmount(it) || 0), 0);
   // Outstanding = not yet both written and mailed, from the shared helper so
   // this card, the Gifts nav badge, and the Overview focus item always agree.
   const { total: tyOutstanding, toWrite: tyToWrite, toMail: tyToMail } = countThankYousOutstanding(gifts);
@@ -171,21 +181,23 @@ export function GiftsTab({ eventId, event, adminConfig, showToast, isArchived, i
   // ── Filter + sort ──────────────────────────────────────────────────────────
   const filtered = gifts.filter(g => {
     const givers = getGiftGivers(g);
-    if (filterType !== "all" && g.giftType !== filterType) return false;
+    const items  = getGiftItems(g);
+    if (filterType !== "all" && !items.some(it => it.giftType === filterType)) return false;
     if (filterTY === "needs-written" && !anyGiverNeedsWritten(givers)) return false;
     if (filterTY === "needs-mailed"  && !anyGiverNeedsMailed(givers))  return false;
     if (filterTY === "complete"      && !allGiversComplete(givers))    return false;
     if (search) {
       const q = search.toLowerCase();
       const nameMatch = givers.some(gv => (gv.name || "").toLowerCase().includes(q));
-      if (!nameMatch &&
-          !(g.description || "").toLowerCase().includes(q) &&
-          !(g.giftType    || "").toLowerCase().includes(q)) return false;
+      const itemMatch = items.some(it =>
+        (it.description || "").toLowerCase().includes(q) ||
+        (it.giftType    || "").toLowerCase().includes(q));
+      if (!nameMatch && !itemMatch) return false;
     }
     return true;
   }).sort((a, b) => {
     if (sortBy === "amount") {
-      const av = parseFloat(a.amount) || 0, bv = parseFloat(b.amount) || 0;
+      const av = getGiftTotal(a) || 0, bv = getGiftTotal(b) || 0;
       const diff = sortDir === "asc" ? av - bv : bv - av;
       if (diff !== 0) return diff;
     } else if (sortBy === "received") {
@@ -211,7 +223,7 @@ export function GiftsTab({ eventId, event, adminConfig, showToast, isArchived, i
     return lastNameOf(aName).localeCompare(lastNameOf(bName));
   });
 
-  const usedTypes = [...new Set(gifts.map(g => g.giftType).filter(Boolean))].sort();
+  const usedTypes = [...new Set(allItems.map(it => it.giftType).filter(Boolean))].sort();
 
   const TYPE_COLORS = {
     "Cash / Check":               { bg: "var(--green-light)",  color: "var(--green)"          },
@@ -258,7 +270,10 @@ export function GiftsTab({ eventId, event, adminConfig, showToast, isArchived, i
       <div className="stat-grid" style={{ marginBottom: 20 }}>
         <div className="stat-card">
           <div className="stat-label">Total Gifts</div>
-          <div className="stat-value">{gifts.length}</div>
+          <div className="stat-value">{allItems.length}</div>
+          {allItems.length !== gifts.length && (
+            <div className="stat-sub">{`across ${gifts.length} ${gifts.length === 1 ? "entry" : "entries"}`}</div>
+          )}
         </div>
         <div className="stat-card">
           <div className="stat-label">Total Monetary Value</div>
@@ -344,8 +359,9 @@ export function GiftsTab({ eventId, event, adminConfig, showToast, isArchived, i
                 <tr><td colSpan={7} style={{ textAlign: "center", padding: 30, color: "var(--text-muted)" }}>No matching gifts.</td></tr>
               ) : (
                 filtered.map(g => {
-                  const tc     = TYPE_COLORS[g.giftType] || TYPE_COLORS["Other"];
                   const givers = getGiftGivers(g);
+                  const items  = getGiftItems(g);
+                  const total  = getGiftTotal(g);
                   return (
                     <tr key={g.id || g._rowId} id={`row-${g.id}`} className="gift-row">
                       <td style={TD}>
@@ -359,17 +375,29 @@ export function GiftsTab({ eventId, event, adminConfig, showToast, isArchived, i
                         ))}
                       </td>
                       <td style={TD}>
-                        <span style={{ fontSize: 11, fontWeight: 700, padding: "2px 8px", borderRadius: 99, background: tc.bg, color: tc.color, whiteSpace: "nowrap" }}>
-                          {g.giftType}
-                        </span>
-                        {g.description && (
-                          <div style={{ marginTop: 4, color: "var(--text-secondary)", fontSize: 13, overflowWrap: "anywhere" }}>
-                            {g.description}
-                          </div>
-                        )}
+                        {items.map((it, ii) => {
+                          const itc = TYPE_COLORS[it.giftType] || TYPE_COLORS["Other"];
+                          return (
+                            <div key={it.id || ii} className={ii > 0 ? "gift-item-block gift-item-block-next" : "gift-item-block"}>
+                              <span style={{ fontSize: 11, fontWeight: 700, padding: "2px 8px", borderRadius: 99, background: itc.bg, color: itc.color, whiteSpace: "nowrap" }}>
+                                {it.giftType}
+                              </span>
+                              {itemAmount(it) !== null && items.length > 1 && (
+                                <span className="gift-item-amount">
+                                  ${itemAmount(it).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                </span>
+                              )}
+                              {it.description && (
+                                <div style={{ marginTop: 4, color: "var(--text-secondary)", fontSize: 13, overflowWrap: "anywhere" }}>
+                                  {it.description}
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
                       </td>
-                      <td style={{ ...TD, textAlign: "right", fontWeight: 700, color: g.amount != null ? "var(--green)" : "var(--text-muted)", fontFamily: "var(--font-mono)", fontSize: 13 }}>
-                        {g.amount != null ? `$${parseFloat(g.amount).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : "—"}
+                      <td style={{ ...TD, textAlign: "right", fontWeight: 700, color: total != null ? "var(--green)" : "var(--text-muted)", fontFamily: "var(--font-mono)", fontSize: 13 }}>
+                        {total != null ? `$${total.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : "—"}
                       </td>
                       <td style={{ ...TD, fontSize: 12, color: "var(--text-muted)", whiteSpace: "nowrap" }}>
                         {g.dateReceived ? new Date(g.dateReceived + "T00:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "—"}
@@ -437,8 +465,10 @@ export function GiftsTab({ eventId, event, adminConfig, showToast, isArchived, i
             <div style={{ textAlign: "center", padding: 30, color: "var(--text-muted)", fontSize: 13 }}>No matching gifts.</div>
           ) : (
             filtered.map(g => {
-              const tc         = TYPE_COLORS[g.giftType] || TYPE_COLORS["Other"];
               const givers     = getGiftGivers(g);
+              const items      = getGiftItems(g);
+              const total      = getGiftTotal(g);
+              const itemTypes  = [...new Set(items.map(it => it.giftType).filter(Boolean))];
               const isExpanded = expandedCards.has(g.id);
               return (
                 <div key={g.id || g._rowId} id={`row-${g.id}`} style={{ background: "var(--bg-surface)", border: "1px solid var(--border)", borderRadius: "var(--radius-md)", overflow: "hidden" }}>
@@ -450,15 +480,23 @@ export function GiftsTab({ eventId, event, adminConfig, showToast, isArchived, i
                         {formatGiverNames(givers) || "—"}
                       </div>
                       <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 3, flexWrap: "wrap" }}>
-                        <span style={{ fontSize: 11, fontWeight: 700, padding: "2px 7px", borderRadius: 99, background: tc.bg, color: tc.color, whiteSpace: "nowrap" }}>
-                          {g.giftType}
-                        </span>
+                        {itemTypes.map(t => {
+                          const tc = TYPE_COLORS[t] || TYPE_COLORS["Other"];
+                          return (
+                            <span key={t} style={{ fontSize: 11, fontWeight: 700, padding: "2px 7px", borderRadius: 99, background: tc.bg, color: tc.color, whiteSpace: "nowrap" }}>
+                              {t}
+                            </span>
+                          );
+                        })}
+                        {items.length > 1 && (
+                          <span style={{ fontSize: 11, color: "var(--text-muted)" }}>{items.length} gifts</span>
+                        )}
                       </div>
                     </div>
                     {/* Amount */}
-                    {g.amount != null && (
+                    {total != null && (
                       <div style={{ fontWeight: 700, color: "var(--green)", fontFamily: "var(--font-mono)", fontSize: 15, flexShrink: 0 }}>
-                        ${parseFloat(g.amount).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        ${total.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       </div>
                     )}
                     {/* Actions: Edit + Delete collapsed into one 44px menu button */}
@@ -546,10 +584,25 @@ export function GiftsTab({ eventId, event, adminConfig, showToast, isArchived, i
                   {/* Expanded details */}
                   {isExpanded && (
                     <div style={{ padding: "10px 14px 14px", borderTop: "1px solid var(--border)", background: "var(--bg-subtle)", display: "flex", flexDirection: "column", gap: 6 }}>
-                      {g.description && (
+                      {items.length > 1 ? (
+                        <div style={{ fontSize: 13, color: "var(--text-secondary)" }}>
+                          <div style={{ fontWeight: 600, color: "var(--text-muted)", fontSize: 11, textTransform: "uppercase", letterSpacing: "0.04em", marginBottom: 4 }}>Gifts</div>
+                          {items.map((it, ii) => (
+                            <div key={it.id || ii} className="gift-item-line">
+                              <span style={{ fontWeight: 600, color: "var(--text-primary)" }}>{it.giftType || "Gift"}</span>
+                              {it.description && <span>{it.description}</span>}
+                              {itemAmount(it) !== null && (
+                                <span className="gift-item-amount">
+                                  ${itemAmount(it).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                </span>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      ) : items[0]?.description && (
                         <div style={{ fontSize: 13, color: "var(--text-secondary)" }}>
                           <span style={{ fontWeight: 600, color: "var(--text-muted)", fontSize: 11, textTransform: "uppercase", letterSpacing: "0.04em" }}>Description </span>
-                          {g.description}
+                          {items[0].description}
                         </div>
                       )}
                       <div style={{ display: "flex", gap: 20, flexWrap: "wrap" }}>
@@ -641,11 +694,15 @@ export function GiftModal({ gift, households, onSave, onClose, isArchived }) {
     }];
   });
 
+  // One or more gifts from this giver (V4.42.0). Amounts are held as strings
+  // while editing, like the single Amount field was.
+  const [items, setItems] = useState(() => {
+    if (gift) return getGiftItems(gift).map(it => ({ ...it, amount: itemAmount(it) !== null ? String(it.amount) : "" }));
+    return [{ id: newItemId(), giftType: "Cash / Check", description: "", amount: "" }];
+  });
+
   const [form, setForm] = useState(() => ({
     id:           gift?.id || newGiftId(),
-    giftType:     gift?.giftType || "Cash / Check",
-    description:  gift?.description || "",
-    amount:       gift?.amount != null ? String(gift.amount) : "",
     dateReceived: gift?.dateReceived || "",
     attended:     gift?.attended ?? null,
     notes:        gift?.notes || "",
@@ -659,6 +716,8 @@ export function GiftModal({ gift, households, onSave, onClose, isArchived }) {
   // Focus management for add/remove — see utils/gifts.js header note.
   const nameInputRefs      = useRef({});
   const addButtonRef       = useRef(null);
+  const itemTypeRefs       = useRef({});
+  const addItemButtonRef   = useRef(null);
   const [liveMessage, setLiveMessage] = useState("");
 
   const updateGiver = (id, patch) => setGivers(gs => gs.map(gv => gv.id === id ? { ...gv, ...patch } : gv));
@@ -691,6 +750,27 @@ export function GiftModal({ gift, households, onSave, onClose, isArchived }) {
     });
   };
 
+  const updateItem = (id, patch) => setItems(its => its.map(it => it.id === id ? { ...it, ...patch } : it));
+
+  const addItem = () => {
+    const id = newItemId();
+    setItems(its => [...its, { id, giftType: "Cash / Check", description: "", amount: "" }]);
+    setLiveMessage("Gift added");
+    requestAnimationFrame(() => { itemTypeRefs.current[id]?.focus(); });
+  };
+
+  const removeItem = (id) => {
+    const idx = items.findIndex(it => it.id === id);
+    const remaining = items.filter(it => it.id !== id);
+    setItems(remaining);
+    setLiveMessage("Gift removed");
+    requestAnimationFrame(() => {
+      const target = remaining[idx] || remaining[idx - 1];
+      if (target) itemTypeRefs.current[target.id]?.focus();
+      else addItemButtonRef.current?.focus();
+    });
+  };
+
   const linkedAddress = (gv) => {
     const hh = gv.householdId ? hhMap[gv.householdId] : null;
     return hh ? formatAddress(migrateCityStateZip(hh)) : null;
@@ -701,11 +781,20 @@ export function GiftModal({ gift, households, onSave, onClose, isArchived }) {
       .map(gv => ({ ...gv, name: (gv.name || "").trim() }))
       .filter(gv => gv.name);
     if (cleanGivers.length === 0) return;
-    const payload = {
-      ...form,
-      amount: form.amount !== "" ? parseFloat(form.amount) : null,
-      givers: cleanGivers,
-    };
+    // A gift row needs a description or an amount to count; rows left blank
+    // (an extra "Add another gift" row nobody filled in) are dropped. If every
+    // row is blank, the first is kept, as a record with only a type always was.
+    const mappedItems = items.map(it => ({
+      id:          it.id,
+      giftType:    it.giftType,
+      description: (it.description || "").trim(),
+      amount:      it.amount !== "" && Number.isFinite(parseFloat(it.amount)) ? parseFloat(it.amount) : null,
+    }));
+    let cleanItems = mappedItems.filter(it => it.description || it.amount !== null);
+    if (cleanItems.length === 0) cleanItems = [mappedItems[0]];
+    // withItems() also writes the derived giftType, description, and amount
+    // summary fields that the export, print list, search, and audit log read.
+    const payload = withItems({ ...form, givers: cleanGivers }, cleanItems);
     // Carry the existing row's internal tracking fields through on edit.
     // _rowId tells save() which row to update instead of inserting a new
     // one. _updatedAt is just as essential: save_row() is an optimistic-
@@ -850,29 +939,59 @@ export function GiftModal({ gift, households, onSave, onClose, isArchived }) {
             {liveMessage}
           </div>
 
-          {/* Gift Type + Amount */}
-          <div className="form-row two-col">
-            <div>
-              <label className="form-label">Gift Type</label>
-              <select className="form-input" value={form.giftType} onChange={e => setF("giftType", e.target.value)}>
-                {GIFT_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
-              </select>
-            </div>
-            <div>
-              <label className="form-label">Amount ($)</label>
-              <input className="form-input" type="number" min="0" step="0.01"
-                value={form.amount} onChange={e => setF("amount", e.target.value)}
-                placeholder="0.00" />
-            </div>
-          </div>
+          {/* Gifts: one or more items from this giver */}
+          {items.map((it, idx) => {
+            const multi = items.length > 1;
+            const wrapperStyle = multi
+              ? { border: "1px solid var(--border)", borderRadius: "var(--radius-sm)", padding: "12px 14px", marginBottom: 10, position: "relative" }
+              : { marginBottom: 0 };
+            return (
+              <div key={it.id} style={wrapperStyle}>
+                {multi && (
+                  <button type="button" className="icon-btn" aria-label={`Remove gift ${idx + 1}`}
+                    onClick={() => removeItem(it.id)}
+                    style={{ position: "absolute", top: 8, right: 8 }}>
+                    <Icon name="x" context="badge" />
+                  </button>
+                )}
+                {multi && (
+                  <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.04em", marginBottom: 6 }}>
+                    Gift {idx + 1}
+                  </div>
+                )}
+                <div className="form-row two-col">
+                  <div>
+                    <label className="form-label">Gift Type</label>
+                    <select className="form-input" ref={el => { itemTypeRefs.current[it.id] = el; }}
+                      aria-label={multi ? `Gift ${idx + 1} type` : undefined}
+                      value={it.giftType} onChange={e => updateItem(it.id, { giftType: e.target.value })}>
+                      {GIFT_TYPES.filter(t => t !== "Combination" || it.giftType === "Combination").map(t => <option key={t} value={t}>{t}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="form-label">Amount ($)</label>
+                    <input className="form-input" type="number" min="0" step="0.01"
+                      aria-label={multi ? `Gift ${idx + 1} amount` : undefined}
+                      value={it.amount} onChange={e => updateItem(it.id, { amount: e.target.value })}
+                      placeholder="0.00" />
+                  </div>
+                </div>
+                <div className="form-row">
+                  <label className="form-label">Description</label>
+                  <input className="form-input"
+                    aria-label={multi ? `Gift ${idx + 1} description` : undefined}
+                    value={it.description || ""}
+                    onChange={e => updateItem(it.id, { description: e.target.value })}
+                    placeholder="e.g., Schneider Fund, Amazon gift card $50, Tallit" />
+                </div>
+              </div>
+            );
+          })}
 
-          {/* Description */}
-          <div className="form-row">
-            <label className="form-label">Description</label>
-            <input className="form-input" value={form.description || ""}
-              onChange={e => setF("description", e.target.value)}
-              placeholder="e.g., Schneider Fund, Amazon gift card $50, Tallit" />
-          </div>
+          <button type="button" ref={addItemButtonRef} className="btn btn-ghost"
+            onClick={addItem} style={{ marginTop: items.length > 1 ? 0 : 4, marginBottom: 16 }}>
+            + Add another gift
+          </button>
 
           {/* Date Received + Attended */}
           <div className="form-row two-col">
