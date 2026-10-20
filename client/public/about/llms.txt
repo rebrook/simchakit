@@ -2,7 +2,7 @@
 
 > SimchaKit is the all-in-one planning hub for B'nei Mitzvot, weddings, and every Jewish lifecycle celebration. Built by Brook Creative LLC.
 
-SimchaKit is a paid SaaS web application for Jewish lifecycle event planning. It is used exclusively by the event organizer — guests never interact with the app. It helps families plan bar and bat mitzvahs, weddings, baby namings, and other simchas by organizing guests, budgets, vendors, seating charts, tasks, gifts, ceremony roles, and day-of logistics in one place.
+SimchaKit is a paid SaaS web application for Jewish lifecycle event planning. It is used exclusively by the event organizer, so guests never interact with the app. It helps families plan bar and bat mitzvahs, weddings, baby namings, and other simchas by organizing guests, budgets, vendors, seating charts, tasks, gifts, ceremony roles, and day-of logistics in one place.
 
 ## Key pages
 
@@ -25,7 +25,7 @@ SimchaKit is a paid SaaS web application for Jewish lifecycle event planning. It
 
 ## Pricing
 
-One-time fee of $29 per event (introductory pricing through August 31, 2026, then $49). No subscription, no recurring charges. Every feature included from day one.
+One-time fee of $49 per event. No subscription, no recurring charges. Every feature included from day one.
 
 ## Technical
 
