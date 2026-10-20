@@ -2,7 +2,7 @@ import { sortTimeline, formatEntryMeta } from "./dates.js";
 import { formatAddress, migrateCityStateZip } from "./guests.js";
 import { computeVendorFinancials, fmt$ } from "./vendors.js";
 import { isFullyPaid } from "./expensePayments.js";
-import { getSectionHeadcount, getMealPopulation, splitAdultsKids, resolveMainEvent } from "./sections.js";
+import { getSectionHeadcount, getMealPopulation, splitAdultsKids, resolveMainEvent, getAwaitingSummary } from "./sections.js";
 import { getGiftGivers } from "./gifts.js";
 import { PALETTES } from "@/constants/theme.js";
 import { iconSvg } from "@/utils/iconSvg.js";
@@ -561,6 +561,17 @@ ${bodyHTML}
 </body></html>`;
 }
 
+// Escapes user-entered text (guest and household names, sub-event titles)
+// before it goes into brief HTML. Used by the awaiting list added in V4.41.0.
+function escapeHtml(value) {
+  return String(value == null ? "" : value)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 function generateEventBriefHTML(state, adminConfig) {
   const config     = adminConfig || {};
   const pal        = PALETTES[config.theme?.palette] || PALETTES.rose;
@@ -663,7 +674,13 @@ function generateEventBriefHTML(state, adminConfig) {
       declinedAdults,
       declinedKids,
       declinedTotal: declinedAdults + declinedKids,
-      pending: (invitedAdults + invitedKids) - (confirmedAdults + confirmedKids) - (declinedAdults + declinedKids),
+      // V4.41.0: counted directly (invited guests whose own status is TBD)
+      // instead of invited minus confirmed minus declined, which can drift
+      // when someone has an answer recorded for a sub-event their household
+      // is not invited to.
+      pending:       hc.awaiting.total,
+      pendingAdults: hc.awaiting.adults,
+      pendingKids:   hc.awaiting.kids,
     };
   }).filter(e => e.invitedTotal > 0); // Only show sub-events that have invitations
 
@@ -690,11 +707,37 @@ function generateEventBriefHTML(state, adminConfig) {
             </div>
             <div>
               <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:#9c9188;margin-bottom:2px">Awaiting</div>
-              <div style="font-weight:600;color:${e.pending > 0 ? "#b8962e" : "#2d6a4f"}">${e.pending}</div>
+              <div style="font-weight:600;color:${e.pending > 0 ? "#b8962e" : "#2d6a4f"}">${e.pending} <span style="font-weight:400;color:#5c5248">(${e.pendingAdults} adults, ${e.pendingKids} kids)</span></div>
             </div>
           </div>
         </div>
       `).join("")
+    : "";
+
+  // ── Guests still owing a sub-event answer (V4.41.0) ────────────────────────
+  // Names the people behind the Awaiting counts above. Empty unless guests are
+  // tracked one by one for sub-events (see getAwaitingSummary), so an event that
+  // only tracks households never prints its whole guest list here.
+  const awaitingSummary = getAwaitingSummary(households, people, timeline);
+  const awaitingByPerson = new Map();
+  awaitingSummary.bySection.forEach(b => b.people.forEach(p => {
+    const entry = awaitingByPerson.get(p.id) || { person: p, titles: [] };
+    entry.titles.push(b.section.title || "Sub-event");
+    awaitingByPerson.set(p.id, entry);
+  }));
+  const awaitingNameOf = (p) => ((p.firstName || p.lastName) ? `${p.firstName || ""} ${p.lastName || ""}`.trim() : (p.name || "Unnamed guest"));
+  const awaitingList = [...awaitingByPerson.values()]
+    .map(e => ({ ...e, hh: households.find(h => h.id === e.person.householdId) || null, name: awaitingNameOf(e.person) }))
+    .sort((a, b) => ((a.hh?.formalName || "").localeCompare(b.hh?.formalName || "")) || a.name.localeCompare(b.name));
+  const awaitingHTML = awaitingList.length > 0
+    ? `<div style="margin-top:6px;padding:12px 14px;background:#faf8f5;border:1px solid #e2ddd5;border-radius:8px;page-break-inside:avoid">
+        <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:#9c9188;margin-bottom:6px">Still waiting on an answer (${awaitingList.length})</div>
+        ${awaitingList.map(r => `<div style="display:flex;gap:12px;padding:5px 0;border-bottom:1px solid #f0ece6;font-size:12px">
+          <span style="font-weight:600;min-width:140px">${escapeHtml(r.name)}${r.person.isChild ? ` <span style="font-weight:400;color:#9c9188">(child)</span>` : ""}</span>
+          <span style="color:#5c5248">${escapeHtml(r.hh?.formalName || "")}</span>
+          <span style="color:#b8962e;margin-left:auto;text-align:right">${escapeHtml(r.titles.join(", "))}</span>
+        </div>`).join("")}
+      </div>`
     : "";
 
   // ── Guest summary HTML ─────────────────────────────────────────────────────
@@ -859,6 +902,7 @@ ${subEventAttendance.length > 0 ? `
 <!-- Sub-Event Attendance -->
 ${sectionHead(`${iconSvg("barChart3", "inline")} Sub-Event Attendance`)}
 ${subEventHTML}
+${awaitingHTML}
 ` : ""}
 
 <!-- Guest Summary -->

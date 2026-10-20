@@ -29,7 +29,8 @@ import {
   exportGuestsByPerson, generateGuestPrintHTML, exportEmailListCSV, getAddressFields, formatAddress,
   migrateCityStateZip, COUNTRIES,
 } from "@/utils/guests.js";
-import { isInvited, getSubEventStatus, getPersonSectionStatus, resolveMainEvent, getMealPopulation } from "@/utils/sections.js";
+import { isInvited, getSubEventStatus, getPersonSectionStatus, resolveMainEvent, getMealPopulation, getAwaitingSummary, describeAwaitingSections, splitAdultsKids } from "@/utils/sections.js";
+import { consumeGuestsPreset } from "@/utils/guestsPreset.js";
 import { ArchivedNotice }    from "@/components/shared/ArchivedNotice.jsx";
 import { RsvpPill }          from "@/components/shared/RsvpPill.jsx";
 import { CateringSummary }   from "@/components/shared/CateringSummary.jsx";
@@ -83,6 +84,7 @@ export function GuestsTab({ eventId, event, adminConfig, showToast, isArchived, 
   const [showMoreFilters,      setShowMoreFilters]      = useState(false);
   const [subEventFilter,       setSubEventFilter]       = useState([]);
   const [subEventStatusFilter, setSubEventStatusFilter] = useState("All");
+  const [awaitingOnly,         setAwaitingOnly]         = useState(false);
   const [mobileMoreFiltersOpen,setMobileMoreFiltersOpen]= useState(false);
   const [expandedChipRows,     setExpandedChipRows]     = useState(new Set());
 
@@ -90,7 +92,19 @@ export function GuestsTab({ eventId, event, adminConfig, showToast, isArchived, 
 
   useSearchHighlight(searchHighlight, clearSearchHighlight, "guests", { setExpandedHH });
 
-  useEffect(() => { setSelectedHHIds(new Set()); }, [search, groupFilter, statusFilter, mobileChip, outOfTownFilter, missingAddressFilter, subEventFilter, subEventStatusFilter]);
+  useEffect(() => { setSelectedHHIds(new Set()); }, [search, groupFilter, statusFilter, mobileChip, outOfTownFilter, missingAddressFilter, subEventFilter, subEventStatusFilter, awaitingOnly]);
+
+  // V4.41.0: arriving from the Overview timeline's awaiting count opens this
+  // tab already filtered to the guests who still owe an answer for that
+  // sub-event (one-shot handoff, see utils/guestsPreset.js).
+  useEffect(() => {
+    const p = consumeGuestsPreset(eventId);
+    if (!p) return;
+    setSubEventFilter(p.sectionIds);
+    setSubEventStatusFilter("All");
+    setAwaitingOnly(true);
+    setShowMoreFilters(true);
+  }, [eventId]);
 
   // ── RSVP status update ────────────────────────────────────────────────────
   const updateRsvpStatus = async (hhId, newStatus) => {
@@ -215,22 +229,57 @@ export function GuestsTab({ eventId, event, adminConfig, showToast, isArchived, 
   const rsvpYes         = households.filter(h => h.rsvpStatus === "RSVP Yes").length;
   const rsvpPending     = households.filter(h => h.rsvpStatus === "Invited" || h.rsvpStatus === "Pending").length;
 
+  // Guests who still owe a sub-event answer (V4.41.0). A household can be
+  // marked RSVP Yes while individual guests are still unset for one sub-event,
+  // which the household count below cannot see. Empty unless guests are
+  // tracked one by one for sub-events (see getAwaitingSummary).
+  const awaitingSummary = useMemo(
+    () => getAwaitingSummary(households, people, sortTimeline(adminConfig?.timeline || [])),
+    [households, people, adminConfig?.timeline]
+  );
+  const awaitingCount  = awaitingSummary.all.length;
+  const awaitingTitles = describeAwaitingSections(awaitingSummary.bySection);
+  // The banner counts "Maybe" as not yet responded, matching the mobile
+  // Pending chip below. rsvpPending (Invited or Pending only) is unchanged.
+  const rsvpUnanswered = households.filter(h => h.rsvpStatus === "Invited" || h.rsvpStatus === "Pending" || h.rsvpStatus === "Maybe").length;
+
   // RSVP deadline banner
   const rsvpDeadline = adminConfig?.rsvpDeadline;
   const rsvpBanner = (() => {
-    if (!rsvpDeadline) return null;
+    const guestText = awaitingCount > 0
+      ? `${awaitingCount} guest${awaitingCount!==1?"s":""} still need${awaitingCount===1?"s":""} to answer for ${awaitingTitles}`
+      : "";
+    // With no deadline set, only speak up about guests who still owe a
+    // sub-event answer; household-level behavior is unchanged (no banner).
+    if (!rsvpDeadline) {
+      if (awaitingCount === 0) return null;
+      return { cls:"warn", icon:<Icon name="mailCheck" context="inline" />, text: guestText, canShow: true };
+    }
     const today = new Date(); today.setHours(0,0,0,0);
     const due   = new Date(rsvpDeadline + "T00:00:00");
     const diff  = Math.ceil((due - today) / (1000*60*60*24));
-    const allResponded = rsvpPending === 0 && households.length > 0;
-    if (allResponded) return { cls:"done", icon:<Icon name="check" context="inline" />, text:"All RSVPs received — no households are still pending." };
-    const pendingText = `${rsvpPending} household${rsvpPending!==1?"s":""} haven't responded yet`;
-    if (diff < 0)  return { cls:"urgent", icon:<Icon name="alertTriangle" context="inline" />, text:`RSVP deadline passed ${Math.abs(diff)} day${Math.abs(diff)!==1?"s":""} ago · ${pendingText}` };
-    if (diff === 0) return { cls:"urgent", icon:<Icon name="alertTriangle" context="inline" />, text:`RSVP deadline is today · ${pendingText}` };
-    if (diff <= 7)  return { cls:"urgent", icon:<Icon name="alertTriangle" context="inline" />, text:`RSVP deadline in ${diff} day${diff!==1?"s":""} · ${pendingText}` };
-    if (diff <= 14) return { cls:"warn",   icon:<Icon name="mailCheck" context="inline" />, text:`RSVP deadline in ${diff} days · ${pendingText}` };
-    return               { cls:"info",   icon:<Icon name="mailCheck" context="inline" />, text:`RSVP deadline in ${diff} days · ${pendingText}` };
+    const allResponded = rsvpUnanswered === 0 && awaitingCount === 0 && households.length > 0;
+    if (allResponded) return {
+      cls:"done", icon:<Icon name="check" context="inline" />, canShow:false,
+      text: awaitingSummary.tracking
+        ? "All RSVPs received. No households or guests are still pending."
+        : "All RSVPs received. No households are still pending.",
+    };
+    const householdText = `${rsvpUnanswered} household${rsvpUnanswered!==1?"s":""} ${rsvpUnanswered===1?"hasn't":"haven't"} responded yet`;
+    const pendingText = [rsvpUnanswered > 0 || awaitingCount === 0 ? householdText : "", guestText].filter(Boolean).join(" · ");
+    const canShow = awaitingCount > 0;
+    // Guests still owing an answer is a reason to look even when every household has replied.
+    const lift = (cls) => (cls === "info" && canShow && rsvpUnanswered === 0) ? "warn" : cls;
+    if (diff < 0)  return { cls:lift("urgent"), canShow, icon:<Icon name="alertTriangle" context="inline" />, text:`RSVP deadline passed ${Math.abs(diff)} day${Math.abs(diff)!==1?"s":""} ago · ${pendingText}` };
+    if (diff === 0) return { cls:lift("urgent"), canShow, icon:<Icon name="alertTriangle" context="inline" />, text:`RSVP deadline is today · ${pendingText}` };
+    if (diff <= 7)  return { cls:lift("urgent"), canShow, icon:<Icon name="alertTriangle" context="inline" />, text:`RSVP deadline in ${diff} day${diff!==1?"s":""} · ${pendingText}` };
+    if (diff <= 14) return { cls:lift("warn"),   canShow, icon:<Icon name="mailCheck" context="inline" />, text:`RSVP deadline in ${diff} days · ${pendingText}` };
+    return               { cls:lift("info"),   canShow, icon:<Icon name="mailCheck" context="inline" />, text:`RSVP deadline in ${diff} days · ${pendingText}` };
   })();
+
+  // Renders banner text with counts in bold. Built as JSX (not injected HTML)
+  // because the text can now include sub-event titles, which are user-entered.
+  const boldCounts = (text) => text.split(/(\d+ (?:households?|days?|guests?))/g).map((part, i) => i % 2 === 1 ? <strong key={i}>{part}</strong> : part);
 
   // ── Mobile chip status mapping ─────────────────────────────────────────
   // Confirmed = RSVP Yes, Pending = Invited+Pending+Maybe, Declined = RSVP No
@@ -288,6 +337,18 @@ export function GuestsTab({ eventId, event, adminConfig, showToast, isArchived, 
       });
       if (!matchesAny) return false;
     }
+    if (awaitingOnly) {
+      // Person-level: keep households with at least one invited member whose own
+      // answer is still TBD for a selected sub-event (all sub-events if none are
+      // selected). The household-level sub-event status above cannot see this.
+      const hhMembers = getPeopleForHousehold(people, hh.id);
+      const scopeIds  = subEventFilter.length > 0 ? subEventFilter : sections.map(x => x.id);
+      const hasAwaiting = scopeIds.some(sid => {
+        const sec = sections.find(x => x.id === sid);
+        return !!sec && isInvited(hh, sec) && hhMembers.some(p => getPersonSectionStatus(p, sec) === "TBD");
+      });
+      if (!hasAwaiting) return false;
+    }
     if (search) {
       const s = search.toLowerCase();
       const memberMatch = getPeopleForHousehold(people, hh.id).some(p => {
@@ -298,6 +359,51 @@ export function GuestsTab({ eventId, event, adminConfig, showToast, isArchived, 
     }
     return true;
   }).sort((a, b) => (hhSortKey[a.id]||"").localeCompare(hhSortKey[b.id]||""));
+
+  // ── Awaiting list (V4.41.0) ────────────────────────────────────────────────
+  // The names behind the banner's guest count, shown while the awaiting filter
+  // is on. One row per guest, with every selected sub-event they still owe.
+  const awaitingRows = (() => {
+    if (!awaitingOnly) return [];
+    const byPerson = new Map();
+    awaitingSummary.bySection
+      .filter(b => subEventFilter.length === 0 || subEventFilter.includes(b.section.id))
+      .forEach(b => b.people.forEach(p => {
+        const entry = byPerson.get(p.id) || { person: p, titles: [] };
+        entry.titles.push(b.section.title || "Sub-event");
+        byPerson.set(p.id, entry);
+      }));
+    const hhById = new Map(households.map(h => [h.id, h]));
+    return [...byPerson.values()]
+      .map(e => ({
+        ...e,
+        hh:   hhById.get(e.person.householdId) || null,
+        name: [e.person.firstName, e.person.lastName].filter(Boolean).join(" ") || e.person.name || "Unnamed guest",
+      }))
+      .sort((a, b) => (hhSortKey[a.hh?.id]||"").localeCompare(hhSortKey[b.hh?.id]||"") || a.name.localeCompare(b.name));
+  })();
+  const awaitingSplit = splitAdultsKids(awaitingRows.map(r => r.person));
+
+  // Clears every other filter first so nobody is hidden by a leftover search,
+  // group, or status choice, then narrows to the sub-events with open answers.
+  const showAwaiting = () => {
+    setSearch(""); setGroupFilter("All"); setStatusFilter("All"); setMobileChip("All");
+    setOutOfTownFilter(false); setMissingAddressFilter(false);
+    setSubEventFilter(awaitingSummary.bySection.map(b => b.section.id));
+    setSubEventStatusFilter("All");
+    setAwaitingOnly(true);
+    setShowMoreFilters(true);
+  };
+  const clearAwaiting = () => {
+    setAwaitingOnly(false);
+    setSubEventFilter([]);
+    setSubEventStatusFilter("All");
+  };
+  const jumpToHousehold = (hhId) => {
+    if (!hhId) return;
+    setExpandedHH(hhId);
+    setTimeout(() => document.getElementById(`row-${hhId}`)?.scrollIntoView({ behavior: "smooth", block: "center" }), 50);
+  };
 
   // ── Sub-event row chips (glance-level, read-only) ──────────────────────────
   // Hidden entirely for events with 0-1 sub-events — a single sub-event would
@@ -370,7 +476,49 @@ export function GuestsTab({ eventId, event, adminConfig, showToast, isArchived, 
       {rsvpBanner && (
         <div className={`rsvp-banner ${rsvpBanner.cls}`}>
           <span className="rsvp-banner-icon">{rsvpBanner.icon}</span>
-          <span dangerouslySetInnerHTML={{__html: rsvpBanner.text.replace(/(\d+ households?)/g,'<strong>$1</strong>').replace(/(\d+ days?)/g,'<strong>$1</strong>')}} />
+          <span>{boldCounts(rsvpBanner.text)}</span>
+          {rsvpBanner.canShow && !awaitingOnly && (
+            <button type="button" className="rsvp-banner-action" onClick={showAwaiting}>Show them</button>
+          )}
+        </div>
+      )}
+
+      {awaitingOnly && (
+        <div className="awaiting-panel">
+          <div className="awaiting-panel-head">
+            <div>
+              <div className="awaiting-panel-title">
+                {awaitingRows.length === 0
+                  ? "No one is awaiting an answer"
+                  : `Still waiting on ${awaitingRows.length} guest${awaitingRows.length!==1?"s":""}`}
+              </div>
+              {awaitingRows.length > 0 && (
+                <div className="awaiting-panel-sub">
+                  {awaitingSplit.adults} adult{awaitingSplit.adults!==1?"s":""}, {awaitingSplit.kids} kid{awaitingSplit.kids!==1?"s":""}. Tap a name to open the household.
+                </div>
+              )}
+            </div>
+            <button type="button" className="btn btn-ghost btn-sm" onClick={clearAwaiting}>Clear filter</button>
+          </div>
+          {awaitingRows.length > 0 && (
+            <ul className="awaiting-panel-list">
+              {awaitingRows.map(r => (
+                <li key={r.person.id}>
+                  <button type="button" className="awaiting-panel-row" onClick={() => jumpToHousehold(r.hh?.id)}>
+                    <span className="awaiting-panel-name">{r.name}</span>
+                    <span className={`tag ${r.person.isChild ? "tag-blue" : "tag-muted"}`}>{r.person.isChild ? "Child" : "Adult"}</span>
+                    <span className="awaiting-panel-hh">{r.hh?.formalName || ""}</span>
+                    {r.hh && (
+                      <span className="awaiting-panel-status" style={{ background: statusStyle[r.hh.rsvpStatus]?.bg, color: statusStyle[r.hh.rsvpStatus]?.color }}>
+                        {r.hh.rsvpStatus || "Invited"}
+                      </span>
+                    )}
+                    <span className="awaiting-panel-secs">{r.titles.join(", ")}</span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
       )}
 
@@ -624,6 +772,9 @@ export function GuestsTab({ eventId, event, adminConfig, showToast, isArchived, 
                                   const invitedSecs = sections.filter(s => isInvited(hh, s));
                                   const yes = invitedSecs.filter(s => getPersonSectionStatus(p, s) === "Yes");
                                   const no  = invitedSecs.filter(s => getPersonSectionStatus(p, s) === "No");
+                                  // V4.41.0: when guests are tracked one by one, also flag the sub-events
+                                  // this person has not answered yet (they were invisible next to a Yes).
+                                  const tbd = awaitingSummary.tracking ? invitedSecs.filter(s => getPersonSectionStatus(p, s) === "TBD") : [];
                                   if (yes.length === 0 && no.length === 0) {
                                     return <div className="member-card-sections"><span className="tag tag-muted" style={{fontSize:10}}>Sub-events TBD</span></div>;
                                   }
@@ -631,6 +782,7 @@ export function GuestsTab({ eventId, event, adminConfig, showToast, isArchived, 
                                     <div className="member-card-sections">
                                       {yes.map(s => <span key={s.id} className="tag tag-green" style={{fontSize:10}}>{s.label}</span>)}
                                       {no.map(s => <span key={s.id} className="tag tag-red" style={{fontSize:10}}>{s.label} — No</span>)}
+                                      {tbd.map(s => <span key={s.id} className="tag tag-muted" style={{fontSize:10}}>{s.label}: TBD</span>)}
                                     </div>
                                   );
                                 })()}
@@ -672,10 +824,12 @@ export function GuestsTab({ eventId, event, adminConfig, showToast, isArchived, 
                                       const invitedSecs = sections.filter(s => isInvited(hh, s));
                                       const yes = invitedSecs.filter(s => getPersonSectionStatus(p, s) === "Yes");
                                       const no  = invitedSecs.filter(s => getPersonSectionStatus(p, s) === "No");
+                                      const tbd = awaitingSummary.tracking ? invitedSecs.filter(s => getPersonSectionStatus(p, s) === "TBD") : [];
                                       if (yes.length === 0 && no.length === 0) return <span className="tag tag-muted">TBD</span>;
                                       return (<>
                                         {yes.map(s => <span key={s.id} className="tag tag-green" style={{marginRight:2,fontSize:10}}>{s.label}</span>)}
                                         {no.map(s => <span key={s.id} className="tag tag-red" style={{marginRight:2,fontSize:10}}>{s.label} — No</span>)}
+                                        {tbd.map(s => <span key={s.id} className="tag tag-muted" style={{marginRight:2,fontSize:10}}>{s.label}: TBD</span>)}
                                       </>);
                                     })()}
                                   </td>

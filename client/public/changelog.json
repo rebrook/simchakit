@@ -1,10 +1,30 @@
 {
-  "current": "V4.40.0",
+  "current": "V4.41.0",
   "whatsNew": [
-    "UX: The event name at the top of the sidebar now opens a one-click list of your events, so you can switch events without going back to the picker",
-    "Fix: switching between events, including with the browser back and forward buttons, now fully reloads the new event"
+    "UX: The Guests tab banner now names guests who still owe a sub-event answer, with a Show them button that lists exactly who",
+    "UX: Overview sub-events, What Needs You Next, and the Print Brief now show who is still awaiting an answer",
+    "Fix: the banner no longer says all RSVPs are received while guests still owe a sub-event answer"
   ],
   "changelog": [
+    {
+      "version": "V4.41.0",
+      "date": "2026-10-20",
+      "summary": "Guests still owing a sub-event answer are now counted, named, and one click away",
+      "changes": [
+        "New: the Guests tab banner now reports guests who still owe an answer for a sub-event, even when their household has already responded, with a Show them button that filters the list and names each guest, their household, and the sub-events still open",
+        "New: each sub-event on the Overview timeline shows how many guests are awaiting an answer, with an explanation and a link that opens those guests in the Guests tab",
+        "New: expanded households flag the sub-events a guest has not answered yet, so a guest who is Yes for one sub-event and unanswered for another is visible",
+        "New: What Needs You Next flags guests who still need to answer when every household has replied",
+        "New: the Print Brief lists the guests still waiting on an answer, and each sub-event's Awaiting count shows an adults and kids split",
+        "Fix: the Guests tab banner no longer reports that all RSVPs are received while guests still owe a sub-event answer",
+        "Fix: the Guests tab banner now counts Maybe households as not yet responded, matching the mobile Pending chip",
+        "Fix: the Print Brief's per-sub-event Awaiting count is now counted directly, so it cannot drift from the Overview and Guests tab",
+        "Change: the banner text is no longer built as HTML, and its all-received message no longer uses a dash",
+        "Change: awaiting guests appear only once guests are tracked one by one for two or more sub-events, so events that only track households are unaffected"
+      ],
+      "roadmap": [],
+      "knownIssues": []
+    },
     {
       "version": "V4.40.0",
       "date": "2026-10-19",

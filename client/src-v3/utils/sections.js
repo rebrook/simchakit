@@ -74,6 +74,17 @@ export function getDeclinedPeopleForSection(people, section) {
   return people.filter(p => getPersonSectionStatus(p, section) === "No");
 }
 
+// People invited to this section (per isInvited) whose own status is still
+// TBD, i.e. the guests someone is still waiting on. Computed directly, not as
+// invited minus confirmed minus declined: confirmed and declined ignore
+// household invite status by design, so a subtraction can drift (or go
+// negative) when a person has an answer recorded for a sub-event their
+// household is not invited to. V4.41.0.
+export function getAwaitingPeopleForSection(households, people, section) {
+  return getInvitedPeopleForSection(households, people, section)
+    .filter(p => getPersonSectionStatus(p, section) === "TBD");
+}
+
 // Splits any list of people into adult and kid counts using person.isChild.
 // The one place in the codebase that defines "adult" vs "kid" for headcounts,
 // so every surface that shows a split agrees by construction.
@@ -91,7 +102,47 @@ export function getSectionHeadcount(households, people, section) {
     invited:   splitAdultsKids(getInvitedPeopleForSection(households, people, section)),
     confirmed: splitAdultsKids(getConfirmedPeopleForSection(people, section)),
     declined:  splitAdultsKids(getDeclinedPeopleForSection(people, section)),
+    awaiting:  splitAdultsKids(getAwaitingPeopleForSection(households, people, section)),
   };
+}
+
+// True once the planner is tracking guests one by one for sub-events: the
+// event has at least two sub-events and at least one person has an answer
+// recorded for one of them. Until then every person reads as TBD simply
+// because nobody has used per-person tracking, so "awaiting" lists built on
+// it would flag the whole guest list. Every surface that names awaiting
+// guests (banner, Overview, focus panel, Print Brief) goes through
+// getAwaitingSummary below, which applies this check. V4.41.0.
+export function isTrackingPerPerson(people, sections) {
+  const list = sections || [];
+  if (list.length < 2) return false;
+  const ids = new Set(list.map(s => s.id));
+  return (people || []).some(p => Object.keys(p.sectionRsvp || {}).some(k => ids.has(k)));
+}
+
+// Who is still awaiting an answer, per sub-event and overall (a guest owed an
+// answer for two sub-events appears once in `all`). Empty unless the event is
+// tracked per person (see isTrackingPerPerson). Sections need an id and,
+// optionally, inviteAllByDefault; timeline entries work as they are.
+export function getAwaitingSummary(households, people, sections) {
+  const list = sections || [];
+  if (!isTrackingPerPerson(people, list)) return { tracking: false, bySection: [], all: [] };
+  const bySection = list
+    .map(section => ({ section, people: getAwaitingPeopleForSection(households || [], people || [], section) }))
+    .filter(b => b.people.length > 0);
+  const merged = new Map();
+  bySection.forEach(b => b.people.forEach(p => merged.set(p.id, p)));
+  return { tracking: true, bySection, all: [...merged.values()] };
+}
+
+// Short phrase naming the sub-events in an awaiting summary, for banner and
+// focus-panel copy: one title, "A and B", or a count for three or more.
+export function describeAwaitingSections(bySection) {
+  const titles = (bySection || []).map(b => b.section.title || b.section.label || "a sub-event");
+  if (titles.length === 0) return "";
+  if (titles.length === 1) return titles[0];
+  if (titles.length === 2) return `${titles[0]} and ${titles[1]}`;
+  return `${titles.length} sub-events`;
 }
 
 // The population behind every "who needs a meal" headcount: Catering Summary,

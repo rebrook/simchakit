@@ -20,7 +20,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { getOpenPayments } from "./vendors.js";
-import { getConfirmedPeopleForSection } from "./sections.js";
+import { getConfirmedPeopleForSection, getAwaitingSummary, describeAwaitingSections } from "./sections.js";
 import { countThankYousOutstanding } from "./gifts.js";
 
 const BOOKED_STATUSES = ["Booked", "Deposit Paid", "Paid in Full"];
@@ -200,6 +200,25 @@ export function computeFocusItems(data, adminConfig) {
         tab: "guests",
         priority: 5,
       });
+    } else {
+      // V4.41.0: every household has answered, but individual guests can still
+      // be unset for a sub-event (a household Yes with one member TBD). One
+      // rsvps row per domain, so this only appears when the household-level
+      // row above does not.
+      const summary = getAwaitingSummary(households, people, config.timeline || []);
+      const n = summary.all.length;
+      if (n > 0) {
+        items.push({
+          id: "rsvps",
+          domain: "rsvps",
+          tone: "accent",
+          icon: "guests",
+          title: `${n} guest${n !== 1 ? "s" : ""} still need${n === 1 ? "s" : ""} to answer`,
+          detail: truncate(`${describeAwaitingSections(summary.bySection)}, ${daysToEvent} day${daysToEvent !== 1 ? "s" : ""} to go`, 60),
+          tab: "guests",
+          priority: 5,
+        });
+      }
     }
   }
 

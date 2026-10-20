@@ -24,7 +24,9 @@ import { StatCard }          from "@/components/shared/StatCard.jsx";
 import { FocusPanel }        from "@/components/shared/FocusPanel.jsx";
 import { computeFocusItems } from "@/utils/focus.js";
 import { amountPaid } from "@/utils/expensePayments.js";
-import { getSectionHeadcount, getMealPopulation } from "@/utils/sections.js";
+import { getSectionHeadcount, getMealPopulation, isTrackingPerPerson } from "@/utils/sections.js";
+import { setGuestsPreset } from "@/utils/guestsPreset.js";
+import { InfoPopover } from "@/components/shared/InfoPopover.jsx";
 import { METRIC_HELP } from "@/constants/metrics.js";
 
 // Abbreviate currency for mobile ring cards: $11,831.63 -> $11.8k
@@ -285,13 +287,19 @@ export function OverviewTab({ eventId, event, adminConfig, showToast, setActiveT
   // Sub-event counts
   const getSubEventCounts = (sectionId) => {
     const section = timelineEntries.find(e => e.id === sectionId);
-    if (!section) return { invited: 0, confirmed: 0, invitedAdults: 0, invitedKids: 0, confirmedAdults: 0, confirmedKids: 0 };
+    if (!section) return { invited: 0, confirmed: 0, awaiting: 0, invitedAdults: 0, invitedKids: 0, confirmedAdults: 0, confirmedKids: 0 };
     const hc = getSectionHeadcount(households, people, section);
     return {
       invited: hc.invited.total,     invitedAdults: hc.invited.adults,     invitedKids: hc.invited.kids,
       confirmed: hc.confirmed.total, confirmedAdults: hc.confirmed.adults, confirmedKids: hc.confirmed.kids,
+      awaiting: hc.awaiting.total,
     };
   };
+
+  // V4.41.0: the awaiting count on each sub-event row only appears once guests
+  // are tracked one by one for sub-events. Before that every guest reads as
+  // TBD, which would show the whole guest list as awaiting.
+  const awaitingTracked = isTrackingPerPerson(people, timelineEntries);
 
 
   // Stats — memoized so the 1s countdown tick doesn't refilter
@@ -599,8 +607,22 @@ export function OverviewTab({ eventId, event, adminConfig, showToast, setActiveT
                       <div className="timeline-title">{item.title}</div>
                       <div className="timeline-meta">{formatEntryMeta(item)}</div>
                       {counts.invited > 0 && (
-                        <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 4, display: "flex", alignItems: "center", gap: 4 }}>
+                        <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 4, display: "flex", alignItems: "center", flexWrap: "wrap", gap: 4 }}>
                           <Icon name="guests" context="inline" /> {counts.invited} invited ({counts.invitedAdults} adults, {counts.invitedKids} kids) · {counts.confirmed} confirmed ({counts.confirmedAdults} adults, {counts.confirmedKids} kids)
+                          {awaitingTracked && counts.awaiting > 0 && (
+                            <>
+                              <span aria-hidden="true">·</span>
+                              <button
+                                type="button"
+                                className="timeline-awaiting-link"
+                                title="Show these guests in the Guests tab"
+                                onClick={() => { setGuestsPreset(eventId, [item.id]); setActiveTab("guests"); }}
+                              >
+                                {counts.awaiting} awaiting
+                              </button>
+                              <InfoPopover text={METRIC_HELP.awaitingSubEvent()} label="How is awaiting counted?" />
+                            </>
+                          )}
                         </div>
                       )}
                     </div>

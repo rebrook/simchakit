@@ -49,6 +49,12 @@ export const METRIC_HELP = {
         "Mark the sub-events where a meal is served (Admin Mode, Timeline) for exact counts.",
       ],
 
+  awaitingSubEvent: () => [
+    "Guests invited to this sub-event whose own answer is still blank (TBD).",
+    "A household can have said Yes while individual guests are still unset for this sub-event, so this can be higher than the households that have not responded.",
+    "Shown once guests are tracked one by one for sub-events.",
+  ],
+
   attending: ({ eventTitle, rsvpYesHouseholds }) => [
     `Guests marked Yes for ${eventTitle || "the main event"}, counted in households that RSVP'd Yes${typeof rsvpYesHouseholds === "number" ? ` (${rsvpYesHouseholds} households)` : ""}.`,
     "A household's Attending Count Override, if set, takes priority.",
