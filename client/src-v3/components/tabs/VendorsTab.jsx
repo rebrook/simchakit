@@ -378,11 +378,11 @@ export function VendorsTab({ eventId, event, adminConfig, showToast, isArchived,
                         <Icon name="fileText" context="badge" /> Contract
                       </a>
                     )}
-                    <button className="icon-btn" title="Edit"
+                    <button className="icon-btn" title="Edit" aria-label="Edit"
                       style={{fontSize:13}}
                       disabled={isArchived || isViewer}
                       onClick={() => { setEditing(v); setShowAdd(true); }}><Icon name="pencil" context="badge" /></button>
-                    <button className="icon-btn" title="Delete"
+                    <button className="icon-btn" title="Delete" aria-label="Delete"
                       style={{fontSize:13,color:"var(--red)"}}
                       disabled={isArchived || isViewer}
                       onClick={() => setDeleteConfirm(v._rowId || v.id)}><Icon name="x" context="badge" /></button>

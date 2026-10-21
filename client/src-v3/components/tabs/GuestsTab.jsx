@@ -732,8 +732,8 @@ export function GuestsTab({ eventId, event, adminConfig, showToast, isArchived, 
                     </div>
                   </div>
                   <div className="hh-row-actions" onClick={e=>e.stopPropagation()}>
-                    <button className="icon-btn" title="Edit" disabled={isArchived || isViewer} onClick={()=>setEditingHH(hh)}><Icon name="pencil" context="inline" /></button>
-                    <button className="icon-btn" style={{color:"var(--red)"}} title="Delete" disabled={isArchived || isViewer} onClick={()=>setDeleteConfirm(hh.id)}><Icon name="x" context="inline" /></button>
+                    <button className="icon-btn" title="Edit" aria-label="Edit" disabled={isArchived || isViewer} onClick={()=>setEditingHH(hh)}><Icon name="pencil" context="inline" /></button>
+                    <button className="icon-btn" style={{color:"var(--red)"}} title="Delete" aria-label="Delete" disabled={isArchived || isViewer} onClick={()=>setDeleteConfirm(hh.id)}><Icon name="x" context="inline" /></button>
                   </div>
                 </div>
 
@@ -899,7 +899,7 @@ export function GuestsTab({ eventId, event, adminConfig, showToast, isArchived, 
             <div style={{fontSize:17,fontWeight:700,color:"var(--text-primary)"}}>Print Preview — Guest List</div>
             <div style={{display:"flex",gap:8}}>
               <button className="btn btn-primary" style={{fontSize:12,display:"inline-flex",alignItems:"center",gap:4}} onClick={()=>{const f=document.getElementById("guest-print-frame");if(f?.contentWindow)f.contentWindow.print();}}><Icon name="printer" context="inline" /> Print</button>
-              <button className="icon-btn" title="Close" onClick={()=>setGuestPrintHTML(null)}><Icon name="x" context="button" /></button>
+              <button className="icon-btn" title="Close" aria-label="Close" onClick={()=>setGuestPrintHTML(null)}><Icon name="x" context="button" /></button>
             </div>
           </div>
           <iframe id="guest-print-frame" srcDoc={guestPrintHTML} sandbox="allow-same-origin allow-modals" style={{flex:1,border:"none",borderRadius:"0 0 var(--radius-lg) var(--radius-lg)"}} title="Guest List Print Preview" />
@@ -919,7 +919,7 @@ export function GuestsTab({ eventId, event, adminConfig, showToast, isArchived, 
           style={{position:"fixed",left:0,right:0,bottom:0,background:"var(--bg-surface)",borderRadius:"var(--radius-lg) var(--radius-lg) 0 0",width:"100%",maxHeight:"75vh",overflowY:"auto",padding:"16px 18px 20px",boxShadow:"var(--shadow-lg)",animation:"slide-up 0.2s ease"}}>
           <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
             <div style={{fontSize:16,fontWeight:700,color:"var(--text-primary)"}}>Sub-Event Filters</div>
-            <button className="icon-btn" title="Close" onClick={()=>setMobileMoreFiltersOpen(false)}><Icon name="x" context="button" /></button>
+            <button className="icon-btn" title="Close" aria-label="Close" onClick={()=>setMobileMoreFiltersOpen(false)}><Icon name="x" context="button" /></button>
           </div>
           <div style={{fontSize:11,fontWeight:700,color:"var(--text-muted)",textTransform:"uppercase",letterSpacing:"0.04em",marginBottom:6}}>Sub-Events</div>
           <div style={{display:"flex",flexWrap:"wrap",gap:6,marginBottom:14}}>
@@ -1181,7 +1181,7 @@ export function HouseholdModal({ household, members, adminConfig, onSave, onClos
           <div className="modal-title">{isEdit?"Edit Household":"Add Household"}</div>
           {!isEdit && <div style={{fontSize:12,color:"var(--text-muted)",marginTop:2}}>Step {step} of 2 — {step===1?"Household Details":"Members"}</div>}
         </div>
-        <button className="icon-btn" title="Close" onClick={onClose}><Icon name="x" context="button" /></button>
+        <button className="icon-btn" title="Close" aria-label="Close" onClick={onClose}><Icon name="x" context="button" /></button>
       </div>
         {isEdit && (
           <div className="hh-modal-tabs">
@@ -1320,7 +1320,7 @@ export function HouseholdModal({ household, members, adminConfig, onSave, onClos
                           placeholder="What was discussed or decided?"
                           style={{fontSize:13}} />
                       </div>
-                      <button type="button" className="icon-btn" title="Remove contact"
+                      <button type="button" className="icon-btn" title="Remove contact" aria-label="Remove contact"
                         style={{color:"var(--red)",flexShrink:0,marginTop:2}}
                         disabled={isArchived}
                         onClick={()=>deleteHHContact(c.id)}><Icon name="x" context="button" /></button>

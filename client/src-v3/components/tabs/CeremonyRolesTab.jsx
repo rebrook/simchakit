@@ -222,11 +222,11 @@ function SortableSectionBlock({ sectionId, section, sectionRoles, secIdx, totalS
         {!isReadOnly && totalSections > 1 && (
           <div style={{ display: "flex", gap: 2, flexShrink: 0 }}>
             <button className="icon-btn" style={{ fontSize: 11 }}
-              title="Move section up"
+              title="Move section up" aria-label="Move section up"
               onClick={() => moveSection(section, "up")}
               disabled={secIdx === 0}>↑</button>
             <button className="icon-btn" style={{ fontSize: 11 }}
-              title="Move section down"
+              title="Move section down" aria-label="Move section down"
               onClick={() => moveSection(section, "down")}
               disabled={secIdx === totalSections - 1}>↓</button>
           </div>

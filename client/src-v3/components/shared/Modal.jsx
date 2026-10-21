@@ -192,7 +192,7 @@ export function Modal({
         {title && (
           <div className="modal-header">
             <div className="modal-title" id={titleId}>{title}</div>
-            <button className="icon-btn" title="Close" onClick={onClose}>
+            <button className="icon-btn" title="Close" aria-label="Close" onClick={onClose}>
               <Icon name="x" context="button" />
             </button>
           </div>

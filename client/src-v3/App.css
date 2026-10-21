@@ -3575,8 +3575,11 @@
     }
     .task-row:hover .task-actions { opacity: 1; }
 
-    @media (max-width: 760px) {
+    @media (hover: none) {
       .task-actions { opacity: 1; }
+    }
+
+    @media (max-width: 760px) {
       .task-row { padding: 10px 12px; }
     }
 
@@ -4937,6 +4940,9 @@
     .gift-row:hover .gift-actions,
     .gift-actions:focus-within {
       opacity: 1;
+    }
+    @media (hover: none) {
+      .gift-actions { opacity: 1; }
     }
     .gift-ty-chip {
       display: inline-flex;

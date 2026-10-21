@@ -682,7 +682,7 @@ export function OverviewTab({ eventId, event, adminConfig, showToast, setActiveT
                   onClick={() => { if (printFrameRef.current?.contentWindow) printFrameRef.current.contentWindow.print(); }}>
                   <Icon name="printer" context="inline" /> Print / Save PDF
                 </button>
-                <button className="icon-btn" title="Close" onClick={() => setBriefHTML(null)}><Icon name="x" context="button" /></button>
+                <button className="icon-btn" title="Close" aria-label="Close" onClick={() => setBriefHTML(null)}><Icon name="x" context="button" /></button>
               </div>
             </div>
             <iframe ref={printFrameRef} srcDoc={briefHTML}

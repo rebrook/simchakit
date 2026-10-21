@@ -410,7 +410,7 @@ export function CalendarTab({ eventId, event, adminConfig, showToast, isArchived
             <div className="cal-popover" style={{ top: popoverPos.top, left: popoverPos.left }}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
                 <span className={`cal-source-tag ${src?.tagCls || ""}`}>{src?.label || selectedEvent.source}</span>
-                <button className="icon-btn" style={{ fontSize: 12, padding: 2 }} title="Close"
+                <button className="icon-btn" style={{ fontSize: 12, padding: 2 }} title="Close" aria-label="Close"
                   onClick={() => setSelectedEvent(null)}><Icon name="x" context="button" /></button>
               </div>
               <div className="cal-popover-title">

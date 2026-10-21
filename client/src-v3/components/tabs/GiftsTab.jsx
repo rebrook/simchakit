@@ -431,9 +431,9 @@ export function GiftsTab({ eventId, event, adminConfig, showToast, isArchived, i
                       </td>
                       <td style={{ ...TD, textAlign: "right" }}>
                         <div className="gift-actions">
-                          <button className="icon-btn" title="Edit" disabled={isArchived || isViewer} onClick={() => setEditGift(g)}><Icon name="pencil" context="badge" /></button>
+                          <button className="icon-btn" title="Edit" aria-label="Edit" disabled={isArchived || isViewer} onClick={() => setEditGift(g)}><Icon name="pencil" context="badge" /></button>
                           <div className="header-overflow-wrap" ref={setMenuRef(g.id)}>
-                            <button type="button" className="icon-btn" title="More" aria-haspopup="true" aria-expanded={openMenuId === g.id}
+                            <button type="button" className="icon-btn" title="More" aria-label="More" aria-haspopup="true" aria-expanded={openMenuId === g.id}
                               disabled={isArchived || isViewer}
                               onClick={() => setOpenMenuId(openMenuId === g.id ? null : g.id)}>
                               <Icon name="moreHorizontal" context="badge" />
@@ -501,7 +501,7 @@ export function GiftsTab({ eventId, event, adminConfig, showToast, isArchived, i
                     )}
                     {/* Actions: Edit + Delete collapsed into one 44px menu button */}
                     <div className="header-overflow-wrap" style={{ flexShrink: 0 }} ref={setMenuRef(g.id)}>
-                      <button type="button" className="icon-btn" title="More actions" aria-haspopup="true" aria-expanded={openMenuId === g.id}
+                      <button type="button" className="icon-btn" title="More actions" aria-label="More actions" aria-haspopup="true" aria-expanded={openMenuId === g.id}
                         disabled={isArchived || isViewer}
                         onClick={() => setOpenMenuId(openMenuId === g.id ? null : g.id)}
                         style={{ width: 44, height: 44 }}>
@@ -667,7 +667,7 @@ export function GiftsTab({ eventId, event, adminConfig, showToast, isArchived, i
                   onClick={() => { const f = document.getElementById("gift-print-frame"); if (f?.contentWindow) f.contentWindow.print(); }}>
                   <Icon name="printer" context="inline" style={{ marginRight: 4 }} /> Print
                 </button>
-                <button className="icon-btn" title="Close" onClick={() => setPrintHTML(null)}><Icon name="x" context="button" /></button>
+                <button className="icon-btn" title="Close" aria-label="Close" onClick={() => setPrintHTML(null)}><Icon name="x" context="button" /></button>
               </div>
             </div>
             <iframe id="gift-print-frame" srcDoc={printHTML}
@@ -816,7 +816,7 @@ export function GiftModal({ gift, households, onSave, onClose, isArchived }) {
       <div className="modal modal-lg" style={{ maxWidth: 520 }} onClick={e => e.stopPropagation()}>
         <div className="modal-header">
           <div className="modal-title">{isEdit ? "Edit Gift" : "Add Gift"}</div>
-          <button className="icon-btn" title="Close" onClick={onClose}><Icon name="x" context="button" /></button>
+          <button className="icon-btn" title="Close" aria-label="Close" onClick={onClose}><Icon name="x" context="button" /></button>
         </div>
         <div className="modal-body">
 
@@ -1063,7 +1063,7 @@ export function GiftExportModal({ gifts, households, adminConfig, onPrint, onClo
       <div className="modal modal-lg" style={{ maxWidth: 520 }} onClick={e => e.stopPropagation()}>
         <div className="modal-header">
           <div className="modal-title">Export Gift List</div>
-          <button className="icon-btn" title="Close" onClick={onClose}><Icon name="x" context="button" /></button>
+          <button className="icon-btn" title="Close" aria-label="Close" onClick={onClose}><Icon name="x" context="button" /></button>
         </div>
         <div className="modal-body">
           <div style={{ display: "flex", gap: 10, marginBottom: 20 }}>

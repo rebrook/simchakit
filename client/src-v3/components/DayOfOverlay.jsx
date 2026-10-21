@@ -432,7 +432,7 @@ export function DayOfItemModal({ item, onSave, onClose }) {
       <div className="modal" onClick={e => e.stopPropagation()}>
         <div className="modal-header">
           <div className="modal-title">{isEdit ? "Edit Item" : "Add Day-of Item"}</div>
-          <button className="icon-btn" title="Close" onClick={onClose}><Icon name="x" context="button" /></button>
+          <button className="icon-btn" title="Close" aria-label="Close" onClick={onClose}><Icon name="x" context="button" /></button>
         </div>
         <div className="modal-body">
           <div className="form-group">
@@ -1315,7 +1315,7 @@ export function DayOfOverlay({ eventId, event, adminConfig, onClose, onPrintBrie
               >
                 <Icon name="printer" context="inline" style={{ marginRight: 4 }} /> Print / Save PDF
               </button>
-              <button className="icon-btn" title="Close" onClick={() => setPrintHTML(null)}><Icon name="x" context="button" /></button>
+              <button className="icon-btn" title="Close" aria-label="Close" onClick={() => setPrintHTML(null)}><Icon name="x" context="button" /></button>
             </div>
           </div>
           {/* Preview iframe */}

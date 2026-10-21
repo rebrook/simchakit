@@ -691,16 +691,16 @@ function ExpenseRow({
       </div>
       <div className="expense-row-actions">
         {!payHasPayments && (
-          <button className="icon-btn" title="Payment schedule"
+          <button className="icon-btn" title="Payment schedule" aria-label="Payment schedule"
             style={{fontSize:11,opacity:0.4}}
             onClick={() => setExpanded(x => !x)}>
             ▾
           </button>
         )}
-        <button className="icon-btn" title="Edit"
+        <button className="icon-btn" title="Edit" aria-label="Edit"
           style={{fontSize:13}}
           disabled={actionsDisabled} onClick={() => { setEditing(e); setShowAdd(true); }}><Icon name="pencil" context="badge" /></button>
-        <button className="icon-btn" title="Delete"
+        <button className="icon-btn" title="Delete" aria-label="Delete"
           style={{fontSize:13,color:"var(--red)"}}
           disabled={actionsDisabled} onClick={() => setDeleteConfirm(e)}><Icon name="x" context="badge" /></button>
       </div>
@@ -787,11 +787,11 @@ function ExpenseRow({
                     <span style={{ fontSize: 12, color: "var(--text-muted)", minWidth: 90 }}>{p.dueDate ? fmt(p.dueDate) : "No due date"}</span>
                     <PaymentStatusPill status={status} />
                     {!actionsDisabled && (
-                      <button className="icon-btn" title="Edit payment" style={{ fontSize: 12 }}
+                      <button className="icon-btn" title="Edit payment" aria-label="Edit payment" style={{ fontSize: 12 }}
                         onClick={() => startEditPayment(p)}><Icon name="pencil" context="badge" /></button>
                     )}
                     {!actionsDisabled && (
-                      <button className="icon-btn" title="Remove payment" style={{ fontSize: 12, color: "var(--red)" }}
+                      <button className="icon-btn" title="Remove payment" aria-label="Remove payment" style={{ fontSize: 12, color: "var(--red)" }}
                         onClick={() => setRemovePayment(p)}><Icon name="x" context="badge" /></button>
                     )}
                   </div>
