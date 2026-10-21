@@ -788,8 +788,8 @@ export function FavorsTab({
                             <td style={{ ...TD, color: "var(--text-muted)", fontSize: 12, maxWidth: 120, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{f.notes || "—"}</td>
                             <td style={{ ...TD, textAlign: "center" }}>
                               <div style={{ display: "flex", gap: 8, justifyContent: "center" }}>
-                                <button className="icon-btn" title="Edit"   disabled={isArchived} onClick={() => setEditFavor(f)}><Icon name="pencil" context="badge" /></button>
-                                <button className="icon-btn icon-btn-danger" title="Delete" disabled={isArchived} onClick={() => setDeleteConfirm(f)}><Icon name="x" context="badge" /></button>
+                                <button className="icon-btn" title="Edit" aria-label="Edit"   disabled={isArchived} onClick={() => setEditFavor(f)}><Icon name="pencil" context="badge" /></button>
+                                <button className="icon-btn icon-btn-danger" title="Delete" aria-label="Delete" disabled={isArchived} onClick={() => setDeleteConfirm(f)}><Icon name="x" context="badge" /></button>
                               </div>
                             </td>
                           </tr>
@@ -913,7 +913,7 @@ export function FavorsTab({
                   onClick={() => { const f = document.getElementById("favor-print-frame"); if (f?.contentWindow) f.contentWindow.print(); }}>
                   <Icon name="printer" context="inline" style={{ marginRight: 4 }} /> Print
                 </button>
-                <button className="icon-btn" title="Close" onClick={() => setPrintHTML(null)}><Icon name="x" context="button" /></button>
+                <button className="icon-btn" title="Close" aria-label="Close" onClick={() => setPrintHTML(null)}><Icon name="x" context="button" /></button>
               </div>
             </div>
             <iframe id="favor-print-frame" srcDoc={printHTML}
@@ -972,7 +972,7 @@ export function FavorModal({ favor, favorConfig, people, personNames, sizes, fav
       <div className="modal modal-lg" style={{ maxWidth: 460 }} onClick={e => e.stopPropagation()}>
         <div className="modal-header">
           <div className="modal-title">{isEdit ? "Edit Favor Entry" : "Add Favor Entry"}</div>
-          <button className="icon-btn" title="Close" onClick={onClose}><Icon name="x" context="button" /></button>
+          <button className="icon-btn" title="Close" aria-label="Close" onClick={onClose}><Icon name="x" context="button" /></button>
         </div>
         <div className="modal-body">
 
@@ -1105,7 +1105,7 @@ export function FavorExportModal({ favors, favorConfig, favorType, adminConfig, 
       <div className="modal modal-lg" style={{ maxWidth: 500 }} onClick={e => e.stopPropagation()}>
         <div className="modal-header">
           <div className="modal-title">Export Favor List</div>
-          <button className="icon-btn" title="Close" onClick={onClose}><Icon name="x" context="button" /></button>
+          <button className="icon-btn" title="Close" aria-label="Close" onClick={onClose}><Icon name="x" context="button" /></button>
         </div>
         <div className="modal-body">
           <div style={{ display: "flex", gap: 10, marginBottom: 20 }}>

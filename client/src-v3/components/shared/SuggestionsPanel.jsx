@@ -46,7 +46,7 @@ export function SuggestionsPanel({ suggestions, onAdd, onDismiss, dismissedCount
                 onClick={() => onAdd(s)}>
                 <Icon name="plus" context="badge" /> Add
               </button>
-              <button className="icon-btn" title="Dismiss suggestion"
+              <button className="icon-btn" title="Dismiss suggestion" aria-label="Dismiss suggestion"
                 style={{flexShrink:0,width:26,height:26,fontSize:12,color:"var(--text-muted)"}}
                 onClick={() => onDismiss(s)}>
                 <Icon name="x" context="badge" />

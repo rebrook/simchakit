@@ -790,13 +790,13 @@ export function AppShell({ session, eventId, onBack, onSelectEvent = null, isDem
               </div>
             )}
             <div className="mobile-header-actions">
-              <button className="icon-btn notif-bell-btn" title="Notifications" onClick={() => setShowNotifPanel(s => !s)}>
+              <button className="icon-btn notif-bell-btn" title="Notifications" aria-label="Notifications" onClick={() => setShowNotifPanel(s => !s)}>
                 <Icon name="bell" context="button" />
                 {unreadCount > 0 && (
                   <span className="notif-badge">{unreadCount > 99 ? "99+" : unreadCount}</span>
                 )}
               </button>
-              <button className="icon-btn" title="Search" onClick={() => setShowSearch(true)}>
+              <button className="icon-btn" title="Search" aria-label="Search" onClick={() => setShowSearch(true)}>
                 <Icon name="search" context="button" />
               </button>
             </div>
@@ -943,6 +943,7 @@ export function AppShell({ session, eventId, onBack, onSelectEvent = null, isDem
                     className="sidebar-gear"
                     onClick={() => openAdmin("event")}
                     title="Event settings"
+                    aria-label="Event settings"
                   >
                     <Icon name="settings" context="inline" />
                   </button>
@@ -1006,7 +1007,7 @@ export function AppShell({ session, eventId, onBack, onSelectEvent = null, isDem
                     { mode: "dark",   icon: "moon",    title: "Dark"   },
                     { mode: "system", icon: "monitor", title: "System" },
                   ].map(({ mode, icon, title }) => (
-                    <button key={mode} title={title}
+                    <button key={mode} title={title} aria-label={title}
                       onClick={() => setDarkMode(mode)}
                       className={`sidebar-account-theme-btn${darkMode === mode ? " active" : ""}`}
                     >
@@ -1068,14 +1069,14 @@ export function AppShell({ session, eventId, onBack, onSelectEvent = null, isDem
               </span>
 
               {/* Search */}
-              <button className="icon-btn" title="Search (⌘K)" onClick={() => setShowSearch(true)}>
+              <button className="icon-btn" title="Search (⌘K)" aria-label="Search (⌘K)" onClick={() => setShowSearch(true)}>
                 <Icon name="search" context="button" />
               </button>
 
               {/* Notification bell */}
               <button
                 className="icon-btn notif-bell-btn"
-                title="Notifications"
+                title="Notifications" aria-label="Notifications"
                 onClick={() => setShowNotifPanel(s => !s)}
               >
                 <Icon name="bell" context="button" />
@@ -1270,7 +1271,7 @@ export function AppShell({ session, eventId, onBack, onSelectEvent = null, isDem
               { mode: "dark",   icon: "moon",    title: "Dark"   },
               { mode: "system", icon: "monitor", title: "System" },
             ].map(({ mode, icon, title }) => (
-              <button key={mode} title={title}
+              <button key={mode} title={title} aria-label={title}
                 onClick={() => setDarkMode(mode)}
                 style={{
                   width: 30, height: 30, border: "none", borderRadius: 4,

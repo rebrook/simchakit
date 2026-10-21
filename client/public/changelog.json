@@ -1,10 +1,22 @@
 {
-  "current": "V4.42.1",
+  "current": "V4.42.2",
   "whatsNew": [
-    "Fix: adding a record no longer shows it twice until you refresh",
-    "Fix: the Gifts header now counts each gift, matching the Total Gifts card"
+    "Fix: task and gift row actions are visible on all touch devices",
+    "Accessibility: icon-only buttons are announced by screen readers"
   ],
   "changelog": [
+    {
+      "version": "V4.42.2",
+      "date": "2026-10-21",
+      "summary": "Touch and screen-reader fixes: row actions show on every touch device, icon buttons get accessible names",
+      "changes": [
+        "Fix: task row actions (edit, delete) are now visible on any touch device, including iPads and landscape phones, instead of only at narrow widths",
+        "Fix: gift row actions are fully visible on touch devices instead of dimmed until hover",
+        "Accessibility: icon-only buttons (close, search, notifications, edit, delete, move, theme, event settings) now have an accessible name, so screen readers announce them; tooltips on desktop are unchanged"
+      ],
+      "roadmap": [],
+      "knownIssues": []
+    },
     {
       "version": "V4.42.1",
       "date": "2026-10-20",

@@ -222,7 +222,7 @@ export function AccommodationsTab({ eventId, event, adminConfig, showToast, isAr
                         <td style={{ padding: "10px 12px", fontSize: 12, color: checkOut ? "var(--text-primary)" : "var(--text-muted)" }}>{checkOut || <span style={{ fontStyle: "italic" }}>—</span>}</td>
                         <td style={{ padding: "10px 12px", fontSize: 12, color: "var(--text-muted)", maxWidth: 180, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{hh.accomNotes || ""}</td>
                         <td style={{ padding: "10px 12px", textAlign: "right" }}>
-                          <button className="icon-btn" style={{ width: 28, height: 28 }} title="Edit accommodation details" disabled={isViewer} onClick={() => !isViewer && setEditingHH(hh)}><Icon name="pencil" context="badge" /></button>
+                          <button className="icon-btn" style={{ width: 28, height: 28 }} title="Edit accommodation details" aria-label="Edit accommodation details" disabled={isViewer} onClick={() => !isViewer && setEditingHH(hh)}><Icon name="pencil" context="badge" /></button>
                         </td>
                       </tr>
                     );
@@ -262,7 +262,7 @@ export function AccomEditModal({ household, onSave, onClose, isArchived }) {
       <div className="modal" onClick={e => e.stopPropagation()}>
         <div className="modal-header">
           <div className="modal-title"><Icon name="accommodations" context="inline" style={{ marginRight: 6 }} /> {household.formalName}</div>
-          <button className="icon-btn" title="Close" onClick={onClose}><Icon name="x" context="button" /></button>
+          <button className="icon-btn" title="Close" aria-label="Close" onClick={onClose}><Icon name="x" context="button" /></button>
         </div>
         <div className="modal-body">
           <div style={{ display: "flex", gap: 16, marginBottom: 16 }}>

@@ -365,7 +365,7 @@ export function AdminPanel({ eventId, userId, calendarToken: initialCalendarToke
       <Modal onClose={onClose} ariaLabel="Admin Mode" className="modal-lg">
         <div className="modal-header">
           <div className="modal-title"><Icon name="settings" context="menu" style={{ marginRight: 6 }} /> Admin Mode</div>
-          <button className="icon-btn" title="Close" onClick={onClose}><Icon name="x" context="button" /></button>
+          <button className="icon-btn" title="Close" aria-label="Close" onClick={onClose}><Icon name="x" context="button" /></button>
         </div>
         <div className="modal-body admin-modal-body">
           {/* Desktop sidebar */}
@@ -486,8 +486,8 @@ export function AdminPanel({ eventId, userId, calendarToken: initialCalendarToke
                         <div style={{fontSize:12,color:"var(--text-muted)",marginTop:2}}>{formatEntryMeta(entry)}</div>
                       </div>
                       <div style={{display:"flex",gap:4,flexShrink:0}}>
-                        <button className="icon-btn" title="Edit" onClick={() => setTlModal(entry)}><Icon name="pencil" context="badge" /></button>
-                        <button className="icon-btn" title="Delete" onClick={() => setTlDelete(entry)}><Icon name="x" context="button" /></button>
+                        <button className="icon-btn" title="Edit" aria-label="Edit" onClick={() => setTlModal(entry)}><Icon name="pencil" context="badge" /></button>
+                        <button className="icon-btn" title="Delete" aria-label="Delete" onClick={() => setTlDelete(entry)}><Icon name="x" context="button" /></button>
                       </div>
                     </div>
                   ))}
@@ -1098,7 +1098,7 @@ export function AdminPanel({ eventId, userId, calendarToken: initialCalendarToke
           className="modal-lg"
           maxWidth={600}
         >
-          <div className="modal-header"><div className="modal-title"><Icon name="download" context="inline" style={{ marginRight: 4 }} /> Export Full Backup</div><button className="icon-btn" title="Close" onClick={()=>{setBackupModal(false);setBackupCopied(false);}}><Icon name="x" context="button" /></button></div>
+          <div className="modal-header"><div className="modal-title"><Icon name="download" context="inline" style={{ marginRight: 4 }} /> Export Full Backup</div><button className="icon-btn" title="Close" aria-label="Close" onClick={()=>{setBackupModal(false);setBackupCopied(false);}}><Icon name="x" context="button" /></button></div>
           <div className="modal-body">
             <p style={{fontSize:13,color:"var(--text-secondary)",marginBottom:12,lineHeight:1.6}}>Copy the JSON below and save it to a file as a complete snapshot of your event data.</p>
             <textarea readOnly value={backupData||""} onClick={e=>e.target.select()} style={{width:"100%",minHeight:220,fontFamily:"var(--font-mono,monospace)",fontSize:11,background:"var(--bg-subtle)",border:"1px solid var(--border)",borderRadius:"var(--radius-sm)",padding:"10px 12px",color:"var(--text-secondary)",resize:"vertical",outline:"none"}} />

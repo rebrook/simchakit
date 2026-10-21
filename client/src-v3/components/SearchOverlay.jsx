@@ -77,7 +77,7 @@ export function SearchOverlay({ eventId, adminConfig, onNavigate, onClose }) {
             autoCorrect="off"
             spellCheck={false}
           />
-          <button className="icon-btn" onClick={onClose} title="Close search" style={{ flexShrink: 0 }}><Icon name="x" context="button" /></button>
+          <button className="icon-btn" onClick={onClose} title="Close search" aria-label="Close search" style={{ flexShrink: 0 }}><Icon name="x" context="button" /></button>
         </div>
 
         {/* Results */}

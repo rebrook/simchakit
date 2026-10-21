@@ -564,10 +564,10 @@ export function SeatingTab({ eventId, event, adminConfig, showToast, isArchived,
                           </div>
                           <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                             <span style={{ fontSize: 12, fontWeight: 700, color: isOver ? "var(--red)" : "var(--text-secondary)" }}>{filled}/{cap}</span>
-                            <button className="icon-btn" title="Move up" style={{ fontSize: 12, opacity: tableIndex === 0 ? 0.3 : 1 }} disabled={isArchived || tableIndex === 0} onClick={e => { e.stopPropagation(); handleMoveTable(table.id, "up"); }}>↑</button>
-                            <button className="icon-btn" title="Move down" style={{ fontSize: 12, opacity: tableIndex === lastIndex ? 0.3 : 1 }} disabled={isArchived || tableIndex === lastIndex} onClick={e => { e.stopPropagation(); handleMoveTable(table.id, "down"); }}>↓</button>
-                            <button className="icon-btn" title="Edit" disabled={isArchived} onClick={e => { e.stopPropagation(); setEditTable(table); }}><Icon name="pencil" context="badge" /></button>
-                            <button className="icon-btn icon-btn-danger" title="Delete" disabled={isArchived} onClick={e => { e.stopPropagation(); setDeleteConfirm(table); }}><Icon name="x" context="button" /></button>
+                            <button className="icon-btn" title="Move up" aria-label="Move up" style={{ fontSize: 12, opacity: tableIndex === 0 ? 0.3 : 1 }} disabled={isArchived || tableIndex === 0} onClick={e => { e.stopPropagation(); handleMoveTable(table.id, "up"); }}>↑</button>
+                            <button className="icon-btn" title="Move down" aria-label="Move down" style={{ fontSize: 12, opacity: tableIndex === lastIndex ? 0.3 : 1 }} disabled={isArchived || tableIndex === lastIndex} onClick={e => { e.stopPropagation(); handleMoveTable(table.id, "down"); }}>↓</button>
+                            <button className="icon-btn" title="Edit" aria-label="Edit" disabled={isArchived} onClick={e => { e.stopPropagation(); setEditTable(table); }}><Icon name="pencil" context="badge" /></button>
+                            <button className="icon-btn icon-btn-danger" title="Delete" aria-label="Delete" disabled={isArchived} onClick={e => { e.stopPropagation(); setDeleteConfirm(table); }}><Icon name="x" context="button" /></button>
                           </div>
                         </div>
                         <div style={{ height: 5, background: "var(--bg-muted)", borderRadius: 99, overflow: "hidden", marginBottom: 10 }}>
@@ -687,7 +687,7 @@ export function SeatingTab({ eventId, event, adminConfig, showToast, isArchived,
               <div style={{ fontSize: 17, fontWeight: 700, color: "var(--text-primary)" }}>Print Preview — Seating Chart</div>
               <div style={{ display: "flex", gap: 8 }}>
                 <button className="btn btn-primary" style={{ fontSize: 12 }} onClick={() => { const f = document.getElementById("seating-print-frame"); if (f?.contentWindow) f.contentWindow.print(); }}><Icon name="printer" context="inline" style={{ marginRight: 4 }} /> Print</button>
-                <button className="icon-btn" title="Close" onClick={() => setPrintHTML(null)}><Icon name="x" context="button" /></button>
+                <button className="icon-btn" title="Close" aria-label="Close" onClick={() => setPrintHTML(null)}><Icon name="x" context="button" /></button>
               </div>
             </div>
             <iframe id="seating-print-frame" srcDoc={printHTML} sandbox="allow-same-origin allow-modals" style={{ flex: 1, border: "none", borderRadius: "0 0 var(--radius-lg) var(--radius-lg)" }} title="Seating Chart Print Preview" />
@@ -793,7 +793,7 @@ export function AssignModal({ table, tables, people, households, sectionId, sect
   return (
     <div className="modal-backdrop" onMouseDown={e => { if (e.target === e.currentTarget) onClose(); }}>
       <div className="modal" style={{ maxWidth: 540 }} onClick={e => e.stopPropagation()}>
-        <div className="modal-header"><div className="modal-title">Manage: {table.name}</div><button className="icon-btn" title="Close" onClick={onClose}><Icon name="x" context="button" /></button></div>
+        <div className="modal-header"><div className="modal-title">Manage: {table.name}</div><button className="icon-btn" title="Close" aria-label="Close" onClick={onClose}><Icon name="x" context="button" /></button></div>
         <div className="modal-body">
           <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
             <span style={{ fontSize: 13, color: "var(--text-secondary)" }}>{assigned.length} of {cap} seats filled</span>
@@ -817,7 +817,7 @@ export function AssignModal({ table, tables, people, households, sectionId, sect
                             {pStatus === "No" && <span style={{ fontSize: 9, fontWeight: 700, padding: "1px 5px", borderRadius: 99, background: "var(--red-light)", color: "var(--red)" }}>Declined</span>}
                             {pStatus === "TBD" && <span style={{ fontSize: 9, fontWeight: 700, padding: "1px 5px", borderRadius: 99, background: "var(--gold-light)", color: "var(--gold)" }}>TBD</span>}
                           </span>
-                          <button className="icon-btn icon-btn-danger" onClick={() => onUnassign(p.id)} title="Unassign"><Icon name="x" context="button" /></button>
+                          <button className="icon-btn icon-btn-danger" onClick={() => onUnassign(p.id)} title="Unassign" aria-label="Unassign"><Icon name="x" context="button" /></button>
                         </div>
                       );
                     })}
@@ -867,7 +867,7 @@ export function TableModal({ table, tableCount, onSave, onClose, isArchived }) {
   return (
     <div className="modal-backdrop" onMouseDown={e => { if (e.target === e.currentTarget) onClose(); }}>
       <div className="modal" style={{ maxWidth: 420 }} onClick={e => e.stopPropagation()}>
-        <div className="modal-header"><div className="modal-title">{isEdit ? "Edit Table" : "Add Table"}</div><button className="icon-btn" title="Close" onClick={onClose}><Icon name="x" context="button" /></button></div>
+        <div className="modal-header"><div className="modal-title">{isEdit ? "Edit Table" : "Add Table"}</div><button className="icon-btn" title="Close" aria-label="Close" onClick={onClose}><Icon name="x" context="button" /></button></div>
         <div className="modal-body">
           <div className="form-row">
             <label className="form-label">Table Name *</label>
@@ -914,7 +914,7 @@ export function SeatingExportModal({ tables, people, households, adminConfig, se
   return (
     <div className="modal-backdrop" onMouseDown={e => { if (e.target === e.currentTarget) onClose(); }}>
       <div className="modal modal-lg" style={{ maxWidth: 560 }} onClick={e => e.stopPropagation()}>
-        <div className="modal-header"><div className="modal-title">Export Seating Chart</div><button className="icon-btn" title="Close" onClick={onClose}><Icon name="x" context="button" /></button></div>
+        <div className="modal-header"><div className="modal-title">Export Seating Chart</div><button className="icon-btn" title="Close" aria-label="Close" onClick={onClose}><Icon name="x" context="button" /></button></div>
         <div className="modal-body">
           <div style={{ display: "flex", gap: 10, marginBottom: 20 }}>
             <button style={OPTION(activeExport === "byTable")} onClick={() => { setActiveExport("byTable"); setCopied(false); }}><div style={{ fontSize: 20, marginBottom: 6 }}><Icon name="clipboardList" context="button" /></div><div style={{ fontWeight: 700, fontSize: 13, color: "var(--text-primary)", marginBottom: 4 }}>By Table</div><div style={{ fontSize: 11, color: "var(--text-muted)", lineHeight: 1.5 }}>Tables as columns, names listed underneath. Best for venue staff and day-of binders.</div></button>

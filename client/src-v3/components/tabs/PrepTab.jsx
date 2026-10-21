@@ -367,8 +367,8 @@ export function PrepTab({ eventId, event, adminConfig, showToast, isArchived, is
                       {item.status}
                     </span>
                     <div className="row-actions" style={{ display: "flex", gap: 4, flexShrink: 0 }}>
-                      <button className="icon-btn" title="Edit" disabled={isArchived || isViewer} onClick={() => setEditItem(item)}><Icon name="pencil" context="badge" /></button>
-                      <button className="icon-btn icon-btn-danger" title="Delete" disabled={isArchived || isViewer} onClick={() => setDeleteConfirm(item.id)}><Icon name="x" context="badge" /></button>
+                      <button className="icon-btn" title="Edit" aria-label="Edit" disabled={isArchived || isViewer} onClick={() => setEditItem(item)}><Icon name="pencil" context="badge" /></button>
+                      <button className="icon-btn icon-btn-danger" title="Delete" aria-label="Delete" disabled={isArchived || isViewer} onClick={() => setDeleteConfirm(item.id)}><Icon name="x" context="badge" /></button>
                     </div>
                   </div>
 
@@ -498,7 +498,7 @@ export function PrepModal({ item, onSave, onClose, isArchived }) {
       <div className="modal" style={{ maxWidth: 500 }} onClick={e => e.stopPropagation()}>
         <div className="modal-header">
           <div className="modal-title">{isEdit ? "Edit Preparation Item" : "Add Preparation Item"}</div>
-          <button className="icon-btn" title="Close" onClick={onClose}><Icon name="x" context="button" /></button>
+          <button className="icon-btn" title="Close" aria-label="Close" onClick={onClose}><Icon name="x" context="button" /></button>
         </div>
         <div className="modal-body">
           <div className="form-row">

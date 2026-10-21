@@ -50,7 +50,7 @@ export function TaskModal({ task, prefilled, onSave, onClose, isArchived }) {
       <div className="modal" onClick={e => e.stopPropagation()}>
         <div className="modal-header">
           <div className="modal-title">{isEdit ? "Edit Task" : prefilled ? "Add Suggested Task" : "Add Task"}</div>
-          <button className="icon-btn" title="Close" onClick={onClose}><Icon name="x" context="button" /></button>
+          <button className="icon-btn" title="Close" aria-label="Close" onClick={onClose}><Icon name="x" context="button" /></button>
         </div>
         <div className="modal-body">
           <div className="form-group">
@@ -623,10 +623,10 @@ export function TasksTab({ eventId, event, adminConfig, showToast, isArchived, i
           )}
         </div>
         <div className="task-actions">
-          <button className="icon-btn" title="Edit"
+          <button className="icon-btn" title="Edit" aria-label="Edit"
             style={{width:26,height:26,fontSize:12}}
             disabled={isArchived || isViewer} onClick={() => setEditTask(t)}><Icon name="pencil" context="badge" /></button>
-          <button className="icon-btn" title="Delete"
+          <button className="icon-btn" title="Delete" aria-label="Delete"
             style={{width:26,height:26,fontSize:12,color:"var(--red)"}}
             disabled={isArchived || isViewer} onClick={() => setDeleteConfirm(t.id)}><Icon name="x" context="badge" /></button>
         </div>
@@ -814,7 +814,7 @@ export function TasksTab({ eventId, event, adminConfig, showToast, isArchived, i
             <div className="modal-title">
               {linkConfirm.action === "markPaid" ? <><Icon name="banknote" context="inline" style={{ marginRight: 4 }} /> Mark Payment Paid?</> : <><Icon name="prep" context="inline" style={{ marginRight: 4 }} /> Update Prep Item?</>}
             </div>
-            <button className="icon-btn" title="Close" onClick={() => setLinkConfirm(null)}><Icon name="x" context="button" /></button>
+            <button className="icon-btn" title="Close" aria-label="Close" onClick={() => setLinkConfirm(null)}><Icon name="x" context="button" /></button>
           </div>
           <div className="modal-body">
             <p style={{fontSize:14,color:"var(--text-primary)",marginBottom:12,lineHeight:1.6}}>
