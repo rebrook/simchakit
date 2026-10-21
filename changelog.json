@@ -1,10 +1,21 @@
 {
-  "current": "V4.42.0",
+  "current": "V4.42.1",
   "whatsNew": [
-    "UX: One giver can now send more than one gift in a single record, with one thank-you note for all of them",
-    "Fix: Cash / Check Total now includes a check that came with other gifts"
+    "Fix: adding a record no longer shows it twice until you refresh",
+    "Fix: the Gifts header now counts each gift, matching the Total Gifts card"
   ],
   "changelog": [
+    {
+      "version": "V4.42.1",
+      "date": "2026-10-20",
+      "summary": "Fixes a new record showing twice until refresh, and the Gifts header count",
+      "changes": [
+        "Fix: a newly added record could appear twice until the page was refreshed, on any tab that adds records, when the live update arrived before the save finished; the list now recognizes a row it already has and replaces it",
+        "Fix: the count under the Gifts title now counts gifts the same way as the Total Gifts card, so a check and a book set from one family read as two"
+      ],
+      "roadmap": [],
+      "knownIssues": []
+    },
     {
       "version": "V4.42.0",
       "date": "2026-10-20",

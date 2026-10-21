@@ -200,8 +200,10 @@ export function useEventData(eventId, collection, options = {}) {
   //
   // Reconciliation is by _rowId (the Postgres primary key):
   //   INSERT — skip if _rowId is already present in state. That's our own
-  //            optimistic write from save() echoing back through the
-  //            subscription, not a new row from someone else.
+  //            write from save() echoing back through the subscription, not a
+  //            new row from someone else. The echo can also arrive BEFORE
+  //            save() resolves (V4.42.1); save() handles that order by
+  //            replacing the row instead of appending a second copy.
   //   UPDATE — skip if the incoming row's updated_at is not strictly newer
   //            than the local item's _updatedAt (numeric ms compare, not
   //            string compare — Postgres timestamps and toISOString() don't
@@ -297,7 +299,13 @@ export function useEventData(eventId, collection, options = {}) {
         _updatedAt: saved.updated_at,
       };
 
-      setItems(prev => [...prev, savedItem]);
+      // V4.42.1: the Realtime INSERT can reach the client before this await
+      // resolves. The listener then adds the row first, and a plain append here
+      // showed it twice until the next reload. Reconcile by _rowId: replace the
+      // copy that is already there, otherwise append.
+      setItems(prev => prev.some(i => i._rowId === savedItem._rowId)
+        ? prev.map(i => i._rowId === savedItem._rowId ? savedItem : i)
+        : [...prev, savedItem]);
 
       // Fire-and-forget audit log — never blocks the save
       writeAuditLog(eventId, collectionRef.current, "Added", dataPayload);

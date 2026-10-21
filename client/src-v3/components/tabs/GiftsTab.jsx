@@ -243,7 +243,7 @@ export function GiftsTab({ eventId, event, adminConfig, showToast, isArchived, i
   };
 
   // ── Topbar subtitle (must be before loading guard — hooks can't follow conditional returns) ──
-  const subtitle = gifts.length > 0 ? `${gifts.length} gift${gifts.length!==1?"s":""} · $${totalMonetary.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 })} monetary value` : null;
+  const subtitle = gifts.length > 0 ? `${allItems.length} gift${allItems.length!==1?"s":""} · $${totalMonetary.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 })} monetary value` : null;
   useEffect(() => {
     setTopbarSubtitle(subtitle);
     return () => setTopbarSubtitle(null);
