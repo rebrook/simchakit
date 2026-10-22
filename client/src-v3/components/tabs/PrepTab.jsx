@@ -418,8 +418,9 @@ export function PrepTab({ eventId, event, adminConfig, showToast, isArchived, is
                         className="btn-link"
                         style={{ fontSize: 12, color: "var(--text-muted)", background: "none", border: "none", cursor: "pointer", padding: 0 }}
                         onClick={() => toggleNotes(item.id)}
+                        aria-expanded={!!expandedNotes[item.id]}
                       >
-                        {expandedNotes[item.id] ? "▴ hide notes" : "▾ notes"}
+                        {expandedNotes[item.id] ? <><Icon name="chevronUp" context="inline" /> hide notes</> : <><Icon name="chevronDown" context="inline" /> notes</>}
                       </button>
                     )}
                   </div>

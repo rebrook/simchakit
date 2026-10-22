@@ -2325,9 +2325,6 @@
       .modal { max-height: 85svh; border-radius: var(--radius-lg) var(--radius-lg) 0 0; }
       .modal-lg { max-width: 100%; }
 
-      /* Footer — hide event ID on phone */
-      .footer-event-id { display: none; }
-
       /* Guest list section header action buttons */
       .guests-header-actions { width: 100%; }
       .guests-header-actions .btn-sm { font-size: 12px; padding: 7px 10px; }

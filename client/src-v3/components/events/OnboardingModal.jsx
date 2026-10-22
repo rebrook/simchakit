@@ -124,7 +124,7 @@ export function OnboardingModal({ userId, isRequired, initialName = "", onSave, 
             color:        "var(--red)",
             marginBottom: 12,
             padding:      "6px 10px",
-            background:   "var(--red-light, #fdeaea)",
+            background:   "var(--red-light)",
             borderRadius: "var(--radius-sm)",
             border:       "1px solid var(--red)",
           }}>

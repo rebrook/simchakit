@@ -619,8 +619,8 @@ export function GuestsTab({ eventId, event, adminConfig, showToast, isArchived, 
             <button className={`btn btn-sm ${missingAddressFilter?"btn-primary":"btn-secondary"}`} title="Show households missing a mailing address" onClick={()=>setMissingAddressFilter(f=>!f)}><Icon name="mailX" context="badge" style={{ marginRight: 4 }} /> No Address{missingAddressFilter?<> <Icon name="check" context="badge" /></>:""}</button>
             {sections.length > 1 && (
               <button className={`btn btn-sm ${subEventFilter.length>0?"btn-primary":"btn-secondary"}`}
-                onClick={()=>setShowMoreFilters(v=>!v)}>
-                More Filters{subEventFilter.length>0?` (${subEventFilter.length})`:""} {showMoreFilters?"▴":"▾"}
+                onClick={()=>setShowMoreFilters(v=>!v)} aria-expanded={showMoreFilters}>
+                More Filters{subEventFilter.length>0?` (${subEventFilter.length})`:""} {showMoreFilters ? <Icon name="chevronUp" context="inline" /> : <Icon name="chevronDown" context="inline" />}
               </button>
             )}
           </div>
@@ -697,7 +697,7 @@ export function GuestsTab({ eventId, event, adminConfig, showToast, isArchived, 
                         style={{width:14,height:14,accentColor:"var(--accent-primary)",cursor:"pointer"}} />
                     </div>
                   )}
-                  <div style={{color:"var(--text-muted)",fontSize:12,flexShrink:0,width:16,textAlign:"center"}}>{isExpanded?"▾":"▸"}</div>
+                  <div style={{color:"var(--text-muted)",fontSize:12,flexShrink:0,width:16,textAlign:"center"}}>{isExpanded ? <Icon name="chevronDown" context="inline" /> : <Icon name="chevronRight" context="inline" />}</div>
                   <div className="hh-row-name">
                     <div className="hh-row-name-primary">{hh.formalName}</div>
                     {hh.name2 && <div className="hh-row-name-secondary">{hh.name2}</div>}
@@ -1193,11 +1193,11 @@ export function HouseholdModal({ household, members, adminConfig, onSave, onClos
               <input className="form-input" type="date" value={hh.rsvpDate} onChange={e=>setHHF("rsvpDate",e.target.value)} />
               {hh.rsvpDate && <div style={{fontSize:11,color:"var(--text-muted)",marginTop:3}}>{new Date(hh.rsvpDate+"T00:00:00").toLocaleDateString("en-US",{weekday:"short",year:"numeric",month:"short",day:"numeric"})}</div>}
             {hh.rsvpDate && new Date(hh.rsvpDate+"T00:00:00") > new Date(Date.now() + 30*24*60*60*1000) && (
-              <div style={{fontSize:11,color:"var(--gold,#b45309)",marginTop:3}}>&#9888; Date is more than 30 days in the future</div>
+              <div style={{fontSize:11,color:"var(--gold)",marginTop:3}}><Icon name="alertTriangle" context="badge" style={{ marginRight: 3 }} /> Date is more than 30 days in the future</div>
             )}
             </div>
             {hh.rsvpStatus === "RSVP Yes" && (
-            <div style={{background:"var(--green-light,rgba(34,197,94,0.08))",border:"1px solid var(--green,#16a34a)",borderRadius:"var(--radius-sm)",padding:"12px 14px",marginBottom:16}}>
+            <div style={{background:"var(--green-light)",border:"1px solid var(--green)",borderRadius:"var(--radius-sm)",padding:"12px 14px",marginBottom:16}}>
               <div style={{fontSize:12,fontWeight:700,color:"var(--green)",textTransform:"uppercase",letterSpacing:"0.04em",marginBottom:4}}>Attending Count Override</div>
               <div style={{fontSize:12,color:"var(--green)",marginBottom:10,lineHeight:1.5}}>
                 Leave blank to use the count from individual members. Set these only when fewer people are attending than invited.
@@ -1245,7 +1245,7 @@ export function HouseholdModal({ household, members, adminConfig, onSave, onClos
               else if (hh.country === "Canada")        invalid = !/^[A-Za-z]\d[A-Za-z][ -]?\d[A-Za-z]\d$/.test(v) && v.length > 0;
               else if (hh.country === "United Kingdom") invalid = !/^[A-Za-z]{1,2}\d[A-Za-z\d]? ?\d[A-Za-z]{2}$/.test(v) && v.length > 0;
               else if (hh.country === "Australia")      invalid = !/^\d{4}$/.test(v) && v.length > 0;
-              return invalid ? <div style={{fontSize:11,color:"var(--gold,#b45309)",marginTop:3}}><Icon name="alertTriangle" context="badge" style={{ marginRight: 3 }} /> Format looks off for {hh.country}</div> : null;
+              return invalid ? <div style={{fontSize:11,color:"var(--gold)",marginTop:3}}><Icon name="alertTriangle" context="badge" style={{ marginRight: 3 }} /> Format looks off for {hh.country}</div> : null;
             })()}
             <div className="form-grid-2">
               <div className="form-group"><label className="form-label">Phone</label><input className="form-input" value={hh.phone} onChange={e=>setHHF("phone",e.target.value)} onBlur={e=>setHHF("phone",formatPhone(e.target.value))} placeholder="(555) 555-1234" /></div>
@@ -1575,7 +1575,7 @@ function GuestInsights({ households, people, groups, statusStyle }) {
           <div className="card-title" style={{marginBottom:0}}><Icon name="guests" context="inline" style={{ marginRight: 6 }} /> Guest Insights</div>
           {!open&&<div className="card-subtitle" style={{marginBottom:0,marginTop:4}}>{collapsedSummary} · click to expand</div>}
         </div>
-        <button className="budget-insights-toggle" aria-label={open?"Collapse":"Expand"}>{open?"▴":"▾"}</button>
+        <button className="budget-insights-toggle" aria-label={open?"Collapse":"Expand"}>{open ? <Icon name="chevronUp" context="inline" /> : <Icon name="chevronDown" context="inline" />}</button>
       </div>
       {open && (
         <div className="budget-insights-body">

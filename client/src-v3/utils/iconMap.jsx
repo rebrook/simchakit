@@ -30,6 +30,8 @@ import {
   ChevronRight,
   ChevronDown,
   ChevronUp,
+  RotateCcw,
+  Copy,
   Check,
   Sun,
   Moon,
@@ -222,6 +224,8 @@ export const ICONS = {
   partyPopper:     PartyPopper,
   wand:            Wand2,
   chevronUp:       ChevronUp,
+  rotateCcw:       RotateCcw,
+  copy:            Copy,
   utensils:        UtensilsCrossed,
 };
 

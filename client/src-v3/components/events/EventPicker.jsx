@@ -771,7 +771,7 @@ const styles = {
     alignItems:   "center",
     justifyContent: "space-between",
     gap:          12,
-    background:   "var(--green-light, #eaf6ee)",
+    background:   "var(--green-light)",
     border:       "1px solid var(--green)",
     borderRadius: "var(--radius-md)",
     padding:      "10px 14px",

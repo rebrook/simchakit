@@ -43,6 +43,7 @@ export function AdminPanel({ eventId, userId, calendarToken: initialCalendarToke
   const [saved,   setSaved]   = useState(false);
   const [error,   setError]   = useState("");
   const [section, setSection] = useState(initialSection || "event");
+  const [eventIdCopied, setEventIdCopied] = useState(false);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [calendarToken,    setCalendarToken]    = useState(initialCalendarToken || null);
   const [calTokenCopied,   setCalTokenCopied]   = useState(false);
@@ -420,6 +421,17 @@ export function AdminPanel({ eventId, userId, calendarToken: initialCalendarToke
                 <select className="form-select" value={form.type} onChange={e => set("type",e.target.value)}>
                   {EVENT_TYPES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
                 </select>
+              </div>
+              <div className="form-group">
+                <label className="form-label">Event ID</label>
+                <div style={{display:"flex",alignItems:"center",gap:8}}>
+                  <input className="form-input" readOnly value={eventId} onFocus={e => e.target.select()} style={{fontFamily:"monospace",fontSize:12}} />
+                  <button type="button" className="btn btn-secondary btn-sm" style={{flexShrink:0}}
+                    onClick={() => navigator.clipboard.writeText(eventId).then(() => { setEventIdCopied(true); setTimeout(() => setEventIdCopied(false), 2000); })}>
+                    <Icon name={eventIdCopied ? "check" : "copy"} context="button" style={{ marginRight: 4 }} />{eventIdCopied ? "Copied" : "Copy"}
+                  </button>
+                </div>
+                <div className="form-hint">Share this ID with support when you need help with this event</div>
               </div>
               <div className="form-group">
                 <label className="form-label">RSVP Website URL</label>
@@ -1479,7 +1491,7 @@ function CollaboratorsSection({ eventId, userId, eventName }) {
               padding:      "8px 12px",
               borderRadius: "var(--radius-sm)",
               marginBottom: 12,
-              background:   sendResult.ok ? "var(--green-light, #eaf6ee)" : "var(--red-light, #fdeaea)",
+              background:   sendResult.ok ? "var(--green-light)" : "var(--red-light)",
               color:        sendResult.ok ? "var(--green)" : "var(--red)",
               border:       `1px solid ${sendResult.ok ? "var(--green)" : "var(--red)"}`,
             }}>
