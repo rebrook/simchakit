@@ -1,9 +1,22 @@
 {
-  "current": "V4.43.2",
+  "current": "V4.43.3",
   "whatsNew": [
-    "Fix: printing the guest list on iPhone and iPad opens the standard print sheet in one tap"
+    "Fix: printing on iPhone and iPad now opens the standard print sheet in one tap from Seating, Gifts, Favors, the Day-of brief, and the Overview brief"
   ],
   "changelog": [
+    {
+      "version": "V4.43.3",
+      "date": "2026-10-22",
+      "summary": "Phone and tablet printing uses the standard print sheet everywhere",
+      "changes": [
+        "Fix: on phones and tablets, printing the seating chart, gift list, favor list, Day-of brief, and Overview brief opens the device's own print sheet in one tap, where you can print, share, or save as PDF",
+        "Change: the Overview Share brief button is now Print brief on phones and tablets",
+        "Change: the two-step Prepare PDF and Share PDF flow is removed",
+        "Desktop printing is unchanged"
+      ],
+      "roadmap": [],
+      "knownIssues": []
+    },
     {
       "version": "V4.43.2",
       "date": "2026-10-22",

@@ -891,7 +891,7 @@ export function GuestsTab({ eventId, event, adminConfig, showToast, isArchived, 
         />
       )}
       {guestPrintHTML && (
-        <PrintPreviewModal html={guestPrintHTML} title="Print Preview — Guest List" eventName={adminConfig?.name} docLabel="guest-list" onClose={() => setGuestPrintHTML(null)} />
+        <PrintPreviewModal html={guestPrintHTML} title="Print Preview — Guest List" onClose={() => setGuestPrintHTML(null)} />
       )}
       {deleteConfirm && (
         <ConfirmDialog

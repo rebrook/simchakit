@@ -28,7 +28,7 @@ import { getSectionHeadcount, getMealPopulation, isTrackingPerPerson } from "@/u
 import { setGuestsPreset } from "@/utils/guestsPreset.js";
 import { InfoPopover } from "@/components/shared/InfoPopover.jsx";
 import { METRIC_HELP } from "@/constants/metrics.js";
-import { usePdfShare, sanitizeFileName, useShareFirst } from "@/hooks/usePdfShare.js";
+import { printDocument, isTouchPrimary } from "@/utils/printDocument.js";
 import { PrintPreviewModal } from "@/components/shared/PrintPreviewModal.jsx";
 
 // Abbreviate currency for mobile ring cards: $11,831.63 -> $11.8k
@@ -52,7 +52,6 @@ function useIsMobile() {
 export function OverviewTab({ eventId, event, adminConfig, showToast, setActiveTab, onOpenAdmin, onOpenAdminTo, onOpenGuide, onPrintBrief, isViewer, setTopbarSubtitle, userName }) {
   const config    = adminConfig || {};
   const isMobile  = useIsMobile();
-  const shareFirst = useShareFirst();
   const mainEvent = (config.timeline || []).find(e => e.isMainEvent) || null;
   const eventDate = mainEvent?.startDate || null;
   const eventVenue = mainEvent?.venue || null;
@@ -121,7 +120,8 @@ export function OverviewTab({ eventId, event, adminConfig, showToast, setActiveT
 
   const handlePrintBrief = useCallback(() => {
     const state = { people, households, expenses, vendors, tasks, ceremonyRoles };
-    setBriefHTML(generateEventBriefHTML(state, adminConfig));
+    const html = generateEventBriefHTML(state, adminConfig);
+    if (isTouchPrimary()) printDocument(html); else setBriefHTML(html);
   }, [people, households, expenses, vendors, tasks, ceremonyRoles, adminConfig]);
 
   // Listen for top-bar Print Brief trigger (desktop)
@@ -130,25 +130,6 @@ export function OverviewTab({ eventId, event, adminConfig, showToast, setActiveT
     window.addEventListener("simchakit:print-brief", handler);
     return () => window.removeEventListener("simchakit:print-brief", handler);
   }, [handlePrintBrief]);
-
-  // ── Share brief (mobile) — two-tap PDF pattern (see hooks/usePdfShare.js) ──
-  const briefPdf = usePdfShare({
-    getHtml: () => generateEventBriefHTML({ people, households, expenses, vendors, tasks, ceremonyRoles }, adminConfig),
-    filename: `${sanitizeFileName(config.name)}-brief.pdf`,
-    title: `${config.name || "My Event"} — Event Brief`,
-    // Text-only share fallback (no URL — no deep-linkable routes yet)
-    fallbackText: () => {
-      const lines = [config.name || "My Event"];
-      if (eventDate) lines.push(formatDate(eventDate));
-      if (eventVenue) lines.push(eventVenue);
-      if (invitedCount > 0) lines.push(`${confirmedCount} of ${invitedCount} guests confirmed`);
-      return lines.join("\n");
-    },
-    onFallback: handlePrintBrief,
-    deps: [people, households, expenses, vendors, tasks, ceremonyRoles, adminConfig],
-  });
-  const briefPdfState = briefPdf.state;
-  const handleShareBriefClick = briefPdf.click;
 
   const timelineEntries = sortTimeline(config.timeline || []);
 
@@ -237,22 +218,11 @@ export function OverviewTab({ eventId, event, adminConfig, showToast, setActiveT
               <Icon name="hand" context="inline" style={{ marginRight: 4 }} /> Setup checklist
             </button>
           )}
-          {/* Touch devices that can share files — two-tap PDF share: tap 1 generates, tap 2 shares */}
-          {shareFirst && (
-            <button
-              className={`btn btn-sm ${briefPdfState === "ready" ? "btn-primary" : "btn-secondary"}`}
-              onClick={handleShareBriefClick}
-              disabled={briefPdfState === "generating" || briefPdfState === "sharing"}
-              style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0, fontSize: 12, opacity: (briefPdfState === "generating" || briefPdfState === "sharing") ? 0.6 : 1 }}>
-              {briefPdfState === "generating" ? (
-                "Generating\u2026"
-              ) : briefPdfState === "ready" ? (
-                <><Icon name="share" context="inline" /> Share brief</>
-              ) : briefPdfState === "sharing" ? (
-                "Sharing\u2026"
-              ) : (
-                <><Icon name="fileText" context="inline" /> Prepare brief</>
-              )}
+          {/* Touch devices — opens the system print sheet (print, share, or save as PDF) */}
+          {isTouchPrimary() && (
+            <button className="btn btn-sm btn-secondary" onClick={handlePrintBrief}
+              style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0, fontSize: 12 }}>
+              <Icon name="printer" context="inline" /> Print brief
             </button>
           )}
         </div>
@@ -535,7 +505,7 @@ export function OverviewTab({ eventId, event, adminConfig, showToast, setActiveT
 
       {/* Print Brief preview modal */}
       {briefHTML && (
-        <PrintPreviewModal html={briefHTML} title="Print Preview — Event Brief" eventName={config.name} docLabel="event-brief" onClose={() => setBriefHTML(null)} zIndex={1100} />
+        <PrintPreviewModal html={briefHTML} title="Print Preview — Event Brief" onClose={() => setBriefHTML(null)} zIndex={1100} />
       )}
     </div>
   );

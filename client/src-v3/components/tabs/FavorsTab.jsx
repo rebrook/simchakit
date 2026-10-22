@@ -21,6 +21,7 @@ import { exportFavorsCSV, generateFavorPrintHTML } from "@/utils/exports.js";
 import { ArchivedNotice }     from "@/components/shared/ArchivedNotice.jsx";
 import { ConfirmDialog }      from "@/components/shared/ConfirmDialog.jsx";
 import { Icon }               from "@/utils/iconMap.jsx";
+import { printDocument, isTouchPrimary } from "@/utils/printDocument.js";
 import { PrintPreviewModal } from "@/components/shared/PrintPreviewModal.jsx";
 import { supabase }           from "@/lib/supabase.js";
 import { getPersonSectionStatus } from "@/utils/sections.js";
@@ -898,14 +899,14 @@ export function FavorsTab({
         <FavorExportModal
           favors={typeFavors} favorConfig={localConfig} favorType={activeType}
           adminConfig={adminConfig || {}}
-          onPrint={html => { setPrintHTML(html); setShowExport(false); }}
+          onPrint={html => { setShowExport(false); if (isTouchPrimary()) printDocument(html); else setPrintHTML(html); }}
           onClose={() => setShowExport(false)}
         />
       )}
 
       {/* Print preview */}
       {printHTML && (
-        <PrintPreviewModal html={printHTML} title="Print Preview — Favor List" eventName={adminConfig?.name} docLabel="favor-list" onClose={() => setPrintHTML(null)} />
+        <PrintPreviewModal html={printHTML} title="Print Preview — Favor List" onClose={() => setPrintHTML(null)} />
       )}
     </div>
   );
