@@ -185,7 +185,7 @@ function BudgetInsights({ expenses, catRows, catPaid, catBudgeted, hasAnyBudgete
           )}
         </div>
         <button className="budget-insights-toggle" aria-label={open ? "Collapse" : "Expand"}>
-          {open ? "▴" : "▾"}
+          {open ? <Icon name="chevronUp" context="inline" /> : <Icon name="chevronDown" context="inline" />}
         </button>
       </div>
 
@@ -1667,7 +1667,7 @@ export function GratuityCalculator({ expenses, vendors, onAddExpense, isArchived
         </div>
         <button style={{ background: "none", border: "none", cursor: "pointer", fontSize: 18,
           color: "var(--text-muted)", padding: "0 4px", lineHeight: 1 }}>
-          {open ? "▴" : "▾"}
+          {open ? <Icon name="chevronUp" context="inline" /> : <Icon name="chevronDown" context="inline" />}
         </button>
       </div>
 

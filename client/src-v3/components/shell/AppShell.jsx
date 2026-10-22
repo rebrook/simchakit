@@ -165,7 +165,6 @@ function localDateString(date) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-import { displayNameWithEmail } from "@/utils/displayName.js";
 
 export function AppShell({ session, eventId, onBack, onSelectEvent = null, isDemoMode = false, displayName: userDisplayName = null }) {
   const [activeTab,       setActiveTab]       = useState(() => {
@@ -1166,25 +1165,10 @@ export function AppShell({ session, eventId, onBack, onSelectEvent = null, isDem
             <a href="mailto:hello@simcha-kit.com" className="footer-link">Brook Creative LLC</a>
           </span>
           <span>&middot;</span>
-          <span style={{ fontSize:11, color:"var(--text-muted)" }}>Powered by Claude</span>
-          <span>&middot;</span>
           <a href="https://about.simcha-kit.com" target="_blank" rel="noopener" className="footer-link" style={{ fontSize:11 }}>about.simcha-kit.com</a>
           <span>&middot;</span>
-          <span className="footer-event-id" style={{ fontSize:11, color:"var(--text-muted)", fontFamily:"monospace" }}>
-            {eventId}
-          </span>
-          {session?.user?.email && (
-            <>
-              <span>&middot;</span>
-              <span style={{ fontSize:11, color:"var(--text-muted)" }}>
-                {displayNameWithEmail(userDisplayName, session.user.email)}
-              </span>
-            </>
-          )}
-          <span>&middot;</span>
-          <div className="footer-sync" title={syncDisplay.label}>
+          <div className="footer-sync" title={syncDisplay.label} aria-label={syncDisplay.label}>
             <div className={`sync-dot ${syncDisplay.dotClass}`} />
-            <span>Supabase</span>
           </div>
         </footer>
         </div>{/* /.app-main-scroll */}

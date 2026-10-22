@@ -191,9 +191,9 @@ export function CreateEventForm({ userId, userEmail, onCreated, onCancel }) {
 
       <div style={{
         fontSize:     12,
-        color:        "var(--gold-dark, #7a5c00)",
-        background:   "var(--gold-light, #fef9e7)",
-        border:       "1px solid var(--gold, #c9a227)",
+        color:        "var(--gold)",
+        background:   "var(--gold-light)",
+        border:       "1px solid var(--gold)",
         borderRadius: "var(--radius-sm)",
         padding:      "10px 14px",
         marginTop:    12,

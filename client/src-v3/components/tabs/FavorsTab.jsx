@@ -1010,7 +1010,7 @@ export function FavorModal({ favor, favorConfig, people, personNames, sizes, fav
                 onChange={e => setF("printName", e.target.value)}
                 placeholder="e.g., Dad, Aunt Ains, C-Bizkit" />
               {form.printName?.trim() && favors.some(f => f.id !== form.id && (f.printName || "").trim().toLowerCase() === form.printName.trim().toLowerCase()) && (
-                <div style={{ fontSize: 11, color: "var(--gold,#b45309)", marginTop: 4 }}><Icon name="alertTriangle" context="badge" style={{ marginRight: 3 }} /> This name is already used on another favor entry.</div>
+                <div style={{ fontSize: 11, color: "var(--gold)", marginTop: 4 }}><Icon name="alertTriangle" context="badge" style={{ marginRight: 3 }} /> This name is already used on another favor entry.</div>
               )}
               <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 4 }}>The name or text to print on the favor — e.g. a nickname, family role, or custom label. Leave blank to skip personalization for this person.</div>
             </div>

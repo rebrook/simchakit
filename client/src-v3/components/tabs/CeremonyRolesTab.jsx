@@ -631,7 +631,7 @@ export function CeremonyRolesTab({ eventId, event, adminConfig, showToast, isArc
       {roles.length > 0 && hasTemplate && !isArchived && (
         <div style={{ marginTop: 16, textAlign: "center" }}>
           <button className="btn btn-ghost btn-sm" style={{ fontSize: 12, color: "var(--text-muted)" }}
-            onClick={() => setDeleteConfirm("__reset__")}>↺ Reset to template</button>
+            onClick={() => setDeleteConfirm("__reset__")}><Icon name="rotateCcw" context="inline" style={{ marginRight: 4 }} /> Reset to template</button>
         </div>
       )}
 

@@ -1,3 +1,4 @@
+import { iconSvg } from "./iconSvg.js";
 import { newHouseholdId, newPersonId } from "./ids.js";
 import { resolveMainEvent } from "./sections.js";
 
@@ -751,7 +752,7 @@ function generateGuestPrintHTML(households, people, eventName, eventDate, theme,
       ${kosher > 0 ? `<div><div style="font-size:22px;font-weight:800;color:#16a34a">${kosher}</div><div style="font-size:10px;color:#6b7280;font-weight:600;text-transform:uppercase">Kosher</div></div>` : ""}
     </div>
   </div>
-  <button class="no-print" onclick="window.print()" style="margin-bottom:20px;padding:8px 18px;background:${accent};color:white;border:none;border-radius:6px;font-weight:700;cursor:pointer;font-size:13px">🖨 Print</button>
+  <button class="no-print" onclick="window.print()" style="margin-bottom:20px;padding:8px 18px;background:${accent};color:white;border:none;border-radius:6px;font-weight:700;cursor:pointer;font-size:13px">${iconSvg("printer", "button", { color: "#fff" })} Print</button>
   ${groupSections}
   <div style="margin-top:24px;text-align:center;font-size:11px;color:#9ca3af">Generated ${new Date().toLocaleDateString()} · ${esc(eventName||"SimchaKit")}</div>
 </body></html>`;

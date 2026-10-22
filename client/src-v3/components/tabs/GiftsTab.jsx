@@ -887,7 +887,7 @@ export function GiftModal({ gift, households, onSave, onClose, isArchived }) {
                         else if (gv.country === "Canada")         invalid = !/^[A-Za-z]\d[A-Za-z][ -]?\d[A-Za-z]\d$/.test(v);
                         else if (gv.country === "United Kingdom") invalid = !/^[A-Za-z]{1,2}\d[A-Za-z\d]? ?\d[A-Za-z]{2}$/.test(v);
                         else if (gv.country === "Australia")      invalid = !/^\d{4}$/.test(v);
-                        return invalid ? <div style={{ fontSize: 11, color: "var(--gold,#b45309)", marginTop: 3 }}><Icon name="alertTriangle" context="badge" style={{ marginRight: 3 }} /> Format looks off for {gv.country}</div> : null;
+                        return invalid ? <div style={{ fontSize: 11, color: "var(--gold)", marginTop: 3 }}><Icon name="alertTriangle" context="badge" style={{ marginRight: 3 }} /> Format looks off for {gv.country}</div> : null;
                       })()}
                     </div>
                   </div>
