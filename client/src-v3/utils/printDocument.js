@@ -18,16 +18,7 @@ function removeRoot() {
   document.getElementById(ROOT_ID)?.remove();
 }
 
-const imagesReady = (root, ms = 2000) => {
-  const pending = [...root.querySelectorAll("img")].filter(i => !i.complete);
-  if (!pending.length) return null;
-  return Promise.race([
-    Promise.all(pending.map(i => new Promise(r => { i.onload = i.onerror = r; }))),
-    new Promise(r => setTimeout(r, ms)),
-  ]);
-};
-
-/** Print a full HTML document string (as produced by the generate*PrintHTML helpers). */
+/** Print a full HTML document string (as produced by the generate*PrintHTML helpers). Call from a click handler. */
 export function printDocument(html) {
   removeRoot();
   const root = document.createElement("div");
@@ -40,7 +31,9 @@ export function printDocument(html) {
   document.body.appendChild(root);
 
   window.addEventListener("afterprint", removeRoot, { once: true });
-  const go = () => requestAnimationFrame(() => window.print());
-  const wait = imagesReady(root);
-  if (wait) wait.then(go); else go();
+  // Must stay synchronous: iOS Safari blocks print() ("blocked from
+  // automatically printing") unless it runs inside the user's tap, so we
+  // cannot wait for images or a frame. Already-cached images (e.g. the logo)
+  // are rendered; call this from the click handler.
+  window.print();
 }
