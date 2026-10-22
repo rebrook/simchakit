@@ -14,6 +14,7 @@ import { autoSeatByHousehold } from "@/utils/seating.js";
 import { ArchivedNotice }     from "@/components/shared/ArchivedNotice.jsx";
 import { ConfirmDialog }      from "@/components/shared/ConfirmDialog.jsx";
 import { Icon }               from "@/utils/iconMap.jsx";
+import { printDocument, isTouchPrimary } from "@/utils/printDocument.js";
 import { PrintPreviewModal } from "@/components/shared/PrintPreviewModal.jsx";
 import { InfoPopover }        from "@/components/shared/InfoPopover.jsx";
 import { METRIC_HELP }        from "@/constants/metrics.js";
@@ -677,12 +678,12 @@ export function SeatingTab({ eventId, event, adminConfig, showToast, isArchived,
         <SeatingExportModal tables={sortedTables} people={scopedPeople} households={households} adminConfig={adminConfig || {}}
           sectionId={sectionId}
           sectionTitle={activeSection ? `${activeSection.icon||""} ${activeSection.title}`.trim() : ""}
-          onPrint={(html) => { setPrintHTML(html); setShowExportModal(false); }}
+          onPrint={(html) => { setShowExportModal(false); if (isTouchPrimary()) printDocument(html); else setPrintHTML(html); }}
           onClose={() => setShowExportModal(false)} />
       )}
 
       {printHTML && (
-        <PrintPreviewModal html={printHTML} title="Print Preview — Seating Chart" eventName={adminConfig?.name} docLabel="seating-chart" onClose={() => setPrintHTML(null)} />
+        <PrintPreviewModal html={printHTML} title="Print Preview — Seating Chart" onClose={() => setPrintHTML(null)} />
       )}
 
       {/* Auto-Seat confirmation modal */}

@@ -18,6 +18,7 @@ import { useEventData }       from "@/hooks/useEventData.js";
 import { DAY_OF_TIME_BLOCKS } from "@/constants/events.js";
 import { formatTimeRange, sortTimeline } from "@/utils/dates.js";
 import { Icon } from "@/utils/iconMap.jsx";
+import { printDocument, isTouchPrimary } from "@/utils/printDocument.js";
 import { PrintPreviewModal } from "@/components/shared/PrintPreviewModal.jsx";
 import { InfoPopover } from "@/components/shared/InfoPopover.jsx";
 import { METRIC_HELP } from "@/constants/metrics.js";
@@ -981,7 +982,7 @@ export function DayOfOverlay({ eventId, event, adminConfig, onClose, onPrintBrie
       tasks,
       ceremonyRoles,
     });
-    setPrintHTML(html);
+    if (isTouchPrimary()) printDocument(html); else setPrintHTML(html);
   };
 
   // ── Offline cache: write on successful data load ──────────────────────────
@@ -1286,7 +1287,7 @@ export function DayOfOverlay({ eventId, event, adminConfig, onClose, onPrintBrie
 
     {/* Print Brief preview modal */}
     {printHTML && (
-        <PrintPreviewModal html={printHTML} title="Print Event Brief" eventName={adminConfig?.name} docLabel="day-of-brief" onClose={() => setPrintHTML(null)} zIndex={1100} />
+        <PrintPreviewModal html={printHTML} title="Print Event Brief" onClose={() => setPrintHTML(null)} zIndex={1100} />
     )}
 
     {(showAddItem || editItem) && (

@@ -47,6 +47,7 @@ import { getAddressFields, formatAddress, migrateCityStateZip, COUNTRIES } from 
 import { ArchivedNotice }      from "@/components/shared/ArchivedNotice.jsx";
 import { ConfirmDialog }       from "@/components/shared/ConfirmDialog.jsx";
 import { Icon }                from "@/utils/iconMap.jsx";
+import { printDocument, isTouchPrimary } from "@/utils/printDocument.js";
 import { PrintPreviewModal } from "@/components/shared/PrintPreviewModal.jsx";
 
 export function GiftsTab({ eventId, event, adminConfig, showToast, isArchived, isViewer, searchHighlight, clearSearchHighlight, setTopbarSubtitle }) {
@@ -652,14 +653,14 @@ export function GiftsTab({ eventId, event, adminConfig, showToast, isArchived, i
           gifts={gifts}
           households={households}
           adminConfig={adminConfig || {}}
-          onPrint={(html) => { setPrintHTML(html); setShowExport(false); }}
+          onPrint={(html) => { setShowExport(false); if (isTouchPrimary()) printDocument(html); else setPrintHTML(html); }}
           onClose={() => setShowExport(false)}
         />
       )}
 
       {/* Print preview */}
       {printHTML && (
-        <PrintPreviewModal html={printHTML} title="Print Preview — Gift List" eventName={adminConfig?.name} docLabel="gift-list" onClose={() => setPrintHTML(null)} />
+        <PrintPreviewModal html={printHTML} title="Print Preview — Gift List" onClose={() => setPrintHTML(null)} />
       )}
     </div>
   );

@@ -5012,3 +5012,12 @@
   .print-preview-actions .btn { min-height: 44px; padding: 0 16px; font-size: 14px; }
   .print-preview-actions .icon-btn { min-width: 44px; min-height: 44px; }
 }
+
+/* ── Native print (utils/printDocument.js) ─────────────────────────────────
+   The document lives in #print-root; only it is shown when printing. */
+#print-root { display: none; }
+@media print {
+  html, body { background: #fff !important; }
+  body > *:not(#print-root) { display: none !important; }
+  #print-root { display: block !important; }
+}
