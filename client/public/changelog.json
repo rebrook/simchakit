@@ -1,10 +1,36 @@
 {
-  "current": "V4.42.2",
+  "current": "V4.43.1",
   "whatsNew": [
-    "Fix: task and gift row actions are visible on all touch devices",
-    "Accessibility: icon-only buttons are announced by screen readers"
+    "Fix: print previews no longer lose their header and close button on iPhone",
+    "Change: Print or Share PDF now depends on the device, not the screen width"
   ],
   "changelog": [
+    {
+      "version": "V4.43.1",
+      "date": "2026-10-22",
+      "summary": "Print previews fit the screen on iPhone, and Print versus Share PDF is chosen by device",
+      "changes": [
+        "Fix: on iPhone the print preview could extend past the top of the screen, hiding its title and close button; it now fits the visible screen",
+        "Fix: the Print button inside the preview did nothing on iPhone; it is hidden there, and the PDF no longer contains it",
+        "Change: all six print previews are now one shared window that fills the screen on narrow displays, keeps its header and close button in view, scrolls wide tables sideways, and uses larger touch targets",
+        "Change: Prepare PDF then Share PDF is offered on any touch device that can share files, including iPads at any width, instead of by screen width; other devices keep Print",
+        "Change: the Overview Share brief button follows the same rule"
+      ],
+      "roadmap": [],
+      "knownIssues": []
+    },
+    {
+      "version": "V4.43.0",
+      "date": "2026-10-22",
+      "summary": "Reliable printing on iPhone: guest, seating, gift, favor, and day-of printouts are shared as PDFs on mobile",
+      "changes": [
+        "New: on phones, the print preview for the Guests, Seating, Gifts, Favors, and Day-of brief now has a two-step Prepare PDF, then Share PDF button, the same flow the Overview brief uses, because printing from the page is unreliable on iOS Safari",
+        "Change: the PDF flow was moved into one shared helper; the Overview brief behaves as before",
+        "Desktop printing is unchanged"
+      ],
+      "roadmap": [],
+      "knownIssues": []
+    },
     {
       "version": "V4.42.2",
       "date": "2026-10-21",

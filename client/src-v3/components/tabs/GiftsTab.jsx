@@ -47,6 +47,7 @@ import { getAddressFields, formatAddress, migrateCityStateZip, COUNTRIES } from 
 import { ArchivedNotice }      from "@/components/shared/ArchivedNotice.jsx";
 import { ConfirmDialog }       from "@/components/shared/ConfirmDialog.jsx";
 import { Icon }                from "@/utils/iconMap.jsx";
+import { PrintPreviewModal } from "@/components/shared/PrintPreviewModal.jsx";
 
 export function GiftsTab({ eventId, event, adminConfig, showToast, isArchived, isViewer, searchHighlight, clearSearchHighlight, setTopbarSubtitle }) {
   const { items: gifts,      loading: gLoading, save, remove } = useEventData(eventId, "gifts");
@@ -658,24 +659,7 @@ export function GiftsTab({ eventId, event, adminConfig, showToast, isArchived, i
 
       {/* Print preview */}
       {printHTML && (
-        <div className="modal-backdrop" onMouseDown={e => { if (e.target === e.currentTarget) { setPrintHTML(null); } }}>
-          <div onClick={e => e.stopPropagation()} style={{ background: "var(--bg-surface)", borderRadius: "var(--radius-lg)", width: "95%", maxWidth: 960, height: "90vh", display: "flex", flexDirection: "column", boxShadow: "var(--shadow-lg)" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "14px 20px", borderBottom: "1px solid var(--border)", flexShrink: 0 }}>
-              <div style={{ fontSize: 17, fontWeight: 700, color: "var(--text-primary)" }}>Print Preview — Gift List</div>
-              <div style={{ display: "flex", gap: 8 }}>
-                <button className="btn btn-primary" style={{ fontSize: 12 }}
-                  onClick={() => { const f = document.getElementById("gift-print-frame"); if (f?.contentWindow) f.contentWindow.print(); }}>
-                  <Icon name="printer" context="inline" style={{ marginRight: 4 }} /> Print
-                </button>
-                <button className="icon-btn" title="Close" aria-label="Close" onClick={() => setPrintHTML(null)}><Icon name="x" context="button" /></button>
-              </div>
-            </div>
-            <iframe id="gift-print-frame" srcDoc={printHTML}
-              sandbox="allow-same-origin allow-modals"
-              style={{ flex: 1, border: "none", borderRadius: "0 0 var(--radius-lg) var(--radius-lg)" }}
-              title="Gift List Print Preview" />
-          </div>
-        </div>
+        <PrintPreviewModal html={printHTML} title="Print Preview — Gift List" eventName={adminConfig?.name} docLabel="gift-list" onClose={() => setPrintHTML(null)} />
       )}
     </div>
   );
