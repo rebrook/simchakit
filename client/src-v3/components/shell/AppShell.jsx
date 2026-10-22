@@ -884,6 +884,7 @@ export function AppShell({ session, eventId, onBack, onSelectEvent = null, isDem
                 <button
                   key={tab.id}
                   className={`sidebar-item${activeTab === tab.id ? " active" : ""}`}
+                  aria-current={activeTab === tab.id ? "page" : undefined}
                   onClick={() => navigateTo(tab.id)}
                 >
                   <Icon name={tab.icon} context="nav" />
@@ -1194,6 +1195,7 @@ export function AppShell({ session, eventId, onBack, onSelectEvent = null, isDem
         {bottomBarTabs.map(tab => (
           <button key={tab.id}
             className={`bottom-nav-tab ${activeTab === tab.id ? "active" : ""}`}
+            aria-current={activeTab === tab.id ? "page" : undefined}
             onClick={() => navigateTo(tab.id)}
           >
             <span className="bottom-nav-icon"><Icon name={tab.icon} context="navMobile" /></span>
@@ -1236,6 +1238,7 @@ export function AppShell({ session, eventId, onBack, onSelectEvent = null, isDem
         {moreDrawerTabs.map(tab => (
           <button key={tab.id}
             className={`more-drawer-item ${activeTab === tab.id ? "active" : ""}`}
+            aria-current={activeTab === tab.id ? "page" : undefined}
             onClick={() => navigateTo(tab.id)}
           >
             <span className="more-drawer-item-icon"><Icon name={tab.icon} context="menu" /></span>

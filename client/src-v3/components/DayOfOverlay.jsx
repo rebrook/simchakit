@@ -1257,7 +1257,7 @@ export function DayOfOverlay({ eventId, event, adminConfig, onClose, onPrintBrie
                       <div className="dayof-task-text" onClick={e => { e.stopPropagation(); toggleItem(c.id); }}>{c.task}</div>
                       <div style={{ display:"flex", gap:3, flexShrink:0 }}>
                         <button className="icon-btn" style={{ width:26, height:26 }} onClick={e => { e.stopPropagation(); setEditItem(c); }}><Icon name="pencil" context="badge" /></button>
-                        <button className="icon-btn" style={{ width:26, height:26 }} onClick={e => { e.stopPropagation(); handleDeleteItem(c.id); }}><Icon name="x" context="button" /></button>
+                        <button className="icon-btn" style={{ width:26, height:26 }} onClick={e => { e.stopPropagation(); handleDeleteItem(c.id); }}><Icon name="trash2" context="button" /></button>
                       </div>
                     </div>
                   ))}

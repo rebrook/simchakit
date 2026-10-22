@@ -1,9 +1,22 @@
 {
-  "current": "V4.43.3",
+  "current": "V4.43.4",
   "whatsNew": [
-    "Fix: printing on iPhone and iPad now opens the standard print sheet in one tap from Seating, Gifts, Favors, the Day-of brief, and the Overview brief"
+    "Fix: delete buttons now show a trash can instead of an X, and screen readers announce the current page in the navigation"
   ],
   "changelog": [
+    {
+      "version": "V4.43.4",
+      "date": "2026-10-22",
+      "summary": "Trash icon for deletes and current-page marking in navigation",
+      "changes": [
+        "Fix: every delete and remove button now uses a trash can icon, so it can no longer be confused with the X that closes a dialog",
+        "Fix: the sidebar, bottom bar, and More drawer now tell screen readers which page is current",
+        "Close, dismiss, and unassign buttons keep the X",
+        "Applies to the V3 app only"
+      ],
+      "roadmap": [],
+      "knownIssues": []
+    },
     {
       "version": "V4.43.3",
       "date": "2026-10-22",

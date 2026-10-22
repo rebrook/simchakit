@@ -86,6 +86,7 @@ import {
   Wine,
   Share2,
   UtensilsCrossed,
+  Trash2,
 } from "lucide-react";
 
 // ── Custom Star of David (hexagram) ─────────────────────────────────────────
@@ -153,6 +154,7 @@ export const ICONS = {
   arrowLeft:       ArrowLeft,
   arrowRight:      ArrowRight,
   x:               X,
+  trash2:          Trash2,
   moreHorizontal:  MoreHorizontal,
   chevronRight:    ChevronRight,
   chevronDown:     ChevronDown,

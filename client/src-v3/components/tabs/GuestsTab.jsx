@@ -735,7 +735,7 @@ export function GuestsTab({ eventId, event, adminConfig, showToast, isArchived, 
                   </div>
                   <div className="hh-row-actions" onClick={e=>e.stopPropagation()}>
                     <button className="icon-btn" title="Edit" aria-label="Edit" disabled={isArchived || isViewer} onClick={()=>setEditingHH(hh)}><Icon name="pencil" context="inline" /></button>
-                    <button className="icon-btn" style={{color:"var(--red)"}} title="Delete" aria-label="Delete" disabled={isArchived || isViewer} onClick={()=>setDeleteConfirm(hh.id)}><Icon name="x" context="inline" /></button>
+                    <button className="icon-btn" style={{color:"var(--red)"}} title="Delete" aria-label="Delete" disabled={isArchived || isViewer} onClick={()=>setDeleteConfirm(hh.id)}><Icon name="trash2" context="inline" /></button>
                   </div>
                 </div>
 
@@ -1311,7 +1311,7 @@ export function HouseholdModal({ household, members, adminConfig, onSave, onClos
                       <button type="button" className="icon-btn" title="Remove contact" aria-label="Remove contact"
                         style={{color:"var(--red)",flexShrink:0,marginTop:2}}
                         disabled={isArchived}
-                        onClick={()=>deleteHHContact(c.id)}><Icon name="x" context="button" /></button>
+                        onClick={()=>deleteHHContact(c.id)}><Icon name="trash2" context="button" /></button>
                     </div>
                   ))}
                 </div>

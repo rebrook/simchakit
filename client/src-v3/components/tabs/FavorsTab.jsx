@@ -791,7 +791,7 @@ export function FavorsTab({
                             <td style={{ ...TD, textAlign: "center" }}>
                               <div style={{ display: "flex", gap: 8, justifyContent: "center" }}>
                                 <button className="icon-btn" title="Edit" aria-label="Edit"   disabled={isArchived} onClick={() => setEditFavor(f)}><Icon name="pencil" context="badge" /></button>
-                                <button className="icon-btn icon-btn-danger" title="Delete" aria-label="Delete" disabled={isArchived} onClick={() => setDeleteConfirm(f)}><Icon name="x" context="badge" /></button>
+                                <button className="icon-btn icon-btn-danger" title="Delete" aria-label="Delete" disabled={isArchived} onClick={() => setDeleteConfirm(f)}><Icon name="trash2" context="badge" /></button>
                               </div>
                             </td>
                           </tr>
