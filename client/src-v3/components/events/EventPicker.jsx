@@ -630,7 +630,7 @@ function EventCard({ event, meta, onSelect, onDeleteClick, collaboratorRole = nu
             onClick={handleDeleteClick}
             aria-label="Delete event"
           >
-            <Icon name="x" context="badge" />
+            <Icon name="trash2" context="badge" />
           </button>
         )}
       </div>

@@ -385,7 +385,7 @@ export function VendorsTab({ eventId, event, adminConfig, showToast, isArchived,
                     <button className="icon-btn" title="Delete" aria-label="Delete"
                       style={{fontSize:13,color:"var(--red)"}}
                       disabled={isArchived || isViewer}
-                      onClick={() => setDeleteConfirm(v._rowId || v.id)}><Icon name="x" context="badge" /></button>
+                      onClick={() => setDeleteConfirm(v._rowId || v.id)}><Icon name="trash2" context="badge" /></button>
                   </div>
                 </div>
               </div>

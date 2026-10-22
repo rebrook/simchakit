@@ -702,7 +702,7 @@ function ExpenseRow({
           disabled={actionsDisabled} onClick={() => { setEditing(e); setShowAdd(true); }}><Icon name="pencil" context="badge" /></button>
         <button className="icon-btn" title="Delete" aria-label="Delete"
           style={{fontSize:13,color:"var(--red)"}}
-          disabled={actionsDisabled} onClick={() => setDeleteConfirm(e)}><Icon name="x" context="badge" /></button>
+          disabled={actionsDisabled} onClick={() => setDeleteConfirm(e)}><Icon name="trash2" context="badge" /></button>
       </div>
       {pendingPaidId === (e.id || e._rowId) && pendingPaidIdx === eIdx && (
         <div style={{gridColumn:"1/-1",display:"flex",alignItems:"center",gap:8,flexWrap:"wrap",marginTop:6,padding:"10px 12px",background:"var(--green-light)",border:"1px solid var(--green)",borderRadius:"var(--radius-sm)"}}>
@@ -792,7 +792,7 @@ function ExpenseRow({
                     )}
                     {!actionsDisabled && (
                       <button className="icon-btn" title="Remove payment" aria-label="Remove payment" style={{ fontSize: 12, color: "var(--red)" }}
-                        onClick={() => setRemovePayment(p)}><Icon name="x" context="badge" /></button>
+                        onClick={() => setRemovePayment(p)}><Icon name="trash2" context="badge" /></button>
                     )}
                   </div>
                 );

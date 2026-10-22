@@ -166,7 +166,7 @@ function SortableRoleRow({ role, idx, total, isMobile, isReadOnly, moveRole, set
           <button className="icon-btn" onClick={() => moveRole(role.id, "up")} disabled={isReadOnly || idx === 0} style={{ fontSize: 11 }}>↑</button>
           <button className="icon-btn" onClick={() => moveRole(role.id, "down")} disabled={isReadOnly || idx === total - 1} style={{ fontSize: 11 }}>↓</button>
           <button className="icon-btn" disabled={isReadOnly} onClick={() => !isReadOnly && setEditRole(role)}><Icon name="pencil" context="badge" /></button>
-          <button className="icon-btn" disabled={isReadOnly} onClick={() => !isReadOnly && setDeleteConfirm(role.id)}><Icon name="x" context="badge" /></button>
+          <button className="icon-btn" disabled={isReadOnly} onClick={() => !isReadOnly && setDeleteConfirm(role.id)}><Icon name="trash2" context="badge" /></button>
         </div>
       </div>
     );
@@ -188,7 +188,7 @@ function SortableRoleRow({ role, idx, total, isMobile, isReadOnly, moveRole, set
         <button className="icon-btn" style={{ fontSize: 11 }} onClick={() => moveRole(role.id, "up")} disabled={isReadOnly || idx === 0}>↑</button>
         <button className="icon-btn" style={{ fontSize: 11 }} onClick={() => moveRole(role.id, "down")} disabled={isReadOnly || idx === total - 1}>↓</button>
         <button className="icon-btn" disabled={isReadOnly} onClick={() => !isReadOnly && setEditRole(role)}><Icon name="pencil" context="badge" /></button>
-        <button className="icon-btn" disabled={isReadOnly} onClick={() => !isReadOnly && setDeleteConfirm(role.id)}><Icon name="x" context="badge" /></button>
+        <button className="icon-btn" disabled={isReadOnly} onClick={() => !isReadOnly && setDeleteConfirm(role.id)}><Icon name="trash2" context="badge" /></button>
       </div>
     </div>
   );

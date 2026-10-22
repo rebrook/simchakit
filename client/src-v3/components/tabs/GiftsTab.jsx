@@ -444,7 +444,7 @@ export function GiftsTab({ eventId, event, adminConfig, showToast, isArchived, i
                               <div className="header-overflow-menu" role="menu">
                                 <button type="button" className="header-overflow-item" role="menuitem"
                                   onClick={() => { setOpenMenuId(null); setDeleteConfirm(g); }}>
-                                  <Icon name="x" context="menu" /> Delete
+                                  <Icon name="trash2" context="menu" /> Delete
                                 </button>
                               </div>
                             )}
@@ -517,7 +517,7 @@ export function GiftsTab({ eventId, event, adminConfig, showToast, isArchived, i
                           </button>
                           <button type="button" className="header-overflow-item" role="menuitem"
                             onClick={() => { setOpenMenuId(null); setDeleteConfirm(g); }}>
-                            <Icon name="x" context="menu" /> Delete
+                            <Icon name="trash2" context="menu" /> Delete
                           </button>
                         </div>
                       )}
@@ -818,7 +818,7 @@ export function GiftModal({ gift, households, onSave, onClose, isArchived }) {
                   <button type="button" className="icon-btn" aria-label={`Remove ${gv.name.trim() || `giver ${idx + 1}`}`}
                     onClick={() => removeGiver(gv.id)}
                     style={{ position: "absolute", top: 8, right: 8 }}>
-                    <Icon name="x" context="badge" />
+                    <Icon name="trash2" context="badge" />
                   </button>
                 )}
                 {multi && (
@@ -936,7 +936,7 @@ export function GiftModal({ gift, households, onSave, onClose, isArchived }) {
                   <button type="button" className="icon-btn" aria-label={`Remove gift ${idx + 1}`}
                     onClick={() => removeItem(it.id)}
                     style={{ position: "absolute", top: 8, right: 8 }}>
-                    <Icon name="x" context="badge" />
+                    <Icon name="trash2" context="badge" />
                   </button>
                 )}
                 {multi && (

@@ -487,7 +487,7 @@ export function AdminPanel({ eventId, userId, calendarToken: initialCalendarToke
                       </div>
                       <div style={{display:"flex",gap:4,flexShrink:0}}>
                         <button className="icon-btn" title="Edit" aria-label="Edit" onClick={() => setTlModal(entry)}><Icon name="pencil" context="badge" /></button>
-                        <button className="icon-btn" title="Delete" aria-label="Delete" onClick={() => setTlDelete(entry)}><Icon name="x" context="button" /></button>
+                        <button className="icon-btn" title="Delete" aria-label="Delete" onClick={() => setTlDelete(entry)}><Icon name="trash2" context="button" /></button>
                       </div>
                     </div>
                   ))}
@@ -535,7 +535,7 @@ export function AdminPanel({ eventId, userId, calendarToken: initialCalendarToke
                         onChange={e => { const u=[...(form.groups||[])]; u[i]=e.target.value; set("groups",u); }}
                         placeholder="Group name" />
                       <button className="btn btn-ghost btn-sm" style={{padding:"4px 8px"}} disabled={(form.groups||[]).length<=1}
-                        onClick={() => set("groups",(form.groups||[]).filter((_,j)=>j!==i))}><Icon name="x" context="button" /></button>
+                        onClick={() => set("groups",(form.groups||[]).filter((_,j)=>j!==i))}><Icon name="trash2" context="button" /></button>
                       <button className="btn btn-ghost btn-sm" style={{padding:"4px 8px"}} disabled={i===0}
                         onClick={() => { const u=[...(form.groups||[])]; [u[i-1],u[i]]=[u[i],u[i-1]]; set("groups",u); }}>↑</button>
                       <button className="btn btn-ghost btn-sm" style={{padding:"4px 8px"}} disabled={i===(form.groups||[]).length-1}
@@ -563,7 +563,7 @@ export function AdminPanel({ eventId, userId, calendarToken: initialCalendarToke
                         onChange={e => { const u=[...(form.mealChoices||[])]; u[i]=e.target.value; set("mealChoices",u); }}
                         placeholder="Meal option" />
                       <button className="btn btn-ghost btn-sm" style={{padding:"4px 8px"}} disabled={(form.mealChoices||[]).length<=1}
-                        onClick={() => set("mealChoices",(form.mealChoices||[]).filter((_,j)=>j!==i))}><Icon name="x" context="button" /></button>
+                        onClick={() => set("mealChoices",(form.mealChoices||[]).filter((_,j)=>j!==i))}><Icon name="trash2" context="button" /></button>
                       <button className="btn btn-ghost btn-sm" style={{padding:"4px 8px"}} disabled={i===0}
                         onClick={() => { const u=[...(form.mealChoices||[])]; [u[i-1],u[i]]=[u[i],u[i-1]]; set("mealChoices",u); }}>↑</button>
                       <button className="btn btn-ghost btn-sm" style={{padding:"4px 8px"}} disabled={i===(form.mealChoices||[]).length-1}
@@ -596,7 +596,7 @@ export function AdminPanel({ eventId, userId, calendarToken: initialCalendarToke
                         onChange={e => { const u=[...(form.shirtSizes||[])]; u[i]=e.target.value; set("shirtSizes",u); }}
                         placeholder="e.g. AM | Adult Medium" />
                       <button className="btn btn-ghost btn-sm" style={{padding:"4px 8px"}} disabled={(form.shirtSizes||[]).length<=1}
-                        onClick={() => set("shirtSizes",(form.shirtSizes||[]).filter((_,j)=>j!==i))}><Icon name="x" context="button" /></button>
+                        onClick={() => set("shirtSizes",(form.shirtSizes||[]).filter((_,j)=>j!==i))}><Icon name="trash2" context="button" /></button>
                       <button className="btn btn-ghost btn-sm" style={{padding:"4px 8px"}} disabled={i===0}
                         onClick={() => { const u=[...(form.shirtSizes||[])]; [u[i-1],u[i]]=[u[i],u[i-1]]; set("shirtSizes",u); }}>↑</button>
                       <button className="btn btn-ghost btn-sm" style={{padding:"4px 8px"}} disabled={i===(form.shirtSizes||[]).length-1}

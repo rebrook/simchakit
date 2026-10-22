@@ -569,7 +569,7 @@ export function SeatingTab({ eventId, event, adminConfig, showToast, isArchived,
                             <button className="icon-btn" title="Move up" aria-label="Move up" style={{ fontSize: 12, opacity: tableIndex === 0 ? 0.3 : 1 }} disabled={isArchived || tableIndex === 0} onClick={e => { e.stopPropagation(); handleMoveTable(table.id, "up"); }}>↑</button>
                             <button className="icon-btn" title="Move down" aria-label="Move down" style={{ fontSize: 12, opacity: tableIndex === lastIndex ? 0.3 : 1 }} disabled={isArchived || tableIndex === lastIndex} onClick={e => { e.stopPropagation(); handleMoveTable(table.id, "down"); }}>↓</button>
                             <button className="icon-btn" title="Edit" aria-label="Edit" disabled={isArchived} onClick={e => { e.stopPropagation(); setEditTable(table); }}><Icon name="pencil" context="badge" /></button>
-                            <button className="icon-btn icon-btn-danger" title="Delete" aria-label="Delete" disabled={isArchived} onClick={e => { e.stopPropagation(); setDeleteConfirm(table); }}><Icon name="x" context="button" /></button>
+                            <button className="icon-btn icon-btn-danger" title="Delete" aria-label="Delete" disabled={isArchived} onClick={e => { e.stopPropagation(); setDeleteConfirm(table); }}><Icon name="trash2" context="button" /></button>
                           </div>
                         </div>
                         <div style={{ height: 5, background: "var(--bg-muted)", borderRadius: 99, overflow: "hidden", marginBottom: 10 }}>

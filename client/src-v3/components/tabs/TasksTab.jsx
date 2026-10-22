@@ -628,7 +628,7 @@ export function TasksTab({ eventId, event, adminConfig, showToast, isArchived, i
             disabled={isArchived || isViewer} onClick={() => setEditTask(t)}><Icon name="pencil" context="badge" /></button>
           <button className="icon-btn" title="Delete" aria-label="Delete"
             style={{width:26,height:26,fontSize:12,color:"var(--red)"}}
-            disabled={isArchived || isViewer} onClick={() => setDeleteConfirm(t.id)}><Icon name="x" context="badge" /></button>
+            disabled={isArchived || isViewer} onClick={() => setDeleteConfirm(t.id)}><Icon name="trash2" context="badge" /></button>
         </div>
       </div>
     );

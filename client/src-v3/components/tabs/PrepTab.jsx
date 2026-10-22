@@ -368,7 +368,7 @@ export function PrepTab({ eventId, event, adminConfig, showToast, isArchived, is
                     </span>
                     <div className="row-actions" style={{ display: "flex", gap: 4, flexShrink: 0 }}>
                       <button className="icon-btn" title="Edit" aria-label="Edit" disabled={isArchived || isViewer} onClick={() => setEditItem(item)}><Icon name="pencil" context="badge" /></button>
-                      <button className="icon-btn icon-btn-danger" title="Delete" aria-label="Delete" disabled={isArchived || isViewer} onClick={() => setDeleteConfirm(item.id)}><Icon name="x" context="badge" /></button>
+                      <button className="icon-btn icon-btn-danger" title="Delete" aria-label="Delete" disabled={isArchived || isViewer} onClick={() => setDeleteConfirm(item.id)}><Icon name="trash2" context="badge" /></button>
                     </div>
                   </div>
 
