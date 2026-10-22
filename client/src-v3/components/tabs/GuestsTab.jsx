@@ -619,8 +619,8 @@ export function GuestsTab({ eventId, event, adminConfig, showToast, isArchived, 
             <button className={`btn btn-sm ${missingAddressFilter?"btn-primary":"btn-secondary"}`} title="Show households missing a mailing address" onClick={()=>setMissingAddressFilter(f=>!f)}><Icon name="mailX" context="badge" style={{ marginRight: 4 }} /> No Address{missingAddressFilter?<> <Icon name="check" context="badge" /></>:""}</button>
             {sections.length > 1 && (
               <button className={`btn btn-sm ${subEventFilter.length>0?"btn-primary":"btn-secondary"}`}
-                onClick={()=>setShowMoreFilters(v=>!v)}>
-                More Filters{subEventFilter.length>0?` (${subEventFilter.length})`:""} {showMoreFilters?"▴":"▾"}
+                onClick={()=>setShowMoreFilters(v=>!v)} aria-expanded={showMoreFilters}>
+                More Filters{subEventFilter.length>0?` (${subEventFilter.length})`:""} {showMoreFilters ? <Icon name="chevronUp" context="inline" /> : <Icon name="chevronDown" context="inline" />}
               </button>
             )}
           </div>
@@ -697,7 +697,7 @@ export function GuestsTab({ eventId, event, adminConfig, showToast, isArchived, 
                         style={{width:14,height:14,accentColor:"var(--accent-primary)",cursor:"pointer"}} />
                     </div>
                   )}
-                  <div style={{color:"var(--text-muted)",fontSize:12,flexShrink:0,width:16,textAlign:"center"}}>{isExpanded?"▾":"▸"}</div>
+                  <div style={{color:"var(--text-muted)",fontSize:12,flexShrink:0,width:16,textAlign:"center"}}>{isExpanded ? <Icon name="chevronDown" context="inline" /> : <Icon name="chevronRight" context="inline" />}</div>
                   <div className="hh-row-name">
                     <div className="hh-row-name-primary">{hh.formalName}</div>
                     {hh.name2 && <div className="hh-row-name-secondary">{hh.name2}</div>}

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Icon } from "@/utils/iconMap.jsx";
 import { DEFAULT_MEALS } from "@/constants/guest-constants.js";
 import { getMealPopulation, splitAdultsKids } from "@/utils/sections.js";
 import { sortTimeline } from "@/utils/dates.js";
@@ -185,9 +186,10 @@ export function CateringSummary({ people, households, adminConfig }) {
             </div>
           )}
         </div>
-        <button style={{ background:"none", border:"none", cursor:"pointer",
+        <button aria-label={open ? "Collapse" : "Expand"} aria-expanded={open}
+          style={{ background:"none", border:"none", cursor:"pointer",
           fontSize:18, color:"var(--text-muted)", padding:"0 4px", lineHeight:1 }}>
-          {open ? "▴" : "▾"}
+          {open ? <Icon name="chevronUp" context="inline" /> : <Icon name="chevronDown" context="inline" />}
         </button>
       </div>
 

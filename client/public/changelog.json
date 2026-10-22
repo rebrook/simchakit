@@ -12,6 +12,7 @@
         "Fix: the Day-of brief print-out now uses the same fonts, paper color, and your event's color palette as the other printed documents",
         "Fix: warning text in the guest, gift, favor, and vendor forms now uses the brand gold",
         "Change: reset, expand/collapse, warning, and print controls now use icons instead of text symbols",
+        "Change: every expand/collapse arrow, the RSVP pill arrow, and the Day-of brief checkboxes now use icons, and the printed guest list uses the same colors as the other printed documents",
         "Change: the footer is now a single line with the SimchaKit credit, the about link, and the sync dot",
         "Change: the Event ID moved to Admin → Event Details with a copy button, and your email no longer appears in the footer",
         "Applies to the V3 app only"

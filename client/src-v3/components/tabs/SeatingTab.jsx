@@ -354,7 +354,7 @@ export function SeatingTab({ eventId, event, adminConfig, showToast, isArchived,
               )}
             </div>
           </div>
-          <span style={{ fontSize: 12, color: "var(--text-muted)" }}>{setupOpen ? "▴" : "▾"}</span>
+          <span style={{ fontSize: 12, color: "var(--text-muted)" }}>{setupOpen ? <Icon name="chevronUp" context="inline" /> : <Icon name="chevronDown" context="inline" />}</span>
         </div>
         {setupOpen && (
           <div style={{ padding: 16 }}>

@@ -298,7 +298,7 @@ function generatePrintBriefHTML({ adminConfig, timeline, households, people, ven
     const due = t.due ? fmtDate(t.due) : "—";
     const isOvr = t.due && new Date(t.due + "T00:00:00") < today;
     return `<tr>
-      <td>☐</td>
+      <td>${iconSvg("square", "badge", { color: "#9c9188" })}</td>
       <td>${escHtml(t.task)}</td>
       <td>${escHtml(t.category || "")}</td>
       <td class="${isOvr ? "red" : "meta"}">${due}</td>
@@ -414,7 +414,7 @@ ${upcomingTasks.length > 0 ? `
 ` : upcomingTasks.length === 0 && overdueTasks.length === 0 ? `<p class="meta">All tasks complete! ${iconSvg("partyPopper", "inline")}</p>` : ""}
 
 ${ceremonyRoles.length > 0 ? `
-${sectionHead("✡", `Ceremony Roles — ${ceremonyRoles.filter(r => r.assignee?.trim()).length} of ${ceremonyRoles.length} assigned`)}
+${sectionHead("clipboardList", `Ceremony Roles — ${ceremonyRoles.filter(r => r.assignee?.trim()).length} of ${ceremonyRoles.length} assigned`)}
 ${ceremonySection}
 ` : ""}
 

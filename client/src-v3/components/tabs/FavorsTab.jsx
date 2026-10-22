@@ -426,8 +426,8 @@ export function FavorsTab({
               </div>
             )}
           </div>
-          <button style={{ background: "none", border: "none", cursor: "pointer", fontSize: 18, color: "var(--text-muted)", padding: "0 4px", lineHeight: 1 }}>
-            {setupOpen ? "▴" : "▾"}
+          <button aria-label={setupOpen ? "Collapse" : "Expand"} aria-expanded={setupOpen} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 18, color: "var(--text-muted)", padding: "0 4px", lineHeight: 1 }}>
+            {setupOpen ? <Icon name="chevronUp" context="inline" /> : <Icon name="chevronDown" context="inline" />}
           </button>
         </div>
 

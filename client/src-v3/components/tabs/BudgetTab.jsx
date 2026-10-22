@@ -560,8 +560,9 @@ function ExpenseRow({
           <button
             style={{background:"none",border:"none",cursor:"pointer",
               fontSize:11,color:"var(--text-muted)",padding:"0 0 0 4px"}}
-            onClick={() => toggleNotes(e.id)}>
-            {notesOpen ? "▴ hide" : "▾ notes"}
+            onClick={() => toggleNotes(e.id)}
+            aria-expanded={notesOpen}>
+            {notesOpen ? <><Icon name="chevronUp" context="inline" /> hide</> : <><Icon name="chevronDown" context="inline" /> notes</>}
           </button>
         )}
       </div>
@@ -576,8 +577,9 @@ function ExpenseRow({
         {hasNotes && (
           <button
             style={{background:"none",border:"none",cursor:"pointer",fontSize:11,color:"var(--text-muted)",padding:"0 0 0 4px"}}
-            onClick={() => toggleNotes(e.id)}>
-            {notesOpen ? "▴ hide" : "▾ notes"}
+            onClick={() => toggleNotes(e.id)}
+            aria-expanded={notesOpen}>
+            {notesOpen ? <><Icon name="chevronUp" context="inline" /> hide</> : <><Icon name="chevronDown" context="inline" /> notes</>}
           </button>
         )}
       </div>
@@ -637,9 +639,10 @@ function ExpenseRow({
             <button className="btn btn-secondary btn-sm"
               title={expanded ? "Hide payment schedule" : "View payment schedule"}
               style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 11, padding: "3px 9px", borderRadius: 999, flexShrink: 0 }}
+              aria-expanded={expanded}
               onClick={() => setExpanded(x => !x)}>
               {e.payments.filter(p => p.status === "paid").length} of {e.payments.length} paid
-              <span style={{ fontSize: 9 }}>{expanded ? "▴" : "▾"}</span>
+              <span style={{ fontSize: 9 }}>{expanded ? <Icon name="chevronUp" context="inline" /> : <Icon name="chevronDown" context="inline" />}</span>
             </button>
           )}
         </div>
@@ -693,8 +696,9 @@ function ExpenseRow({
         {!payHasPayments && (
           <button className="icon-btn" title="Payment schedule" aria-label="Payment schedule"
             style={{fontSize:11,opacity:0.4}}
+            aria-expanded={expanded}
             onClick={() => setExpanded(x => !x)}>
-            ▾
+            <Icon name="chevronDown" context="inline" />
           </button>
         )}
         <button className="icon-btn" title="Edit" aria-label="Edit"
@@ -1273,7 +1277,7 @@ export function BudgetTab({ eventId, event, adminConfig, showToast, isArchived, 
                     onClick={() => toggleVendorGroup(group.key)}
                     style={{display:"flex",alignItems:"center",gap:12,padding:"12px 16px",cursor:"pointer",background:"var(--bg-subtle)",userSelect:"none"}}
                   >
-                    <span style={{fontSize:13,color:"var(--text-muted)",flexShrink:0}}>{isOpen ? "▾" : "▸"}</span>
+                    <span style={{fontSize:13,color:"var(--text-muted)",flexShrink:0}}>{isOpen ? <Icon name="chevronDown" context="inline" /> : <Icon name="chevronRight" context="inline" />}</span>
                     <div style={{flex:1,minWidth:0}}>
                       <div style={{display:"flex",alignItems:"center",gap:8,flexWrap:"wrap"}}>
                         {linkedV ? (
@@ -1352,7 +1356,7 @@ export function BudgetTab({ eventId, event, adminConfig, showToast, isArchived, 
                     style={{display:"flex",alignItems:"center",gap:12,padding:"12px 16px",
                       cursor:"pointer",background:"var(--bg-subtle)",userSelect:"none"}}>
                     <span style={{fontSize:13,color:"var(--text-muted)",flexShrink:0}}>
-                      {isOpen ? "▾" : "▸"}
+                      {isOpen ? <Icon name="chevronDown" context="inline" /> : <Icon name="chevronRight" context="inline" />}
                     </span>
                     <div style={{flex:1,minWidth:0}}>
                       <div style={{display:"flex",alignItems:"center",gap:8,flexWrap:"wrap"}}>

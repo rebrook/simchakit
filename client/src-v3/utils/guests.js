@@ -1,4 +1,5 @@
 import { iconSvg } from "./iconSvg.js";
+import { PALETTES } from "@/constants/theme.js";
 import { newHouseholdId, newPersonId } from "./ids.js";
 import { resolveMainEvent } from "./sections.js";
 
@@ -648,15 +649,9 @@ function exportGuestsByPerson(households, people, adminConfig, tables) {
 // Grouped by group. Audience: day-of binder, door checklist, at-a-glance print.
 function generateGuestPrintHTML(households, people, eventName, eventDate, theme, logoUrl) {
   const esc = s => String(s || "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;");
-  const palette = theme?.palette || "rose";
-  const accent  = palette === "blue"  ? "#3b82f6"
-                : palette === "green" ? "#22c55e"
-                : palette === "gold"  ? "#d97706"
-                : "#b5648f";
-  const accentLight = palette === "blue"  ? "#eff6ff"
-                    : palette === "green" ? "#f0fdf4"
-                    : palette === "gold"  ? "#fffbeb"
-                    : "#fef2f7";
+  const pal         = PALETTES[theme?.palette] || PALETTES.rose;
+  const accent      = pal.accent;
+  const accentLight = pal["accent-light"];
 
   // Sort households by group then last name
   const GROUP_ORDER = ["Family", "Friends", "Sydney's Class", "Gail's Invites", "Other"];
@@ -685,8 +680,8 @@ function generateGuestPrintHTML(households, people, eventName, eventDate, theme,
   });
 
   const statusColor = s =>
-    s === "RSVP Yes" ? "#16a34a" : s === "RSVP No" ? "#dc2626" :
-    s === "Pending"  ? "#d97706" : s === "Maybe"   ? "#7c3aed" : "#6b7280";
+    s === "RSVP Yes" ? "#2d6a4f" : s === "RSVP No" ? "#9b2335" :
+    s === "Pending"  ? "#b5821a" : s === "Maybe"   ? "#5c5248" : "#9c9188";
 
   const totalPeople = households.reduce((s, hh) => s + computeHouseholdCounts(people, hh.id).total, 0);
   const rsvpYes     = households.filter(hh => hh.rsvpStatus === "RSVP Yes").length;
@@ -697,25 +692,25 @@ function generateGuestPrintHTML(households, people, eventName, eventDate, theme,
       const counts  = computeHouseholdCounts(people, hh.id);
       const members = (peopleByHH[hh.id] || []);
       const dietary = members.filter(p => p.dietary).map(p => `${esc(p.firstName||p.title||"")}: ${esc(p.dietary)}`).join(" · ");
-      const kosherFlag = counts.kosher > 0 ? `<span style="color:#16a34a;font-weight:700">✓ Kosher (${counts.kosher})</span>` : "";
+      const kosherFlag = counts.kosher > 0 ? `<span style="color:#2d6a4f;font-weight:700">${iconSvg("check", "badge", { color: "#2d6a4f" })} Kosher (${counts.kosher})</span>` : "";
       const memberNames = members.map(p =>
-        `<span style="color:#374151">${esc((p.title ? p.title + " " : "") + (p.firstName||"") + " " + (p.lastName||""))}</span>`
+        `<span style="color:#1c1614">${esc((p.title ? p.title + " " : "") + (p.firstName||"") + " " + (p.lastName||""))}</span>`
       ).join(" · ");
       return `<tr>
-        <td style="padding:7px 10px;border-bottom:1px solid #f3f4f6;font-weight:600;color:#111827">${esc(hh.formalName||"")}</td>
-        <td style="padding:7px 10px;border-bottom:1px solid #f3f4f6;font-size:12px;color:#6b7280">${memberNames}</td>
-        <td style="padding:7px 10px;border-bottom:1px solid #f3f4f6;text-align:center">
+        <td style="padding:7px 10px;border-bottom:1px solid #e2ddd5;font-weight:600;color:#1c1614">${esc(hh.formalName||"")}</td>
+        <td style="padding:7px 10px;border-bottom:1px solid #e2ddd5;font-size:12px;color:#5c5248">${memberNames}</td>
+        <td style="padding:7px 10px;border-bottom:1px solid #e2ddd5;text-align:center">
           <span style="color:${statusColor(hh.rsvpStatus||"Invited")};font-weight:700;font-size:12px">${esc(hh.rsvpStatus||"Invited")}</span>
         </td>
-        <td style="padding:7px 10px;border-bottom:1px solid #f3f4f6;font-size:12px;text-align:center">${counts.adults}A ${counts.kids > 0 ? counts.kids + "K" : ""}</td>
-        <td style="padding:7px 10px;border-bottom:1px solid #f3f4f6;font-size:11px;color:#6b7280">${kosherFlag}${dietary ? (kosherFlag ? " · " : "") + dietary : ""}</td>
+        <td style="padding:7px 10px;border-bottom:1px solid #e2ddd5;font-size:12px;text-align:center">${counts.adults}A ${counts.kids > 0 ? counts.kids + "K" : ""}</td>
+        <td style="padding:7px 10px;border-bottom:1px solid #e2ddd5;font-size:11px;color:#5c5248">${kosherFlag}${dietary ? (kosherFlag ? " · " : "") + dietary : ""}</td>
       </tr>`;
     }).join("");
     return `<div style="margin-bottom:28px">
-      <div style="background:${accent};color:white;padding:8px 14px;border-radius:6px 6px 0 0;font-weight:700;font-size:13px;text-transform:uppercase;letter-spacing:0.05em">
+      <div style="background:${accent};color:${pal["accent-text"]};padding:8px 14px;border-radius:6px 6px 0 0;font-weight:700;font-size:13px;text-transform:uppercase;letter-spacing:0.05em">
         ${esc(group)} &nbsp;·&nbsp; ${hhs.length} household${hhs.length !== 1 ? "s" : ""}
       </div>
-      <table style="width:100%;border-collapse:collapse;font-size:13px;background:white">
+      <table style="width:100%;border-collapse:collapse;font-size:13px;background:#faf8f5">
         <thead><tr style="background:${accentLight}">
           <th style="padding:7px 10px;text-align:left;font-size:11px;font-weight:700;color:${accent};text-transform:uppercase">Household</th>
           <th style="padding:7px 10px;text-align:left;font-size:11px;font-weight:700;color:${accent};text-transform:uppercase">Members</th>
@@ -734,27 +729,27 @@ function generateGuestPrintHTML(households, people, eventName, eventDate, theme,
 <title>${esc(eventName||"Guest List")}</title>
 <style>
   * { box-sizing:border-box; margin:0; padding:0; }
-  body { font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; color:#111827; background:#fff; padding:24px; font-size:13px; }
+  body { font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; color:#1c1614; background:#faf8f5; padding:24px; font-size:13px; }
   @media print { body { padding:12px; } .no-print { display:none; } }
 </style></head><body>
   <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px;padding-bottom:14px;border-bottom:2px solid ${accent}">
     <div style="display:flex;align-items:center;gap:12px">
       ${logoUrl ? `<img src="${esc(logoUrl)}" alt="" style="width:40px;height:40px;border-radius:8px;object-fit:cover;flex-shrink:0">` : ""}
       <div>
-        <h1 style="font-size:22px;font-weight:800;color:#111827">${esc(eventName||"Guest List")}</h1>
-        ${dateStr ? `<div style="font-size:13px;color:#6b7280;margin-top:4px">${esc(dateStr)}</div>` : ""}
+        <h1 style="font-size:22px;font-weight:800;color:#1c1614">${esc(eventName||"Guest List")}</h1>
+        ${dateStr ? `<div style="font-size:13px;color:#5c5248;margin-top:4px">${esc(dateStr)}</div>` : ""}
       </div>
     </div>
     <div style="display:flex;gap:16px;text-align:center">
-      <div><div style="font-size:22px;font-weight:800;color:${accent}">${households.length}</div><div style="font-size:10px;color:#6b7280;font-weight:600;text-transform:uppercase">Households</div></div>
-      <div><div style="font-size:22px;font-weight:800;color:${accent}">${totalPeople}</div><div style="font-size:10px;color:#6b7280;font-weight:600;text-transform:uppercase">People</div></div>
-      <div><div style="font-size:22px;font-weight:800;color:#16a34a">${rsvpYes}</div><div style="font-size:10px;color:#6b7280;font-weight:600;text-transform:uppercase">Confirmed</div></div>
-      ${kosher > 0 ? `<div><div style="font-size:22px;font-weight:800;color:#16a34a">${kosher}</div><div style="font-size:10px;color:#6b7280;font-weight:600;text-transform:uppercase">Kosher</div></div>` : ""}
+      <div><div style="font-size:22px;font-weight:800;color:${accent}">${households.length}</div><div style="font-size:10px;color:#5c5248;font-weight:600;text-transform:uppercase">Households</div></div>
+      <div><div style="font-size:22px;font-weight:800;color:${accent}">${totalPeople}</div><div style="font-size:10px;color:#5c5248;font-weight:600;text-transform:uppercase">People</div></div>
+      <div><div style="font-size:22px;font-weight:800;color:#2d6a4f">${rsvpYes}</div><div style="font-size:10px;color:#5c5248;font-weight:600;text-transform:uppercase">Confirmed</div></div>
+      ${kosher > 0 ? `<div><div style="font-size:22px;font-weight:800;color:#2d6a4f">${kosher}</div><div style="font-size:10px;color:#5c5248;font-weight:600;text-transform:uppercase">Kosher</div></div>` : ""}
     </div>
   </div>
-  <button class="no-print" onclick="window.print()" style="margin-bottom:20px;padding:8px 18px;background:${accent};color:white;border:none;border-radius:6px;font-weight:700;cursor:pointer;font-size:13px">${iconSvg("printer", "button", { color: "#fff" })} Print</button>
+  <button class="no-print" onclick="window.print()" style="margin-bottom:20px;padding:8px 18px;background:${accent};color:${pal["accent-text"]};border:none;border-radius:6px;font-weight:700;cursor:pointer;font-size:13px">${iconSvg("printer", "button", { color: pal["accent-text"] })} Print</button>
   ${groupSections}
-  <div style="margin-top:24px;text-align:center;font-size:11px;color:#9ca3af">Generated ${new Date().toLocaleDateString()} · ${esc(eventName||"SimchaKit")}</div>
+  <div style="margin-top:24px;text-align:center;font-size:11px;color:#9c9188">Generated ${new Date().toLocaleDateString()} · ${esc(eventName||"SimchaKit")}</div>
 </body></html>`;
 }
 
