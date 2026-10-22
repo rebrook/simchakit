@@ -18,8 +18,7 @@ import { useEventData }       from "@/hooks/useEventData.js";
 import { DAY_OF_TIME_BLOCKS } from "@/constants/events.js";
 import { formatTimeRange, sortTimeline } from "@/utils/dates.js";
 import { Icon } from "@/utils/iconMap.jsx";
-import { usePdfShare, sanitizeFileName } from "@/hooks/usePdfShare.js";
-import { PrintOrShareButton } from "@/components/shared/PrintOrShareButton.jsx";
+import { PrintPreviewModal } from "@/components/shared/PrintPreviewModal.jsx";
 import { InfoPopover } from "@/components/shared/InfoPopover.jsx";
 import { METRIC_HELP } from "@/constants/metrics.js";
 import { iconSvg } from "@/utils/iconSvg.js";
@@ -864,7 +863,6 @@ export function DayOfOverlay({ eventId, event, adminConfig, onClose, onPrintBrie
 
   // Print Brief state
   const [printHTML,  setPrintHTML]  = useState(null);
-  const printFrameRef = useRef(null);
 
   const [showAddItem, setShowAddItem] = useState(false);
   const [editItem,    setEditItem]    = useState(null);
@@ -872,15 +870,6 @@ export function DayOfOverlay({ eventId, event, adminConfig, onClose, onPrintBrie
   // Mobile detection
   const isMobile = useIsMobile();
 
-  // Mobile: two-tap PDF share instead of iframe print (unreliable on iOS Safari)
-  const printPdf = usePdfShare({
-    getHtml: () => printHTML,
-    filename: `${sanitizeFileName(adminConfig?.name || event?.name)}-day-of-brief.pdf`,
-    title: `${adminConfig?.name || event?.name || "Event"} — Day-of Brief`,
-    onFallback: () => { const f = printFrameRef.current; if (f?.contentWindow) f.contentWindow.print(); },
-    deps: [printHTML],
-    inheritBody: true,
-  });
 
   // Load dayOf config
   useEffect(() => {
@@ -1297,48 +1286,7 @@ export function DayOfOverlay({ eventId, event, adminConfig, onClose, onPrintBrie
 
     {/* Print Brief preview modal */}
     {printHTML && (
-      <div className="modal-backdrop" style={{ zIndex: 1100 }} onMouseDown={e => { if (e.target === e.currentTarget) setPrintHTML(null); }}>
-        <div
-          onClick={e => e.stopPropagation()}
-          style={{
-            background: "var(--bg-surface)",
-            borderRadius: "var(--radius-lg)",
-            width: "95%",
-            maxWidth: 960,
-            height: "90vh",
-            display: "flex",
-            flexDirection: "column",
-            boxShadow: "var(--shadow-lg)",
-          }}
-        >
-          {/* Preview header */}
-          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"14px 20px", borderBottom:"1px solid var(--border)", flexShrink:0 }}>
-            <div style={{ fontSize:17, fontWeight:700, color:"var(--text-primary)" }}>
-              <Icon name="printer" context="inline" style={{ marginRight: 4 }} /> Print Event Brief
-            </div>
-            <div style={{ display:"flex", gap:8 }}>
-              <PrintOrShareButton
-                isMobile={isMobile}
-                pdf={printPdf}
-                printLabel="Print / Save PDF"
-                onPrint={() => {
-                  const frame = printFrameRef.current;
-                  if (frame && frame.contentWindow) frame.contentWindow.print();
-                }}
-              />
-              <button className="icon-btn" title="Close" aria-label="Close" onClick={() => setPrintHTML(null)}><Icon name="x" context="button" /></button>
-            </div>
-          </div>
-          {/* Preview iframe */}
-          <iframe
-            ref={printFrameRef}
-            srcDoc={printHTML}
-            sandbox="allow-same-origin allow-modals"
-            style={{ flex:1, border:"none", borderRadius:"0 0 var(--radius-lg) var(--radius-lg)" }}
-            title="Event Brief Preview"
-          />
-        </div>
-      </div>
+        <PrintPreviewModal html={printHTML} title="Print Event Brief" eventName={adminConfig?.name} docLabel="day-of-brief" onClose={() => setPrintHTML(null)} zIndex={1100} />
     )}
 
     {(showAddItem || editItem) && (

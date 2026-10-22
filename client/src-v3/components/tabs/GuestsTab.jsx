@@ -40,8 +40,7 @@ import { ConfirmDialog }     from "@/components/shared/ConfirmDialog.jsx";
 import { Modal }             from "@/components/shared/Modal.jsx";
 import { Icon }              from "@/utils/iconMap.jsx";
 import { useIsMobile }       from "@/hooks/useIsMobile.js";
-import { usePdfShare, sanitizeFileName } from "@/hooks/usePdfShare.js";
-import { PrintOrShareButton } from "@/components/shared/PrintOrShareButton.jsx";
+import { PrintPreviewModal } from "@/components/shared/PrintPreviewModal.jsx";
 
 // isInvited() and getSubEventStatus() now live in @/utils/sections.js so
 // OverviewTab, DayOfOverlay, and the Print Brief share this exact logic
@@ -76,15 +75,6 @@ export function GuestsTab({ eventId, event, adminConfig, showToast, isArchived, 
   const [showImport,           setShowImport]           = useState(false);
   const [showGuestExport,      setShowGuestExport]      = useState(false);
   const [guestPrintHTML,       setGuestPrintHTML]       = useState(null);
-  // Mobile: two-tap PDF share instead of iframe print (unreliable on iOS Safari)
-  const printPdf = usePdfShare({
-    getHtml: () => guestPrintHTML,
-    filename: `${sanitizeFileName(adminConfig?.name)}-guest-list.pdf`,
-    title: `${adminConfig?.name || "Event"} — guest list`,
-    onFallback: () => { const f = document.getElementById("guest-print-frame"); if (f?.contentWindow) f.contentWindow.print(); },
-    deps: [guestPrintHTML],
-    inheritBody: true,
-  });
   const [deleteConfirm,        setDeleteConfirm]        = useState(null);
   const [openRsvp,             setOpenRsvp]             = useState(null);
   const [outOfTownFilter,      setOutOfTownFilter]      = useState(false);
@@ -900,21 +890,7 @@ export function GuestsTab({ eventId, event, adminConfig, showToast, isArchived, 
         />
       )}
       {guestPrintHTML && (
-        <Modal
-          onClose={() => setGuestPrintHTML(null)}
-          ariaLabel="Print Preview: Guest List"
-          unstyled
-          style={{background:"var(--bg-surface)",borderRadius:"var(--radius-lg)",width:"95%",maxWidth:960,height:"90vh",display:"flex",flexDirection:"column",boxShadow:"var(--shadow-lg)"}}
-        >
-          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"14px 20px",borderBottom:"1px solid var(--border)",flexShrink:0}}>
-            <div style={{fontSize:17,fontWeight:700,color:"var(--text-primary)"}}>Print Preview — Guest List</div>
-            <div style={{display:"flex",gap:8}}>
-              <PrintOrShareButton isMobile={isMobile} pdf={printPdf} onPrint={()=>{const f=document.getElementById("guest-print-frame");if(f?.contentWindow)f.contentWindow.print();}} />
-              <button className="icon-btn" title="Close" aria-label="Close" onClick={()=>setGuestPrintHTML(null)}><Icon name="x" context="button" /></button>
-            </div>
-          </div>
-          <iframe id="guest-print-frame" srcDoc={guestPrintHTML} sandbox="allow-same-origin allow-modals" style={{flex:1,border:"none",borderRadius:"0 0 var(--radius-lg) var(--radius-lg)"}} title="Guest List Print Preview" />
-        </Modal>
+        <PrintPreviewModal html={guestPrintHTML} title="Print Preview — Guest List" eventName={adminConfig?.name} docLabel="guest-list" onClose={() => setGuestPrintHTML(null)} />
       )}
       {deleteConfirm && (
         <ConfirmDialog

@@ -14,8 +14,7 @@ import { autoSeatByHousehold } from "@/utils/seating.js";
 import { ArchivedNotice }     from "@/components/shared/ArchivedNotice.jsx";
 import { ConfirmDialog }      from "@/components/shared/ConfirmDialog.jsx";
 import { Icon }               from "@/utils/iconMap.jsx";
-import { usePdfShare, sanitizeFileName } from "@/hooks/usePdfShare.js";
-import { PrintOrShareButton } from "@/components/shared/PrintOrShareButton.jsx";
+import { PrintPreviewModal } from "@/components/shared/PrintPreviewModal.jsx";
 import { InfoPopover }        from "@/components/shared/InfoPopover.jsx";
 import { METRIC_HELP }        from "@/constants/metrics.js";
 import { getPersonSectionStatus, splitAdultsKids } from "@/utils/sections.js";
@@ -45,15 +44,6 @@ export function SeatingTab({ eventId, event, adminConfig, showToast, isArchived,
   const [isMobile,         setIsMobile]         = useState(() => window.innerWidth < 768);
   const [showExportModal,  setShowExportModal]  = useState(false);
   const [printHTML,        setPrintHTML]        = useState(null);
-  // Mobile: two-tap PDF share instead of iframe print (unreliable on iOS Safari)
-  const printPdf = usePdfShare({
-    getHtml: () => printHTML,
-    filename: `${sanitizeFileName(adminConfig?.name)}-seating-chart.pdf`,
-    title: `${adminConfig?.name || "Event"} — seating chart`,
-    onFallback: () => { const f = document.getElementById("seating-print-frame"); if (f?.contentWindow) f.contentWindow.print(); },
-    deps: [printHTML],
-    inheritBody: true,
-  });
   const [showAutoSeat,     setShowAutoSeat]     = useState(false);
   const [autoSeatResult,   setAutoSeatResult]   = useState(null);
 
@@ -692,18 +682,7 @@ export function SeatingTab({ eventId, event, adminConfig, showToast, isArchived,
       )}
 
       {printHTML && (
-        <div className="modal-backdrop" onMouseDown={e => { if (e.target === e.currentTarget) setPrintHTML(null); }}>
-          <div onClick={e => e.stopPropagation()} style={{ background: "var(--bg-surface)", borderRadius: "var(--radius-lg)", width: "95%", maxWidth: 960, height: "90vh", display: "flex", flexDirection: "column", boxShadow: "var(--shadow-lg)" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "14px 20px", borderBottom: "1px solid var(--border)", flexShrink: 0 }}>
-              <div style={{ fontSize: 17, fontWeight: 700, color: "var(--text-primary)" }}>Print Preview — Seating Chart</div>
-              <div style={{ display: "flex", gap: 8 }}>
-                <PrintOrShareButton isMobile={isMobile} pdf={printPdf} onPrint={() => { const f = document.getElementById("seating-print-frame"); if (f?.contentWindow) f.contentWindow.print(); }} />
-                <button className="icon-btn" title="Close" aria-label="Close" onClick={() => setPrintHTML(null)}><Icon name="x" context="button" /></button>
-              </div>
-            </div>
-            <iframe id="seating-print-frame" srcDoc={printHTML} sandbox="allow-same-origin allow-modals" style={{ flex: 1, border: "none", borderRadius: "0 0 var(--radius-lg) var(--radius-lg)" }} title="Seating Chart Print Preview" />
-          </div>
-        </div>
+        <PrintPreviewModal html={printHTML} title="Print Preview — Seating Chart" eventName={adminConfig?.name} docLabel="seating-chart" onClose={() => setPrintHTML(null)} />
       )}
 
       {/* Auto-Seat confirmation modal */}

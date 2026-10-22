@@ -14,12 +14,43 @@
 
 import { useState, useRef, useEffect, useCallback } from "react";
 
+// Capability, not screen size: true on touch-primary devices (phones, tablets,
+// including iPad at any width) that can share a PDF file. There, iframe
+// print() is unreliable, so the share flow is used instead. Live-updating.
+function detectShareFirst() {
+  if (typeof window === "undefined" || !window.matchMedia) return false;
+  try {
+    const file = new File([""], "t.pdf", { type: "application/pdf" });
+    return window.matchMedia("(pointer: coarse)").matches && !!navigator.canShare?.({ files: [file] });
+  } catch { return false; }
+}
+export function useShareFirst() {
+  const [v, setV] = useState(detectShareFirst);
+  useEffect(() => {
+    const mq = window.matchMedia("(pointer: coarse)");
+    const h = () => setV(detectShareFirst());
+    mq.addEventListener("change", h);
+    return () => mq.removeEventListener("change", h);
+  }, []);
+  return v;
+}
+
 // Sanitize for filenames: strip non-alphanumeric except spaces/hyphens, collapse
 export function sanitizeFileName(name) {
   return (name || "Event").replace(/[^\w\s-]/g, "").replace(/\s+/g, "-").replace(/-+/g, "-").slice(0, 60);
 }
 
 const ROOT_CLASS = "pdf-share-root";
+const HIDE_NO_PRINT = ".no-print{display:none!important}";
+
+// For the touch preview iframe: the generators' own in-document Print button
+// (.no-print) does nothing useful there, and a viewport meta plus horizontal
+// scroll lets wide tables be read instead of clipped.
+export function forTouchPreview(html) {
+  return html && html.includes("</head>")
+    ? html.replace("</head>", `<meta name="viewport" content="width=device-width, initial-scale=1"><style>${HIDE_NO_PRINT}html{overflow-x:auto}</style></head>`)
+    : html;
+}
 
 // Body rules don't apply to a div container. Re-target them at the container,
 // keeping type/colour but dropping layout and screen background (padding/margin/max-width/background), since the
@@ -89,7 +120,7 @@ export function usePdfShare({ getHtml, filename, title, fallbackText, onFallback
       const styles = [...html.matchAll(/<style[^>]*>([\s\S]*?)<\/style>/g)]
         .map(m => `<style>${inheritBody ? scopeBodyRules(m[1]) : m[1]}</style>`).join("");
       const bodyMatch = html.match(/<body[^>]*>([\s\S]*?)<\/body>/);
-      container.innerHTML = styles + (bodyMatch ? bodyMatch[1] : html);
+      container.innerHTML = `<style>${HIDE_NO_PRINT}</style>` + styles + (bodyMatch ? bodyMatch[1] : html);
 
       await document.fonts.ready;
 

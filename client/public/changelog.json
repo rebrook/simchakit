@@ -1,10 +1,24 @@
 {
-  "current": "V4.43.0",
+  "current": "V4.43.1",
   "whatsNew": [
-    "New: on phones, printing guest lists, seating charts, gift lists, favor lists, and the day-of brief now makes a PDF you can share or save",
-    "Desktop printing is unchanged"
+    "Fix: print previews no longer lose their header and close button on iPhone",
+    "Change: Print or Share PDF now depends on the device, not the screen width"
   ],
   "changelog": [
+    {
+      "version": "V4.43.1",
+      "date": "2026-10-22",
+      "summary": "Print previews fit the screen on iPhone, and Print versus Share PDF is chosen by device",
+      "changes": [
+        "Fix: on iPhone the print preview could extend past the top of the screen, hiding its title and close button; it now fits the visible screen",
+        "Fix: the Print button inside the preview did nothing on iPhone; it is hidden there, and the PDF no longer contains it",
+        "Change: all six print previews are now one shared window that fills the screen on narrow displays, keeps its header and close button in view, scrolls wide tables sideways, and uses larger touch targets",
+        "Change: Prepare PDF then Share PDF is offered on any touch device that can share files, including iPads at any width, instead of by screen width; other devices keep Print",
+        "Change: the Overview Share brief button follows the same rule"
+      ],
+      "roadmap": [],
+      "knownIssues": []
+    },
     {
       "version": "V4.43.0",
       "date": "2026-10-22",

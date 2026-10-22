@@ -28,7 +28,8 @@ import { getSectionHeadcount, getMealPopulation, isTrackingPerPerson } from "@/u
 import { setGuestsPreset } from "@/utils/guestsPreset.js";
 import { InfoPopover } from "@/components/shared/InfoPopover.jsx";
 import { METRIC_HELP } from "@/constants/metrics.js";
-import { usePdfShare, sanitizeFileName } from "@/hooks/usePdfShare.js";
+import { usePdfShare, sanitizeFileName, useShareFirst } from "@/hooks/usePdfShare.js";
+import { PrintPreviewModal } from "@/components/shared/PrintPreviewModal.jsx";
 
 // Abbreviate currency for mobile ring cards: $11,831.63 -> $11.8k
 function fmtCurrency(n, compact) {
@@ -51,6 +52,7 @@ function useIsMobile() {
 export function OverviewTab({ eventId, event, adminConfig, showToast, setActiveTab, onOpenAdmin, onOpenAdminTo, onOpenGuide, onPrintBrief, isViewer, setTopbarSubtitle, userName }) {
   const config    = adminConfig || {};
   const isMobile  = useIsMobile();
+  const shareFirst = useShareFirst();
   const mainEvent = (config.timeline || []).find(e => e.isMainEvent) || null;
   const eventDate = mainEvent?.startDate || null;
   const eventVenue = mainEvent?.venue || null;
@@ -116,7 +118,6 @@ export function OverviewTab({ eventId, event, adminConfig, showToast, setActiveT
 
   // Print Brief
   const [briefHTML,    setBriefHTML]    = useState(null);
-  const printFrameRef = useRef(null);
 
   const handlePrintBrief = useCallback(() => {
     const state = { people, households, expenses, vendors, tasks, ceremonyRoles };
@@ -236,8 +237,8 @@ export function OverviewTab({ eventId, event, adminConfig, showToast, setActiveT
               <Icon name="hand" context="inline" style={{ marginRight: 4 }} /> Setup checklist
             </button>
           )}
-          {/* Mobile only — two-tap PDF share: tap 1 generates, tap 2 shares */}
-          {isMobile && (
+          {/* Touch devices that can share files — two-tap PDF share: tap 1 generates, tap 2 shares */}
+          {shareFirst && (
             <button
               className={`btn btn-sm ${briefPdfState === "ready" ? "btn-primary" : "btn-secondary"}`}
               onClick={handleShareBriefClick}
@@ -534,30 +535,7 @@ export function OverviewTab({ eventId, event, adminConfig, showToast, setActiveT
 
       {/* Print Brief preview modal */}
       {briefHTML && (
-        <div className="modal-backdrop" style={{ zIndex: 1100 }} onMouseDown={e => { if (e.target === e.currentTarget) setBriefHTML(null); }}>
-          <div onClick={e => e.stopPropagation()} style={{
-            background: "var(--bg-surface)", borderRadius: "var(--radius-lg)",
-            width: "95%", maxWidth: 960, height: "90vh",
-            display: "flex", flexDirection: "column", boxShadow: "var(--shadow-lg)",
-          }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "14px 20px", borderBottom: "1px solid var(--border)", flexShrink: 0 }}>
-              <div style={{ fontSize: 17, fontWeight: 700, color: "var(--text-primary)" }}>
-                Print Preview — Event Brief
-              </div>
-              <div style={{ display: "flex", gap: 8 }}>
-                <button className="btn btn-primary" style={{ fontSize: 12, display: "inline-flex", alignItems: "center", gap: 4 }}
-                  onClick={() => { if (printFrameRef.current?.contentWindow) printFrameRef.current.contentWindow.print(); }}>
-                  <Icon name="printer" context="inline" /> Print / Save PDF
-                </button>
-                <button className="icon-btn" title="Close" aria-label="Close" onClick={() => setBriefHTML(null)}><Icon name="x" context="button" /></button>
-              </div>
-            </div>
-            <iframe ref={printFrameRef} srcDoc={briefHTML}
-              sandbox="allow-same-origin allow-modals"
-              style={{ flex: 1, border: "none", borderRadius: "0 0 var(--radius-lg) var(--radius-lg)" }}
-              title="Event Brief Print Preview" />
-          </div>
-        </div>
+        <PrintPreviewModal html={briefHTML} title="Print Preview — Event Brief" eventName={config.name} docLabel="event-brief" onClose={() => setBriefHTML(null)} zIndex={1100} />
       )}
     </div>
   );
