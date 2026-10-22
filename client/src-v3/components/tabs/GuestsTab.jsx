@@ -40,6 +40,7 @@ import { ConfirmDialog }     from "@/components/shared/ConfirmDialog.jsx";
 import { Modal }             from "@/components/shared/Modal.jsx";
 import { Icon }              from "@/utils/iconMap.jsx";
 import { useIsMobile }       from "@/hooks/useIsMobile.js";
+import { printDocument, isTouchPrimary } from "@/utils/printDocument.js";
 import { PrintPreviewModal } from "@/components/shared/PrintPreviewModal.jsx";
 
 // isInvited() and getSubEventStatus() now live in @/utils/sections.js so
@@ -885,7 +886,7 @@ export function GuestsTab({ eventId, event, adminConfig, showToast, isArchived, 
       {showGuestExport && (
         <GuestExportModal
           households={households} people={people} tables={tables} adminConfig={adminConfig}
-          onPrint={(html)=>{setGuestPrintHTML(html);setShowGuestExport(false);}}
+          onPrint={(html)=>{setShowGuestExport(false);if(isTouchPrimary())printDocument(html);else setGuestPrintHTML(html);}}
           onClose={()=>setShowGuestExport(false)}
         />
       )}

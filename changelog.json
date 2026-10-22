@@ -1,10 +1,20 @@
 {
-  "current": "V4.43.1",
+  "current": "V4.43.2",
   "whatsNew": [
-    "Fix: print previews no longer lose their header and close button on iPhone",
-    "Change: Print or Share PDF now depends on the device, not the screen width"
+    "Fix: printing the guest list on iPhone and iPad opens the standard print sheet in one tap"
   ],
   "changelog": [
+    {
+      "version": "V4.43.2",
+      "date": "2026-10-22",
+      "summary": "Guest list printing on phones and tablets uses the standard print sheet",
+      "changes": [
+        "Fix: on phones and tablets, exporting the guest list for print opens the device's own print sheet in one tap, where you can print, share, or save as PDF, instead of the two-step Prepare PDF and Share PDF flow, which could produce a blank PDF",
+        "Desktop printing is unchanged"
+      ],
+      "roadmap": [],
+      "knownIssues": []
+    },
     {
       "version": "V4.43.1",
       "date": "2026-10-22",
