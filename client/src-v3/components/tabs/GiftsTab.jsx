@@ -47,6 +47,8 @@ import { getAddressFields, formatAddress, migrateCityStateZip, COUNTRIES } from 
 import { ArchivedNotice }      from "@/components/shared/ArchivedNotice.jsx";
 import { ConfirmDialog }       from "@/components/shared/ConfirmDialog.jsx";
 import { Icon }                from "@/utils/iconMap.jsx";
+import { usePdfShare, sanitizeFileName } from "@/hooks/usePdfShare.js";
+import { PrintOrShareButton } from "@/components/shared/PrintOrShareButton.jsx";
 
 export function GiftsTab({ eventId, event, adminConfig, showToast, isArchived, isViewer, searchHighlight, clearSearchHighlight, setTopbarSubtitle }) {
   const { items: gifts,      loading: gLoading, save, remove } = useEventData(eventId, "gifts");
@@ -65,6 +67,15 @@ export function GiftsTab({ eventId, event, adminConfig, showToast, isArchived, i
 
   // Mobile card layout (760px matches the app-wide table-to-card breakpoint)
   const [isMobile,      setIsMobile]      = useState(() => window.innerWidth < 760);
+  // Mobile: two-tap PDF share instead of iframe print (unreliable on iOS Safari)
+  const printPdf = usePdfShare({
+    getHtml: () => printHTML,
+    filename: `${sanitizeFileName(adminConfig?.name)}-gift-list.pdf`,
+    title: `${adminConfig?.name || "Event"} — gift list`,
+    onFallback: () => { const f = document.getElementById("gift-print-frame"); if (f?.contentWindow) f.contentWindow.print(); },
+    deps: [printHTML],
+    inheritBody: true,
+  });
   const [expandedCards, setExpandedCards] = useState(new Set());
 
   // Column sorting (Amount / Received). null sortBy keeps the original default:
@@ -663,10 +674,7 @@ export function GiftsTab({ eventId, event, adminConfig, showToast, isArchived, i
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "14px 20px", borderBottom: "1px solid var(--border)", flexShrink: 0 }}>
               <div style={{ fontSize: 17, fontWeight: 700, color: "var(--text-primary)" }}>Print Preview — Gift List</div>
               <div style={{ display: "flex", gap: 8 }}>
-                <button className="btn btn-primary" style={{ fontSize: 12 }}
-                  onClick={() => { const f = document.getElementById("gift-print-frame"); if (f?.contentWindow) f.contentWindow.print(); }}>
-                  <Icon name="printer" context="inline" style={{ marginRight: 4 }} /> Print
-                </button>
+                <PrintOrShareButton isMobile={isMobile} pdf={printPdf} onPrint={() => { const f = document.getElementById("gift-print-frame"); if (f?.contentWindow) f.contentWindow.print(); }} />
                 <button className="icon-btn" title="Close" aria-label="Close" onClick={() => setPrintHTML(null)}><Icon name="x" context="button" /></button>
               </div>
             </div>

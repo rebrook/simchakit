@@ -1,10 +1,22 @@
 {
-  "current": "V4.42.2",
+  "current": "V4.43.0",
   "whatsNew": [
-    "Fix: task and gift row actions are visible on all touch devices",
-    "Accessibility: icon-only buttons are announced by screen readers"
+    "New: on phones, printing guest lists, seating charts, gift lists, favor lists, and the day-of brief now makes a PDF you can share or save",
+    "Desktop printing is unchanged"
   ],
   "changelog": [
+    {
+      "version": "V4.43.0",
+      "date": "2026-10-22",
+      "summary": "Reliable printing on iPhone: guest, seating, gift, favor, and day-of printouts are shared as PDFs on mobile",
+      "changes": [
+        "New: on phones, the print preview for the Guests, Seating, Gifts, Favors, and Day-of brief now has a two-step Prepare PDF, then Share PDF button, the same flow the Overview brief uses, because printing from the page is unreliable on iOS Safari",
+        "Change: the PDF flow was moved into one shared helper; the Overview brief behaves as before",
+        "Desktop printing is unchanged"
+      ],
+      "roadmap": [],
+      "knownIssues": []
+    },
     {
       "version": "V4.42.2",
       "date": "2026-10-21",

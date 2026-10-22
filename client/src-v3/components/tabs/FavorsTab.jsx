@@ -21,6 +21,8 @@ import { exportFavorsCSV, generateFavorPrintHTML } from "@/utils/exports.js";
 import { ArchivedNotice }     from "@/components/shared/ArchivedNotice.jsx";
 import { ConfirmDialog }      from "@/components/shared/ConfirmDialog.jsx";
 import { Icon }               from "@/utils/iconMap.jsx";
+import { usePdfShare, sanitizeFileName } from "@/hooks/usePdfShare.js";
+import { PrintOrShareButton } from "@/components/shared/PrintOrShareButton.jsx";
 import { supabase }           from "@/lib/supabase.js";
 import { getPersonSectionStatus } from "@/utils/sections.js";
 
@@ -116,6 +118,15 @@ export function FavorsTab({
   const [deleteConfirm,setDeleteConfirm]= useState(null);
   const [showExport,   setShowExport]   = useState(false);
   const [printHTML,    setPrintHTML]    = useState(null);
+  // Mobile: two-tap PDF share instead of iframe print (unreliable on iOS Safari)
+  const printPdf = usePdfShare({
+    getHtml: () => printHTML,
+    filename: `${sanitizeFileName(adminConfig?.name)}-favor-list.pdf`,
+    title: `${adminConfig?.name || "Event"} — favor list`,
+    onFallback: () => { const f = document.getElementById("favor-print-frame"); if (f?.contentWindow) f.contentWindow.print(); },
+    deps: [printHTML],
+    inheritBody: true,
+  });
   const [syncConfirm,  setSyncConfirm]  = useState(false);
   const [openTip,      setOpenTip]      = useState(null);
 
@@ -909,10 +920,7 @@ export function FavorsTab({
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "14px 20px", borderBottom: "1px solid var(--border)", flexShrink: 0 }}>
               <div style={{ fontSize: 17, fontWeight: 700, color: "var(--text-primary)" }}>Print Preview — Favor List</div>
               <div style={{ display: "flex", gap: 8 }}>
-                <button className="btn btn-primary" style={{ fontSize: 12 }}
-                  onClick={() => { const f = document.getElementById("favor-print-frame"); if (f?.contentWindow) f.contentWindow.print(); }}>
-                  <Icon name="printer" context="inline" style={{ marginRight: 4 }} /> Print
-                </button>
+                <PrintOrShareButton isMobile={isMobile} pdf={printPdf} onPrint={() => { const f = document.getElementById("favor-print-frame"); if (f?.contentWindow) f.contentWindow.print(); }} />
                 <button className="icon-btn" title="Close" aria-label="Close" onClick={() => setPrintHTML(null)}><Icon name="x" context="button" /></button>
               </div>
             </div>

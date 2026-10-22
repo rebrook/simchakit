@@ -18,6 +18,8 @@ import { useEventData }       from "@/hooks/useEventData.js";
 import { DAY_OF_TIME_BLOCKS } from "@/constants/events.js";
 import { formatTimeRange, sortTimeline } from "@/utils/dates.js";
 import { Icon } from "@/utils/iconMap.jsx";
+import { usePdfShare, sanitizeFileName } from "@/hooks/usePdfShare.js";
+import { PrintOrShareButton } from "@/components/shared/PrintOrShareButton.jsx";
 import { InfoPopover } from "@/components/shared/InfoPopover.jsx";
 import { METRIC_HELP } from "@/constants/metrics.js";
 import { iconSvg } from "@/utils/iconSvg.js";
@@ -870,6 +872,16 @@ export function DayOfOverlay({ eventId, event, adminConfig, onClose, onPrintBrie
   // Mobile detection
   const isMobile = useIsMobile();
 
+  // Mobile: two-tap PDF share instead of iframe print (unreliable on iOS Safari)
+  const printPdf = usePdfShare({
+    getHtml: () => printHTML,
+    filename: `${sanitizeFileName(adminConfig?.name || event?.name)}-day-of-brief.pdf`,
+    title: `${adminConfig?.name || event?.name || "Event"} — Day-of Brief`,
+    onFallback: () => { const f = printFrameRef.current; if (f?.contentWindow) f.contentWindow.print(); },
+    deps: [printHTML],
+    inheritBody: true,
+  });
+
   // Load dayOf config
   useEffect(() => {
     if (!eventId) return;
@@ -1305,16 +1317,15 @@ export function DayOfOverlay({ eventId, event, adminConfig, onClose, onPrintBrie
               <Icon name="printer" context="inline" style={{ marginRight: 4 }} /> Print Event Brief
             </div>
             <div style={{ display:"flex", gap:8 }}>
-              <button
-                className="btn btn-primary"
-                style={{ fontSize:12 }}
-                onClick={() => {
+              <PrintOrShareButton
+                isMobile={isMobile}
+                pdf={printPdf}
+                printLabel="Print / Save PDF"
+                onPrint={() => {
                   const frame = printFrameRef.current;
                   if (frame && frame.contentWindow) frame.contentWindow.print();
                 }}
-              >
-                <Icon name="printer" context="inline" style={{ marginRight: 4 }} /> Print / Save PDF
-              </button>
+              />
               <button className="icon-btn" title="Close" aria-label="Close" onClick={() => setPrintHTML(null)}><Icon name="x" context="button" /></button>
             </div>
           </div>
