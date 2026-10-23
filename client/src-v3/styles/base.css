@@ -1,0 +1,163 @@
+    /* ── Responsive breakpoints ────────────────────────────────────────────
+       Exactly two intentional thresholds in this stylesheet:
+         760px — table → card (matches useIsMobile.js; phones and small
+                 tablets get card/stacked layouts below this)
+         900px — app shell / sidebar collapse (bottom-nav + More drawer
+                 take over from the desktop sidebar below this)
+       If you're adding a new mobile rule, it belongs at one of these two
+       numbers. A third number is a sign something's drifted.
+       Exception: Admin Mode's sidebar→mobile-nav swap (below) tracks 900px
+       rather than 760px, since it's shell/navigation chrome, not content
+       that needs the table→card treatment. ── */
+
+    /* ── CSS Variables ──────────────────────────────────────────────────── */
+    :root {
+      --font-display: "Cormorant Garamond", Georgia, serif;
+      --font-body:    "DM Sans", system-ui, sans-serif;
+      --font-mono:    "DM Mono", monospace;
+      /*
+       * Typography rule (V4.1.0):
+       * --font-display (serif) is reserved for emotional/identity moments:
+       *   event names (everywhere), countdown, page/section titles (.section-title),
+       *   modal titles (.modal-title), placeholder titles, auth wordmark,
+       *   and the Day-of Mode panel title.
+       * Everything functional (nav labels, buttons, form labels, stat-card values,
+       *   stat-card labels, table headers, chart titles, calendar grid labels,
+       *   popover titles, vendor card names) uses --font-body, regardless of size.
+       * When in doubt: if it identifies the event or marks a ceremonial moment,
+       *   serif. If it labels UI chrome, sans.
+       */
+
+      /* Light theme */
+      --bg-base:       #faf8f5;
+      --bg-surface:    #ffffff;
+      --bg-subtle:     #f4f1ec;
+      --bg-muted:      #ede9e1;
+      --border:        #e2ddd5;
+      --border-strong: #c9c2b6;
+
+      --text-primary:   #1c1614;
+      --text-secondary: #5c5248;
+      --text-muted:     #9c9188;
+      --text-inverse:   #ffffff;
+
+      --accent-primary:  #7c3d52;   /* deep rose */
+      --accent-light:    #f0dde3;
+      --accent-medium:   #c9849a;
+      --accent-dark:     #5a2b3c;
+
+      --gold:            #b5821a;
+      --gold-light:      #f5ecd5;
+      --gold-medium:     #d4a843;
+
+      --search-hl-bg:     #fef9e7;
+      --search-hl-border: #d4a843;
+
+      --green:           #2d6a4f;
+      --green-light:     #d8f3dc;
+      --red:             #9b2335;
+      --red-light:       #fde8e8;
+      --blue:            #1e4d8c;
+      --blue-light:      #dbeafe;
+      --orange:          #9c4a12;
+      --orange-light:    #fef0e6;
+
+      /* ── Categorical chart palette (non-semantic, for multi-series charts) ── */
+      --chart-1: #6e8898;   /* blue-gray */
+      --chart-2: #8b6bae;   /* plum */
+      --chart-3: #4d9a9a;   /* teal */
+      --chart-4: #9a7080;   /* mauve */
+      --chart-5: #8a7358;   /* sienna */
+
+      --shadow-sm:  0 1px 3px rgba(28,22,20,0.08), 0 1px 2px rgba(28,22,20,0.04);
+      --shadow-md:  0 4px 12px rgba(28,22,20,0.10), 0 2px 4px rgba(28,22,20,0.06);
+      --shadow-lg:  0 12px 32px rgba(28,22,20,0.14), 0 4px 8px rgba(28,22,20,0.08);
+
+      --radius-sm: 6px;
+      --radius-md: 10px;
+      --radius-lg: 16px;
+      --radius-xl: 24px;
+      --radius-pill: 999px;
+
+      --shadow-accent: 0 2px 8px rgba(124,61,82,0.25);
+
+      --transition: 0.18s ease;
+    }
+
+    [data-theme="dark"] {
+      --bg-base:       #0f0d0c;
+      --bg-surface:    #1a1714;
+      --bg-subtle:     #231f1c;
+      --bg-muted:      #2d2926;
+      --border:        #3a3530;
+      --border-strong: #4a453e;
+
+      --text-primary:   #f0ece6;
+      --text-secondary: #b0a99f;
+      --text-muted:     #706860;
+      --text-inverse:   #1c1614;
+
+      --accent-primary:  #e8a0b8;
+      --accent-light:    #2a1820;
+      --accent-medium:   #c97090;
+      --accent-dark:     #f0c0d0;
+
+      --gold:            #d4a843;
+      --gold-light:      #2a2010;
+      --gold-medium:     #b58a30;
+
+      --search-hl-bg:     #2a200a;
+      --search-hl-border: #d4a843;
+
+      --green:           #4ade80;
+      --green-light:     #0a2010;
+      --red:             #f87171;
+      --red-light:       #2a0808;
+      --blue:            #60a5fa;
+      --blue-light:      #0a1828;
+      --orange:          #fb923c;
+      --orange-light:    #2a1008;
+
+      /* ── Categorical chart palette (dark-mode lifted) ── */
+      --chart-1: #90aab8;   /* blue-gray */
+      --chart-2: #b49dd4;   /* plum */
+      --chart-3: #70bcbc;   /* teal */
+      --chart-4: #c098a8;   /* mauve */
+      --chart-5: #b8a080;   /* sienna */
+
+      --shadow-sm:  0 1px 3px rgba(0,0,0,0.3);
+      --shadow-md:  0 4px 12px rgba(0,0,0,0.4);
+      --shadow-lg:  0 12px 32px rgba(0,0,0,0.5);
+
+      --shadow-accent: 0 2px 8px rgba(232,160,184,0.25);
+    }
+
+    /* ── Reset ──────────────────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body, #root {
+      height: 100%;
+      background: var(--bg-base);
+      color: var(--text-primary);
+      font-family: var(--font-body);
+      font-size: 15px;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    button {
+      font-family: var(--font-body);
+      font-size: 15px;
+    }
+    input, select, textarea {
+      font-family: var(--font-body);
+      font-size: 16px;
+    }
+
+    a { color: var(--accent-primary); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 3px; }
+

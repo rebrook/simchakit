@@ -1,0 +1,474 @@
+    /* ── Mobile bottom nav + More drawer (hidden above 900px) ──────────── */
+    .bottom-nav { display: none; }
+    .more-drawer-backdrop { display: none; }
+    .more-drawer { display: none; }
+
+    /* ── Navigation collapse (<=900px): bottom bar + More drawer ──────── */
+    @media (max-width: 900px) {
+
+      /* Page content — no extra bottom padding needed, bottom-nav is in-flow */
+      .page-content { padding: 16px 14px 24px; }
+
+      /* ── Bottom nav bar ── */
+      .bottom-nav {
+        display: flex;
+        flex-shrink: 0;
+        height: 60px;
+        padding-bottom: env(safe-area-inset-bottom, 0px);
+        box-sizing: content-box;
+        background: var(--bg-surface);
+        border-top: 1px solid var(--border);
+        align-items: center;
+      }
+      .bottom-nav-tab {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 2px;
+        background: none;
+        border: none;
+        cursor: pointer;
+        color: var(--text-muted);
+        font-family: var(--font-body);
+        padding: 6px 2px;
+        position: relative;
+        transition: color 0.15s ease;
+      }
+      .bottom-nav-tab.active { color: var(--accent-primary); }
+      .bottom-nav-icon { font-size: 18px; line-height: 1; }
+      .bottom-nav-label { font-size: 11px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+      .bottom-nav-tab.active .bottom-nav-label { font-weight: 700; }
+      /* Dot on the More button when a tab inside the drawer has a badge */
+      .bottom-nav-more-dot {
+        position: absolute;
+        top: 6px;
+        right: calc(50% - 14px);
+        width: 8px;
+        height: 8px;
+        background: var(--accent-primary);
+        border-radius: 50%;
+      }
+      .bottom-nav-badge {
+        position: absolute;
+        top: 4px;
+        right: calc(50% - 16px);
+        min-width: 16px;
+        height: 16px;
+        background: var(--accent-primary);
+        color: white;
+        font-size: 9px;
+        font-weight: 700;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0 4px;
+        border: 2px solid var(--bg-surface);
+      }
+      .bottom-nav-dot {
+        position: absolute;
+        top: 6px;
+        right: calc(50% - 14px);
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--accent-primary);
+        border: 2px solid var(--bg-surface);
+      }
+
+      /* ── More drawer backdrop ── */
+      .more-drawer-backdrop {
+        display: block;
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.35);
+        z-index: 290;
+      }
+
+      /* ── More drawer panel ── */
+      .more-drawer {
+        display: flex;
+        flex-direction: column;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: var(--bg-surface);
+        border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+        box-shadow: 0 -4px 24px rgba(0,0,0,0.15);
+        z-index: 350;
+        max-height: 70vh;
+        max-height: 80dvh;
+        padding-bottom: env(safe-area-inset-bottom, 0px);
+        transform: translateY(100%);
+        transition: transform 0.25s ease;
+      }
+      .more-drawer.open { transform: translateY(0); }
+      .more-drawer-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 14px 18px 10px;
+        border-bottom: 1px solid var(--border);
+        flex-shrink: 0;
+      }
+      .more-drawer-body {
+        flex: 1;
+        min-height: 0;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        overscroll-behavior: contain;
+      }
+      .more-drawer-title {
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+      }
+      .more-drawer-close {
+        background: none;
+        border: none;
+        cursor: pointer;
+        font-size: 16px;
+        color: var(--text-muted);
+        padding: 4px 6px;
+        border-radius: var(--radius-sm);
+        font-family: var(--font-body);
+        line-height: 1;
+      }
+      .more-drawer-item {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        width: 100%;
+        padding: 0 18px;
+        height: 52px;
+        background: none;
+        border: none;
+        border-bottom: 1px solid var(--border);
+        cursor: pointer;
+        font-family: var(--font-body);
+        color: var(--text-primary);
+        text-align: left;
+        transition: background 0.12s ease;
+      }
+      .more-drawer-item:last-child { border-bottom: none; }
+      .more-drawer-item.active { background: var(--accent-light); color: var(--accent-primary); }
+      .more-drawer-item-icon { font-size: 18px; flex-shrink: 0; }
+      .more-drawer-item-label { flex: 1; font-size: 15px; font-weight: 500; }
+      .more-drawer-item.active .more-drawer-item-label { font-weight: 700; }
+      .more-drawer-item-badge {
+        min-width: 20px;
+        height: 20px;
+        background: var(--accent-primary);
+        color: white;
+        font-size: 10px;
+        font-weight: 700;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0 5px;
+      }
+      .more-drawer-item-chevron {
+        font-size: 18px;
+        color: var(--text-muted);
+        flex-shrink: 0;
+      }
+
+      /* Footer — no extra margin needed, bottom-nav is in-flow */
+      .app-footer { margin-bottom: 0; }
+    }
+
+    /* ── Fine-grained mobile sizing (<=640px) ─────────────────────────── */
+    @media (max-width: 760px) {
+
+      /* Icon buttons: meet 44px minimum tap target on phone; glyph size (font-size) unchanged */
+      .icon-btn { width: 44px; height: 44px; font-size: 14px; }
+
+      /* Stat grid — always 2 columns on phone, tighter */
+      .stat-grid {
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
+        gap: 10px;
+        margin-bottom: 20px;
+      }
+      .stat-card { padding: 14px 16px; min-width: 0; }
+      .stat-card-ring { padding: 12px 14px; min-width: 0; }
+      .stat-value { font-size: 22px; }
+      .stat-label { font-size: 12px; }
+      .stat-sub { font-size: 11px; }
+      .stat-ring { width: 48px; height: 48px; }
+      .stat-ring::after { inset: 6px; }
+      .stat-ring-pct { font-size: 11px; }
+      .stat-ring-layout { gap: 10px; }
+      .stat-ring-text .stat-value { font-size: 20px; }
+      .stat-ring-text .stat-denom { font-size: 11px; }
+      .stat-ring-text .stat-pct { font-size: 10px; }
+      .stat-grid-secondary {
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        margin-bottom: 20px;
+      }
+
+      /* Section header — stack buttons below title on phone */
+      .section-header { flex-direction: column; align-items: flex-start; gap: 10px; }
+      .section-header > div:last-child { width: 100%; display: flex; gap: 8px; flex-wrap: wrap; }
+      .section-header .btn { flex: 1; justify-content: center; }
+      .section-header .btn-sm { min-height: 44px; }
+
+      /* Countdown — tighter */
+      .countdown-card { padding: 20px 18px; }
+      .countdown-title { font-size: 24px; }
+      .countdown-units { gap: 10px; }
+      .countdown-unit { padding: 8px 10px; min-width: 52px; }
+      .countdown-num { font-size: 24px; }
+
+      /* Modal — full screen on phone */
+      .modal-backdrop { padding: 0 12px 12px; align-items: flex-end; height: 100svh; bottom: auto; }
+      .modal { max-height: 85svh; border-radius: var(--radius-lg) var(--radius-lg) 0 0; }
+      .modal-lg { max-width: 100%; }
+
+      /* Guest list section header action buttons */
+      .guests-header-actions { width: 100%; }
+      .guests-header-actions .btn-sm { font-size: 12px; padding: 7px 10px; }
+    }
+
+    /* ── Household row mobile layout ─────────────────────────────────────── */
+    .hh-row-main {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      cursor: pointer;
+    }
+    .hh-row-name { flex: 1; min-width: 0; }
+    .hh-row-name-primary {
+      font-weight: 600;
+      font-size: 15px;
+      color: var(--text-primary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .hh-row-name-secondary {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 1px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .hh-row-meta {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+    .hh-row-counts {
+      font-size: 12px;
+      color: var(--text-muted);
+      white-space: nowrap;
+    }
+    .hh-row-actions {
+      display: flex;
+      gap: 4px;
+      flex-shrink: 0;
+    }
+
+    @media (max-width: 760px) {
+      /* On mobile, stack badges + counts below the name */
+      .hh-row-main { gap: 8px; padding: 12px 12px; }
+      .hh-row-name-primary { font-size: 15px; white-space: normal; }
+      .hh-row-name-secondary { font-size: 12px; white-space: normal; }
+      .hh-row-meta { display: none; }
+      .hh-row-mobile-meta {
+        display: flex !important;
+        align-items: center;
+        gap: 6px;
+        flex-wrap: wrap;
+        margin-top: 6px;
+      }
+      /* Tap targets sized via the global .icon-btn mobile rule; just need room between them */
+      .hh-row-actions { gap: 8px; }
+    }
+    .hh-row-mobile-meta { display: none; }
+
+    /* ── Mobile guest filters (≤760px via useIsMobile) ───────────────────── */
+    .guest-mobile-filters {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 16px;
+      position: sticky;
+      top: 0;
+      z-index: 5;
+      background: var(--bg-base);
+      padding: 8px 0 4px;
+    }
+    .guest-mobile-filters-top {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    .guest-mobile-add-btn {
+      min-width: 44px;
+      min-height: 44px;
+      padding: 0;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      border-radius: var(--radius-md);
+    }
+    .guest-mobile-chips {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+      padding: 2px 0;
+    }
+    .guest-mobile-chips::-webkit-scrollbar { display: none; }
+    .guest-chip {
+      min-height: 44px;
+      padding: 0 14px;
+      border-radius: 99px;
+      font-size: 13px;
+      font-weight: 600;
+      white-space: nowrap;
+      border: 1.5px solid var(--border);
+      background: var(--bg-surface);
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all var(--transition);
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      flex-shrink: 0;
+    }
+    .guest-chip-active {
+      border-color: var(--text-muted);
+      background: var(--bg-muted);
+      color: var(--text-primary);
+    }
+    .guest-chip-active.chip-confirmed {
+      border-color: var(--green);
+      background: var(--green-light);
+      color: var(--green);
+    }
+    .guest-chip-active.chip-pending {
+      border-color: var(--orange);
+      background: var(--orange-light);
+      color: var(--orange);
+    }
+    .guest-chip-active.chip-declined {
+      border-color: var(--red);
+      background: var(--red-light);
+      color: var(--red);
+    }
+
+    /* ── Mobile member cards (inside expanded household) ─────────────────── */
+    .member-card-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .member-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 10px 12px;
+    }
+    .member-card-header {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-bottom: 4px;
+    }
+    .member-card-name {
+      font-weight: 600;
+      font-size: 14px;
+      color: var(--text-primary);
+    }
+    .member-card-sections {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      margin-bottom: 4px;
+    }
+    .member-card-detail {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      font-size: 12px;
+      color: var(--text-secondary);
+      margin-top: 4px;
+    }
+
+    /* ── Notes textarea ──────────────────────────────────────────────────── */
+    .notes-area {
+      width: 100%;
+      min-height: 120px;
+      background: var(--bg-subtle);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 12px;
+      color: var(--text-primary);
+      font-family: var(--font-body);
+      font-size: 13px;
+      resize: vertical;
+      transition: border-color var(--transition);
+      line-height: 1.6;
+    }
+    .notes-area:focus {
+      outline: none;
+      border-color: var(--accent-medium);
+    }
+    .notes-area::placeholder { color: var(--text-muted); }
+
+    /* ── Placeholder tab ─────────────────────────────────────────────────── */
+    .placeholder-tab {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 80px 24px;
+      text-align: center;
+    }
+    .placeholder-icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+      opacity: 0.4;
+    }
+    .placeholder-title {
+      font-family: var(--font-display);
+      font-size: 22px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 8px;
+    }
+    .placeholder-desc {
+      font-size: 15px;
+      color: var(--text-muted);
+      max-width: 360px;
+      line-height: 1.6;
+    }
+    .placeholder-badge {
+      margin-top: 16px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      padding: 4px 12px;
+      border-radius: 20px;
+      background: var(--gold-light);
+      color: var(--gold);
+      border: 1px solid var(--gold-medium);
+    }
+
