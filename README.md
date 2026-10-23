@@ -2,7 +2,7 @@
 
 A real-time event planning web app for celebrations — B'nei Mitzvot, weddings, and other simchas.
 
-![Version](https://img.shields.io/badge/version-4.47.0-blue)
+![Version](https://img.shields.io/badge/version-4.48.0-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
 ## Hosted Version
@@ -141,7 +141,8 @@ simchakit/
 │   │   └── utils/           # Utility functions
 │   └── src-v3/              # V3 source — never modified for V2 work
 │       ├── App.v3.jsx       # V3 auth-aware root
-│       ├── App.css          # Shared stylesheet
+│       ├── App.css          # Stylesheet entry: imports styles/ in cascade order (do not reorder)
+│       ├── styles/          # base, shell, components, tabs, print (+ parts in subfolders)
 │       ├── main.v3.jsx      # V3 React entry point
 │       ├── components/      # V3 components (shell, tabs, events, auth)
 │       │   ├── admin/       # Admin Mode sections (one file per section; AdminPanel.jsx keeps shell, nav, shared state)

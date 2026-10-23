@@ -1,9 +1,21 @@
 {
-  "current": "V4.47.0",
+  "current": "V4.48.0",
   "whatsNew": [
-    "Internal cleanup: the app shell code was reorganized with no change to how it looks or works"
+    "Internal cleanup: the stylesheet was reorganized into smaller files with no change to how anything looks"
   ],
   "changelog": [
+    {
+      "version": "V4.48.0",
+      "date": "2026-10-23",
+      "summary": "Internal: stylesheet split into smaller files (no visible changes)",
+      "changes": [
+        "Change: the V3 stylesheet (App.css, about 5,000 lines) is split into 11 files under src-v3/styles/, grouped as base (tokens, reset), shell, components, tabs, and print. App.css now just imports them in the original order so the cascade is unchanged",
+        "No visible changes: the built CSS bundle is byte-for-byte identical to the previous version. Final step of the D2 module-split refactor",
+        "No database changes. Applies to the V3 app only"
+      ],
+      "roadmap": [],
+      "knownIssues": []
+    },
     {
       "version": "V4.47.0",
       "date": "2026-10-23",

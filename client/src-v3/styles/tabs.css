@@ -1,0 +1,5 @@
+/* tabs.css — per-tab styles: budget, vendors, tasks, search, calendar, day-of, gifts (split from App.css, V4.48.0; order preserved) */
+@import "./tabs/budget.css";
+@import "./tabs/vendors-tasks.css";
+@import "./tabs/search-calendar.css";
+@import "./tabs/dayof-gifts.css";

@@ -1,0 +1,4 @@
+/* components.css — shared components: cards/stats/modal, mobile nav + drawer + mobile layouts, buttons, forms, alerts, tags (split from App.css, V4.48.0; order preserved) */
+@import "./components/cards.css";
+@import "./components/mobile.css";
+@import "./components/controls.css";

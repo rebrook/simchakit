@@ -1,0 +1,3 @@
+/* shell.css — app shell: layout, desktop sidebar, top bar, notifications, mobile header, avatars, nav (split from App.css, V4.48.0; order preserved) */
+@import "./shell/sidebar.css";
+@import "./shell/main.css";
