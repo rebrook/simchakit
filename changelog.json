@@ -1,9 +1,21 @@
 {
-  "current": "V4.45.0",
+  "current": "V4.46.0",
   "whatsNew": [
-    "Internal cleanup: the Guests tab code was reorganized with no change to how it looks or works"
+    "Internal cleanup: the Day-of overlay code was reorganized with no change to how it looks or works"
   ],
   "changelog": [
+    {
+      "version": "V4.46.0",
+      "date": "2026-10-23",
+      "summary": "Internal: Day-of overlay split into smaller files (no visible changes)",
+      "changes": [
+        "Change: the Day-of overlay code (DayOfOverlay.jsx, about 1,300 lines) is split so the print brief HTML generator lives in utils/dayofBrief.js, the shared time helpers in utils/dayofTime.js, and the mobile Day-of view in components/dayof/MobileDayOf.jsx",
+        "No visible changes: this is a pure code move with the same behavior and styling. Third step of the D2 module-split refactor",
+        "No database changes. Applies to the V3 app only"
+      ],
+      "roadmap": [],
+      "knownIssues": []
+    },
     {
       "version": "V4.45.0",
       "date": "2026-10-23",
