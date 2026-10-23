@@ -2,6 +2,7 @@ import { iconSvg } from "./iconSvg.js";
 import { PALETTES } from "@/constants/theme.js";
 import { newHouseholdId, newPersonId } from "./ids.js";
 import { resolveMainEvent } from "./sections.js";
+import { csvEsc } from "./csv.js";
 
 // ── Address constants ─────────────────────────────────────────────────────────
 
@@ -220,8 +221,7 @@ function generateCSVTemplate(adminConfig) {
     groups[0]||"Family","Invited",secs[0]||"All Events","No","No","No","",
     "Lisa","Simpson","Miss","Yes","","S","S",meals[0]||"","No","Peanut allergy",""
   ];
-  const esc = v => { const s=String(v||""); return (s.includes(",")||s.includes('"')) ? '"'+s.replace(/"/g,'""')+'"' : s; };
-  return [headers.join(","), ex.map(esc).join(",")].join("\n");
+  return [headers.join(","), ex.map(csvEsc).join(",")].join("\n");
 }
 
 // ── CSV import field aliases ───────────────────────────────────────────────────
@@ -497,14 +497,6 @@ function importCSVToGuestData(rows, mapping, isPeopleCentric) {
 
 function exportToInvitationCSV(households, people) {
   const headers = ["Last Name","Name","Name 2","Address 1","Address 2","City","State / Province","Postal Code","Country","Household","Adults","Children"];
-  const esc = v => {
-    let s = String(v||"");
-    // Formula-injection hardening (SK-A7) — kept local to avoid a circular
-    // import with exports.js (which already imports from this file). Must
-    // stay byte-for-byte in sync with csvEsc() in utils/exports.js.
-    if (/^[=+\-@\t\r]/.test(s)) s = "'" + s;
-    return (s.includes(",")||s.includes('"')) ? '"'+s.replace(/"/g,'""')+'"' : s;
-  };
   const rows = [...households].sort((a,b) => {
     const la=(a.formalName||"").split(" ").pop().toLowerCase();
     const lb=(b.formalName||"").split(" ").pop().toLowerCase();
@@ -522,7 +514,8 @@ function exportToInvitationCSV(households, people) {
       1, c.adults, c.kids
     ];
   });
-  return [headers.map(esc).join(","), ...rows.map(r => r.map(esc).join(","))].join("\n");
+  // Counts of 0 stay blank (v || "") exactly as before the shared csvEsc.
+  return [headers.map(csvEsc).join(","), ...rows.map(r => r.map(v => csvEsc(v || "")).join(","))].join("\n");
 }
 
 // ── Guest export: By Household ───────────────────────────────────────────────
@@ -530,11 +523,6 @@ function exportToInvitationCSV(households, people) {
 function exportGuestsByHousehold(households, people, adminConfig) {
   const timeline = adminConfig?.timeline || [];
   const mainEvent = resolveMainEvent(timeline);
-  const esc = v => {
-    let s = String(v || "");
-    if (/^[=+\-@\t\r]/.test(s)) s = "'" + s;
-    return (s.includes(",") || s.includes('"') || s.includes("\n")) ? '"' + s.replace(/"/g, '""') + '"' : s;
-  };
   const headers = [
     "Last Name", "Formal Name", "Name 2", "Group", "RSVP Status",
     "Adults (invited)", "Kids (invited)", "Adults (attending)", "Kids (attending)",
@@ -572,7 +560,8 @@ function exportGuestsByHousehold(households, people, adminConfig) {
       hh.notes || ""
     ];
   });
-  return [headers.map(esc).join(","), ...rows.map(r => r.map(esc).join(","))].join("\n");
+  // Counts of 0 stay blank (v || "") exactly as before the shared csvEsc.
+  return [headers.map(csvEsc).join(","), ...rows.map(r => r.map(v => csvEsc(v || "")).join(","))].join("\n");
 }
 
 // ── Guest export: By Person ──────────────────────────────────────────────────
@@ -602,11 +591,6 @@ function exportGuestsByPerson(households, people, adminConfig, tables) {
       const entry = timeline.find(e => e.id === sid);
       return `${entry ? entry.title : sid}: ${name}`;
     }).join("; ");
-  };
-  const esc = v => {
-    let s = String(v || "");
-    if (/^[=+\-@\t\r]/.test(s)) s = "'" + s;
-    return (s.includes(",") || s.includes('"') || s.includes("\n")) ? '"' + s.replace(/"/g, '""') + '"' : s;
   };
   const headers = [
     "First Name", "Last Name", "Title", "Household", "Group", "RSVP Status",
@@ -642,7 +626,7 @@ function exportGuestsByPerson(households, people, adminConfig, tables) {
       sections
     ];
   });
-  return [headers.map(esc).join(","), ...rows.map(r => r.map(esc).join(","))].join("\n");
+  return [headers.map(csvEsc).join(","), ...rows.map(r => r.map(csvEsc).join(","))].join("\n");
 }
 
 // ── Guest export: Printable HTML view ────────────────────────────────────────
@@ -757,11 +741,6 @@ function generateGuestPrintHTML(households, people, eventName, eventDate, theme,
 // ── Guest export: Email List ─────────────────────────────────────────────────
 // One row per household with email and phone. Audience: mail merge, bulk email, RSVP follow-up.
 function exportEmailListCSV(households) {
-  const esc = v => {
-    let s = String(v || "");
-    if (/^[=+\-@\t\r]/.test(s)) s = "'" + s;
-    return (s.includes(",") || s.includes('"') || s.includes("\n")) ? '"' + s.replace(/"/g, '""') + '"' : s;
-  };
   const headers = ["Last Name", "Formal Name", "Group", "RSVP Status", "Email", "Phone"];
   const sorted = [...households]
     .filter(hh => hh.email && hh.email.trim())
@@ -777,7 +756,7 @@ function exportEmailListCSV(households) {
       hh.rsvpStatus || "Invited", hh.email || "", hh.phone || "",
     ];
   });
-  return [headers.map(esc).join(","), ...rows.map(r => r.map(esc).join(","))].join("\n");
+  return [headers.map(csvEsc).join(","), ...rows.map(r => r.map(csvEsc).join(","))].join("\n");
 }
 
 export {
