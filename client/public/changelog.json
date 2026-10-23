@@ -1,9 +1,22 @@
 {
-  "current": "V4.44.0",
+  "current": "V4.45.0",
   "whatsNew": [
-    "Internal cleanup: the Admin panel code was reorganized with no change to how it looks or works"
+    "Internal cleanup: the Guests tab code was reorganized with no change to how it looks or works"
   ],
   "changelog": [
+    {
+      "version": "V4.45.0",
+      "date": "2026-10-23",
+      "summary": "Internal: Guests tab split into smaller files (no visible changes)",
+      "changes": [
+        "Change: the Guests tab code (GuestsTab.jsx, about 1,600 lines) is split so the household editor, CSV import, export dialog, timeline entry dialog, and guest insights panel each live in their own file under components/guests/",
+        "Change: the awaiting-guests list, the mobile sub-event filter sheet, and the search/filter bar also moved into components/guests/, bringing GuestsTab.jsx to about 770 lines",
+        "No visible changes: this is a pure code move with the same behavior and styling. Second step of the D2 module-split refactor",
+        "No database changes. Applies to the V3 app only"
+      ],
+      "roadmap": [],
+      "knownIssues": []
+    },
     {
       "version": "V4.44.0",
       "date": "2026-10-23",
