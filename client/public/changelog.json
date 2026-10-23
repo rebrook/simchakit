@@ -1,9 +1,21 @@
 {
-  "current": "V4.43.7",
+  "current": "V4.44.0",
   "whatsNew": [
-    "Fix: on desktop, the bottom of the sidebar and page was cut off when the demo or archived banner was showing"
+    "Internal cleanup: the Admin panel code was reorganized with no change to how it looks or works"
   ],
   "changelog": [
+    {
+      "version": "V4.44.0",
+      "date": "2026-10-23",
+      "summary": "Internal: Admin panel split into smaller section files (no visible changes)",
+      "changes": [
+        "Change: the Admin Mode panel code (AdminPanel.jsx, about 1,500 lines) is split into one file per section under components/admin/ (Event Details, Timeline, Clergy & Tutor, Guests, Accommodations, Theme, Tabs, Collaborators, Calendar, Security, Data, and the backup/unarchive/reset dialogs)",
+        "No visible changes: this is a pure code move with the same behavior and styling. First step of the D2 module-split refactor",
+        "No database changes. Applies to the V3 app only"
+      ],
+      "roadmap": [],
+      "knownIssues": []
+    },
     {
       "version": "V4.43.7",
       "date": "2026-10-23",
@@ -37,7 +49,7 @@
         "Change: reset, expand/collapse, warning, and print controls now use icons instead of text symbols",
         "Change: every expand/collapse arrow, the RSVP pill arrow, and the Day-of brief checkboxes now use icons, and the printed guest list uses the same colors as the other printed documents",
         "Change: the footer is now a single line with the SimchaKit credit, the about link, and the sync dot",
-        "Change: the Event ID moved to Admin → Event Details with a copy button, and your email no longer appears in the footer",
+        "Change: the Event ID moved to Admin \u2192 Event Details with a copy button, and your email no longer appears in the footer",
         "Applies to the V3 app only"
       ],
       "roadmap": [],
