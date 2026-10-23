@@ -1,9 +1,22 @@
 {
-  "current": "V4.49.1",
+  "current": "V4.49.2",
   "whatsNew": [
-    "CSV exports are now safe to open in Excel and Sheets: names and notes that look like formulas show as plain text"
+    "Internal cleanup: shared theme and avatar code consolidated with no change to how anything looks"
   ],
   "changelog": [
+    {
+      "version": "V4.49.2",
+      "date": "2026-10-23",
+      "summary": "Internal: duplicate theme palettes, avatar helpers, and color functions removed (no visible changes)",
+      "changes": [
+        "Change: the nine theme palettes now live only in constants/theme.js; the copies inside the theme provider and the event picker are removed (the picker derives its accent and light colors from the shared palettes)",
+        "Change: avatar color and initials now live only in utils/avatar.js, shared by the sidebar, account row, and notification panel, so a person gets the same color everywhere. The color function also tolerates a missing name",
+        "Change: the theme provider's inlined color helpers (hexToHSL, hslToHex, deriveCustomPalette and others) are removed in favor of the identical ones in utils/color.js",
+        "No visible changes: the generated theme CSS for all palettes and custom colors, and the avatar colors and initials, are identical to before. No database changes. Applies to the V3 app only"
+      ],
+      "roadmap": [],
+      "knownIssues": []
+    },
     {
       "version": "V4.49.1",
       "date": "2026-10-23",

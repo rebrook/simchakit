@@ -3,7 +3,7 @@ import { supabase } from "@/lib/supabase.js";
 import { EventLogoControl } from "@/components/shared/EventLogoControl.jsx";
 import { Icon } from "@/utils/iconMap.jsx";
 import { EventSwitcher } from "@/components/shell/EventSwitcher.jsx";
-import { avatarColor, avatarInitials } from "@/components/shell/avatarHelpers.js";
+import { avatarColor, avatarInitials } from "@/utils/avatar.js";
 
 export function Sidebar({ activeTab, adminConfig, coPlanners, collaboratorRole, darkMode, event, eventId, eventTypeIconKey, isCoordinator, isDemoMode, navigateTo, onBack, onLogoSaved, onSelectEvent, onlineUserIds, openAdmin, session, setDarkMode, setShowAccountMenu, setShowActivityLog, setShowDayOf, setShowGuide, setShowInviteModal, setShowWhatsNew, showAccountMenu, sidebarGroups, switcherDate, userBg, userInit, userName }) {
   return (

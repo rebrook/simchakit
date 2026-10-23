@@ -8,26 +8,7 @@
 import { useEffect, useRef } from "react";
 import { Icon }              from "@/utils/iconMap.jsx";
 import { ACTION_COLORS }     from "@/constants/ui.js";
-
-// ── Avatar helpers (same logic as AppShell — intentionally duplicated to keep
-//    this component self-contained; the avatar palette is tiny) ───────────────
-const AVATAR_FILLS = [
-  "#9b2335", "#0d1b2e", "#2d6a4f", "#5b3a8c", "#4a5568",
-  "#8b4c2a", "#1a6b6b", "#2d3748", "#8c5a6e",
-];
-
-function avatarColor(name) {
-  let hash = 0;
-  for (let i = 0; i < (name || "").length; i++) hash = ((hash << 5) - hash + name.charCodeAt(i)) | 0;
-  return AVATAR_FILLS[Math.abs(hash) % AVATAR_FILLS.length];
-}
-
-function avatarInitials(displayName) {
-  if (!displayName) return "?";
-  const parts = displayName.trim().split(/\s+/);
-  if (parts.length >= 2) return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
-  return parts[0][0].toUpperCase();
-}
+import { avatarColor, avatarInitials } from "@/utils/avatar.js";
 
 // ── Relative time formatter ──────────────────────────────────────────────────
 function relativeTime(iso) {

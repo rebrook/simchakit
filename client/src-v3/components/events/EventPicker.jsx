@@ -16,6 +16,7 @@ import { DeleteEventConfirm }    from "./DeleteEventConfirm.jsx";
 import { PaywallGate }           from "./PaywallGate.jsx";
 import { Icon }                  from "@/utils/iconMap.jsx";
 import { EVENT_TYPE_ICON_KEYS }  from "@/constants/events.js";
+import { PALETTES }              from "@/constants/theme.js";
 import { hasEventPassed }        from "@/utils/dates.js";
 import {
   EVENT_LIST_COLUMNS,
@@ -24,18 +25,11 @@ import {
   mapCollaboratedRows,
 } from "@/utils/userEvents.js";
 
-// ── Palette + type maps (mirrors V2 index.html exactly) ──────────────────────
-const PALETTES = {
-  "rose":      { accent: "#c4637a", light: "#fdf0f3" },
-  "navy-gold": { accent: "#b8962e", light: "#fdf8ec" },
-  "forest":    { accent: "#3d7a5e", light: "#eef6f1" },
-  "purple":    { accent: "#6b4fa0", light: "#f3eefa" },
-  "slate":     { accent: "#3d5a80", light: "#eef2f8" },
-  "copper":    { accent: "#b06030", light: "#fdf4ee" },
-  "teal":      { accent: "#2a8a8a", light: "#eaf6f6" },
-  "charcoal":  { accent: "#4a4a4a", light: "#f4f4f4" },
-  "blush":     { accent: "#c47a8a", light: "#fdf0f3" },
-};
+// ── Palette + type maps ──────────────────────────────────────────────────────
+// The picker cards only need accent + light; derived from the shared palettes.
+const PICKER_PALETTES = Object.fromEntries(
+  Object.entries(PALETTES).map(([key, p]) => [key, { accent: p.accent, light: p["accent-light"] }])
+);
 
 const EVENT_TYPE_LABELS = {
   "bat-mitzvah":  "Bat Mitzvah",
@@ -201,7 +195,7 @@ export function EventPicker({ session, displayName: userDisplayName, onSelectEve
   // ── Helpers to derive display values from event row ───────────────────────
   function getEventMeta(ev) {
     const cfg      = ev.admin_config || {};
-    const palette  = PALETTES[cfg.theme?.palette] || PALETTES["rose"];
+    const palette  = PICKER_PALETTES[cfg.theme?.palette] || PICKER_PALETTES["rose"];
     const typeIconKey = EVENT_TYPE_ICON_KEYS[ev.type] || "sparkles";
     const themeIcon = cfg.theme?.icon || "";
     const timeline = cfg.timeline || [];
