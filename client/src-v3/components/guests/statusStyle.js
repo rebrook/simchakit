@@ -4,7 +4,7 @@
 // Shared RSVP status color mapping — used by the main household RsvpPill and the
 // per-sub-event RsvpPill in both GuestsTab and HouseholdModal, so colors never
 // drift between the two.
-const statusStyle = {
+export const statusStyle = {
   "Invited":  { bg:"var(--blue-light)",   color:"var(--blue)"   },
   "RSVP Yes": { bg:"var(--green-light)",  color:"var(--green)"  },
   "RSVP No":  { bg:"var(--red-light)",    color:"var(--red)"    },
