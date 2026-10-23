@@ -1,9 +1,21 @@
 {
-  "current": "V4.46.0",
+  "current": "V4.47.0",
   "whatsNew": [
-    "Internal cleanup: the Day-of overlay code was reorganized with no change to how it looks or works"
+    "Internal cleanup: the app shell code was reorganized with no change to how it looks or works"
   ],
   "changelog": [
+    {
+      "version": "V4.47.0",
+      "date": "2026-10-23",
+      "summary": "Internal: app shell split into smaller files (no visible changes)",
+      "changes": [
+        "Change: the app shell code (AppShell.jsx, about 1,400 lines) is split so the desktop sidebar, mobile header, top bar, bottom nav, More drawer, footer, and demo/archived/Day-of banners each live in their own file under components/shell/, with the tab and date helpers in shellConfig.js, shellDates.js, and avatarHelpers.js",
+        "No visible changes: this is a pure code move with the same behavior and styling. Fourth step of the D2 module-split refactor",
+        "No database changes. Applies to the V3 app only"
+      ],
+      "roadmap": [],
+      "knownIssues": []
+    },
     {
       "version": "V4.46.0",
       "date": "2026-10-23",

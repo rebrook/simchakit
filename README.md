@@ -2,7 +2,7 @@
 
 A real-time event planning web app for celebrations — B'nei Mitzvot, weddings, and other simchas.
 
-![Version](https://img.shields.io/badge/version-4.46.0-blue)
+![Version](https://img.shields.io/badge/version-4.47.0-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
 ## Hosted Version
@@ -146,7 +146,8 @@ simchakit/
 │       ├── components/      # V3 components (shell, tabs, events, auth)
 │       │   ├── admin/       # Admin Mode sections (one file per section; AdminPanel.jsx keeps shell, nav, shared state)
 │       │   ├── guests/      # Guests tab pieces (HouseholdModal, ImportModal, GuestExportModal, TimelineEntryModal, GuestInsights, GuestFilters, AwaitingPanel, MobileFilterSheet)
-│       │   └── dayof/       # Mobile Day-of view (DayOfOverlay.jsx keeps the desktop overlay)
+│       │   ├── dayof/       # Mobile Day-of view (DayOfOverlay.jsx keeps the desktop overlay)
+│       │   └── shell/       # App shell pieces (AppShell.jsx keeps state and routing; Sidebar, MobileHeader, TopBar, BottomNav, MoreDrawer, AppFooter, ShellBanners, shellConfig/shellDates/avatarHelpers)
 │       ├── constants/       # V3 constants
 │       ├── hooks/           # V3 hooks (useEventData, useDarkMode)
 │       ├── lib/             # Supabase client
