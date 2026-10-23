@@ -2,7 +2,7 @@
 
 A real-time event planning web app for celebrations — B'nei Mitzvot, weddings, and other simchas.
 
-![Version](https://img.shields.io/badge/version-4.43.5-blue)
+![Version](https://img.shields.io/badge/version-4.43.6-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
 ## Hosted Version
@@ -222,7 +222,8 @@ See [HOW_TO_DEPLOY.md](HOW_TO_DEPLOY.md) for detailed instructions.
 
 ```bash
 cd client
-npm run dev  # Vite dev server at http://localhost:5173/
+npm run dev   # Vite dev server at http://localhost:5173/
+npm run lint  # react-hooks rules check (currently scoped to src-v3/App.v3.jsx)
 ```
 
 ### V2
