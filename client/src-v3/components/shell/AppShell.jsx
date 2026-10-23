@@ -470,6 +470,16 @@ export function AppShell({ session, eventId, onBack, onSelectEvent = null, isDem
     return fallback;
   };
 
+  // ── Scroll reset on tab entry ─────────────────────────────────────────────
+  // Mobile layout (<=900px): the window scrolls. Desktop layout: the content
+  // scrolls inside .app-main-scroll, so the window call alone leaves the
+  // previous tab's offset behind. Reset both.
+  const mainScrollRef = useRef(null);
+  const resetScroll = () => {
+    window.scrollTo(0, 0);
+    if (mainScrollRef.current) mainScrollRef.current.scrollTop = 0;
+  };
+
   // ── Navigate to tab ───────────────────────────────────────────────────────
   const navigateTo = (tabId) => {
     const applied = applyTabWithPermissionCheck(tabId);
@@ -479,7 +489,7 @@ export function AppShell({ session, eventId, onBack, onSelectEvent = null, isDem
     // on. Tab state still changes normally, just without a URL change.
     if (eventId && !isDemoMode) pushEventPath(eventId, applied);
     setShowMoreDrawer(false);
-    window.scrollTo(0, 0);
+    resetScroll();
     // Refresh notification count on tab change (lightweight count-only query)
     refreshNotifCount();
   };
@@ -496,6 +506,7 @@ export function AppShell({ session, eventId, onBack, onSelectEvent = null, isDem
       const route = parseEventRoute(window.location.pathname);
       const requestedTab = route?.tab && ALL_TABS.some(t => t.id === route.tab) ? route.tab : "overview";
       const applied = applyTabWithPermissionCheck(requestedTab);
+      resetScroll();   // back/forward lands at the top of the tab, like navigateTo
       if (applied !== requestedTab && eventId && !isDemoMode) {
         // Permission denied what the URL asked for — correct the URL to
         // match what we actually applied. replaceState, not push: this is
@@ -653,7 +664,7 @@ export function AppShell({ session, eventId, onBack, onSelectEvent = null, isDem
         <TopBar activeTab={activeTab} isArchived={!!(event?.archived)} isViewer={collaboratorRole === "viewer"} setShowNotifPanel={setShowNotifPanel} setShowSearch={setShowSearch} syncDisplay={syncDisplay} topbarSubtitle={topbarSubtitle} unreadCount={unreadCount} />
 
         {/* ── Scrollable area (pinned topbar above, content + footer scroll) ── */}
-        <div className="app-main-scroll">
+        <div className="app-main-scroll" ref={mainScrollRef}>
 
         {/* ── Page content ── */}
         <main className="page-content">

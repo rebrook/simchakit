@@ -1,9 +1,20 @@
 {
-  "current": "V4.49.2",
+  "current": "V4.49.3",
   "whatsNew": [
-    "Internal cleanup: shared theme and avatar code consolidated with no change to how anything looks"
+    "Switching tabs on desktop now always starts at the top of the page"
   ],
   "changelog": [
+    {
+      "version": "V4.49.3",
+      "date": "2026-10-23",
+      "summary": "Switching tabs on desktop now starts at the top",
+      "changes": [
+        "Fix: on desktop, switching to another tab kept the previous tab's scroll position (for example, scrolling down Guests and then opening Budget left Budget partway down). Every tab now opens at the top, whether you click the sidebar, use search or a notification link, or press the browser back and forward buttons",
+        "No database changes. Applies to the V3 app only"
+      ],
+      "roadmap": [],
+      "knownIssues": []
+    },
     {
       "version": "V4.49.2",
       "date": "2026-10-23",
