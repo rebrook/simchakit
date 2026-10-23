@@ -1,9 +1,22 @@
 {
-  "current": "V4.49.0",
+  "current": "V4.49.1",
   "whatsNew": [
-    "Every tab's main action (Add Household, Add Expense, Add Task, and more) now lives in the top bar on desktop"
+    "CSV exports are now safe to open in Excel and Sheets: names and notes that look like formulas show as plain text"
   ],
   "changelog": [
+    {
+      "version": "V4.49.1",
+      "date": "2026-10-23",
+      "summary": "CSV exports are safe to open in Excel and Sheets",
+      "changes": [
+        "Fix: CSV exports (Guests, Budget, Seating, Gifts, and Favors) now prefix any value that starts with =, +, -, @, tab, or a carriage return with a single quote, so a name like =HYPERLINK(...) opens as plain text instead of running as a spreadsheet formula. Plain numbers such as -50.00 stay numbers",
+        "Fix: the Budget and invitation CSVs now put quotes around values that contain line breaks (for example multi-line expense notes), so a note no longer splits into extra rows",
+        "Change: all CSV exports now share one escape function (utils/csv.js) instead of seven copies, so they can't drift apart again. Everything else in the exports is unchanged",
+        "No database changes. Applies to the V3 app only"
+      ],
+      "roadmap": [],
+      "knownIssues": []
+    },
     {
       "version": "V4.49.0",
       "date": "2026-10-23",
