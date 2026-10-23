@@ -1,9 +1,20 @@
 {
-  "current": "V4.43.6",
+  "current": "V4.43.7",
   "whatsNew": [
-    "Fix: the live demo no longer signs out during page rendering, making it more reliable to load"
+    "Fix: on desktop, the bottom of the sidebar and page was cut off when the demo or archived banner was showing"
   ],
   "changelog": [
+    {
+      "version": "V4.43.7",
+      "date": "2026-10-23",
+      "summary": "Demo and archived banner no longer cuts off the bottom of the screen",
+      "changes": [
+        "Fix: on desktop, the sidebar footer (account, theme, sign out) and the bottom of the page are no longer clipped when the demo or archived banner is showing",
+        "No database changes. Applies to the V3 app only"
+      ],
+      "roadmap": [],
+      "knownIssues": []
+    },
     {
       "version": "V4.43.6",
       "date": "2026-10-23",
