@@ -425,6 +425,11 @@
       left: -30px;
     }
 
+    .hero-float-3 {
+      bottom: -20px;
+      right: -20px;
+    }
+
     .hero-float-icon {
       width: 40px;
       height: 40px;
@@ -1073,6 +1078,10 @@
         left: 0;
       }
 
+      .hero-float-3 {
+        right: 0;
+      }
+
       .features-grid {
         grid-template-columns: 1fr;
       }
@@ -1204,8 +1213,14 @@
         width: 140px;
       }
 
+      .hero-visual {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+
       .hero-float {
-        display: none;
+        position: static;
       }
     }
   </style>
@@ -1258,8 +1273,8 @@
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
             </div>
             <div class="hero-float-text">
-              <strong>48 Guests</strong>
-              <span>RSVPs tracked</span>
+              <strong>$49</strong>
+              <span>One-time per event</span>
             </div>
           </div>
           <div class="hero-float hero-float-2">
@@ -1269,6 +1284,15 @@
             <div class="hero-float-text">
               <strong>Real-time Sync</strong>
               <span>All devices updated</span>
+            </div>
+          </div>
+          <div class="hero-float hero-float-3">
+            <div class="hero-float-icon green">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            </div>
+            <div class="hero-float-text">
+              <strong>No guest accounts</strong>
+              <span>Guests never log in</span>
             </div>
           </div>
         </div>
