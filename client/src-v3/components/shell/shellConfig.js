@@ -1,4 +1,5 @@
-// Moved verbatim from AppShell.jsx (V4.47.0 module split) — no behavior changes.
+// Moved from AppShell.jsx (V4.47.0 module split); TAB_PRIMARY_ACTIONS added in V4.49.0.
+import { PRIMARY_ACTION_EVENT } from "@/hooks/usePrimaryAction.js";
 
 // ── Tab labels for the top bar ──────────────────────────────────────────────
 export const TAB_LABELS = {
@@ -47,3 +48,21 @@ export const SIDEBAR_GROUPS = [
 
 // Flat list of all tabs (derived from groups, used for filtering)
 export const ALL_TABS = SIDEBAR_GROUPS.flatMap(g => g.tabs);
+
+// Per-tab primary action shown in the desktop top bar (V4.49.0).
+// event: CustomEvent the top bar dispatches (the active tab listens).
+// requiresEdit: disabled for viewers and archived events.
+// Tabs without an entry (Calendar, Stay & Travel) show no action.
+const ADD = PRIMARY_ACTION_EVENT;
+export const TAB_PRIMARY_ACTIONS = {
+  overview: { label: "Print Brief",   icon: "printer", event: "simchakit:print-brief", requiresEdit: false },
+  guests:   { label: "Add Household", icon: "plus",    event: ADD, requiresEdit: true },
+  budget:   { label: "Add Expense",   icon: "plus",    event: ADD, requiresEdit: true },
+  vendors:  { label: "Add Vendor",    icon: "plus",    event: ADD, requiresEdit: true },
+  tasks:    { label: "Add Task",      icon: "plus",    event: ADD, requiresEdit: true },
+  prep:     { label: "Add Item",      icon: "plus",    event: ADD, requiresEdit: true },
+  ceremony: { label: "Add Role",      icon: "plus",    event: ADD, requiresEdit: true },
+  seating:  { label: "Add Table",     icon: "plus",    event: ADD, requiresEdit: true },
+  gifts:    { label: "Log Gift",      icon: "plus",    event: ADD, requiresEdit: true },
+  favors:   { label: "Add Favor",     icon: "plus",    event: ADD, requiresEdit: true },
+};

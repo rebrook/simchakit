@@ -8,6 +8,8 @@ import { useState, useEffect, useRef } from "react";
 import { supabase }           from "@/lib/supabase.js";
 import { useEventData, peoplePromoteColumns } from "@/hooks/useEventData.js";
 import { useSearchHighlight } from "@/hooks/useSearchHighlight.js";
+import { usePrimaryAction, usePrimaryActionBlocked } from "@/hooks/usePrimaryAction.js";
+import { useDesktopShell } from "@/hooks/useDesktopShell.js";
 import { newTableId }         from "@/utils/ids.js";
 import { exportSeatingByTable, exportSeatingByPerson, generateSeatingPrintHTML } from "@/utils/exports.js";
 import { autoSeatByHousehold } from "@/utils/seating.js";
@@ -314,6 +316,11 @@ export function SeatingTab({ eventId, event, adminConfig, showToast, isArchived,
     return () => setTopbarSubtitle(null);
   }, [subtitle, setTopbarSubtitle]);
 
+  // Top-bar primary action (desktop): Add Table (same conditions as the in-content button)
+  const desktopShell = useDesktopShell();
+  usePrimaryActionBlocked(!(hasSeating && sectionId));
+  usePrimaryAction(() => { if (isArchived || isViewer || !(hasSeating && sectionId)) return; setShowTableModal(true); });
+
   if (tLoading || pLoading || hLoading || configLoading) return <div style={loadingStyle}>Loading seating chart…</div>;
 
   return (
@@ -332,7 +339,7 @@ export function SeatingTab({ eventId, event, adminConfig, showToast, isArchived,
         {hasSeating && sectionId && unseated.length > 0 && sortedTables.length > 0 && !isArchived && !isViewer && (
           <button className="btn btn-secondary" onClick={() => setShowAutoSeat(true)}><Icon name="sparkles" context="inline" style={{ marginRight: 4 }} /> Auto-Seat</button>
         )}
-        {hasSeating && sectionId && (
+        {hasSeating && sectionId && !desktopShell && (
           <button className="btn btn-primary" disabled={isArchived || isViewer} onClick={() => setShowTableModal(true)}>+ Add Table</button>
         )}
       </div>

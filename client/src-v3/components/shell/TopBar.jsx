@@ -1,8 +1,18 @@
-// Moved verbatim from AppShell.jsx (V4.47.0 module split) — no behavior changes.
+import { useState, useEffect } from "react";
 import { Icon } from "@/utils/iconMap.jsx";
-import { TAB_LABELS } from "@/components/shell/shellConfig.js";
+import { TAB_LABELS, TAB_PRIMARY_ACTIONS } from "@/components/shell/shellConfig.js";
+import { PRIMARY_ACTION_STATE_EVENT } from "@/hooks/usePrimaryAction.js";
 
-export function TopBar({ activeTab, setShowNotifPanel, setShowSearch, syncDisplay, topbarSubtitle, unreadCount }) {
+export function TopBar({ activeTab, isArchived, isViewer, setShowNotifPanel, setShowSearch, syncDisplay, topbarSubtitle, unreadCount }) {
+  const primaryAction = TAB_PRIMARY_ACTIONS[activeTab];
+  // The active tab can report its action is unavailable (e.g. Seating not enabled yet)
+  const [tabBlocked, setTabBlocked] = useState(false);
+  useEffect(() => {
+    const handler = (e) => setTabBlocked(!!e.detail?.blocked);
+    window.addEventListener(PRIMARY_ACTION_STATE_EVENT, handler);
+    return () => window.removeEventListener(PRIMARY_ACTION_STATE_EVENT, handler);
+  }, []);
+  const primaryDisabled = !!primaryAction && primaryAction.requiresEdit && (isArchived || isViewer || tabBlocked);
   return (
     <div className="app-topbar">
       <div className="topbar-inner">
@@ -37,13 +47,14 @@ export function TopBar({ activeTab, setShowNotifPanel, setShowSearch, syncDispla
             )}
           </button>
 
-          {/* Print Brief — Overview tab only */}
-          {activeTab === "overview" && (
+          {/* Per-tab primary action (Overview: Print Brief) */}
+          {primaryAction && (
             <button
               className="topbar-print-btn"
-              onClick={() => window.dispatchEvent(new CustomEvent("simchakit:print-brief"))}
+              disabled={primaryDisabled}
+              onClick={() => window.dispatchEvent(new CustomEvent(primaryAction.event))}
             >
-              <Icon name="printer" context="inline" /> Print Brief
+              <Icon name={primaryAction.icon} context="inline" /> {primaryAction.label}
             </button>
           )}
         </div>

@@ -6,6 +6,8 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useState, useEffect } from "react";
+import { usePrimaryAction } from "@/hooks/usePrimaryAction.js";
+import { useDesktopShell } from "@/hooks/useDesktopShell.js";
 import {
   DndContext, closestCenter,
   KeyboardSensor, MouseSensor, TouchSensor,
@@ -535,6 +537,10 @@ export function CeremonyRolesTab({ eventId, event, adminConfig, showToast, isArc
     return () => setTopbarSubtitle(null);
   }, [subtitle, setTopbarSubtitle]);
 
+  // Top-bar primary action (desktop): Add Role
+  const desktopShell = useDesktopShell();
+  usePrimaryAction(() => { if (isReadOnly) return; setShowModal(true); });
+
   if (loading) return <div style={loadingStyle}>Loading ceremony roles…</div>;
 
   return (
@@ -549,7 +555,7 @@ export function CeremonyRolesTab({ eventId, event, adminConfig, showToast, isArc
         {roles.length === 0 && hasTemplate && (
           <button className="btn btn-secondary" disabled={isReadOnly} onClick={loadTemplate}><Icon name="wand" context="inline" style={{ marginRight: 4 }} /> Load Template</button>
         )}
-        <button className="btn btn-primary" disabled={isReadOnly} onClick={() => setShowModal(true)}>+ Add Role</button>
+        {!desktopShell && <button className="btn btn-primary" disabled={isReadOnly} onClick={() => setShowModal(true)}>+ Add Role</button>}
       </div>
 
       {roles.length > 0 && (

@@ -28,6 +28,8 @@ import {
 } from "recharts";
 import { useEventData }       from "@/hooks/useEventData.js";
 import { useSearchHighlight } from "@/hooks/useSearchHighlight.js";
+import { usePrimaryAction } from "@/hooks/usePrimaryAction.js";
+import { useDesktopShell } from "@/hooks/useDesktopShell.js";
 import { TASK_CATEGORIES, TASK_PRIORITIES, TASK_PRIORITY_STYLES } from "@/constants/task-constants.js";
 import { newTaskId }          from "@/utils/ids.js";
 import { getTaskDueStatus, computeSuggestions, getSmartTaskTemplates } from "@/utils/tasks.js";
@@ -641,6 +643,10 @@ export function TasksTab({ eventId, event, adminConfig, showToast, isArchived, i
     return () => setTopbarSubtitle(null);
   }, [subtitle, setTopbarSubtitle]);
 
+  // Top-bar primary action (desktop): Add Task
+  const desktopShell = useDesktopShell();
+  usePrimaryAction(() => { if (isArchived || isViewer) return; setShowModal(true); });
+
   if (loading) return <div style={loadingStyle}>Loading tasks…</div>;
 
   return (
@@ -660,9 +666,11 @@ export function TasksTab({ eventId, event, adminConfig, showToast, isArchived, i
             </button>
           ) : null;
         })()}
-        <button className="btn btn-primary btn-sm" disabled={isArchived || isViewer} onClick={() => setShowModal(true)}>
-          + Add Task
-        </button>
+        {!desktopShell && (
+          <button className="btn btn-primary btn-sm" disabled={isArchived || isViewer} onClick={() => setShowModal(true)}>
+            + Add Task
+          </button>
+        )}
       </div>
 
       {/* Stat cards */}
