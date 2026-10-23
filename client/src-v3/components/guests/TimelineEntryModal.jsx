@@ -4,7 +4,6 @@ import { TL_HOURS, TL_MINUTES } from "@/constants/ui.js";
 import { parseTimeParts, buildTime } from "@/utils/dates.js";
 import { newTimelineId } from "@/utils/ids.js";
 import { Modal } from "@/components/shared/Modal.jsx";
-import { Icon } from "@/utils/iconMap.jsx";
 
 export function TimelineEntryModal({ entry, onSave, onClose }) {
   const isEdit = !!entry;

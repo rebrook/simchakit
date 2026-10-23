@@ -145,7 +145,7 @@ simchakit/
 │       ├── main.v3.jsx      # V3 React entry point
 │       ├── components/      # V3 components (shell, tabs, events, auth)
 │       │   ├── admin/       # Admin Mode sections (one file per section; AdminPanel.jsx keeps shell, nav, shared state)
-│       │   └── guests/      # Guests tab pieces (HouseholdModal, ImportModal, GuestExportModal, TimelineEntryModal, GuestInsights)
+│       │   └── guests/      # Guests tab pieces (HouseholdModal, ImportModal, GuestExportModal, TimelineEntryModal, GuestInsights, GuestFilters, AwaitingPanel, MobileFilterSheet)
 │       ├── constants/       # V3 constants
 │       ├── hooks/           # V3 hooks (useEventData, useDarkMode)
 │       ├── lib/             # Supabase client

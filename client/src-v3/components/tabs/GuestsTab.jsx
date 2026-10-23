@@ -24,7 +24,6 @@ import { CateringSummary } from "@/components/shared/CateringSummary.jsx";
 import { InfoPopover } from "@/components/shared/InfoPopover.jsx";
 import { METRIC_HELP } from "@/constants/metrics.js";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog.jsx";
-import { Modal } from "@/components/shared/Modal.jsx";
 import { Icon } from "@/utils/iconMap.jsx";
 import { useIsMobile } from "@/hooks/useIsMobile.js";
 import { printDocument, isTouchPrimary } from "@/utils/printDocument.js";
@@ -35,6 +34,9 @@ import { TimelineEntryModal }  from "@/components/guests/TimelineEntryModal.jsx"
 import { GuestExportModal }    from "@/components/guests/GuestExportModal.jsx";
 import { GuestInsights }       from "@/components/guests/GuestInsights.jsx";
 import { statusStyle }         from "@/components/guests/statusStyle.js";
+import { AwaitingPanel }       from "@/components/guests/AwaitingPanel.jsx";
+import { MobileFilterSheet }   from "@/components/guests/MobileFilterSheet.jsx";
+import { GuestFilters }        from "@/components/guests/GuestFilters.jsx";
 
 // TimelineEntryModal moved to components/guests/; re-exported so AdminPanel's import is unchanged.
 export { TimelineEntryModal };
@@ -471,44 +473,7 @@ export function GuestsTab({ eventId, event, adminConfig, showToast, isArchived, 
         </div>
       )}
 
-      {awaitingOnly && (
-        <div className="awaiting-panel">
-          <div className="awaiting-panel-head">
-            <div>
-              <div className="awaiting-panel-title">
-                {awaitingRows.length === 0
-                  ? "No one is awaiting an answer"
-                  : `Still waiting on ${awaitingRows.length} guest${awaitingRows.length!==1?"s":""}`}
-              </div>
-              {awaitingRows.length > 0 && (
-                <div className="awaiting-panel-sub">
-                  {awaitingSplit.adults} adult{awaitingSplit.adults!==1?"s":""}, {awaitingSplit.kids} kid{awaitingSplit.kids!==1?"s":""}. Tap a name to open the household.
-                </div>
-              )}
-            </div>
-            <button type="button" className="btn btn-ghost btn-sm" onClick={clearAwaiting}>Clear filter</button>
-          </div>
-          {awaitingRows.length > 0 && (
-            <ul className="awaiting-panel-list">
-              {awaitingRows.map(r => (
-                <li key={r.person.id}>
-                  <button type="button" className="awaiting-panel-row" onClick={() => jumpToHousehold(r.hh?.id)}>
-                    <span className="awaiting-panel-name">{r.name}</span>
-                    <span className={`tag ${r.person.isChild ? "tag-blue" : "tag-muted"}`}>{r.person.isChild ? "Child" : "Adult"}</span>
-                    <span className="awaiting-panel-hh">{r.hh?.formalName || ""}</span>
-                    {r.hh && (
-                      <span className="awaiting-panel-status" style={{ background: statusStyle[r.hh.rsvpStatus]?.bg, color: statusStyle[r.hh.rsvpStatus]?.color }}>
-                        {r.hh.rsvpStatus || "Invited"}
-                      </span>
-                    )}
-                    <span className="awaiting-panel-secs">{r.titles.join(", ")}</span>
-                  </button>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-      )}
+      {awaitingOnly && <AwaitingPanel awaitingRows={awaitingRows} awaitingSplit={awaitingSplit} clearAwaiting={clearAwaiting} jumpToHousehold={jumpToHousehold} />}
 
       <div className="stat-grid" style={{gridTemplateColumns:"repeat(auto-fit,minmax(130px,1fr))",marginBottom:20}}>
         {[
@@ -539,101 +504,7 @@ export function GuestsTab({ eventId, event, adminConfig, showToast, isArchived, 
       <GuestInsights households={households} people={people} groups={groups} statusStyle={statusStyle} />
 
       {/* Filters */}
-      {isMobile ? (
-        <div className="guest-mobile-filters">
-          <div className="guest-mobile-filters-top">
-            <input className="form-input" style={{flex:1,padding:"10px 12px",fontSize:15}} type="text"
-              placeholder="Search by name..." value={search} onChange={e=>setSearch(e.target.value)} />
-            {!isViewer && (
-              <button className="btn btn-primary guest-mobile-add-btn" disabled={isArchived} onClick={()=>setShowAdd(true)}>
-                <Icon name="plus" context="inline" />
-              </button>
-            )}
-          </div>
-          <div className="guest-mobile-chips">
-            {["All","Confirmed","Pending","Declined"].map(chip => {
-              const count = chipCounts[chip];
-              const isActive = mobileChip === chip;
-              const toneClass = chip === "Confirmed" ? "chip-confirmed" : chip === "Pending" ? "chip-pending" : chip === "Declined" ? "chip-declined" : "";
-              return (
-                <button key={chip}
-                  className={`guest-chip ${isActive ? `guest-chip-active ${toneClass}` : ""}`}
-                  onClick={() => setMobileChip(chip)}>
-                  {chip} {count}
-                </button>
-              );
-            })}
-            {sections.length > 1 && (
-              <button className={`guest-chip ${subEventFilter.length>0?"guest-chip-active":""}`}
-                onClick={()=>setMobileMoreFiltersOpen(true)}>
-                Sub-Events{subEventFilter.length>0?` (${subEventFilter.length})`:""}
-              </button>
-            )}
-          </div>
-          <select className="form-select" style={{padding:"10px 12px",fontSize:14}} value={groupFilter} onChange={e=>setGroupFilter(e.target.value)}>
-            <option value="All">All Groups</option>
-            {groups.map(g=><option key={g} value={g}>{g}</option>)}
-          </select>
-        </div>
-      ) : (
-        <div style={{display:"flex",flexDirection:"column",gap:8,marginBottom:16}}>
-          <div style={{display:"flex",gap:8,alignItems:"center"}}>
-            {!isArchived && !isViewer && filtered.length > 0 && (
-              <label style={{display:"flex",alignItems:"center",gap:6,cursor:"pointer",flexShrink:0,padding:"0 4px"}}
-                title={selectedHHIds.size===filtered.length?"Deselect all":"Select all visible"}>
-                <input type="checkbox"
-                  checked={filtered.length>0 && selectedHHIds.size===filtered.length}
-                  ref={el => { if (el) el.indeterminate = selectedHHIds.size>0 && selectedHHIds.size<filtered.length; }}
-                  onChange={e => { if (e.target.checked) setSelectedHHIds(new Set(filtered.map(h=>h.id))); else setSelectedHHIds(new Set()); }}
-                  style={{width:15,height:15,accentColor:"var(--accent-primary)",cursor:"pointer"}} />
-                <span style={{fontSize:12,color:"var(--text-muted)",whiteSpace:"nowrap"}}>Select All</span>
-              </label>
-            )}
-            <input className="form-input" style={{flex:1,padding:"8px 12px"}} type="text"
-              placeholder="Search by name..." value={search} onChange={e=>setSearch(e.target.value)} />
-          </div>
-          <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
-            <select className="form-select" style={{flex:1,padding:"8px 12px"}} value={groupFilter} onChange={e=>setGroupFilter(e.target.value)}>
-              <option value="All">All Groups</option>
-              {groups.map(g=><option key={g} value={g}>{g}</option>)}
-            </select>
-            <select className="form-select" style={{flex:1,padding:"8px 12px"}} value={statusFilter} onChange={e=>setStatusFilter(e.target.value)}>
-              <option value="All">All Statuses</option>
-              {RSVP_STATUSES.map(s=><option key={s} value={s}>{s}</option>)}
-            </select>
-            <button className={`btn btn-sm ${outOfTownFilter?"btn-primary":"btn-secondary"}`} title="Show out-of-town households only" onClick={()=>setOutOfTownFilter(f=>!f)}><Icon name="accommodations" context="badge" style={{ marginRight: 4 }} /> Out of Town{outOfTownFilter?<> <Icon name="check" context="badge" /></>:""}</button>
-            <button className={`btn btn-sm ${missingAddressFilter?"btn-primary":"btn-secondary"}`} title="Show households missing a mailing address" onClick={()=>setMissingAddressFilter(f=>!f)}><Icon name="mailX" context="badge" style={{ marginRight: 4 }} /> No Address{missingAddressFilter?<> <Icon name="check" context="badge" /></>:""}</button>
-            {sections.length > 1 && (
-              <button className={`btn btn-sm ${subEventFilter.length>0?"btn-primary":"btn-secondary"}`}
-                onClick={()=>setShowMoreFilters(v=>!v)} aria-expanded={showMoreFilters}>
-                More Filters{subEventFilter.length>0?` (${subEventFilter.length})`:""} {showMoreFilters ? <Icon name="chevronUp" context="inline" /> : <Icon name="chevronDown" context="inline" />}
-              </button>
-            )}
-          </div>
-          {showMoreFilters && sections.length > 1 && (
-            <div style={{display:"flex",flexWrap:"wrap",gap:6,alignItems:"center",padding:"10px 12px",background:"var(--bg-subtle)",border:"1px solid var(--border)",borderRadius:"var(--radius-md)"}}>
-              <span style={{fontSize:11,fontWeight:700,color:"var(--text-muted)",textTransform:"uppercase",letterSpacing:"0.04em",marginRight:2}}>Sub-Events</span>
-              {sections.map(s=>(
-                <button key={s.id}
-                  className={`guest-chip ${subEventFilter.includes(s.id)?"guest-chip-active":""}`}
-                  onClick={()=>setSubEventFilter(f=>f.includes(s.id)?f.filter(x=>x!==s.id):[...f,s.id])}>
-                  {s.label}
-                </button>
-              ))}
-              <select className="form-select" style={{width:"auto",padding:"6px 10px",fontSize:12}}
-                value={subEventStatusFilter} onChange={e=>setSubEventStatusFilter(e.target.value)}
-                disabled={subEventFilter.length===0}
-                title={subEventFilter.length===0 ? "Select a sub-event first" : "Filter by RSVP status within selected sub-events"}>
-                <option value="All">Any status</option>
-                {RSVP_STATUSES.map(s=><option key={s} value={s}>{s}</option>)}
-              </select>
-              {(subEventFilter.length>0 || subEventStatusFilter!=="All") && (
-                <button className="btn btn-ghost btn-sm" onClick={()=>{setSubEventFilter([]);setSubEventStatusFilter("All");}}>Clear</button>
-              )}
-            </div>
-          )}
-        </div>
-      )}
+      <GuestFilters chipCounts={chipCounts} filtered={filtered} groupFilter={groupFilter} groups={groups} isArchived={isArchived} isMobile={isMobile} isViewer={isViewer} missingAddressFilter={missingAddressFilter} mobileChip={mobileChip} outOfTownFilter={outOfTownFilter} search={search} sections={sections} selectedHHIds={selectedHHIds} setGroupFilter={setGroupFilter} setMissingAddressFilter={setMissingAddressFilter} setMobileChip={setMobileChip} setMobileMoreFiltersOpen={setMobileMoreFiltersOpen} setOutOfTownFilter={setOutOfTownFilter} setSearch={setSearch} setSelectedHHIds={setSelectedHHIds} setShowAdd={setShowAdd} setShowMoreFilters={setShowMoreFilters} setStatusFilter={setStatusFilter} setSubEventFilter={setSubEventFilter} setSubEventStatusFilter={setSubEventStatusFilter} showMoreFilters={showMoreFilters} statusFilter={statusFilter} subEventFilter={subEventFilter} subEventStatusFilter={subEventStatusFilter} />
 
       {/* Bulk action bar */}
       {selectedHHIds.size > 0 && !isViewer && (
@@ -888,35 +759,7 @@ export function GuestsTab({ eventId, event, adminConfig, showToast, isArchived, 
           onClose={() => setDeleteConfirm(null)}
         />
       )}
-      {mobileMoreFiltersOpen && sections.length > 1 && (
-        <Modal onClose={()=>setMobileMoreFiltersOpen(false)} ariaLabel="Sub-Event Filters" unstyled
-          style={{position:"fixed",left:0,right:0,bottom:0,background:"var(--bg-surface)",borderRadius:"var(--radius-lg) var(--radius-lg) 0 0",width:"100%",maxHeight:"75vh",overflowY:"auto",padding:"16px 18px 20px",boxShadow:"var(--shadow-lg)",animation:"slide-up 0.2s ease"}}>
-          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
-            <div style={{fontSize:16,fontWeight:700,color:"var(--text-primary)"}}>Sub-Event Filters</div>
-            <button className="icon-btn" title="Close" aria-label="Close" onClick={()=>setMobileMoreFiltersOpen(false)}><Icon name="x" context="button" /></button>
-          </div>
-          <div style={{fontSize:11,fontWeight:700,color:"var(--text-muted)",textTransform:"uppercase",letterSpacing:"0.04em",marginBottom:6}}>Sub-Events</div>
-          <div style={{display:"flex",flexWrap:"wrap",gap:6,marginBottom:14}}>
-            {sections.map(s=>(
-              <button key={s.id} className={`guest-chip ${subEventFilter.includes(s.id)?"guest-chip-active":""}`}
-                onClick={()=>setSubEventFilter(f=>f.includes(s.id)?f.filter(x=>x!==s.id):[...f,s.id])}>
-                {s.label}
-              </button>
-            ))}
-          </div>
-          <div style={{fontSize:11,fontWeight:700,color:"var(--text-muted)",textTransform:"uppercase",letterSpacing:"0.04em",marginBottom:6}}>Status</div>
-          <select className="form-select" style={{width:"100%",padding:"10px 12px",fontSize:15,marginBottom:16}}
-            value={subEventStatusFilter} onChange={e=>setSubEventStatusFilter(e.target.value)}
-            disabled={subEventFilter.length===0}>
-            <option value="All">Any status</option>
-            {RSVP_STATUSES.map(s=><option key={s} value={s}>{s}</option>)}
-          </select>
-          <div style={{display:"flex",gap:8}}>
-            <button className="btn btn-secondary" style={{flex:1}} onClick={()=>{setSubEventFilter([]);setSubEventStatusFilter("All");}}>Clear</button>
-            <button className="btn btn-primary" style={{flex:1}} onClick={()=>setMobileMoreFiltersOpen(false)}>Apply</button>
-          </div>
-        </Modal>
-      )}
+      {mobileMoreFiltersOpen && sections.length > 1 && <MobileFilterSheet sections={sections} subEventFilter={subEventFilter} setSubEventFilter={setSubEventFilter} subEventStatusFilter={subEventStatusFilter} setSubEventStatusFilter={setSubEventStatusFilter} setMobileMoreFiltersOpen={setMobileMoreFiltersOpen} />}
     </div>
   );
 }
