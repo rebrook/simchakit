@@ -1,9 +1,20 @@
 {
-  "current": "V4.48.0",
+  "current": "V4.48.1",
   "whatsNew": [
-    "Internal cleanup: the stylesheet was reorganized into smaller files with no change to how anything looks"
+    "Fix: your name in the sidebar account row is now readable in dark mode"
   ],
   "changelog": [
+    {
+      "version": "V4.48.1",
+      "date": "2026-10-23",
+      "summary": "Fix: your name in the sidebar account row is readable in dark mode",
+      "changes": [
+        "Fix: in dark mode, your name at the bottom of the desktop sidebar (account row) showed as dark text on a dark background. It now uses the normal text color in both light and dark mode",
+        "No database changes. Applies to the V3 app only"
+      ],
+      "roadmap": [],
+      "knownIssues": []
+    },
     {
       "version": "V4.48.0",
       "date": "2026-10-23",

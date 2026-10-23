@@ -557,6 +557,7 @@
       flex-shrink: 0;
     }
     .sidebar-account-name {
+      color: var(--text-primary);
       font-size: 13px;
       font-weight: 600;
       line-height: 1.2;
