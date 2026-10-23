@@ -41,16 +41,12 @@ if (parseEventRoute(window.location.pathname)) {
   localStorage.setItem(PENDING_ROUTE_KEY, window.location.pathname);
 }
 
-export default function AppV3() {
-  const [session, setSession]         = useState(undefined); // undefined = loading
-  const [inviteError, setInviteError] = useState(null);
-  useDarkMode();
-
-  // Global crash reporting (V4.20.0) — catches what ErrorBoundary can't:
-  // errors thrown in event handlers, and unhandled promise rejections.
-  // Registered once here (not inside AppContent) so it's active even
-  // before sign-in and during demo mode. No fallback UI here since there's
-  // no component tree to swap out — this is purely for diagnosis.
+// Global crash reporting (V4.20.0) — catches what ErrorBoundary can't:
+// errors thrown in event handlers, and unhandled promise rejections.
+// Registered once at the root (not inside AppContent) so it's active even
+// before sign-in and during demo mode. No fallback UI here since there's
+// no component tree to swap out — this is purely for diagnosis.
+function useGlobalErrorReporting() {
   useEffect(() => {
     const handleError = (event) => {
       reportClientError(event.error || event.message, { source: "window.onerror" });
@@ -65,30 +61,49 @@ export default function AppV3() {
       window.removeEventListener("unhandledrejection", handleRejection);
     };
   }, []);
+}
 
-  // Demo mode — bypass auth entirely, ensure anon Supabase client
-  if (IS_DEMO) {
-    // Sign out any existing session so Supabase uses the anon key for all requests
+// Demo mode — bypass auth entirely, ensure anon Supabase client
+function DemoApp() {
+  useDarkMode();
+  useGlobalErrorReporting();
+
+  // Sign out any existing session so Supabase uses the anon key for all requests
+  useEffect(() => {
     supabase.auth.signOut();
-    return (
-      <>
-        <ThemeProvider palette="rose" />
-        <ErrorBoundary
-          source="app-shell:demo"
-          title="Something went wrong"
-          onNavigateAway={() => window.location.replace("/")}
-          navigateAwayLabel="Back to Home"
-        >
-          <AppShell
-            session={null}
-            eventId={DEMO_EVENT_ID}
-            isDemoMode={true}
-            onBack={() => window.location.replace("/")}
-          />
-        </ErrorBoundary>
-      </>
-    );
-  }
+  }, []);
+
+  return (
+    <>
+      <ThemeProvider palette="rose" />
+      <ErrorBoundary
+        source="app-shell:demo"
+        title="Something went wrong"
+        onNavigateAway={() => window.location.replace("/")}
+        navigateAwayLabel="Back to Home"
+      >
+        <AppShell
+          session={null}
+          eventId={DEMO_EVENT_ID}
+          isDemoMode={true}
+          onBack={() => window.location.replace("/")}
+        />
+      </ErrorBoundary>
+    </>
+  );
+}
+
+// IS_DEMO is constant per page load, but branching here (before any hooks in
+// AuthedApp) keeps every component's hooks unconditional.
+export default function AppV3() {
+  return IS_DEMO ? <DemoApp /> : <AuthedApp />;
+}
+
+function AuthedApp() {
+  const [session, setSession]         = useState(undefined); // undefined = loading
+  const [inviteError, setInviteError] = useState(null);
+  useDarkMode();
+  useGlobalErrorReporting();
 
   const isCallback = window.location.hash.includes("access_token") ||
                      window.location.hash.includes("error_description") ||

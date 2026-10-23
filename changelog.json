@@ -1,9 +1,21 @@
 {
-  "current": "V4.43.5",
+  "current": "V4.43.6",
   "whatsNew": [
-    "Fix: the Day-of brief print-out now matches SimchaKit's other printed documents, and the app footer is a single quiet line"
+    "Fix: the live demo no longer signs out during page rendering, making it more reliable to load"
   ],
   "changelog": [
+    {
+      "version": "V4.43.6",
+      "date": "2026-10-23",
+      "summary": "More reliable live demo loading",
+      "changes": [
+        "Fix: the live demo now starts its anonymous session once, after the page loads, instead of during rendering",
+        "Change: added a lint check (react-hooks rules) for the V3 app root to catch this kind of mistake early",
+        "No database changes. Applies to the V3 app only"
+      ],
+      "roadmap": [],
+      "knownIssues": []
+    },
     {
       "version": "V4.43.5",
       "date": "2026-10-22",
