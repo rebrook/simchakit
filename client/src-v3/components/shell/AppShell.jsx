@@ -50,7 +50,7 @@ import { BottomNav }            from "@/components/shell/BottomNav.jsx";
 import { ShellBanners, DayOfReminderBanner } from "@/components/shell/ShellBanners.jsx";
 import { BOTTOM_BAR_IDS, SIDEBAR_GROUPS, ALL_TABS } from "@/components/shell/shellConfig.js";
 import { formatSwitcherDate, getDaysToEvent, localDateString } from "@/components/shell/shellDates.js";
-import { avatarColor, avatarInitials } from "@/components/shell/avatarHelpers.js";
+import { avatarColor, avatarInitials } from "@/utils/avatar.js";
 import { getPaletteHint, clearPaletteHint } from "@/utils/userEvents.js";
 
 
