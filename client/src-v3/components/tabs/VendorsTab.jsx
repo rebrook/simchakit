@@ -12,6 +12,8 @@
 import { useState, useEffect } from "react";
 import { useEventData }       from "@/hooks/useEventData.js";
 import { useSearchHighlight } from "@/hooks/useSearchHighlight.js";
+import { usePrimaryAction } from "@/hooks/usePrimaryAction.js";
+import { useDesktopShell } from "@/hooks/useDesktopShell.js";
 import { formatAddress, formatPhone } from "@/utils/guests.js";
 import { VENDOR_STATUSES, VENDOR_STATUS_STYLES } from "@/constants/vendor-constants.js";
 import { FOLLOW_UP_STATUSES } from "@/constants/ui.js";
@@ -118,6 +120,10 @@ export function VendorsTab({ eventId, event, adminConfig, showToast, isArchived,
     return () => setTopbarSubtitle(null);
   }, [subtitle, setTopbarSubtitle]);
 
+  // Top-bar primary action (desktop): Add Vendor
+  const desktopShell = useDesktopShell();
+  usePrimaryAction(() => { if (isArchived || isViewer) return; setEditing(null); setShowAdd(true); });
+
   if (loading) return <div style={loadingStyle}>Loading vendors…</div>;
 
   return (
@@ -128,7 +134,7 @@ export function VendorsTab({ eventId, event, adminConfig, showToast, isArchived,
       <div className="mobile-tab-subtitle">{subtitle}</div>
 
       {/* Action row */}
-      {!isViewer && (
+      {!isViewer && !desktopShell && (
         <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, marginBottom: 12 }}>
           <button className="btn btn-primary btn-sm" disabled={isArchived}
             onClick={() => { setEditing(null); setShowAdd(true); }}>

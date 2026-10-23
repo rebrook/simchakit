@@ -15,6 +15,8 @@ import { useState, useEffect } from "react";
 import { supabase }           from "@/lib/supabase.js";
 import { useEventData }       from "@/hooks/useEventData.js";
 import { useSearchHighlight } from "@/hooks/useSearchHighlight.js";
+import { usePrimaryAction } from "@/hooks/usePrimaryAction.js";
+import { useDesktopShell } from "@/hooks/useDesktopShell.js";
 import { MITZVAH_TYPES }      from "@/constants/events.js";
 import { PREP_CATEGORIES, PREP_STATUSES, PREP_STATUS_STYLES } from "@/constants/prep.js";
 import { newPrepId }          from "@/utils/ids.js";
@@ -184,6 +186,10 @@ export function PrepTab({ eventId, event, adminConfig, showToast, isArchived, is
     return () => setTopbarSubtitle(null);
   }, [subtitle, setTopbarSubtitle]);
 
+  // Top-bar primary action (desktop): Add Item
+  const desktopShell = useDesktopShell();
+  usePrimaryAction(() => { if (isArchived || isViewer) return; setShowModal(true); });
+
   if (loading) return <div style={loadingStyle}>Loading preparation items…</div>;
 
   // ── Clergy data ──────────────────────────────────────────────────────────────
@@ -205,11 +211,13 @@ export function PrepTab({ eventId, event, adminConfig, showToast, isArchived, is
       {subtitle && <div className="mobile-tab-subtitle">{subtitle}</div>}
 
       {/* Action row */}
-      <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, marginBottom: 12 }}>
-        <button className="btn btn-primary" disabled={isArchived || isViewer} onClick={() => setShowModal(true)}>
-          + Add Item
-        </button>
-      </div>
+      {!desktopShell && (
+        <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, marginBottom: 12 }}>
+          <button className="btn btn-primary" disabled={isArchived || isViewer} onClick={() => setShowModal(true)}>
+            + Add Item
+          </button>
+        </div>
+      )}
 
       {/* Stat cards */}
       {total > 0 && (

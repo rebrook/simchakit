@@ -650,7 +650,7 @@ export function AppShell({ session, eventId, onBack, onSelectEvent = null, isDem
       <div className="app-main">
 
         {/* ── Top bar (desktop only, pinned) ── */}
-        <TopBar activeTab={activeTab} setShowNotifPanel={setShowNotifPanel} setShowSearch={setShowSearch} syncDisplay={syncDisplay} topbarSubtitle={topbarSubtitle} unreadCount={unreadCount} />
+        <TopBar activeTab={activeTab} isArchived={!!(event?.archived)} isViewer={collaboratorRole === "viewer"} setShowNotifPanel={setShowNotifPanel} setShowSearch={setShowSearch} syncDisplay={syncDisplay} topbarSubtitle={topbarSubtitle} unreadCount={unreadCount} />
 
         {/* ── Scrollable area (pinned topbar above, content + footer scroll) ── */}
         <div className="app-main-scroll">

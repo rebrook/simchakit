@@ -34,6 +34,8 @@
 import { useState, useEffect, useRef } from "react";
 import { useEventData }        from "@/hooks/useEventData.js";
 import { useSearchHighlight }  from "@/hooks/useSearchHighlight.js";
+import { usePrimaryAction } from "@/hooks/usePrimaryAction.js";
+import { useDesktopShell } from "@/hooks/useDesktopShell.js";
 import { GIFT_TYPES }          from "@/constants/gifts.js";
 import { newGiftId }           from "@/utils/ids.js";
 import {
@@ -251,6 +253,10 @@ export function GiftsTab({ eventId, event, adminConfig, showToast, isArchived, i
     return () => setTopbarSubtitle(null);
   }, [subtitle, setTopbarSubtitle]);
 
+  // Top-bar primary action (desktop): Log Gift
+  const desktopShell = useDesktopShell();
+  usePrimaryAction(() => { if (isArchived || isViewer) return; setShowModal(true); });
+
   if (gLoading || hLoading) return <div style={loadingStyle}>Loading gifts…</div>;
 
   return (
@@ -265,7 +271,7 @@ export function GiftsTab({ eventId, event, adminConfig, showToast, isArchived, i
         {gifts.length > 0 && (
           <button className="btn btn-secondary" onClick={() => setShowExport(true)}>↓ Export</button>
         )}
-        {!isViewer && <button className="btn btn-primary" disabled={isArchived} onClick={() => setShowModal(true)}>+ Add Gift</button>}
+        {!isViewer && !desktopShell && <button className="btn btn-primary" disabled={isArchived} onClick={() => setShowModal(true)}>+ Add Gift</button>}
       </div>
 
       {/* Stat cards */}

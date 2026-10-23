@@ -26,6 +26,8 @@ import { METRIC_HELP } from "@/constants/metrics.js";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog.jsx";
 import { Icon } from "@/utils/iconMap.jsx";
 import { useIsMobile } from "@/hooks/useIsMobile.js";
+import { usePrimaryAction } from "@/hooks/usePrimaryAction.js";
+import { useDesktopShell } from "@/hooks/useDesktopShell.js";
 import { printDocument, isTouchPrimary } from "@/utils/printDocument.js";
 import { PrintPreviewModal } from "@/components/shared/PrintPreviewModal.jsx";
 import { HouseholdModal }      from "@/components/guests/HouseholdModal.jsx";
@@ -443,6 +445,10 @@ export function GuestsTab({ eventId, event, adminConfig, showToast, isArchived, 
     return () => setTopbarSubtitle(null);
   }, [subtitle, setTopbarSubtitle]);
 
+  // Top-bar primary action (desktop): Add Household
+  const desktopShell = useDesktopShell();
+  usePrimaryAction(() => { if (isArchived || isViewer) return; setShowAdd(true); });
+
   if (hLoading || pLoading) return <div style={loadingStyle}>Loading guests…</div>;
 
   return (
@@ -458,7 +464,7 @@ export function GuestsTab({ eventId, event, adminConfig, showToast, isArchived, 
         {!isViewer && (
           <>
             <button className="btn btn-secondary btn-sm" disabled={isArchived} onClick={()=>setShowImport(true)}>Import</button>
-            <button className="btn btn-primary btn-sm" disabled={isArchived} onClick={()=>setShowAdd(true)}>+ Add Household</button>
+            {!desktopShell && <button className="btn btn-primary btn-sm" disabled={isArchived} onClick={()=>setShowAdd(true)}>+ Add Household</button>}
           </>
         )}
       </div>

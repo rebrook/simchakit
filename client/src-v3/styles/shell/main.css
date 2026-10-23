@@ -82,7 +82,8 @@
         box-shadow: var(--shadow-accent);
         transition: background 0.15s ease;
       }
-      .topbar-print-btn:hover { background: var(--accent-dark); }
+      .topbar-print-btn:hover:not(:disabled) { background: var(--accent-dark); }
+      .topbar-print-btn:disabled { opacity: 0.5; cursor: not-allowed; box-shadow: none; }
     }
 
     /* ── Notification bell + panel ──────────────────────────────────── */

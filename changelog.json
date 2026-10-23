@@ -1,9 +1,22 @@
 {
-  "current": "V4.48.1",
+  "current": "V4.49.0",
   "whatsNew": [
-    "Fix: your name in the sidebar account row is now readable in dark mode"
+    "Every tab's main action (Add Household, Add Expense, Add Task, and more) now lives in the top bar on desktop"
   ],
   "changelog": [
+    {
+      "version": "V4.49.0",
+      "date": "2026-10-23",
+      "summary": "Every tab now has its main action in the top bar on desktop",
+      "changes": [
+        "New: on desktop, the pinned top bar now shows one primary action for each tab, in the same spot as Print Brief: Add Household (Guests), Add Expense (Budget), Add Vendor (Vendors), Add Task (Tasks), Add Item (Prep), Add Role (Ceremony), Add Table (Seating), Log Gift (Gifts), Add Favor (Favors). Overview keeps Print Brief; Calendar and Stay & Travel have none",
+        "Change: the matching Add button at the top of each tab's content is hidden on desktop since the top bar now carries it. Empty-state buttons (like Add First Gift) and Import, Export, and other in-content buttons are unchanged",
+        "Change: the top bar action is disabled for viewers and archived events, and on Seating and Favors until the tab is set up, matching the in-content buttons. On phones and narrow windows (900px and below) the tabs keep their own Add buttons",
+        "No database changes. Applies to the V3 app only"
+      ],
+      "roadmap": [],
+      "knownIssues": []
+    },
     {
       "version": "V4.48.1",
       "date": "2026-10-23",

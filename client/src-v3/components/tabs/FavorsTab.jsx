@@ -15,6 +15,8 @@
 import { useState, useMemo, useEffect, useCallback, useRef } from "react";
 import { useEventData }       from "@/hooks/useEventData.js";
 import { useSearchHighlight } from "@/hooks/useSearchHighlight.js";
+import { usePrimaryAction, usePrimaryActionBlocked } from "@/hooks/usePrimaryAction.js";
+import { useDesktopShell } from "@/hooks/useDesktopShell.js";
 import { SHIRT_SIZES }        from "@/constants/theme.js";
 import { newFavorId }         from "@/utils/ids.js";
 import { exportFavorsCSV, generateFavorPrintHTML } from "@/utils/exports.js";
@@ -393,6 +395,11 @@ export function FavorsTab({
     return () => setTopbarSubtitle(null);
   }, [subtitle, setTopbarSubtitle]);
 
+  // Top-bar primary action (desktop): Add Favor (same conditions as the in-content button)
+  const desktopShell = useDesktopShell();
+  usePrimaryActionBlocked(!(givingFavors && activeType));
+  usePrimaryAction(() => { if (isArchived || isViewer || !(givingFavors && activeType)) return; setShowModal(true); });
+
   if (fLoading || pLoading || hLoading) return <div style={loadingStyle}>Loading favors…</div>;
 
   return (
@@ -408,7 +415,7 @@ export function FavorsTab({
           {typeFavors.length > 0 && (
             <button className="btn btn-secondary" onClick={() => setShowExport(true)}>↓ Export</button>
           )}
-          {!isViewer && <button className="btn btn-primary" disabled={isArchived} onClick={() => setShowModal(true)}>+ Add Manually</button>}
+          {!isViewer && !desktopShell && <button className="btn btn-primary" disabled={isArchived} onClick={() => setShowModal(true)}>+ Add Manually</button>}
         </div>
       )}
 

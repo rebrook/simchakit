@@ -18,6 +18,8 @@ import {
 } from "recharts";
 import { useEventData }       from "@/hooks/useEventData.js";
 import { useSearchHighlight } from "@/hooks/useSearchHighlight.js";
+import { usePrimaryAction } from "@/hooks/usePrimaryAction.js";
+import { useDesktopShell } from "@/hooks/useDesktopShell.js";
 import { TIPPABLE_CATEGORIES, EXPENSE_CATEGORIES } from "@/constants/budget.js";
 import { newExpenseId }       from "@/utils/ids.js";
 import { getDueStatus, getNextDue } from "@/utils/vendors.js";
@@ -1085,6 +1087,10 @@ export function BudgetTab({ eventId, event, adminConfig, showToast, isArchived, 
     return () => setTopbarSubtitle(null);
   }, [subtitle, setTopbarSubtitle]);
 
+  // Top-bar primary action (desktop): Add Expense
+  const desktopShell = useDesktopShell();
+  usePrimaryAction(() => { if (isArchived || isViewer) return; setEditing(null); setShowAdd(true); });
+
   if (eLoading || vLoading) return <div style={loadingStyle}>Loading budget…</div>;
 
   const vendorMap = Object.fromEntries(vendors.map(v => [v.id, v]));
@@ -1101,7 +1107,7 @@ export function BudgetTab({ eventId, event, adminConfig, showToast, isArchived, 
         {expenses.length > 0 && (
           <button className="btn btn-secondary btn-sm" onClick={handleExport}>↓ Export CSV</button>
         )}
-        {!isArchived && !isViewer && (
+        {!isArchived && !isViewer && !desktopShell && (
           <button className="btn btn-primary btn-sm" onClick={() => { setEditing(null); setShowAdd(true); }}>
             + Add Expense
           </button>
