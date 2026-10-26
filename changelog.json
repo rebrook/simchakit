@@ -1,10 +1,20 @@
 {
-  "current": "V5.1.0",
+  "current": "V5.1.1",
   "whatsNew": [
-    "Message your guests from SimchaKit, or record invitations you sent by mail or another platform",
-    "Each household now shows clear sent-status chips, and a new Messages view lists everything sent"
+    "A household's edit window now shows read-only mailing status instead of sent checkboxes"
   ],
   "changelog": [
+    {
+      "version": "V5.1.1",
+      "date": "2026-10-26",
+      "summary": "Household edit window no longer has its own sent checkboxes",
+      "changes": [
+        "Change: the Save the Date Sent, Invite Sent and Thank You Sent checkboxes are removed from a household's Flags & Notes tab. They could disagree with the message record (a household showing Sent by email while its box was unchecked, or the reverse). The tab now shows the same read-only Mailings chips as the guest list, with a pointer to Message guests and Mark as sent",
+        "Existing marks are untouched: households that were ticked before still show Sent (manual), and Clear on the guest list still removes one. No database changes. V3 app only"
+      ],
+      "roadmap": [],
+      "knownIssues": []
+    },
     {
       "version": "V5.1.0",
       "date": "2026-10-26",

@@ -10,8 +10,10 @@ import { RsvpPill } from "@/components/shared/RsvpPill.jsx";
 import { Modal } from "@/components/shared/Modal.jsx";
 import { Icon } from "@/utils/iconMap.jsx";
 import { statusStyle } from "@/components/guests/statusStyle.js";
+import { SentChip } from "@/components/guests/SentChip.jsx";
+import { MESSAGE_KINDS } from "@/utils/messageTemplates.js";
 
-export function HouseholdModal({ household, members, adminConfig, onSave, onClose, isArchived }) {
+export function HouseholdModal({ household, members, adminConfig, sentLookup, onSave, onClose, isArchived }) {
   const groups      = adminConfig?.groups        || DEFAULT_GROUPS;
   const sections    = sortTimeline(adminConfig?.timeline || []).map(e => ({ id: e.id, label: (e.icon ? e.icon + " " : "") + e.title, inviteAllByDefault: e.inviteAllByDefault !== false }));
   const mealChoices = adminConfig?.mealChoices   || DEFAULT_MEALS;
@@ -78,9 +80,6 @@ export function HouseholdModal({ household, members, adminConfig, onSave, onClos
   };
 
   const checkboxRow = [
-    { key:"saveTheDateSent",    label:"Save the Date Sent"  },
-    { key:"inviteSent",         label:"Invite Sent"         },
-    { key:"thankYouSent",       label:"Thank You Sent"      },
     { key:"accommodationNeeded",label:"Accommodation Needed"},
     { key:"outOfTown",          label:"Out of Town"         },
   ];
@@ -336,6 +335,19 @@ export function HouseholdModal({ household, members, adminConfig, onSave, onClos
                   </label>
                 ))}
               </div>
+              {isEdit && sentLookup && (
+                <div className="msg-mail-panel">
+                  <div className="msg-chip-group">
+                    <span className="msg-chip-label">Mailings</span>
+                    {MESSAGE_KINDS.filter(k => k.manual).map(k => (
+                      <SentChip key={k.key} status={sentLookup(hh, k.key)} kindLabel={k.label} />
+                    ))}
+                  </div>
+                  <div style={{fontSize:12,color:"var(--text-muted)"}}>
+                    This comes from your message record, so it can't be edited here. Close this window and use Message guests or Mark as sent on the household to change it.
+                  </div>
+                </div>
+              )}
               <div className="form-group"><label className="form-label">Notes</label><textarea className="form-textarea" value={hh.notes} rows={2} onChange={e=>setHHF("notes",e.target.value)} placeholder="Any notes about this household..." /></div>
               {!isEdit && subEventBlock}
             </>

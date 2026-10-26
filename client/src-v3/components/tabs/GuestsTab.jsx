@@ -852,6 +852,7 @@ export function GuestsTab({ eventId, event, adminConfig, showToast, isArchived, 
           household={editingHH||null}
           members={editingHH ? getPeopleForHousehold(people,editingHH.id) : []}
           adminConfig={adminConfig}
+          sentLookup={sentLookup}
           onSave={saveHousehold}
           onClose={()=>{setShowAdd(false);setEditingHH(null);}}
           isArchived={isArchived}
