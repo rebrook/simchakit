@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SimchaKit: Jewish Lifecycle Event Planning App | Mitzvahs, Weddings, and Simchas</title>
+  <title>SimchaKit: Jewish Simcha Planning App | Mitzvahs and Weddings</title>
   <meta name="description" content="SimchaKit is the all-in-one planning hub for B'nei Mitzvot, weddings, and every Jewish lifecycle celebration. Manage guests, budgets, vendors, seating, and more.">
   <meta name="keywords" content="bar mitzvah planning app, bat mitzvah planning tool, simcha planning software, Jewish event planning app, B'nei Mitzvah organizer, Jewish wedding planner, simcha guest list, seating chart app">
 
@@ -18,7 +18,7 @@
   <link rel="icon" type="image/png" href="SimchaKit-logo.png">
 
   <!-- Open Graph -->
-  <meta property="og:title" content="SimchaKit: Jewish Lifecycle Event Planning App | Mitzvahs, Weddings, and Simchas">
+  <meta property="og:title" content="SimchaKit: Jewish Simcha Planning App | Mitzvahs and Weddings">
   <meta property="og:description" content="SimchaKit is the all-in-one planning hub for B'nei Mitzvot, weddings, and every Jewish lifecycle celebration.">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://about.simcha-kit.com">
@@ -26,7 +26,7 @@
 
   <!-- Twitter Card -->
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="SimchaKit: Jewish Lifecycle Event Planning App | Mitzvahs, Weddings, and Simchas">
+  <meta name="twitter:title" content="SimchaKit: Jewish Simcha Planning App | Mitzvahs and Weddings">
   <meta name="twitter:description" content="SimchaKit is the all-in-one planning hub for B'nei Mitzvot, weddings, and every Jewish lifecycle celebration.">
   <meta name="twitter:image" content="https://about.simcha-kit.com/overview.png">
 
@@ -66,7 +66,7 @@
         "name": "Is SimchaKit free?",
         "acceptedAnswer": {
           "@type": "Answer",
-          "text": "SimchaKit is a one-time fee of $49 per event. No subscription, no recurring charges. Pay once and plan your entire simcha."
+          "text": "SimchaKit is a one-time fee of $49 per event. No subscription, no recurring charges. Pay once and plan your entire simcha. The demo is free to try at demo.simcha-kit.com."
         }
       },
       {
@@ -114,7 +114,7 @@
         "name": "Can I import my existing guest list into SimchaKit?",
         "acceptedAnswer": {
           "@type": "Answer",
-          "text": "Yes. SimchaKit supports CSV import from spreadsheets and popular RSVP platforms including Evite, Google Contacts, and others. If you already have a guest list, you can bring it in without starting from scratch."
+          "text": "Yes. Export your spreadsheet or RSVP tool's guest list as a CSV and upload it. SimchaKit automatically matches common column names such as name, email, phone, address, and RSVP status, and you can adjust any it misses before importing."
         }
       },
       {
@@ -141,6 +141,7 @@
       --color-primary-light: #2d5a8a;
       --color-accent: #c9a227;
       --color-accent-light: #e3c565;
+      --color-accent-text: #7d6200; /* accent for text on light backgrounds (4.5:1) */
 
       /* Warm-paper surfaces aligned to app's surface language */
       --color-bg: #faf8f5;
@@ -367,7 +368,7 @@
     }
 
     .hero h1 span {
-      color: var(--color-accent);
+      color: var(--color-accent-text);
     }
 
     .hero-subtitle {
@@ -380,7 +381,7 @@
     .hero-differentiator {
       font-size: 14px;
       font-weight: 600;
-      color: var(--color-accent);
+      color: var(--color-accent-text);
       margin-bottom: 28px;
       max-width: 100%;
     }
@@ -792,7 +793,7 @@
       font-weight: 600;
       text-transform: uppercase;
       letter-spacing: 0.1em;
-      opacity: 0.7;
+      opacity: 0.9;
       margin-bottom: 12px;
     }
 
@@ -807,13 +808,13 @@
 
     .pricing-card .price-period {
       font-size: 14px;
-      opacity: 0.7;
+      opacity: 0.9;
       margin-bottom: 24px;
     }
 
     .pricing-card .price-note {
       font-size: 13px;
-      opacity: 0.75;
+      opacity: 0.9;
       margin-bottom: 28px;
       max-width: 100%;
     }
@@ -825,7 +826,7 @@
       padding: 8px 12px;
       font-size: 12px;
       font-weight: 600;
-      color: var(--color-accent-light);
+      color: var(--color-white);
       text-align: center;
       margin-bottom: 16px;
     }
@@ -861,6 +862,11 @@
       font-size: 15px;
       line-height: 1.65;
       margin: 0;
+    }
+
+    .faq-item p a,
+    .founder-content p a {
+      text-decoration: underline;
     }
 
     /* Founder */
@@ -953,7 +959,7 @@
     .blog-card-read-more {
       font-size: 14px;
       font-weight: 600;
-      color: var(--color-accent);
+      color: var(--color-accent-text);
       display: inline-flex;
       align-items: center;
       gap: 4px;
@@ -1252,6 +1258,7 @@
     </div>
   </header>
 
+  <main>
   <!-- Hero -->
   <section class="hero">
     <div class="container">
@@ -1491,7 +1498,7 @@
       <div class="faq-grid">
         <div class="faq-item">
           <h3>Is it free?</h3>
-          <p>SimchaKit is a one-time fee of $49 per event. No subscription, no recurring charges. Pay once and plan your entire simcha.</p>
+          <p>SimchaKit is a one-time fee of $49 per event. No subscription, no recurring charges. Pay once and plan your entire simcha. The demo is free to try at <a href="https://demo.simcha-kit.com" target="_blank">demo.simcha-kit.com</a>.</p>
         </div>
         <div class="faq-item">
           <h3>Who is it for?</h3>
@@ -1515,7 +1522,7 @@
         </div>
         <div class="faq-item">
           <h3>Can I import my existing guest list?</h3>
-          <p>Yes. SimchaKit supports CSV import from spreadsheets and popular RSVP platforms including Evite, Google Contacts, and others. If you already have a guest list, you can bring it in without starting from scratch.</p>
+          <p>Yes. Export your spreadsheet or RSVP tool's guest list as a CSV and upload it. SimchaKit automatically matches common column names such as name, email, phone, address, and RSVP status, and you can adjust any it misses before importing.</p>
         </div>
         <div class="faq-item">
           <h3>Is my data secure?</h3>
@@ -1533,7 +1540,7 @@
           <h2>About the Developer</h2>
           <p>SimchaKit was built by Ryan Brook of Brook Creative LLC. While planning his own family's bat mitzvah, Ryan found himself managing guests, vendors, budgets, and seating charts across six spreadsheets, a dedicated email folder, and too many sticky notes. He built SimchaKit to replace the chaos with one organized system, and kept building because every Jewish family planning a simcha potentially faces the same problem.</p>
           <p>SimchaKit has now planned a real bat mitzvah from start to finish. Every feature exists because it was needed.</p>
-          <p>Questions or feedback? Reach out at <a href="mailto:hello@simcha-kit.com" style="color: var(--color-accent);">hello@simcha-kit.com</a>.</p>
+          <p>Questions or feedback? Reach out at <a href="mailto:hello@simcha-kit.com" style="color: var(--color-accent-text);">hello@simcha-kit.com</a>.</p>
         </div>
       </div>
     </div>
@@ -1579,6 +1586,8 @@
       </div>
     </div>
   </section>
+
+  </main>
 
   <!-- Footer -->
   <footer>
