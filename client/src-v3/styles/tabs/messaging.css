@@ -21,6 +21,26 @@
     .msg-chip.sent   { background: var(--green-light); border-color: var(--green); color: var(--green); }
     .msg-chip.failed { background: var(--red-light);   border-color: var(--red);   color: var(--red); }
     .msg-chip.compact { font-size: 11px; padding: 1px 8px; min-height: 22px; }
+    /* Two-part chip: the kind names itself on screen (same color as the status text, lighter weight,
+       so contrast follows the tone), then shape + status. Wraps instead of clipping. */
+    .msg-chip.has-kind { white-space: normal; max-width: 100%; }
+    .msg-chip-kind {
+      font-weight: 500;
+      min-width: 8.5em;
+      padding-right: 8px;
+      margin-right: 2px;
+      border-right: 1px solid var(--border-strong, var(--border));
+    }
+
+    /* Mailings panel: one row per kind, chip left, action (Clear) in a consistent right column. */
+    .msg-mail-grid { display: flex; flex-direction: column; gap: 6px; }
+    .msg-mail-item { display: grid; grid-template-columns: minmax(0, 19rem) auto; align-items: center; gap: 8px; }
+    .msg-mail-action { min-height: 1px; }
+    .msg-mail-note { font-size: 12px; color: var(--text-muted); }
+    .msg-clear-btn:focus-visible,
+    .msg-mail-row .btn:focus-visible,
+    .msg-link-btn:focus-visible { outline: 2px solid var(--accent-primary); outline-offset: 2px; }
+
     .msg-chip-group { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
     .msg-chip-label { font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.04em; }
 
@@ -164,6 +184,14 @@
       font: inherit;
       font-weight: 700;
       cursor: pointer;
+    }
+
+    @media (max-width: 640px) {
+      .msg-mail-item { grid-template-columns: 1fr; gap: 4px; }
+      .msg-clear-btn, .msg-mail-row .btn { min-height: 44px; }
+      .msg-mail-row { width: 100%; }
+      .msg-mail-row .btn { flex: 1 1 100%; justify-content: center; }
+      .msg-chip-kind { min-width: 7em; }
     }
 
     @media (max-width: 760px) {

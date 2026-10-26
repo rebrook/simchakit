@@ -1,9 +1,21 @@
 {
-  "current": "V5.1.1",
+  "current": "V5.1.2",
   "whatsNew": [
-    "A household's edit window now shows read-only mailing status instead of sent checkboxes"
+    "Mailing chips now show which mailing they are: Save the Date, Invitation, RSVP reminder or Thank-you"
   ],
   "changelog": [
+    {
+      "version": "V5.1.2",
+      "date": "2026-10-26",
+      "summary": "Mailing chips now say which mailing they are",
+      "changes": [
+        "Change: each Mailings chip names its kind on screen (for example Save the Date | Not sent, Invitation | Sent by email, Mar 3) instead of showing the kind only on hover. The four kinds always appear in the same order, one per row, with Clear at the end of the row, and rows wrap rather than cut text off. On narrow screens the rows stack and the Clear, Message and Mark as sent buttons are 44px tall",
+        "Change: Clear on a Sent (manual) chip is now a real button with a visible focus ring and a full accessible name (for example Clear Invitation (manual) mark); the 8-second Undo is unchanged. The guest list and a household's edit window now share one Mailings panel, so they look identical",
+        "Dates in chips read like Sent by email, Mar 3 (the year appears only for a past year). No database changes. V3 app only"
+      ],
+      "roadmap": [],
+      "knownIssues": []
+    },
     {
       "version": "V5.1.1",
       "date": "2026-10-26",

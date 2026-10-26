@@ -10,8 +10,7 @@ import { RsvpPill } from "@/components/shared/RsvpPill.jsx";
 import { Modal } from "@/components/shared/Modal.jsx";
 import { Icon } from "@/utils/iconMap.jsx";
 import { statusStyle } from "@/components/guests/statusStyle.js";
-import { SentChip } from "@/components/guests/SentChip.jsx";
-import { MESSAGE_KINDS } from "@/utils/messageTemplates.js";
+import { MailingsPanel } from "@/components/guests/MailingsPanel.jsx";
 
 export function HouseholdModal({ household, members, adminConfig, sentLookup, onSave, onClose, isArchived }) {
   const groups      = adminConfig?.groups        || DEFAULT_GROUPS;
@@ -336,17 +335,8 @@ export function HouseholdModal({ household, members, adminConfig, sentLookup, on
                 ))}
               </div>
               {isEdit && sentLookup && (
-                <div className="msg-mail-panel">
-                  <div className="msg-chip-group">
-                    <span className="msg-chip-label">Mailings</span>
-                    {MESSAGE_KINDS.filter(k => k.manual).map(k => (
-                      <SentChip key={k.key} status={sentLookup(hh, k.key)} kindLabel={k.label} />
-                    ))}
-                  </div>
-                  <div style={{fontSize:12,color:"var(--text-muted)"}}>
-                    This comes from your message record, so it can't be edited here. Close this window and use Message guests or Mark as sent on the household to change it.
-                  </div>
-                </div>
+                <MailingsPanel household={hh} sentLookup={sentLookup}
+                  note="This comes from your message record, so it can't be edited here. Close this window and use Message guests or Mark as sent on the household to change it." />
               )}
               <div className="form-group"><label className="form-label">Notes</label><textarea className="form-textarea" value={hh.notes} rows={2} onChange={e=>setHHF("notes",e.target.value)} placeholder="Any notes about this household..." /></div>
               {!isEdit && subEventBlock}

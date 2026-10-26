@@ -42,9 +42,10 @@ import { GuestFilters }        from "@/components/guests/GuestFilters.jsx";
 import { MessageComposer }     from "@/components/guests/MessageComposer.jsx";
 import { SentLog }             from "@/components/guests/SentLog.jsx";
 import { SentChip }            from "@/components/guests/SentChip.jsx";
+import { MailingsPanel }       from "@/components/guests/MailingsPanel.jsx";
 import { UndoToast }           from "@/components/guests/UndoToast.jsx";
 import { useMessageLog }       from "@/hooks/useMessageLog.js";
-import { MESSAGE_KINDS, kindLabel, channelLabel } from "@/utils/messageTemplates.js";
+import { kindLabel, channelLabel } from "@/utils/messageTemplates.js";
 import { LEGACY_FLAG, isSent, householdKey } from "@/utils/messageStatus.js";
 import { undoMark } from "@/utils/messageApi.js";
 
@@ -701,28 +702,10 @@ export function GuestsTab({ eventId, event, adminConfig, showToast, isArchived, 
                       {hh.phone && <div style={{fontSize:12,color:"var(--text-secondary)"}}><span style={{color:"var(--text-muted)",marginRight:4}}><Icon name="phone" context="badge" /></span>{hh.phone}</div>}
                       {hh.email && <div style={{fontSize:12,color:"var(--text-secondary)"}}><span style={{color:"var(--text-muted)",marginRight:4}}><Icon name="mail" context="badge" /></span>{hh.email}</div>}
                     </div>
-                    <div className="msg-mail-panel">
-                      <div className="msg-chip-group">
-                        <span className="msg-chip-label">Mailings</span>
-                        {MESSAGE_KINDS.filter(k => k.manual).map(k => {
-                          const st = sentLookup(hh, k.key);
-                          return (
-                            <span key={k.key} className="msg-chip-group" style={{gap:2}}>
-                              <SentChip status={st} kindLabel={k.label} />
-                              {st.state === "manual" && canMessage && (
-                                <button type="button" className="msg-link-btn" onClick={()=>clearLegacyMark(hh, k.key)}>Clear</button>
-                              )}
-                            </span>
-                          );
-                        })}
-                      </div>
-                      {canMessage && (
-                        <div className="msg-mail-row">
-                          <button type="button" className="btn btn-secondary btn-sm" onClick={()=>openComposer({ initialIds: [householdKey(hh)] })}>Message this household</button>
-                          <button type="button" className="btn btn-secondary btn-sm" onClick={()=>openComposer({ initialMethod: "mark", initialIds: [householdKey(hh)] })}>Mark as sent</button>
-                        </div>
-                      )}
-                    </div>
+                    <MailingsPanel household={hh} sentLookup={sentLookup} canEdit={canMessage}
+                      onClear={(kind)=>clearLegacyMark(hh, kind)}
+                      onMessage={()=>openComposer({ initialIds: [householdKey(hh)] })}
+                      onMark={()=>openComposer({ initialMethod: "mark", initialIds: [householdKey(hh)] })} />
                     {(hh.attendingAdults != null || hh.attendingKids != null) && (
                       <div style={{display:"flex",alignItems:"center",gap:8,background:"var(--green-light)",border:"1px solid var(--green)",borderRadius:"var(--radius-sm)",padding:"6px 10px",marginBottom:10,fontSize:12,color:"var(--green)",fontWeight:600}}>
                         <span><Icon name="check" context="badge" /></span>

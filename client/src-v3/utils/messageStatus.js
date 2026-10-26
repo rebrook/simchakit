@@ -76,10 +76,16 @@ function shortDate(value) {
   return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 }
 
-// "Sent by email (Mar 3, 2026)" for chips and tooltips.
+// "Sent by email, Mar 3" for chips and tooltips (the year is added only when it
+// is not the current year, so a past-year mailing is never ambiguous).
 function statusText(status) {
-  const d = shortDate(status?.date);
-  return d && status.tone !== "none" ? `${status.label} (${d})` : status?.label || "";
+  if (!status?.date || status.tone === "none") return status?.label || "";
+  const d = new Date(status.date);
+  if (Number.isNaN(d.getTime())) return status.label;
+  const opts = d.getFullYear() === new Date().getFullYear()
+    ? { month: "short", day: "numeric" }
+    : { month: "short", day: "numeric", year: "numeric" };
+  return `${status.label}, ${d.toLocaleDateString("en-US", opts)}`;
 }
 
 export { householdKey, LEGACY_FLAG, describeEntry, buildSentLookup, isSent, shortDate, statusText, channelLabel };
