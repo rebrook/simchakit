@@ -98,13 +98,21 @@ function mainTimelineEntry(adminConfig) {
 
 // Gift items for a household, same shape rules as utils/gifts.js
 // (getGiftGivers / getGiftItems), including legacy single-gift rows.
-function giftDescriptionFor(householdId, giftRows) {
+// A giver links to its household by the id stored INSIDE the household's data
+// (the app-generated one the Gifts tab picks), not by the database row id, so
+// both ids are accepted. A giver with no link at all is matched by name.
+function giftDescriptionFor(householdIds, householdName, giftRows) {
+  const norm = (v) => String(v || "").trim().toLowerCase();
+  const wantName = norm(householdName);
   const parts = [];
   for (const row of giftRows) {
     const g = row?.data;
     if (!g) continue;
-    const givers = Array.isArray(g.givers) && g.givers.length > 0 ? g.givers : [{ householdId: g.householdId }];
-    if (!givers.some(gv => gv?.householdId === householdId)) continue;
+    const givers = Array.isArray(g.givers) && g.givers.length > 0 ? g.givers : [{ householdId: g.householdId, name: g.fromName }];
+    const linked = givers.some(gv => gv?.householdId
+      ? householdIds.includes(gv.householdId)
+      : wantName && norm(gv?.name) === wantName);
+    if (!linked) continue;
     const items = Array.isArray(g.items) && g.items.length > 0
       ? g.items
       : [{ giftType: g.giftType, description: g.description }];
@@ -228,7 +236,7 @@ export default async function handler(req, res) {
     if (row.email_opt_out)   { skipped.push({ householdId: id, name, reason: "opted_out" }); continue; }
     if (!email)              { skipped.push({ householdId: id, name, reason: "no_email" });  continue; }
     if (!EMAIL_RE.test(email)) { skipped.push({ householdId: id, name, reason: "invalid_email" }); continue; }
-    targets.push({ id, name, email });
+    targets.push({ id, name, email, linkIds: [id, row.data?.id].filter(Boolean) });
   }
 
   // ── Step 4: Per-event rate limit (real sends only) ──────────────────────────
@@ -313,7 +321,7 @@ export default async function handler(req, res) {
     const values = {
       ...eventValues,
       household_name:   t.name,
-      gift_description: giftDescriptionFor(t.id, giftRows),
+      gift_description: giftDescriptionFor(t.linkIds, t.name, giftRows),
     };
     // A test must never carry a live unsubscribe link: clicking it would opt the
     // sampled household out. The placeholder lands on the "link not valid" page.
