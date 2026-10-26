@@ -216,7 +216,9 @@ Schema changes (new tables, RLS policies, functions) are applied directly in the
 - `changelog.json` (repo root)
 - `client/public/changelog.json` (served as a static asset)
 
-Always edit using Python `json.load` / `json.dump` -- never string replacement. Verify `current` matches the first entry version before committing.
+Always edit using Python `json.load` / `json.dump` -- never string replacement.
+
+**Releases are automatic.** When a change to `changelog.json` reaches `main`, the `Publish Release` workflow (`.github/workflows/release.yml`) creates a GitHub release and tag named after `current`, with that version's changelog entry as the notes, and marks it Latest. It skips a version that already has a release. You can also run it from the Actions tab. Verify `current` matches the first entry version before committing.
 
 ### V2 — Self-Hosted NAS
 

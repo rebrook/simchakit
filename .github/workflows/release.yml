@@ -1,0 +1,44 @@
+name: Publish Release
+
+# Creates a GitHub release (and its tag) for the version in changelog.json whenever
+# that version has no release yet. Runs when changelog.json changes on main, which
+# is every version bump (and once when this file itself is first added), and can be
+# run by hand from the Actions tab.
+# The release notes are the matching changelog entry (summary plus its changes).
+
+on:
+  push:
+    branches: [main]
+    paths: [changelog.json, .github/workflows/release.yml]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Create release for the current version
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          VERSION=$(jq -r '.current' changelog.json)
+          FIRST=$(jq -r '.changelog[0].version' changelog.json)
+          if [ -z "$VERSION" ] || [ "$VERSION" = "null" ] || [ "$VERSION" != "$FIRST" ]; then
+            echo "changelog.json current ($VERSION) does not match its first entry ($FIRST); not releasing."
+            exit 1
+          fi
+          if gh release view "$VERSION" >/dev/null 2>&1; then
+            echo "Release $VERSION already exists; nothing to do."
+            exit 0
+          fi
+          SUMMARY=$(jq -r --arg v "$VERSION" '.changelog[] | select(.version == $v) | .summary' changelog.json)
+          jq -r --arg v "$VERSION" '.changelog[] | select(.version == $v) | "**" + .summary + "**\n\n" + (.changes | map("- " + .) | join("\n"))' changelog.json > notes.md
+          gh release create "$VERSION" \
+            --target "$GITHUB_SHA" \
+            --title "$VERSION: $SUMMARY" \
+            --notes-file notes.md \
+            --latest
