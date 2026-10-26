@@ -2,7 +2,7 @@
 
 A real-time event planning web app for celebrations — B'nei Mitzvot, weddings, and other simchas.
 
-![Version](https://img.shields.io/badge/version-5.2.0-blue)
+![Version](https://img.shields.io/badge/version-5.3.0-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
 ## Hosted Version
@@ -133,7 +133,8 @@ simchakit/
 │   │   ├── calendar.js       # router: generate-token, subscribe
 │   │   ├── admin.js          # router: admin-query, reset-demo
 │   │   ├── system.js         # router: notify, brevo-sync
-│   │   ├── guest.js          # router (V5): send (email households via Brevo), unsubscribe
+│   │   ├── guest.js          # router (V5): send, test, unsubscribe, rsvp-token (owner/editor)
+│   │   ├── rsvp.js           # router (V5): guest RSVP site, GET household view and POST reply (private token in X-RSVP-Token)
 │   │   ├── stripe-webhook.js # kept separate (raw body + signature)
 │   │   ├── cron/lifecycle-emails.js
 │   │   └── _lib/             # the real handler code and shared helpers (not deployed as functions); email-shell.js is the shared guest-email layout
@@ -202,6 +203,8 @@ Schema changes (new tables, RLS policies, functions) are applied directly in the
 **Migrations** live in `client/migrations/` (for example `V5.0-M1.sql`, guest messaging tables). Each file is idempotent and starts with a note on its RLS impact.
 
 **Guest messaging (V5):** run `V5.0-M1.sql`, then `V5.0-M2.sql` (adds `message_log.channel` for paper and other-platform mailings and makes `message_recipients.email` optional). Run M2 before deploying the Guests tab changes, or the message history cannot load and rows fall back to the pre-V5 sent flags. Guests are emailed through `POST /api/guest?action=send` (use `dry_run` to preview and `action=test` to send a sample to yourself).
+
+**RSVP site (V5):** run `V5.1-R1.sql` (after M1 and M2). It adds `household_rsvp_tokens`, `rsvp_replies` and `events.rsvp_settings`, with no access for anon. Guests call `GET/POST /api/rsvp` with their private token in the `X-RSVP-Token` header, never in a URL. No new environment variables.
 
 **Guest messaging environment variables (Vercel):** `GUEST_MAIL_FROM` (a sender address verified in Brevo) and `GUEST_UNSUBSCRIBE_SECRET` (random string used to sign unsubscribe links), in addition to `BREVO_API_KEY`.
 
