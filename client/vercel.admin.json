@@ -24,6 +24,17 @@
     },
     {
       "source": "/api/calendar/subscribe",
+      "has": [
+        {
+          "type": "query",
+          "key": "token",
+          "value": "(?<token>.+)"
+        }
+      ],
+      "destination": "/api/calendar?action=subscribe&token=:token"
+    },
+    {
+      "source": "/api/calendar/subscribe",
       "destination": "/api/calendar?action=subscribe"
     },
     {
