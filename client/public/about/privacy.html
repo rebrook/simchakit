@@ -29,27 +29,38 @@
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 
   <style>
     :root {
+      /* Brand colors: marketing site's own identity */
       --color-primary: #1e3a5f;
       --color-primary-light: #2d5a8a;
       --color-accent: #c9a227;
       --color-accent-light: #e3c565;
-      --color-bg: #fafbfc;
-      --color-bg-alt: #f0f4f8;
-      --color-text: #1a2b3c;
-      --color-text-muted: #5a6978;
-      --color-border: #e1e6eb;
+      --color-accent-text: #7d6200; /* accent for text on light backgrounds (4.5:1) */
+
+      /* Warm-paper surfaces aligned to app's surface language */
+      --color-bg: #faf8f5;
+      --color-bg-alt: #f4f1ec;
       --color-white: #ffffff;
-      --font-display: 'Playfair Display', Georgia, serif;
-      --font-body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+
+      /* Warm-grey neutrals (not blue-grey) */
+      --color-text: #2c2520;
+      --color-text-muted: #6b6058;
+      --color-border: #e2ddd5;
+      --color-border-strong: #c9c2b6;
+
+      /* Design-system type pairing */
+      --font-display: 'Cormorant Garamond', Georgia, serif;
+      --font-body: 'DM Sans', system-ui, sans-serif;
+
+      /* Shared tokens */
       --radius: 12px;
       --radius-lg: 20px;
-      --shadow-sm: 0 1px 3px rgba(0,0,0,0.08);
-      --shadow-md: 0 4px 12px rgba(0,0,0,0.1);
-      --shadow-lg: 0 8px 30px rgba(0,0,0,0.12);
+      --shadow-sm: 0 1px 3px rgba(44,37,32,0.07);
+      --shadow-md: 0 4px 12px rgba(44,37,32,0.09);
+      --shadow-lg: 0 8px 30px rgba(44,37,32,0.12);
       --max-width: 1140px;
     }
 
@@ -64,15 +75,22 @@
       background: var(--color-bg);
     }
 
-    h1, h2, h3 {
+    /* Typography: Cormorant display only, DM Sans body/UI */
+    h1, h2 {
       font-family: var(--font-display);
       font-weight: 700;
-      line-height: 1.2;
+      line-height: 1.15;
     }
 
-    h1 { font-size: clamp(2rem, 5vw, 2.75rem); }
-    h2 { font-size: clamp(1.5rem, 3vw, 2rem); }
-    h3 { font-size: 1.15rem; font-weight: 600; }
+    h3 {
+      font-family: var(--font-body);
+      font-weight: 600;
+      line-height: 1.3;
+    }
+
+    h1 { font-size: clamp(2.25rem, 5vw, 3.25rem); }
+    h2 { font-size: clamp(1.75rem, 4vw, 2.5rem); }
+    h3 { font-size: 1.15rem; }
 
     p { max-width: 65ch; }
 
@@ -90,7 +108,7 @@
     header {
       position: fixed;
       top: 0; left: 0; right: 0;
-      background: rgba(255,255,255,0.95);
+      background: rgba(250,248,245,0.95);
       backdrop-filter: blur(10px);
       border-bottom: 1px solid var(--color-border);
       z-index: 100;
@@ -114,7 +132,7 @@
       text-decoration: none;
     }
 
-    .logo img { width: 52px; height: 52px; border-radius: 11px; display: block; }
+    .logo img { width: 44px; height: 44px; border-radius: 10px; display: block; }
 
     nav { display: flex; align-items: center; gap: 32px; }
 
@@ -202,7 +220,7 @@
 
     .article-breadcrumb a:hover { color: var(--color-primary); }
 
-    .article-breadcrumb span { opacity: 0.5; }
+    .article-breadcrumb span[aria-hidden="true"] { opacity: 0.5; }
 
     .article-meta {
       display: flex;
@@ -659,7 +677,7 @@
         top: 70px;
         left: 0;
         right: 0;
-        background: rgba(255,255,255,0.98);
+        background: rgba(250,248,245,0.98);
         border-bottom: 1px solid var(--color-border);
         padding: 8px 0 16px;
         box-shadow: var(--shadow-md);
@@ -694,6 +712,8 @@
 
       .footer-links { flex-wrap: wrap; justify-content: center; }
     }
+    .article-content a { text-decoration: underline; }
+
     /* Lists (legal pages) */
     .article-content ul { margin: 0 0 20px 22px; }
     .article-content li { margin-bottom: 8px; max-width: 68ch; line-height: 1.7; }
@@ -726,13 +746,14 @@
     </div>
   </header>
 
+  <main>
   <!-- Article Hero -->
   <section class="article-hero">
     <div class="container">
       <div class="article-hero-inner">
         <nav class="article-breadcrumb" aria-label="Breadcrumb">
           <a href="https://about.simcha-kit.com">SimchaKit</a>
-          <span>&#8250;</span>
+          <span aria-hidden="true">&#8250;</span>
           <span style="color: var(--color-text);">Privacy Policy</span>
         </nav>
         <span class="article-tag">Legal</span>
@@ -766,10 +787,10 @@
           </ul>
 
           <h2>How long we keep it</h2>
-          <p>We keep your account and event data while your account is active so you can keep planning. [OWNER: confirm the retention period for inactive accounts and deleted events.]</p>
+          <p>We keep your account and event data while your account is active so you can keep planning.<!-- OWNER: confirm the retention period for inactive accounts and deleted events, then add it here. --></p>
 
           <h2>How to export or delete your data</h2>
-          <p>You can <a href="https://about.simcha-kit.com#faq">export your data</a> from SimchaKit at any time. To have your account and data deleted, email <a href="mailto:hello@simcha-kit.com">hello@simcha-kit.com</a>.</p>
+          <p>You can export your guest list from the Guests tab (Export Guests) and your seating chart from the Seating tab (Export Seating) at any time. To have your account and data deleted, email <a href="mailto:hello@simcha-kit.com">hello@simcha-kit.com</a>.</p>
 
           <h2>Your role as the event organizer</h2>
           <p>Guests never use SimchaKit, so you are the one who enters their details. You are responsible for having a reason to hold that information and for using it only to plan your event. We process guest details on your behalf and only to provide the app.</p>
@@ -780,6 +801,8 @@
       </div>
     </div>
   </section>
+
+  </main>
 
   <!-- Footer -->
   <footer>
