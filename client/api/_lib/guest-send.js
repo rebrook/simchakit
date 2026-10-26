@@ -326,7 +326,10 @@ export default async function handler(req, res) {
     const { html, text: textFull } = renderGuestEmail({
       kind, subject: renderedSubject, bodyText: text, rsvpUrl: usesRsvp ? values.rsvp_link : "",
       eventName: event.name || "", eventDate: eventValues.event_date, logoUrl: event.admin_config?.logoUrl,
-      theme: event.admin_config?.theme, senderName, footerText, postalAddress, unsubscribeUrl,
+      theme: event.admin_config?.theme, senderName,
+      // Footer names the host: an explicit sender name if the host set one, else the host names.
+      hostName: settings.senderName ? senderName : eventValues.host_names,
+      footerText, postalAddress, unsubscribeUrl,
     });
     return { ...t, subject: renderedSubject, html, text: textFull, unsubscribeUrl };
   });

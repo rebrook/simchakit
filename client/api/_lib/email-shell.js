@@ -33,7 +33,8 @@ const HEADING   = "#0d1b2e";
 const MUTED     = "#5c5238";   // 6.6:1 on FOOTER_BG
 const RULE      = "#e5dece";
 
-const FONT = "Georgia,'Times New Roman',serif";
+// Same stack the welcome email uses for most of its text.
+const FONT = "Georgia,serif";
 const ABOUT_URL = "https://about.simcha-kit.com";
 
 const RSVP_BUTTON_LABEL = {
@@ -85,6 +86,15 @@ function resolveAccent(theme) {
   return HEX_RE.test(p.accent) ? p.accent : "#c4637a";
 }
 
+// Inbox preview text: the first real sentence of the message, skipping a short
+// greeting line ("Dear Name,"), so the preview does not repeat the header.
+function previewLine(message) {
+  const paras = message.split(/\n{2,}/).map(p => p.replace(/\s+/g, " ").trim()).filter(Boolean);
+  const body = paras.find(p => !(p.length < 60 && /,$/.test(p))) || paras[0] || "";
+  const sentence = (body.match(/^.*?[.!?](?=\s|$)/) || [body])[0];
+  return sentence.length > 110 ? `${sentence.slice(0, 107).trimEnd()}...` : sentence;
+}
+
 const safeHttpsUrl = (u) => (/^https:\/\/[^\s"'<>]+$/i.test(String(u || "").trim()) ? String(u).trim() : "");
 
 // ── Render ────────────────────────────────────────────────────────────────────
@@ -93,7 +103,7 @@ const safeHttpsUrl = (u) => (/^https:\/\/[^\s"'<>]+$/i.test(String(u || "").trim
 export function renderGuestEmail({
   kind, subject, bodyText, rsvpUrl = "",
   eventName, eventDate, logoUrl, theme,
-  senderName, footerText = "", postalAddress = "", unsubscribeUrl,
+  senderName, hostName = "", footerText = "", postalAddress = "", unsubscribeUrl,
 }) {
   const accent      = resolveAccent(theme);
   const accentRule  = contrast(accent, CARD_BG) >= 3 ? accent : darkenUntil(accent, CARD_BG, 3);
@@ -105,6 +115,8 @@ export function renderGuestEmail({
   const paragraphs = message.split(/\n{2,}/).map(p =>
     `<p style="margin:0 0 18px;font-family:${FONT};font-size:16px;line-height:1.7;color:${TEXT};text-align:left;">${escapeHtml(p).replace(/\n/g, "<br>")}</p>`
   ).join("");
+
+  const preheader = previewLine(message);
 
   const logo = safeHttpsUrl(logoUrl);
   const logoHtml = logo
@@ -126,7 +138,8 @@ export function renderGuestEmail({
                 Or open this link: <a href="${escapeHtml(rsvp)}" style="color:${linkOnCard};text-decoration:underline;">${escapeHtml(rsvp)}</a>
               </p>` : "";
 
-  const sender = String(senderName || eventName || "your host").trim();
+  // Footer wording names the host (not the event, which the header already shows).
+  const sender = String(hostName || senderName || eventName || "your host").trim();
   const aboutLink = `${ABOUT_URL}?utm_source=guest-email&utm_medium=email&utm_campaign=${encodeURIComponent(kind || "guest")}`;
 
   const footerTextHtml = footerText
@@ -149,6 +162,7 @@ export function renderGuestEmail({
   </style>
 </head>
 <body style="margin:0;padding:0;background-color:${PAGE_BG};font-family:${FONT};">
+  <div style="display:none;max-height:0;overflow:hidden;mso-hide:all;font-size:1px;line-height:1px;color:${PAGE_BG};">${escapeHtml(preheader)}${"&#847;&zwnj;&nbsp;".repeat(40)}</div>
   <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:${PAGE_BG};">
     <tr>
       <td align="center" style="padding:32px 12px;">
@@ -178,7 +192,7 @@ export function renderGuestEmail({
               </p>
               ${footerTextHtml}${addressHtml}
               <p style="margin:0;font-family:${FONT};font-size:12px;line-height:1.6;color:${MUTED};">
-                You are receiving this because ${escapeHtml(sender)} included you in ${escapeHtml(eventName)}.
+                You are receiving this because ${escapeHtml(sender)} included you in this guest list.
                 <a href="${escapeHtml(unsubscribeUrl)}" style="color:${linkOnFoot};text-decoration:underline;">Unsubscribe</a>
               </p>
             </td>
@@ -196,7 +210,7 @@ export function renderGuestEmail({
   textParts.push(`--\nSent by ${sender} using SimchaKit, the planner for simchas and celebrations. Planning your own event? ${aboutLink}`);
   if (footerText)    textParts.push(String(footerText));
   if (postalAddress) textParts.push(String(postalAddress));
-  textParts.push(`You are receiving this because ${sender} included you in ${eventName}.\nUnsubscribe: ${unsubscribeUrl}`);
+  textParts.push(`You are receiving this because ${sender} included you in this guest list.\nUnsubscribe: ${unsubscribeUrl}`);
 
   return { html, text: textParts.join("\n\n") };
 }

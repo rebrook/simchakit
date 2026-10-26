@@ -106,13 +106,16 @@ export function MessageComposer({
 
   const insertField = (key) => {
     const el = bodyRef.current;
-    const token = `{{${key}}}`;
-    if (!el) { setBody(b => b + token); return; }
-    const start = el.selectionStart ?? body.length;
-    const end   = el.selectionEnd   ?? body.length;
+    const raw = `{{${key}}}`;
+    const start = el ? (el.selectionStart ?? body.length) : body.length;
+    const end   = el ? (el.selectionEnd   ?? body.length) : body.length;
+    // Keep fields from running into the words around them: add a space before the
+    // field when the character just before the cursor is not already whitespace.
+    const prev  = body.slice(0, start).slice(-1);
+    const token = prev && !/\s/.test(prev) ? ` ${raw}` : raw;
     setBody(body.slice(0, start) + token + body.slice(end));
     setPreview(null);
-    requestAnimationFrame(() => { el.focus(); el.setSelectionRange(start + token.length, start + token.length); });
+    if (el) requestAnimationFrame(() => { el.focus(); el.setSelectionRange(start + token.length, start + token.length); });
   };
 
   // ── Preview (dry_run) ────────────────────────────────────────────────────
