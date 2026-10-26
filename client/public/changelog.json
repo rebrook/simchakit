@@ -1,9 +1,23 @@
 {
-  "current": "V5.1.2",
+  "current": "V5.2.0",
   "whatsNew": [
-    "Mailing chips now show which mailing they are: Save the Date, Invitation, RSVP reminder or Thank-you"
+    "Guest emails now match SimchaKit's look and use your event's colors and logo",
+    "The email preview shows a Desktop and Phone view"
   ],
   "changelog": [
+    {
+      "version": "V5.2.0",
+      "date": "2026-10-26",
+      "summary": "Guest emails now look like the rest of SimchaKit, in your event's colors",
+      "changes": [
+        "Change: guest emails (save the date, invitation, reminder, thank-you and custom) now arrive in the same family as the SimchaKit welcome email: a cream card with a soft shadow, Georgia type, a rule under the header, and a quiet footer. The header shows your event's logo (when set), name and date, and the rule, links and any button use your event's palette. Colors that would be hard to read are darkened for text and buttons, and the card stays light so every palette reads well in light and dark mail apps",
+        "New: every guest email includes a plain-text version, an underlined unsubscribe link, your footer text, and, when you set one in Sender details, a postal address. The footer also carries one quiet line, Sent by your name using SimchaKit, with a Learn more link",
+        "Change: the preview in the composer shows the real email, now with a Desktop and Phone (360px) toggle, and the test send and the real send use the exact same layout. When RSVP links arrive, {{rsvp_link}} will appear as a button with the plain link repeated below it",
+        "Server: the shared layout lives in api/_lib/email-shell.js and reads the event palettes from the app's own theme files, so palette changes are picked up automatically. No database changes (the optional postal address is stored in the event's existing message settings). The collaborator invite and lifecycle emails are unchanged"
+      ],
+      "roadmap": [],
+      "knownIssues": []
+    },
     {
       "version": "V5.1.2",
       "date": "2026-10-26",
