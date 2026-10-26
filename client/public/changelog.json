@@ -1,9 +1,25 @@
 {
-  "current": "V4.49.4",
+  "current": "V5.0.0",
   "whatsNew": [
-    "Behind-the-scenes server cleanup to prepare for V5 (no visible changes)"
+    "Behind the scenes: groundwork for messaging your guests (nothing to see yet)"
   ],
   "changelog": [
+    {
+      "version": "V5.0.0",
+      "date": "2026-10-26",
+      "summary": "V5-M1: guest messaging backend (no visible change yet)",
+      "changes": [
+        "New: the \"send\" action of api/guest.js (POST /api/guest?action=send) sends a templated email to a list of households through Brevo. The caller must be the event owner or an editor; households, event details and gifts are read from the database, never from the browser. Supports merge fields {{household_name}}, {{event_name}}, {{event_date}}, {{venue}}, {{host_names}}, {{rsvp_link}} (empty until RSVP links ship) and {{gift_description}}, all HTML-escaped",
+        "New: dry_run returns rendered previews and the skipped list without sending or writing anything. Households with no email, an invalid email, or an opt-out come back in skipped[] with a reason; one failed delivery never fails the batch",
+        "New: per-event limits of 5 sends per minute and 2,000 recipients per 24 hours, returned as a 429 with a message the app can show. Recipient counts are recorded but no plan limits are enforced yet",
+        "New: every guest email carries an unsubscribe link and List-Unsubscribe headers. the \"unsubscribe\" action of api/guest.js (signed link, confirm page, sets households.email_opt_out) is the only guest-reachable endpoint; tables stay closed to the anon role",
+        "Database (client/migrations/V5.0-M1.sql): new message_log and message_recipients tables, events.message_settings (sender name, reply-to, footer) and households.email_opt_out (default false). Owner, editors and viewers can read the log; only owner and editors can write, and not on archived events. Existing events and guests load unchanged with no backfill",
+        "New environment variables: GUEST_MAIL_FROM (verified Brevo sender address) and GUEST_UNSUBSCRIBE_SECRET (random string). No screens use messaging yet",
+        "Server: both guest endpoints share one router, api/guest.js, so the deployment stays at 8 of Vercel's 12 allowed functions"
+      ],
+      "roadmap": [],
+      "knownIssues": []
+    },
     {
       "version": "V4.49.4",
       "date": "2026-10-26",
