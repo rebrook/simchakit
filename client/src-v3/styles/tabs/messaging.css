@@ -1,0 +1,173 @@
+/* messaging.css — guest messaging (V5.1.0): sent-status chips, composer, Messages log, undo toast. CSS variables only. */
+
+    /* Status chip: labeled text plus a shape, never color alone (same pattern as .gift-ty-chip).
+       Shapes: hollow circle = not sent, filled circle = sent, triangle = failed. */
+    .msg-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      min-height: 26px;
+      padding: 2px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: var(--bg-surface);
+      font-family: var(--font-body);
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      white-space: nowrap;
+    }
+    .msg-chip-shape { font-size: 10px; line-height: 1; flex-shrink: 0; }
+    .msg-chip.sent   { background: var(--green-light); border-color: var(--green); color: var(--green); }
+    .msg-chip.failed { background: var(--red-light);   border-color: var(--red);   color: var(--red); }
+    .msg-chip.compact { font-size: 11px; padding: 1px 8px; min-height: 22px; }
+    .msg-chip-group { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+    .msg-chip-label { font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.04em; }
+
+    .msg-link-btn {
+      background: none;
+      border: none;
+      padding: 0 4px;
+      min-height: 26px;
+      font: inherit;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--accent-primary);
+      cursor: pointer;
+      text-decoration: underline;
+    }
+    .msg-link-btn:disabled { color: var(--text-muted); cursor: default; text-decoration: none; }
+
+    .msg-mail-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding: 10px 12px;
+      margin-bottom: 12px;
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+    }
+    .msg-mail-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+
+    /* Composer */
+    .msg-steps { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 16px; font-size: 12px; color: var(--text-muted); }
+    .msg-step { padding: 4px 10px; border-radius: 999px; border: 1px solid var(--border); background: var(--bg-surface); }
+    .msg-step.active { background: var(--accent-light); border-color: var(--accent-medium); color: var(--accent-primary); font-weight: 700; }
+    .msg-step.done { color: var(--text-secondary); }
+
+    .msg-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; margin-bottom: 14px; }
+    .msg-card {
+      text-align: left;
+      min-height: 44px;
+      padding: 10px 12px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border);
+      background: var(--bg-surface);
+      color: var(--text-primary);
+      font: inherit;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .msg-card:hover { border-color: var(--text-muted); }
+    .msg-card.selected { border-color: var(--accent-primary); background: var(--accent-light); color: var(--accent-primary); }
+
+    .msg-radio-row { display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; }
+    .msg-radio {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      min-height: 44px;
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      background: var(--bg-surface);
+      cursor: pointer;
+      font-size: 13px;
+    }
+    .msg-radio.selected { border-color: var(--accent-primary); background: var(--accent-light); }
+    .msg-radio input { margin-top: 3px; accent-color: var(--accent-primary); }
+    .msg-radio-title { font-weight: 700; color: var(--text-primary); }
+    .msg-radio-sub { color: var(--text-muted); font-size: 12px; }
+
+    .msg-body-input { min-height: 220px; font-family: var(--font-body); line-height: 1.5; resize: vertical; }
+    .msg-field-chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0 12px; }
+
+    .msg-filters { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; align-items: center; }
+    .msg-count {
+      padding: 8px 12px;
+      margin-bottom: 10px;
+      border-radius: var(--radius-sm);
+      background: var(--accent-light);
+      color: var(--accent-primary);
+      font-size: 13px;
+      font-weight: 600;
+    }
+    .msg-list { max-height: 240px; overflow-y: auto; border: 1px solid var(--border); border-radius: var(--radius-sm); margin-bottom: 12px; }
+    .msg-list-row { display: flex; align-items: center; gap: 8px; padding: 6px 10px; border-bottom: 1px solid var(--border); font-size: 13px; min-height: 36px; }
+    .msg-list-row:last-child { border-bottom: none; }
+
+    .msg-notice {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      padding: 10px 12px;
+      margin-bottom: 12px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--gold);
+      background: var(--gold-light);
+      color: var(--text-primary);
+      font-size: 13px;
+    }
+    .msg-notice.error { border-color: var(--red); background: var(--red-light); }
+    .msg-missing-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+    .msg-missing-row .form-input { flex: 1; min-width: 160px; }
+
+    .msg-preview-meta { font-size: 12px; color: var(--text-muted); margin-bottom: 6px; }
+    /* White on purpose: this frame shows the email as guests receive it, whatever the app theme. */
+    .msg-preview-frame { width: 100%; height: 280px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: #fff; }
+
+    /* Messages (sent log) */
+    .msg-log { display: flex; flex-direction: column; gap: 8px; }
+    .msg-log-item { background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius-md); }
+    .msg-log-head { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding: 12px 14px; cursor: pointer; width: 100%; background: none; border: none; text-align: left; font: inherit; color: var(--text-primary); }
+    .msg-log-title { font-weight: 700; font-size: 14px; }
+    .msg-log-meta { font-size: 12px; color: var(--text-muted); }
+    .msg-log-detail { border-top: 1px solid var(--border); background: var(--bg-subtle); padding: 10px 14px 14px; display: flex; flex-direction: column; gap: 6px; }
+
+    /* Undo toast (8 seconds) */
+    .msg-undo-toast {
+      position: fixed;
+      left: 50%;
+      bottom: 24px;
+      transform: translateX(-50%);
+      z-index: 2000;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      max-width: calc(100vw - 32px);
+      padding: 10px 14px;
+      border-radius: var(--radius-md);
+      background: var(--text-primary);
+      color: var(--bg-surface);
+      box-shadow: var(--shadow-lg, 0 8px 24px rgba(0,0,0,0.25));
+      font-size: 13px;
+    }
+    .msg-undo-toast button {
+      min-height: 44px;
+      padding: 0 12px;
+      background: none;
+      border: 1px solid currentColor;
+      border-radius: var(--radius-sm);
+      color: inherit;
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    @media (max-width: 760px) {
+      .msg-link-btn { min-height: 44px; padding: 0 8px; }
+      .msg-chip { min-height: 32px; }
+      .msg-list-row { min-height: 44px; }
+    }

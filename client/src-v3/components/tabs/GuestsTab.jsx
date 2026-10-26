@@ -39,6 +39,14 @@ import { statusStyle }         from "@/components/guests/statusStyle.js";
 import { AwaitingPanel }       from "@/components/guests/AwaitingPanel.jsx";
 import { MobileFilterSheet }   from "@/components/guests/MobileFilterSheet.jsx";
 import { GuestFilters }        from "@/components/guests/GuestFilters.jsx";
+import { MessageComposer }     from "@/components/guests/MessageComposer.jsx";
+import { SentLog }             from "@/components/guests/SentLog.jsx";
+import { SentChip }            from "@/components/guests/SentChip.jsx";
+import { UndoToast }           from "@/components/guests/UndoToast.jsx";
+import { useMessageLog }       from "@/hooks/useMessageLog.js";
+import { MESSAGE_KINDS, kindLabel, channelLabel } from "@/utils/messageTemplates.js";
+import { LEGACY_FLAG, isSent, householdKey } from "@/utils/messageStatus.js";
+import { undoMark } from "@/utils/messageApi.js";
 
 // TimelineEntryModal moved to components/guests/; re-exported so AdminPanel's import is unchanged.
 export { TimelineEntryModal };
@@ -53,6 +61,9 @@ export function GuestsTab({ eventId, event, adminConfig, showToast, isArchived, 
   const { items: households, loading: hLoading, save: saveHouseholdRow, remove: removeHouseholdRow } = useEventData(eventId, "households", { promoteColumns: householdPromoteColumns });
   const { items: people,     loading: pLoading, save: savePersonRow,    remove: removePersonRow }     = useEventData(eventId, "people", { promoteColumns: peoplePromoteColumns });
   const { items: tables,     loading: tLoading }                                                       = useEventData(eventId, "tables");
+  // V5-M2: the message log is the source of truth for "was this sent?" (pre-V5 flags are a read-only fallback).
+  const msgLog     = useMessageLog(eventId);
+  const sentLookup = msgLog.sentLookup;
 
   const groups   = adminConfig?.groups   || DEFAULT_GROUPS;
   const sections = sortTimeline(adminConfig?.timeline || []).map(e => ({ id: e.id, label: (e.icon ? e.icon + " " : "") + e.title, inviteAllByDefault: e.inviteAllByDefault !== false }));
@@ -79,12 +90,16 @@ export function GuestsTab({ eventId, event, adminConfig, showToast, isArchived, 
   const [awaitingOnly,         setAwaitingOnly]         = useState(false);
   const [mobileMoreFiltersOpen,setMobileMoreFiltersOpen]= useState(false);
   const [expandedChipRows,     setExpandedChipRows]     = useState(new Set());
+  const [mailFilter,           setMailFilter]           = useState("All");
+  const [view,                 setView]                 = useState("guests");   // "guests" | "messages"
+  const [composer,             setComposer]             = useState(null);       // { initialIds, initialKind, initialMethod }
+  const [undo,                 setUndo]                 = useState(null);       // { message, onUndo }
 
   const isMobile = useIsMobile();
 
   useSearchHighlight(searchHighlight, clearSearchHighlight, "guests", { setExpandedHH });
 
-  useEffect(() => { setSelectedHHIds(new Set()); }, [search, groupFilter, statusFilter, mobileChip, outOfTownFilter, missingAddressFilter, subEventFilter, subEventStatusFilter, awaitingOnly]);
+  useEffect(() => { setSelectedHHIds(new Set()); }, [search, groupFilter, statusFilter, mobileChip, outOfTownFilter, missingAddressFilter, subEventFilter, subEventStatusFilter, awaitingOnly, mailFilter]);
 
   // V4.41.0: arriving from the Overview timeline's awaiting count opens this
   // tab already filtered to the guests who still owe an answer for that
@@ -138,11 +153,53 @@ export function GuestsTab({ eventId, event, adminConfig, showToast, isArchived, 
     setSelectedHHIds(new Set());
   };
 
-  // ── Inline mailing toggles ────────────────────────────────────────────────
-  const toggleMailing = async (hhId, field) => {
-    if (isArchived) return;
-    const hh = households.find(h => h.id === hhId);
-    if (hh) await saveHouseholdRow({ ...hh, [field]: !hh[field] });
+  // ── Guest messaging (V5-M2) ───────────────────────────────────────────────
+  // Sends and marks only ever write the message log. The one place the pre-V5
+  // flags change is Clear on a "Sent (manual)" chip, which sets that flag false
+  // (with an 8-second undo that restores it).
+  const canMessage = !isArchived && !isViewer;
+  const openComposer = (opts = {}) => { if (canMessage) setComposer(opts); };
+  const keysFor = (ids) => ids.map(id => householdKey(households.find(h => h.id === id))).filter(Boolean);
+
+  const clearLegacyMark = async (hh, kind) => {
+    const flag = LEGACY_FLAG[kind];
+    if (!canMessage || !flag) return;
+    await saveHouseholdRow({ ...hh, [flag]: false });
+    writeAuditLog(eventId, "households", "Updated", `Cleared ${kindLabel(kind)} (manual) mark — ${hh.formalName || "Household"}`);
+    setUndo({
+      message: `${kindLabel(kind)} mark cleared for ${hh.formalName || "household"}`,
+      onUndo: async () => {
+        const fresh = households.find(h => h._rowId === hh._rowId) || hh;
+        await saveHouseholdRow({ ...fresh, [flag]: true });
+        setUndo(null);
+      },
+    });
+  };
+
+  const saveHouseholdEmail = async (hh, email) => {
+    if (!canMessage) return;
+    await saveHouseholdRow({ ...hh, email: String(email).toLowerCase().trim() });
+    writeAuditLog(eventId, "households", "Updated", `Added email — ${hh.formalName || "Household"}`);
+  };
+
+  const handleMarked = ({ messageId, count, kind, channel }) => {
+    msgLog.reload();
+    writeAuditLog(eventId, "households", "Updated", `Marked ${kindLabel(kind)} as sent (${channelLabel(channel).toLowerCase()}) — ${count} household${count !== 1 ? "s" : ""}`);
+    setSelectedHHIds(new Set());
+    setUndo({
+      message: `${count} household${count !== 1 ? "s" : ""} marked as sent (${kindLabel(kind)}, ${channelLabel(channel).toLowerCase()})`,
+      onUndo: async () => {
+        try { await undoMark(messageId); } catch { showToast("Could not undo that"); }
+        msgLog.reload();
+        setUndo(null);
+      },
+    });
+  };
+
+  const handleSent = (data) => {
+    msgLog.reload();
+    setSelectedHHIds(new Set());
+    writeAuditLog(eventId, "households", "Updated", `Sent a guest email to ${data.sent} household${data.sent !== 1 ? "s" : ""}${data.failed ? ` (${data.failed} failed)` : ""}`);
   };
 
   // ── Save household + members ──────────────────────────────────────────────
@@ -216,8 +273,8 @@ export function GuestsTab({ eventId, event, adminConfig, showToast, isArchived, 
   const kosherPending   = mealPop.relevant.filter(p => p.kosher).length - totalKosher;
   const totalKippot     = people.filter(p => isMaleTitle(p.title)).length;
   const totalAddresses  = households.filter(h => h.address1).length;
-  const totalSTDSent    = households.filter(h => h.saveTheDateSent).length;
-  const totalInviteSent = households.filter(h => h.inviteSent).length;
+  const totalSTDSent    = households.filter(h => isSent(sentLookup(h, "save_the_date"))).length;
+  const totalInviteSent = households.filter(h => isSent(sentLookup(h, "invitation"))).length;
   const rsvpYes         = households.filter(h => h.rsvpStatus === "RSVP Yes").length;
   const rsvpPending     = households.filter(h => h.rsvpStatus === "Invited" || h.rsvpStatus === "Pending").length;
 
@@ -314,6 +371,7 @@ export function GuestsTab({ eventId, event, adminConfig, showToast, isArchived, 
     }
     if (outOfTownFilter      && !hh.outOfTown) return false;
     if (missingAddressFilter &&  hh.address1)  return false;
+    if (mailFilter !== "All" && isSent(sentLookup(hh, mailFilter))) return false;
     if (subEventFilter.length > 0) {
       const hhMembers = getPeopleForHousehold(people, hh.id);
       // ANY selected sub-event matching the chosen status is a match — this
@@ -451,6 +509,36 @@ export function GuestsTab({ eventId, event, adminConfig, showToast, isArchived, 
 
   if (hLoading || pLoading) return <div style={loadingStyle}>Loading guests…</div>;
 
+  const overlays = (
+    <>
+      {composer && (
+        <MessageComposer
+          eventId={eventId} households={households} sections={sections} groups={groups}
+          adminConfig={adminConfig} sentLookup={sentLookup}
+          initialIds={composer.initialIds} initialKind={composer.initialKind} initialMethod={composer.initialMethod}
+          onSaveEmail={saveHouseholdEmail} onSent={handleSent} onMarked={handleMarked}
+          onClose={()=>setComposer(null)} showToast={showToast}
+        />
+      )}
+      {undo && <UndoToast message={undo.message} onUndo={undo.onUndo} onExpire={()=>setUndo(null)} />}
+    </>
+  );
+
+  if (view === "messages") {
+    return (
+      <div>
+        {isArchived && <ArchivedNotice />}
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:8,flexWrap:"wrap",marginBottom:12}}>
+          <button className="btn btn-secondary btn-sm" onClick={()=>setView("guests")}>← Back to guests</button>
+          {canMessage && <button className="btn btn-primary btn-sm" onClick={()=>openComposer({})}>Message guests</button>}
+        </div>
+        <SentLog eventId={eventId} logs={msgLog.logs} recipients={msgLog.recipients} error={msgLog.error} loading={msgLog.loading}
+          households={households} isArchived={isArchived} isViewer={isViewer} onChanged={msgLog.reload} showToast={showToast} />
+        {overlays}
+      </div>
+    );
+  }
+
   return (
     <div>
       {isArchived && <ArchivedNotice />}
@@ -460,9 +548,11 @@ export function GuestsTab({ eventId, event, adminConfig, showToast, isArchived, 
 
       {/* Action row */}
       <div style={{display:"flex",justifyContent:"flex-end",gap:8,flexWrap:"wrap",marginBottom:12}}>
+        <button className="btn btn-secondary btn-sm" onClick={()=>setView("messages")}>Messages</button>
         <button className="btn btn-secondary btn-sm" onClick={()=>setShowGuestExport(true)}>↓ Export Guests</button>
         {!isViewer && (
           <>
+            <button className="btn btn-secondary btn-sm" disabled={isArchived} onClick={()=>openComposer({})}>Message guests</button>
             <button className="btn btn-secondary btn-sm" disabled={isArchived} onClick={()=>setShowImport(true)}>Import</button>
             {!desktopShell && <button className="btn btn-primary btn-sm" disabled={isArchived} onClick={()=>setShowAdd(true)}>+ Add Household</button>}
           </>
@@ -510,7 +600,7 @@ export function GuestsTab({ eventId, event, adminConfig, showToast, isArchived, 
       <GuestInsights households={households} people={people} groups={groups} statusStyle={statusStyle} />
 
       {/* Filters */}
-      <GuestFilters chipCounts={chipCounts} filtered={filtered} groupFilter={groupFilter} groups={groups} isArchived={isArchived} isMobile={isMobile} isViewer={isViewer} missingAddressFilter={missingAddressFilter} mobileChip={mobileChip} outOfTownFilter={outOfTownFilter} search={search} sections={sections} selectedHHIds={selectedHHIds} setGroupFilter={setGroupFilter} setMissingAddressFilter={setMissingAddressFilter} setMobileChip={setMobileChip} setMobileMoreFiltersOpen={setMobileMoreFiltersOpen} setOutOfTownFilter={setOutOfTownFilter} setSearch={setSearch} setSelectedHHIds={setSelectedHHIds} setShowAdd={setShowAdd} setShowMoreFilters={setShowMoreFilters} setStatusFilter={setStatusFilter} setSubEventFilter={setSubEventFilter} setSubEventStatusFilter={setSubEventStatusFilter} showMoreFilters={showMoreFilters} statusFilter={statusFilter} subEventFilter={subEventFilter} subEventStatusFilter={subEventStatusFilter} />
+      <GuestFilters chipCounts={chipCounts} filtered={filtered} groupFilter={groupFilter} groups={groups} isArchived={isArchived} isMobile={isMobile} isViewer={isViewer} missingAddressFilter={missingAddressFilter} mobileChip={mobileChip} outOfTownFilter={outOfTownFilter} search={search} sections={sections} selectedHHIds={selectedHHIds} setGroupFilter={setGroupFilter} setMissingAddressFilter={setMissingAddressFilter} setMobileChip={setMobileChip} setMobileMoreFiltersOpen={setMobileMoreFiltersOpen} setOutOfTownFilter={setOutOfTownFilter} setSearch={setSearch} setSelectedHHIds={setSelectedHHIds} setShowAdd={setShowAdd} setShowMoreFilters={setShowMoreFilters} setStatusFilter={setStatusFilter} setSubEventFilter={setSubEventFilter} setSubEventStatusFilter={setSubEventStatusFilter} showMoreFilters={showMoreFilters} statusFilter={statusFilter} subEventFilter={subEventFilter} subEventStatusFilter={subEventStatusFilter} mailFilter={mailFilter} setMailFilter={setMailFilter} />
 
       {/* Bulk action bar */}
       {selectedHHIds.size > 0 && !isViewer && (
@@ -520,6 +610,8 @@ export function GuestsTab({ eventId, event, adminConfig, showToast, isArchived, 
             {RSVP_STATUSES.map(s=><option key={s} value={s}>{s}</option>)}
           </select>
           <button className="btn btn-primary btn-sm" onClick={applyBulkRsvp} disabled={isArchived}>Apply</button>
+          <button className="btn btn-secondary btn-sm" disabled={isArchived} onClick={()=>openComposer({ initialIds: keysFor([...selectedHHIds]) })}>Message</button>
+          <button className="btn btn-secondary btn-sm" disabled={isArchived} onClick={()=>openComposer({ initialMethod: "mark", initialIds: keysFor([...selectedHHIds]) })}>Mark as sent</button>
           <button className="btn btn-ghost btn-sm" onClick={()=>setSelectedHHIds(new Set())}>Clear</button>
         </div>
       )}
@@ -587,10 +679,8 @@ export function GuestsTab({ eventId, event, adminConfig, showToast, isArchived, 
                       {counts.total===0 && <span style={{fontStyle:"italic"}}>no members</span>}
                     </div>
                     <div style={{display:"flex",gap:4}} onClick={e=>e.stopPropagation()}>
-                      <button onClick={()=>!isViewer && toggleMailing(hh.id,"saveTheDateSent")} title={hh.saveTheDateSent?"Save the Date sent — click to undo":"Mark Save the Date as sent"}
-                        style={{width:26,height:26,borderRadius:6,cursor:isViewer?"default":"pointer",fontSize:13,display:"inline-flex",alignItems:"center",justifyContent:"center",border:hh.saveTheDateSent?"none":"1.5px solid var(--border-strong)",background:hh.saveTheDateSent?"var(--accent-primary)":"var(--bg-surface)",color:hh.saveTheDateSent?"white":"var(--text-muted)",transition:"all var(--transition)",opacity:isViewer?0.6:1}}><Icon name="calendar" context="badge" /></button>
-                      <button onClick={()=>!isViewer && toggleMailing(hh.id,"inviteSent")} title={hh.inviteSent?"Invite sent — click to undo":"Mark invite as sent"}
-                        style={{width:26,height:26,borderRadius:6,cursor:isViewer?"default":"pointer",fontSize:13,display:"inline-flex",alignItems:"center",justifyContent:"center",border:hh.inviteSent?"none":"1.5px solid var(--border-strong)",background:hh.inviteSent?"var(--accent-primary)":"var(--bg-surface)",color:hh.inviteSent?"white":"var(--text-muted)",transition:"all var(--transition)",opacity:isViewer?0.6:1}}><Icon name="mail" context="badge" /></button>
+                      <SentChip status={sentLookup(hh,"save_the_date")} kindLabel="STD" compact />
+                      <SentChip status={sentLookup(hh,"invitation")} kindLabel="Invite" compact />
                       {hh.accommodationNeeded && <span title="Accommodation needed" style={{fontSize:14}}><Icon name="hotel" context="badge" /></span>}
                       {hh.outOfTown       && <span title="Out of town"        style={{fontSize:14}}><Icon name="accommodations" context="badge" /></span>}
                       {!hh.address1       && <span title="No address on file" style={{fontSize:14}}><Icon name="mailX" context="badge" /></span>}
@@ -610,6 +700,28 @@ export function GuestsTab({ eventId, event, adminConfig, showToast, isArchived, 
                       {(hh.address1 || hh.city) && <div style={{fontSize:12,color:"var(--text-secondary)"}}><span style={{color:"var(--text-muted)",marginRight:4}}><Icon name="mapPin" context="badge" /></span>{formatAddress(migrateCityStateZip(hh))}</div>}
                       {hh.phone && <div style={{fontSize:12,color:"var(--text-secondary)"}}><span style={{color:"var(--text-muted)",marginRight:4}}><Icon name="phone" context="badge" /></span>{hh.phone}</div>}
                       {hh.email && <div style={{fontSize:12,color:"var(--text-secondary)"}}><span style={{color:"var(--text-muted)",marginRight:4}}><Icon name="mail" context="badge" /></span>{hh.email}</div>}
+                    </div>
+                    <div className="msg-mail-panel">
+                      <div className="msg-chip-group">
+                        <span className="msg-chip-label">Mailings</span>
+                        {MESSAGE_KINDS.filter(k => k.manual).map(k => {
+                          const st = sentLookup(hh, k.key);
+                          return (
+                            <span key={k.key} className="msg-chip-group" style={{gap:2}}>
+                              <SentChip status={st} kindLabel={k.label} />
+                              {st.state === "manual" && canMessage && (
+                                <button type="button" className="msg-link-btn" onClick={()=>clearLegacyMark(hh, k.key)}>Clear</button>
+                              )}
+                            </span>
+                          );
+                        })}
+                      </div>
+                      {canMessage && (
+                        <div className="msg-mail-row">
+                          <button type="button" className="btn btn-secondary btn-sm" onClick={()=>openComposer({ initialIds: [householdKey(hh)] })}>Message this household</button>
+                          <button type="button" className="btn btn-secondary btn-sm" onClick={()=>openComposer({ initialMethod: "mark", initialIds: [householdKey(hh)] })}>Mark as sent</button>
+                        </div>
+                      )}
                     </div>
                     {(hh.attendingAdults != null || hh.attendingKids != null) && (
                       <div style={{display:"flex",alignItems:"center",gap:8,background:"var(--green-light)",border:"1px solid var(--green)",borderRadius:"var(--radius-sm)",padding:"6px 10px",marginBottom:10,fontSize:12,color:"var(--green)",fontWeight:600}}>
@@ -748,7 +860,7 @@ export function GuestsTab({ eventId, event, adminConfig, showToast, isArchived, 
       {showImport && <ImportModal adminConfig={adminConfig} onImport={handleImport} onClose={()=>setShowImport(false)} />}
       {showGuestExport && (
         <GuestExportModal
-          households={households} people={people} tables={tables} adminConfig={adminConfig}
+          households={households} people={people} tables={tables} adminConfig={adminConfig} sentLookup={sentLookup}
           onPrint={(html)=>{setShowGuestExport(false);if(isTouchPrimary())printDocument(html);else setGuestPrintHTML(html);}}
           onClose={()=>setShowGuestExport(false)}
         />
@@ -765,6 +877,7 @@ export function GuestsTab({ eventId, event, adminConfig, showToast, isArchived, 
           onClose={() => setDeleteConfirm(null)}
         />
       )}
+      {overlays}
       {mobileMoreFiltersOpen && sections.length > 1 && <MobileFilterSheet sections={sections} subEventFilter={subEventFilter} setSubEventFilter={setSubEventFilter} subEventStatusFilter={subEventStatusFilter} setSubEventStatusFilter={setSubEventStatusFilter} setMobileMoreFiltersOpen={setMobileMoreFiltersOpen} />}
     </div>
   );
