@@ -2,7 +2,7 @@
 
 A real-time event planning web app for celebrations — B'nei Mitzvot, weddings, and other simchas.
 
-![Version](https://img.shields.io/badge/version-5.0.0-blue)
+![Version](https://img.shields.io/badge/version-5.1.0-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
 ## Hosted Version
@@ -149,7 +149,7 @@ simchakit/
 │       ├── main.v3.jsx      # V3 React entry point
 │       ├── components/      # V3 components (shell, tabs, events, auth)
 │       │   ├── admin/       # Admin Mode sections (one file per section; AdminPanel.jsx keeps shell, nav, shared state)
-│       │   ├── guests/      # Guests tab pieces (HouseholdModal, ImportModal, GuestExportModal, TimelineEntryModal, GuestInsights, GuestFilters, AwaitingPanel, MobileFilterSheet)
+│       │   ├── guests/      # Guests tab pieces (HouseholdModal, ImportModal, GuestExportModal, TimelineEntryModal, GuestInsights, GuestFilters, AwaitingPanel, MobileFilterSheet; V5 messaging: MessageComposer, SentLog, SentChip, UndoToast)
 │       │   ├── dayof/       # Mobile Day-of view (DayOfOverlay.jsx keeps the desktop overlay)
 │       │   └── shell/       # App shell pieces (AppShell.jsx keeps state and routing; Sidebar, MobileHeader, TopBar, BottomNav, MoreDrawer, AppFooter, ShellBanners, shellConfig/shellDates; avatar color/initials live in utils/avatar.js)
 │       ├── constants/       # V3 constants
@@ -200,6 +200,8 @@ Schema changes (new tables, RLS policies, functions) are applied directly in the
 5. No Vercel deploy is needed for database-only changes
 
 **Migrations** live in `client/migrations/` (for example `V5.0-M1.sql`, guest messaging tables). Each file is idempotent and starts with a note on its RLS impact.
+
+**Guest messaging (V5):** run `V5.0-M1.sql`, then `V5.0-M2.sql` (adds `message_log.channel` for paper and other-platform mailings and makes `message_recipients.email` optional). Run M2 before deploying the Guests tab changes, or the message history cannot load and rows fall back to the pre-V5 sent flags. Guests are emailed through `POST /api/guest?action=send` (use `dry_run` to preview and `action=test` to send a sample to yourself).
 
 **Guest messaging environment variables (Vercel):** `GUEST_MAIL_FROM` (a sender address verified in Brevo) and `GUEST_UNSUBSCRIBE_SECRET` (random string used to sign unsubscribe links), in addition to `BREVO_API_KEY`.
 

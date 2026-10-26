@@ -2,7 +2,7 @@
 import { RSVP_STATUSES } from "@/constants/guest-constants.js";
 import { Icon } from "@/utils/iconMap.jsx";
 
-export function GuestFilters({ chipCounts, filtered, groupFilter, groups, isArchived, isMobile, isViewer, missingAddressFilter, mobileChip, outOfTownFilter, search, sections, selectedHHIds, setGroupFilter, setMissingAddressFilter, setMobileChip, setMobileMoreFiltersOpen, setOutOfTownFilter, setSearch, setSelectedHHIds, setShowAdd, setShowMoreFilters, setStatusFilter, setSubEventFilter, setSubEventStatusFilter, showMoreFilters, statusFilter, subEventFilter, subEventStatusFilter }) {
+export function GuestFilters({ chipCounts, filtered, groupFilter, groups, isArchived, isMobile, isViewer, missingAddressFilter, mobileChip, outOfTownFilter, search, sections, selectedHHIds, setGroupFilter, setMissingAddressFilter, setMobileChip, setMobileMoreFiltersOpen, setOutOfTownFilter, setSearch, setSelectedHHIds, setShowAdd, setShowMoreFilters, setStatusFilter, setSubEventFilter, setSubEventStatusFilter, showMoreFilters, statusFilter, subEventFilter, subEventStatusFilter, mailFilter, setMailFilter }) {
   return (
     isMobile ? (
       <div className="guest-mobile-filters">
@@ -39,6 +39,11 @@ export function GuestFilters({ chipCounts, filtered, groupFilter, groups, isArch
           <option value="All">All Groups</option>
           {groups.map(g=><option key={g} value={g}>{g}</option>)}
         </select>
+        <select className="form-select" style={{padding:"10px 12px",fontSize:14}} aria-label="Mailing status" value={mailFilter} onChange={e=>setMailFilter(e.target.value)}>
+          <option value="All">All mailing statuses</option>
+          <option value="save_the_date">Save the Date not sent</option>
+          <option value="invitation">Invitation not sent</option>
+        </select>
       </div>
     ) : (
       <div style={{display:"flex",flexDirection:"column",gap:8,marginBottom:16}}>
@@ -65,6 +70,11 @@ export function GuestFilters({ chipCounts, filtered, groupFilter, groups, isArch
           <select className="form-select" style={{flex:1,padding:"8px 12px"}} value={statusFilter} onChange={e=>setStatusFilter(e.target.value)}>
             <option value="All">All Statuses</option>
             {RSVP_STATUSES.map(s=><option key={s} value={s}>{s}</option>)}
+          </select>
+          <select className="form-select" style={{flex:1,padding:"8px 12px"}} aria-label="Mailing status" value={mailFilter} onChange={e=>setMailFilter(e.target.value)}>
+            <option value="All">All mailing statuses</option>
+            <option value="save_the_date">Save the Date not sent</option>
+            <option value="invitation">Invitation not sent</option>
           </select>
           <button className={`btn btn-sm ${outOfTownFilter?"btn-primary":"btn-secondary"}`} title="Show out-of-town households only" onClick={()=>setOutOfTownFilter(f=>!f)}><Icon name="accommodations" context="badge" style={{ marginRight: 4 }} /> Out of Town{outOfTownFilter?<> <Icon name="check" context="badge" /></>:""}</button>
           <button className={`btn btn-sm ${missingAddressFilter?"btn-primary":"btn-secondary"}`} title="Show households missing a mailing address" onClick={()=>setMissingAddressFilter(f=>!f)}><Icon name="mailX" context="badge" style={{ marginRight: 4 }} /> No Address{missingAddressFilter?<> <Icon name="check" context="badge" /></>:""}</button>

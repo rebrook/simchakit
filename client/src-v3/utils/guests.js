@@ -520,7 +520,13 @@ function exportToInvitationCSV(households, people) {
 
 // ── Guest export: By Household ───────────────────────────────────────────────
 // One row per household. Audience: planner, coordinator, full reference.
-function exportGuestsByHousehold(households, people, adminConfig) {
+//
+// sentLookup (optional, from useMessageLog): (household, kind) => status. The
+// sent columns read the message log first, then the pre-V5 flag; nothing is
+// written back. Without it they read the flags alone, as before.
+function exportGuestsByHousehold(households, people, adminConfig, sentLookup) {
+  const sentCell = (hh, kind, flag) =>
+    (sentLookup ? sentLookup(hh, kind).tone === "sent" : !!hh[flag]) ? "Yes" : "No";
   const timeline = adminConfig?.timeline || [];
   const mainEvent = resolveMainEvent(timeline);
   const headers = [
@@ -551,8 +557,8 @@ function exportGuestsByHousehold(households, people, adminConfig) {
       counts.adults, counts.kids,
       attending.adults, attending.kids,
       counts.kosher,
-      hh.saveTheDateSent ? "Yes" : "No",
-      hh.invitationSent  ? "Yes" : "No",
+      sentCell(hh, "save_the_date", "saveTheDateSent"),
+      sentCell(hh, "invitation", "inviteSent"),
       sections,
       hh.address1 || "", hh.address2 || "",
       migrated.city || "", migrated.stateProvince || "",

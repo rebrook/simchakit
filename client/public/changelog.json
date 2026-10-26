@@ -1,9 +1,27 @@
 {
-  "current": "V5.0.0",
+  "current": "V5.1.0",
   "whatsNew": [
-    "Behind the scenes: groundwork for messaging your guests (nothing to see yet)"
+    "Message your guests from SimchaKit, or record invitations you sent by mail or another platform",
+    "Each household now shows clear sent-status chips, and a new Messages view lists everything sent"
   ],
   "changelog": [
+    {
+      "version": "V5.1.0",
+      "date": "2026-10-26",
+      "summary": "Message your guests, or record what you sent another way",
+      "changes": [
+        "New: Message guests in the Guests tab (and Message in the bar for selected households) opens a four-step composer: pick a template (Save the Date, Invitation, RSVP reminder, Thank-you, or Custom), choose recipients with the group, RSVP status, sub-event, out-of-town and Not yet sent filters, preview the first message, then confirm and send. Households with no email can be fixed or skipped in place",
+        "New: Send test to me emails one sample to your own account address without recording anything or counting toward the send limits. Sender details (sender name, reply-to, footer) are editable for owners and editors",
+        "New: sending by email is optional. I sent these another way (and Mark as sent in the bulk bar and on any household) records a Save the Date, Invitation, RSVP reminder or Thank-you sent by paper mail or another platform, with a date you choose, and nothing is emailed. An 8-second Undo removes it",
+        "Change: the Save the Date and Invite checkboxes on each guest row are replaced by labeled status chips (Not sent, Sent by email, Sent by mail, Sent elsewhere, Sent (manual), Failed), each with a shape as well as words. Open a household to see all four kinds, plus Message and Mark as sent actions",
+        "New: a Messages view lists every message and mailing (kind, channel, date, households, failures) with per-household status and Retry failed. A mailing status filter shows households whose Save the Date or Invitation is not sent yet, counting any channel, and sending to a household already marked sent shows a warning with Send anyway",
+        "Change: the message log is now the only record of what was sent. Households marked sent before show as Sent (manual), are not rewritten, and can be cleared with Undo. The STD Sent and Invites Sent cards and the By Household guest export read the log first, then the old flag. The CSV import still sets the old flags",
+        "Fix: the By Household export's Invitation sent column read a field that was never set, so it always said No",
+        "Server: api/guest gains a test action (still 8 of 12 functions). Database: run client/migrations/V5.0-M2.sql, which adds message_log.channel (email, paper or external; existing rows read as email) and makes message_recipients.email optional. No change to who can read or write; no backfill. V3 app only"
+      ],
+      "roadmap": [],
+      "knownIssues": []
+    },
     {
       "version": "V5.0.0",
       "date": "2026-10-26",

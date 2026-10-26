@@ -17,6 +17,9 @@
 //   3. Resolve households; skip missing / no email / invalid email / opted out
 //   4. Per-event rate limit from message_log (429 RATE_LIMITED); real sends only
 //   5. Render previews; dry_run returns them and stops (no writes, no Brevo)
+//   Test mode (?action=test, V5-M2): same steps 0-3 and 5, then sends ONE rendered
+//      sample (the first resolvable household) to the signed-in user's own account
+//      email. Writes no message_log rows and does not count toward the limits.
 //   6. Write message_log + message_recipients (queued), send each through Brevo,
 //      update each row to sent/failed. One failure never fails the batch.
 //
@@ -126,6 +129,7 @@ export default async function handler(req, res) {
 
   const body = req.body || {};
   const dryRun = body.dry_run === true;
+  const isTest = req.query?.action === "test";
 
   // ── Supabase client (service role) ──────────────────────────────────────────
   const { createClient } = await import("@supabase/supabase-js");
@@ -142,6 +146,7 @@ export default async function handler(req, res) {
   const { data: authData, error: authError } = await supabase.auth.getUser(bearerToken);
   if (authError || !authData?.user?.id) return res.status(401).json({ error: "UNAUTHORIZED" });
   const userId = authData.user.id;
+  const userEmail = String(authData.user.email || "").trim();
 
   // ── Step 1: Caller must be owner or accepted editor of body.eventId ─────────
   const { eventId } = body;
@@ -195,7 +200,7 @@ export default async function handler(req, res) {
   }
   if (problems.length) return res.status(400).json({ error: "INVALID_REQUEST", message: problems.join(" "), problems });
 
-  if (event.archived && !dryRun) {
+  if (event.archived && !dryRun && !isTest) {
     return res.status(409).json({ error: "EVENT_ARCHIVED", message: "This event is archived and read-only." });
   }
 
@@ -227,7 +232,7 @@ export default async function handler(req, res) {
   }
 
   // ── Step 4: Per-event rate limit (real sends only) ──────────────────────────
-  if (!dryRun && targets.length > 0) {
+  if (!dryRun && !isTest && targets.length > 0) {
     const now = Date.now();
     const { data: recent, error: recentError } = await supabase
       .from("message_log")
@@ -310,7 +315,11 @@ export default async function handler(req, res) {
       household_name:   t.name,
       gift_description: giftDescriptionFor(t.id, giftRows),
     };
-    const unsubscribeUrl = secret
+    // A test must never carry a live unsubscribe link: clicking it would opt the
+    // sampled household out. The placeholder lands on the "link not valid" page.
+    const unsubscribeUrl = isTest
+      ? `https://app.simcha-kit.com/api/guest?action=unsubscribe&test=1`
+      : secret
       ? buildUnsubscribeUrl(secret, eventId, t.id)
       : `https://app.simcha-kit.com/api/guest?action=unsubscribe&preview=1`;
     const renderedSubject = oneLine(render(subject, values, plain));
@@ -333,6 +342,31 @@ export default async function handler(req, res) {
       previews: messages.map(m => ({ householdId: m.id, name: m.name, email: m.email, subject: m.subject, html: m.html, text: m.text })),
       skipped,
     });
+  }
+
+  // ── Test mode: one sample to the caller's own email; no rows, no limits ─────
+  if (isTest) {
+    if (!EMAIL_RE.test(userEmail)) {
+      return res.status(400).json({ error: "NO_ACCOUNT_EMAIL", message: "Your account has no email address to send the test to." });
+    }
+    if (messages.length === 0) {
+      return res.status(400).json({ error: "NO_SAMPLE", message: "None of the selected households can receive this message, so there is nothing to preview.", skipped });
+    }
+    const sample = messages[0];
+    const outcome = await sendBrevoEmail(process.env.BREVO_API_KEY, {
+      sender:      { name: senderName, email: process.env.GUEST_MAIL_FROM },
+      to:          [{ email: userEmail }],
+      ...(replyTo && { replyTo: { email: replyTo } }),
+      subject:     `[Test] ${sample.subject}`,
+      htmlContent: sample.html,
+      textContent: sample.text,
+      tags:        ["guest-message-test", kind],
+    });
+    if (!outcome.ok) {
+      console.error("[SimchaKit] send-guest-message: test send failed:", outcome.error);
+      return res.status(502).json({ error: "SEND_FAILED", message: "The test email could not be sent. Please try again." });
+    }
+    return res.status(200).json({ test: true, sentTo: userEmail, sampleHouseholdId: sample.id });
   }
 
   if (messages.length === 0) {

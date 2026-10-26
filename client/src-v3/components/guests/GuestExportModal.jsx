@@ -4,11 +4,11 @@ import { exportToInvitationCSV, exportGuestsByHousehold, exportGuestsByPerson, g
 import { Modal } from "@/components/shared/Modal.jsx";
 import { Icon } from "@/utils/iconMap.jsx";
 
-export function GuestExportModal({ households, people, tables, adminConfig, onPrint, onClose }) {
+export function GuestExportModal({ households, people, tables, adminConfig, sentLookup, onPrint, onClose }) {
   const [activeExport, setActiveExport] = useState(null);
   const [copied,       setCopied]       = useState(false);
   const csvContent = (() => {
-    if (activeExport==="byHousehold") return exportGuestsByHousehold(households,people,adminConfig);
+    if (activeExport==="byHousehold") return exportGuestsByHousehold(households,people,adminConfig,sentLookup);
     if (activeExport==="byPerson")    return exportGuestsByPerson(households,people,adminConfig,tables);
     if (activeExport==="mailing")     return exportToInvitationCSV(households,people);
     if (activeExport==="emailList")   return exportEmailListCSV(households);
