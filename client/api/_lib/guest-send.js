@@ -25,7 +25,8 @@
 //
 // Merge fields: {{household_name}} {{event_name}} {{event_date}} {{venue}}
 //   {{host_names}} {{rsvp_link}} (empty until V5-R1) {{gift_description}}
-//   Every merged value and the template text are HTML-escaped.
+//   The merged message is HTML-escaped and wrapped by api/_lib/email-shell.js, the
+//   same renderer for the dry_run preview, the test send and the real send.
 //
 // Env: BREVO_API_KEY, GUEST_MAIL_FROM (verified Brevo sender address),
 //      GUEST_UNSUBSCRIBE_SECRET, VITE_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY
@@ -35,6 +36,7 @@
 
 import { sendBrevoEmail } from "./brevo.js";
 import { buildUnsubscribeUrl } from "./guest-unsub.js";
+import { renderGuestEmail } from "./email-shell.js";
 
 const KINDS = ["save_the_date", "invitation", "rsvp_reminder", "thank_you", "custom"];
 const MERGE_FIELDS = [
@@ -54,12 +56,6 @@ const UUID_RE  = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
 const EMAIL_RE = /^[^\s@<>"',;]+@[^\s@<>"',;]+\.[^\s@<>"',;]+$/;
 const TOKEN_RE = /\{\{\s*([a-z_]+)\s*\}\}/gi;
 
-function escapeHtml(value) {
-  return String(value ?? "")
-    .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
-}
-
 // Replaces merge tokens. `format` escapes each literal piece and each value.
 function render(template, values, escape) {
   let out = "";
@@ -74,14 +70,6 @@ function render(template, values, escape) {
 
 const plain = s => s;
 const oneLine = s => String(s).replace(/[\r\n]+/g, " ").trim();
-
-function htmlBody(escapedText, footerHtml, unsubscribeUrl) {
-  const paragraphs = escapedText.split(/\n{2,}/).map(p => `<p style="margin:0 0 16px">${p.replace(/\n/g, "<br>")}</p>`).join("");
-  const footer = footerHtml ? `<p style="margin:16px 0 0;color:#666;font-size:13px">${footerHtml.replace(/\n/g, "<br>")}</p>` : "";
-  return `<div style="font-family:Arial,Helvetica,sans-serif;font-size:16px;line-height:1.5;color:#222;max-width:600px">${paragraphs}${footer}` +
-    `<hr style="border:none;border-top:1px solid #ddd;margin:24px 0 12px">` +
-    `<p style="margin:0;color:#666;font-size:12px">Don't want these emails? <a href="${escapeHtml(unsubscribeUrl)}">Unsubscribe</a>.</p></div>`;
-}
 
 function formatEventDate(iso) {
   if (!iso || !/^\d{4}-\d{2}-\d{2}/.test(iso)) return "";
@@ -290,6 +278,7 @@ export default async function handler(req, res) {
   const replyToRaw = String(settings.replyTo || ownerProfile?.email || "").trim();
   const replyTo    = EMAIL_RE.test(replyToRaw) ? replyToRaw : null;
   const footerText = String(settings.footerText || "").slice(0, MAX_FOOTER_LENGTH);
+  const postalAddress = String(settings.postalAddress || "").slice(0, 300);
 
   const mainEntry = mainTimelineEntry(event.admin_config);
   const hostNames = String(event.admin_config?.hostNames || ownerProfile?.display_name || "").trim();
@@ -331,13 +320,17 @@ export default async function handler(req, res) {
       ? buildUnsubscribeUrl(secret, eventId, t.id)
       : `https://app.simcha-kit.com/api/guest?action=unsubscribe&preview=1`;
     const renderedSubject = oneLine(render(subject, values, plain));
-    const text = render(bodyTemplate, values, plain);
-    const html = htmlBody(
-      render(bodyTemplate, values, escapeHtml).replace(/\r\n?/g, "\n"),
-      footerText ? escapeHtml(footerText) : "",
-      unsubscribeUrl
-    );
-    const textFull = `${text}${footerText ? `\n\n${footerText}` : ""}\n\n--\nUnsubscribe: ${unsubscribeUrl}`;
+    // {{rsvp_link}} becomes a button (V5-R1); it is stripped from the running text.
+    const usesRsvp = /\{\{\s*rsvp_link\s*\}\}/i.test(bodyTemplate) && values.rsvp_link;
+    const text = render(bodyTemplate, { ...values, rsvp_link: "" }, plain);
+    const { html, text: textFull } = renderGuestEmail({
+      kind, subject: renderedSubject, bodyText: text, rsvpUrl: usesRsvp ? values.rsvp_link : "",
+      eventName: event.name || "", eventDate: eventValues.event_date, logoUrl: event.admin_config?.logoUrl,
+      theme: event.admin_config?.theme, senderName,
+      // Footer names the host: an explicit sender name if the host set one, else the host names.
+      hostName: settings.senderName ? senderName : eventValues.host_names,
+      footerText, postalAddress, unsubscribeUrl,
+    });
     return { ...t, subject: renderedSubject, html, text: textFull, unsubscribeUrl };
   });
 

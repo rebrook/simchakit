@@ -58,6 +58,7 @@ export function MessageComposer({
   const [previewing, setPreviewing] = useState(false);
   const [error,      setError]      = useState("");
   const [testState,  setTestState]  = useState("");
+  const [previewWidth, setPreviewWidth] = useState("desktop");   // "desktop" | "phone" (360px)
   const [working,    setWorking]    = useState(false);
   const [result,     setResult]     = useState(null);
   const [emailDrafts, setEmailDrafts] = useState({});
@@ -105,13 +106,16 @@ export function MessageComposer({
 
   const insertField = (key) => {
     const el = bodyRef.current;
-    const token = `{{${key}}}`;
-    if (!el) { setBody(b => b + token); return; }
-    const start = el.selectionStart ?? body.length;
-    const end   = el.selectionEnd   ?? body.length;
+    const raw = `{{${key}}}`;
+    const start = el ? (el.selectionStart ?? body.length) : body.length;
+    const end   = el ? (el.selectionEnd   ?? body.length) : body.length;
+    // Keep fields from running into the words around them: add a space before the
+    // field when the character just before the cursor is not already whitespace.
+    const prev  = body.slice(0, start).slice(-1);
+    const token = prev && !/\s/.test(prev) ? ` ${raw}` : raw;
     setBody(body.slice(0, start) + token + body.slice(end));
     setPreview(null);
-    requestAnimationFrame(() => { el.focus(); el.setSelectionRange(start + token.length, start + token.length); });
+    if (el) requestAnimationFrame(() => { el.focus(); el.setSelectionRange(start + token.length, start + token.length); });
   };
 
   // ── Preview (dry_run) ────────────────────────────────────────────────────
@@ -384,7 +388,13 @@ export function MessageComposer({
                 {preview.sender?.replyTo ? ` · replies go to ${preview.sender.replyTo}` : ""}
               </div>
               <div className="msg-preview-meta"><strong>Subject:</strong> {preview.previews[0].subject}</div>
-              <iframe className="msg-preview-frame" title="Message preview" sandbox="" srcDoc={preview.previews[0].html} />
+              <div className="msg-preview-toggle" role="group" aria-label="Preview width">
+                <button type="button" className={`btn btn-sm ${previewWidth === "desktop" ? "btn-primary" : "btn-secondary"}`} aria-pressed={previewWidth === "desktop"} onClick={() => setPreviewWidth("desktop")}>Desktop</button>
+                <button type="button" className={`btn btn-sm ${previewWidth === "phone" ? "btn-primary" : "btn-secondary"}`} aria-pressed={previewWidth === "phone"} onClick={() => setPreviewWidth("phone")}>Phone (360px)</button>
+              </div>
+              <div className={`msg-preview-wrap ${previewWidth}`}>
+                <iframe className="msg-preview-frame" title="Message preview" sandbox="" srcDoc={preview.previews[0].html} />
+              </div>
               <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 10, margin: "10px 0 14px" }}>
                 <button type="button" className="btn btn-secondary btn-sm" onClick={sendTest} disabled={testState === "sending"}>
                   {testState === "sending" ? "Sending test…" : "Send test to me"}
@@ -485,7 +495,7 @@ export function MessageComposer({
 function SenderDetails({ eventId, defaults, showToast, onSaved }) {
   const [open,   setOpen]   = useState(false);
   const [loaded, setLoaded] = useState(false);
-  const [vals,   setVals]   = useState({ senderName: "", replyTo: "", footerText: "" });
+  const [vals,   setVals]   = useState({ senderName: "", replyTo: "", footerText: "", postalAddress: "" });
   const [saving, setSaving] = useState(false);
   const [msg,    setMsg]    = useState("");
 
@@ -493,7 +503,7 @@ function SenderDetails({ eventId, defaults, showToast, onSaved }) {
     if (!open || loaded) return;
     supabase.from("events").select("message_settings").eq("id", eventId).maybeSingle().then(({ data }) => {
       const s = data?.message_settings || {};
-      setVals({ senderName: s.senderName || "", replyTo: s.replyTo || "", footerText: s.footerText || "" });
+      setVals({ senderName: s.senderName || "", replyTo: s.replyTo || "", footerText: s.footerText || "", postalAddress: s.postalAddress || "" });
       setLoaded(true);
     });
   }, [open, loaded, eventId]);
@@ -504,6 +514,7 @@ function SenderDetails({ eventId, defaults, showToast, onSaved }) {
     if (vals.senderName.trim()) settings.senderName = vals.senderName.trim();
     if (vals.replyTo.trim())    settings.replyTo    = vals.replyTo.trim();
     if (vals.footerText.trim()) settings.footerText = vals.footerText.trim();
+    if (vals.postalAddress.trim()) settings.postalAddress = vals.postalAddress.trim();
     const { error } = await supabase.from("events").update({ message_settings: settings }).eq("id", eventId);
     setSaving(false);
     if (error) { setMsg("Could not save. Only the event owner and editors can change sender details."); return; }
@@ -533,6 +544,11 @@ function SenderDetails({ eventId, defaults, showToast, onSaved }) {
             <label className="form-label" htmlFor="sd-footer">Footer text</label>
             <textarea id="sd-footer" className="form-input" rows={2} value={vals.footerText} maxLength={1000}
               placeholder="None" onChange={e => setVals(v => ({ ...v, footerText: e.target.value }))} />
+          </div>
+          <div className="form-group" style={{ margin: 0 }}>
+            <label className="form-label" htmlFor="sd-address">Postal address (optional)</label>
+            <textarea id="sd-address" className="form-input" rows={2} value={vals.postalAddress} maxLength={300}
+              placeholder="Shown at the bottom of each email when set" onChange={e => setVals(v => ({ ...v, postalAddress: e.target.value }))} />
           </div>
           <div className="msg-mail-row">
             <button type="button" className="btn btn-secondary btn-sm" onClick={save} disabled={saving || !loaded}>{saving ? "Saving…" : "Save sender details"}</button>

@@ -2,7 +2,7 @@
 
 A real-time event planning web app for celebrations — B'nei Mitzvot, weddings, and other simchas.
 
-![Version](https://img.shields.io/badge/version-5.1.2-blue)
+![Version](https://img.shields.io/badge/version-5.2.0-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
 ## Hosted Version
@@ -136,7 +136,7 @@ simchakit/
 │   │   ├── guest.js          # router (V5): send (email households via Brevo), unsubscribe
 │   │   ├── stripe-webhook.js # kept separate (raw body + signature)
 │   │   ├── cron/lifecycle-emails.js
-│   │   └── _lib/             # the real handler code and shared helpers (not deployed as functions)
+│   │   └── _lib/             # the real handler code and shared helpers (not deployed as functions); email-shell.js is the shared guest-email layout
 │   ├── src/                 # V2 source — never modified for V3 work
 │   │   ├── components/      # Tab and modal components
 │   │   ├── constants/       # Shared constants
