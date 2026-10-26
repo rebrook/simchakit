@@ -94,7 +94,7 @@ export function SentLog({ eventId, logs, recipients, error, loading, households,
                 {rows.map(r => (
                   <div key={r.householdId} style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 8, fontSize: 13 }}>
                     <span style={{ minWidth: 160, fontWeight: 600 }}>{nameByKey.get(r.householdId) || "Removed household"}</span>
-                    <SentChip status={describeEntry({ status: r.status, channel: log.channel, sentAt: log.sent_at })} kindLabel={kindLabel(log.kind)} />
+                    <SentChip status={describeEntry({ status: r.status, channel: log.channel, sentAt: log.sent_at })} kindLabel={kindLabel(log.kind)} showKind={false} />
                     {r.email && <span className="msg-log-meta">{r.email}</span>}
                   </div>
                 ))}

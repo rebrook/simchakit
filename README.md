@@ -2,7 +2,7 @@
 
 A real-time event planning web app for celebrations — B'nei Mitzvot, weddings, and other simchas.
 
-![Version](https://img.shields.io/badge/version-5.1.1-blue)
+![Version](https://img.shields.io/badge/version-5.1.2-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
 ## Hosted Version
@@ -149,7 +149,7 @@ simchakit/
 │       ├── main.v3.jsx      # V3 React entry point
 │       ├── components/      # V3 components (shell, tabs, events, auth)
 │       │   ├── admin/       # Admin Mode sections (one file per section; AdminPanel.jsx keeps shell, nav, shared state)
-│       │   ├── guests/      # Guests tab pieces (HouseholdModal, ImportModal, GuestExportModal, TimelineEntryModal, GuestInsights, GuestFilters, AwaitingPanel, MobileFilterSheet; V5 messaging: MessageComposer, SentLog, SentChip, UndoToast)
+│       │   ├── guests/      # Guests tab pieces (HouseholdModal, ImportModal, GuestExportModal, TimelineEntryModal, GuestInsights, GuestFilters, AwaitingPanel, MobileFilterSheet; V5 messaging: MessageComposer, SentLog, SentChip, MailingsPanel, UndoToast)
 │       │   ├── dayof/       # Mobile Day-of view (DayOfOverlay.jsx keeps the desktop overlay)
 │       │   └── shell/       # App shell pieces (AppShell.jsx keeps state and routing; Sidebar, MobileHeader, TopBar, BottomNav, MoreDrawer, AppFooter, ShellBanners, shellConfig/shellDates; avatar color/initials live in utils/avatar.js)
 │       ├── constants/       # V3 constants
