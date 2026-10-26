@@ -16,7 +16,7 @@
 const args = process.argv.slice(2);
 const bypassAt = args.indexOf("--bypass");
 const bypass = bypassAt >= 0 ? args.splice(bypassAt, 2)[1] : null;
-const [oldBase, newBase] = args.map(u => u?.replace(/\/+$/, ""));
+const [oldBase, newBase] = args.map(u => u && (/^https?:\/\//.test(u) ? u : "https://" + u).replace(/\/+$/, ""));
 if (!oldBase || !newBase) {
   console.error("Usage: node scripts/check-endpoints.mjs <old-base-url> <new-base-url> [--bypass <secret>]");
   process.exit(2);
