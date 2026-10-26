@@ -1,10 +1,24 @@
 {
-  "current": "V5.2.0",
+  "current": "V5.3.0",
   "whatsNew": [
-    "Guest emails now match SimchaKit's look and use your event's colors and logo",
-    "The email preview shows a Desktop and Phone view"
+    "Behind the scenes: groundwork for guests to reply to invitations from a private link (screens come next)"
   ],
   "changelog": [
+    {
+      "version": "V5.3.0",
+      "date": "2026-10-26",
+      "summary": "RSVP site backend: private links, safe endpoints and stored replies (no screens yet)",
+      "changes": [
+        "New: every household can have a private RSVP link, https://app.simcha-kit.com/r/<token>, with a random 128-bit token that is never built from any id. Tokens are created the first time they are needed and live in their own table that only the event owner and editors can read, so viewers and live updates never see them. The host-side action (POST /api/guest?action=rsvp-token) returns a household's link or replaces it (the old link stops working immediately)",
+        "New: guest RSVP endpoints (one function, api/rsvp). A guest's link returns only their own household: event name, date, venue, logo and colors, their people (first name, child or adult), the sub-events they are invited to, meal options, their current answers and the reply date. Nothing about other households, other guests' emails, the budget or admin data. An unknown link and an expired one return the same not-found answer. After the deadline, or on an archived event, the guest sees a friendly closed message instead",
+        "New: a reply (yes, no or unsure per person per sub-event, meal and dietary details, address, a note, and added guests up to a host-set limit) is checked against a strict schema and against what that household was shown; unknown people, sub-events or meals are rejected, lengths are capped, and extra fields are refused. It is saved as a pending reply for the host to review, and sending a reply again replaces the earlier pending one. Replies stay pending until the review screens ship, even if auto-apply is turned on",
+        "New: messages can use {{rsvp_link}} to give each household its own link (it appears as a button, with the plain link below it). Previews and test sends show a placeholder link and create nothing; real sends create any missing links. The link is never put in a subject line",
+        "Safety: links travel in a request header or the POST body, never a web address, so they stay out of server logs; requests are rate limited by link and by network address, with a per-household limit on replies; errors, the error log and Vercel Analytics and Speed Insights record /r/[token] instead of the real link. The only deadline is the existing Event Details RSVP date",
+        "Database (client/migrations/V5.1-R1.sql): new household_rsvp_tokens and rsvp_replies tables and events.rsvp_settings (allow plus-ones, how many, auto-apply, allow changes until the deadline). Not signed in has no access to any of them; guests reach data only through the function. No backfill; existing events and guests load unchanged. The deployment is now 9 of 12 functions. V3 app and server only"
+      ],
+      "roadmap": [],
+      "knownIssues": []
+    },
     {
       "version": "V5.2.0",
       "date": "2026-10-26",

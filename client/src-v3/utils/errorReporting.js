@@ -23,6 +23,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { supabase } from "@/lib/supabase.js";
+import { redactRsvpPath } from "@/utils/rsvpToken.js";
 
 const DEDUPE_KEY_PREFIX      = "simchakit-error-reported:";
 const DEDUPE_MAX_PER_SESSION = 2;
@@ -89,10 +90,11 @@ export async function reportClientError(error, context = {}) {
     const payload = {
       errorId,
       source:           context.source || "unknown",
-      message,
-      stack,
-      componentStack:   context.componentStack || null,
-      path:             typeof window !== "undefined" ? window.location.pathname : null,
+      message:          redactRsvpPath(message),
+      stack:            redactRsvpPath(stack),
+      componentStack:   redactRsvpPath(context.componentStack || null),
+      // /r/<token> is a bearer secret (V5-R1): never record it.
+      path:             typeof window !== "undefined" ? redactRsvpPath(window.location.pathname) : null,
       eventId:          context.eventId || null,
       activeTab:        context.activeTab || null,
       collaboratorRole: context.collaboratorRole || null,

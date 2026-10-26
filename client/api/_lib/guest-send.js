@@ -24,7 +24,7 @@
 //      update each row to sent/failed. One failure never fails the batch.
 //
 // Merge fields: {{household_name}} {{event_name}} {{event_date}} {{venue}}
-//   {{host_names}} {{rsvp_link}} (empty until V5-R1) {{gift_description}}
+//   {{host_names}} {{rsvp_link}} (the household's private RSVP link) {{gift_description}}
 //   The merged message is HTML-escaped and wrapped by api/_lib/email-shell.js, the
 //   same renderer for the dry_run preview, the test send and the real send.
 //
@@ -37,6 +37,8 @@
 import { sendBrevoEmail } from "./brevo.js";
 import { buildUnsubscribeUrl } from "./guest-unsub.js";
 import { renderGuestEmail } from "./email-shell.js";
+import { ensureTokens, APP_ORIGIN } from "./rsvp-shared.js";
+import { rsvpLink } from "../../src-v3/utils/rsvpToken.js";
 
 const KINDS = ["save_the_date", "invitation", "rsvp_reminder", "thank_you", "custom"];
 const MERGE_FIELDS = [
@@ -287,7 +289,7 @@ export default async function handler(req, res) {
     event_date: formatEventDate(mainEntry?.startDate),
     venue:      mainEntry?.venue || "",
     host_names: hostNames,
-    rsvp_link:  "",          // populated once V5-R1 (RSVP links) lands
+    rsvp_link:  "",          // filled per household below (V5-R1)
   };
 
   let giftRows = [];
@@ -306,9 +308,24 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: "Server configuration error." });
   }
 
+  // {{rsvp_link}} (V5-R1): each household's private https://<app>/r/<token> link. Real
+  // sends create any missing token (the only write besides the log). Dry runs and test
+  // sends write nothing, so they show a placeholder link that opens nothing.
+  const usesRsvpLink = /\{\{\s*rsvp_link\s*\}\}/i.test(`${subject} ${bodyTemplate}`);
+  let rsvpTokens = new Map();
+  if (usesRsvpLink && !dryRun && !isTest && targets.length > 0) {
+    try {
+      rsvpTokens = await ensureTokens(supabase, eventId, targets.map(t => t.id));
+    } catch (err) {
+      console.error("[SimchaKit] send-guest-message: RSVP link preparation failed.");
+      return res.status(500).json({ error: "Failed to prepare RSVP links." });
+    }
+  }
+
   const messages = targets.map(t => {
     const values = {
       ...eventValues,
+      rsvp_link: !usesRsvpLink ? "" : rsvpTokens.has(t.id) ? rsvpLink(APP_ORIGIN, rsvpTokens.get(t.id)) : `${APP_ORIGIN}/r/preview`,
       household_name:   t.name,
       gift_description: giftDescriptionFor(t.linkIds, t.name, giftRows),
     };
@@ -319,7 +336,8 @@ export default async function handler(req, res) {
       : secret
       ? buildUnsubscribeUrl(secret, eventId, t.id)
       : `https://app.simcha-kit.com/api/guest?action=unsubscribe&preview=1`;
-    const renderedSubject = oneLine(render(subject, values, plain));
+    // The private link never goes in a subject line (subjects are widely logged and shown).
+    const renderedSubject = oneLine(render(subject, { ...values, rsvp_link: "" }, plain));
     // {{rsvp_link}} becomes a button (V5-R1); it is stripped from the running text.
     const usesRsvp = /\{\{\s*rsvp_link\s*\}\}/i.test(bodyTemplate) && values.rsvp_link;
     const text = render(bodyTemplate, { ...values, rsvp_link: "" }, plain);

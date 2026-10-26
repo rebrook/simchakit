@@ -1,6 +1,6 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // SimchaKit — api/guest.js
-// Router (V5-M1/M2): send, test, unsubscribe
+// Router (V5-M1/M2/R1): send, test, unsubscribe, rsvp-token
 // Dispatches on req.query.action (no old URLs: called as /api/guest?action=...).
 // Each handler lives in api/_lib/.
 // Do not add files under api/ without checking the 12-function limit; add an
@@ -11,6 +11,7 @@ const ACTIONS = {
   "send": () => import("./_lib/guest-send.js"),
   "test": () => import("./_lib/guest-send.js"),
   "unsubscribe": () => import("./_lib/guest-unsubscribe.js"),
+  "rsvp-token": () => import("./_lib/rsvp-token-admin.js"),
 };
 
 export default async function handler(req, res) {
