@@ -147,17 +147,38 @@ function generateICS(events, calendarName) {
   events.forEach(e => {
     if (!e.date) return;
     const dtStart = toICSDate(e.date);
+    const uid = `${e.id}@simchakit`;
+    // Optional startTime/endTime ("HH:MM", V5 guest RSVP page) give a timed event in the
+    // viewer's own local time; events without them stay all-day exactly as before.
+    const hhmm = (t) => `${String(t).replace(":", "")}00`;
+    if (/^\d{2}:\d{2}$/.test(e.startTime || "")) {
+      const endTime = /^\d{2}:\d{2}$/.test(e.endTime || "") ? e.endTime : null;
+      const [h, m] = e.startTime.split(":").map(Number);
+      const fallbackEnd = `${String(Math.min(h + 1, 23)).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+      lines.push(
+        "BEGIN:VEVENT",
+        `UID:${uid}`,
+        `DTSTART:${dtStart}T${hhmm(e.startTime)}`,
+        `DTEND:${dtStart}T${hhmm(endTime || fallbackEnd)}`,
+        `SUMMARY:${esc(e.title)}`,
+        ...(e.location ? [`LOCATION:${esc(e.location)}`] : []),
+        ...(e.meta ? [`DESCRIPTION:${esc(e.meta)}`] : []),
+        `CATEGORIES:${esc(e.source)}`,
+        "END:VEVENT"
+      );
+      return;
+    }
     // All-day events: DTEND is next day
     const next = new Date(e.date + "T00:00:00");
     next.setDate(next.getDate() + 1);
     const dtEnd = `${next.getFullYear()}${String(next.getMonth()+1).padStart(2,"0")}${String(next.getDate()).padStart(2,"0")}`;
-    const uid = `${e.id}@simchakit`;
     lines.push(
       "BEGIN:VEVENT",
       `UID:${uid}`,
       `DTSTART;VALUE=DATE:${dtStart}`,
       `DTEND;VALUE=DATE:${dtEnd}`,
       `SUMMARY:${esc(e.title)}`,
+      ...(e.location ? [`LOCATION:${esc(e.location)}`] : []),
       ...(e.meta ? [`DESCRIPTION:${esc(e.meta)}`] : []),
       `CATEGORIES:${esc(e.source)}`,
       "END:VEVENT"

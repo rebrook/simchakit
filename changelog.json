@@ -1,9 +1,23 @@
 {
-  "current": "V5.3.0",
+  "current": "V5.4.0",
   "whatsNew": [
-    "Behind the scenes: groundwork for guests to reply to invitations from a private link (screens come next)"
+    "Guests can now reply to your invitation from a private page, in your event's colors"
   ],
   "changelog": [
+    {
+      "version": "V5.4.0",
+      "date": "2026-10-26",
+      "summary": "Guests can reply to your invitation from a private page",
+      "changes": [
+        "New: the guest RSVP page, at each household's private link (/r/ and its code). No account and no sign-in: a guest sees your event's logo and palette (and dark mode, following their device), a warm landing screen with the date, venue, who they are replying for and the reply-by date, then answers Yes, No or Not sure for each person at each sub-event they are invited to, with words and a shape on every choice rather than color alone",
+        "New: guests choose a meal for each person who is coming to a meal-serving sub-event, add dietary needs and a kosher meal, confirm or update their mailing address, leave a note for the hosts, and add guests up to the limit you set. Households with many sub-events answer one person per screen, with Everyone is coming to everything and Same answers as the first person shortcuts; smaller households answer everyone on one screen",
+        "New: after replying, a guest sees who is coming to what and can add each sub-event, with its time and place, to their calendar as a calendar file, then change their reply later with the same link until the deadline. After the deadline their last answers show read-only with a friendly closed message; archived events show only the message. A bad or old link, a lost connection and a failed send each get a clear screen, and answers are kept on screen to retry",
+        "Change: replies the guest has made stay in this browser tab only while they are typing (no cookies). The page tells search engines not to index it and sends no referrer, and the private link stays out of analytics and error reports. Controls are at least 44px tall and the page works at 360px wide, with keyboard and screen-reader support (grouped choices with labels, announced errors)",
+        "Server: the RSVP view now includes household, people and answers when a household is closed by deadline or has already replied (so they can read them), and sub-events say whether a meal is served. The shared calendar-file writer can now write timed events as well as all-day ones; existing calendars are unchanged. No database changes. V3 app only; the guest page loads as its own small chunk"
+      ],
+      "roadmap": [],
+      "knownIssues": []
+    },
     {
       "version": "V5.3.0",
       "date": "2026-10-26",

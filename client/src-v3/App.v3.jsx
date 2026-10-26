@@ -4,7 +4,7 @@
 // Phase 4: profile upsert on first sign-in, EventPicker, event selection.
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { useState, useEffect } from "react";
+import { lazy, Suspense, useState, useEffect } from "react";
 import { supabase }            from "@/lib/supabase.js";
 import { AuthPage }            from "@/components/auth/AuthPage.jsx";
 import { AuthCallback }        from "@/components/auth/AuthCallback.jsx";
@@ -19,6 +19,9 @@ import { reportClientError }   from "@/utils/errorReporting.js";
 
 const DEMO_EVENT_ID       = "440a8b9e-e92e-4ad6-b352-41965bd8383b"; // Bart's Bar Mitzvah demo event
 const IS_DEMO             = window.location.pathname === "/demo";
+// Guest RSVP link (V5-R2): /r/<token>. Loaded as its own chunk and rendered before any auth hook.
+const RSVP_MATCH          = window.location.pathname.match(/^\/r\/([^/]+)\/?$/);
+const RsvpApp             = lazy(() => import("@/rsvp/RsvpApp.jsx"));
 const PENDING_INVITE_KEY  = "simchakit-pending-invite";
 const PENDING_ROUTE_KEY   = "simchakit-pending-route";
 
@@ -96,6 +99,9 @@ function DemoApp() {
 // IS_DEMO is constant per page load, but branching here (before any hooks in
 // AuthedApp) keeps every component's hooks unconditional.
 export default function AppV3() {
+  if (RSVP_MATCH) {
+    return <Suspense fallback={null}><RsvpApp token={RSVP_MATCH[1]} /></Suspense>;
+  }
   return IS_DEMO ? <DemoApp /> : <AuthedApp />;
 }
 

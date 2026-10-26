@@ -192,8 +192,6 @@ export function buildView(ctx) {
     theme,
     deadline: /^\d{4}-\d{2}-\d{2}$/.test(String(cfg.rsvpDeadline || "")) ? cfg.rsvpDeadline : "",
   };
-  if (closed) return { closed: true, reason: closed.reason, message: closed.message, event: eventView };
-
   const sections = (Array.isArray(cfg.timeline) ? cfg.timeline : [])
     .filter(t => t?.id && isInvited(household, t))
     .sort((a, b) => `${a.startDate || ""}${a.startTime || ""}`.localeCompare(`${b.startDate || ""}${b.startTime || ""}`))
@@ -201,15 +199,14 @@ export function buildView(ctx) {
       id: t.id, title: t.title || "", icon: t.icon || "",
       startDate: t.startDate || "", startTime: t.startTime || "", endTime: t.endTime || "",
       venue: t.venue || "",
+      servesMeal: t.servesMeal === true,   // the page asks for meal choices only where a meal is served
     }));
 
   const pendingAnswers = new Map((pending?.payload?.answers || []).map(a => [`${a.personId}|${a.sectionId}`, a.status]));
   const pendingDetails = new Map((pending?.payload?.details || []).map(d => [d.personId, d]));
   const fromStored = (v) => (v === "Yes" ? "yes" : v === "No" ? "no" : null);
 
-  return {
-    closed: false,
-    event: eventView,
+  const body = {
     household: {
       formalName: household.formalName || "",
       address: {
@@ -238,6 +235,17 @@ export function buildView(ctx) {
     submittedAt: pending?.submitted_at || null,
     note: pending?.payload?.note || "",
   };
+
+  // Closed by deadline or because the household already replied: the guest can still see
+  // their last answers (read-only on the page). An archived event shows the message and
+  // event basics only.
+  if (closed) {
+    return {
+      closed: true, reason: closed.reason, message: closed.message, event: eventView,
+      ...(closed.reason === "archived" ? {} : body),
+    };
+  }
+  return { closed: false, event: eventView, ...body };
 }
 
 // ── Tokens (host side and {{rsvp_link}}) ──────────────────────────────────────
