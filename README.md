@@ -2,7 +2,7 @@
 
 A real-time event planning web app for celebrations — B'nei Mitzvot, weddings, and other simchas.
 
-![Version](https://img.shields.io/badge/version-4.49.3-blue)
+![Version](https://img.shields.io/badge/version-4.49.4-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
 ## Hosted Version
@@ -127,13 +127,14 @@ simchakit/
 │   ├── vite.config.js       # V2 build config (base: /simcha/, src/ alias)
 │   ├── vite.config.v3.js    # V3 build config (base: /, src-v3/ alias)
 │   ├── api/                 # Vercel serverless functions (V3 only)
-│   │   ├── notify.js
-│   │   ├── brevo-sync.js
-│   │   ├── accept-invite.js
-│   │   ├── send-invite.js
-│   │   ├── validate-coupon.js
-│   │   ├── create-checkout-session.js
-│   │   └── stripe-webhook.js
+│   │   ├── invites.js        # router: accept-invite, send-invite
+│   │   ├── billing.js        # router: create-checkout-session, validate-coupon
+│   │   ├── calendar.js       # router: generate-token, subscribe
+│   │   ├── admin.js          # router: admin-query, reset-demo
+│   │   ├── system.js         # router: notify, brevo-sync
+│   │   ├── stripe-webhook.js # kept separate (raw body + signature)
+│   │   ├── cron/lifecycle-emails.js
+│   │   └── _lib/             # the real handler code and shared helpers (not deployed as functions)
 │   ├── src/                 # V2 source — never modified for V3 work
 │   │   ├── components/      # Tab and modal components
 │   │   ├── constants/       # Shared constants
@@ -176,6 +177,8 @@ simchakit/
 #### Application (Vercel)
 
 Push to the `main` branch. Vercel automatically builds and deploys from `client/` using `vite.config.v3.js`. Serverless functions in `client/api/` are deployed alongside the frontend.
+
+**Do not add files under `api/` without checking the 12-function limit; add an action to a router instead.** Vercel's Hobby plan allows 12 serverless functions per deployment. Old URLs such as `/api/accept-invite` are rewritten to a router (`/api/invites?action=accept-invite`) in `vercel.json` and `vercel.admin.json`; keep those rewrites above the `/api/:path*` catch-all. `node scripts/check-endpoints.mjs <old-url> <new-url>` compares two deployments.
 
 Files that require a deploy when changed:
 - Any file under `client/src-v3/`

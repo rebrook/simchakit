@@ -1,9 +1,22 @@
 {
-  "current": "V4.49.3",
+  "current": "V4.49.4",
   "whatsNew": [
-    "Switching tabs on desktop now always starts at the top of the page"
+    "Behind-the-scenes server cleanup to prepare for V5 (no visible changes)"
   ],
   "changelog": [
+    {
+      "version": "V4.49.4",
+      "date": "2026-10-26",
+      "summary": "Internal: server functions consolidated to make room for V5 (no visible changes)",
+      "changes": [
+        "Change: the 10 smaller server endpoints (invites, billing, calendar, admin, notifications and Brevo sync) now run behind 5 routers (api/invites, billing, calendar, admin, system), cutting the deployed function count from 12 to 7. Vercel's Hobby plan allows 12, and V5 needs room for guest messaging and RSVP links",
+        "Change: every existing URL still works, including the webcal calendar subscription links already in use. Rewrites in vercel.json and vercel.admin.json map each old URL to its router; the handler code moved unchanged into api/_lib/, and the demo seed data now sits in its own file",
+        "New: scripts/check-endpoints.mjs compares two deployments endpoint by endpoint (status and response shape) so a consolidation like this can be verified before it goes live",
+        "No database changes, no app or admin screen changes"
+      ],
+      "roadmap": [],
+      "knownIssues": []
+    },
     {
       "version": "V4.49.3",
       "date": "2026-10-23",

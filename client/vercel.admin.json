@@ -2,7 +2,58 @@
   "buildCommand": "vite build --config vite.config.admin.js",
   "outputDirectory": "dist-admin",
   "rewrites": [
-    { "source": "/api/(.*)", "destination": "/api/$1" },
-    { "source": "/(.*)", "destination": "/index.html" }
-  ]
+    {
+      "source": "/api/accept-invite",
+      "destination": "/api/invites?action=accept-invite"
+    },
+    {
+      "source": "/api/send-invite",
+      "destination": "/api/invites?action=send-invite"
+    },
+    {
+      "source": "/api/create-checkout-session",
+      "destination": "/api/billing?action=create-checkout-session"
+    },
+    {
+      "source": "/api/validate-coupon",
+      "destination": "/api/billing?action=validate-coupon"
+    },
+    {
+      "source": "/api/calendar/generate-token",
+      "destination": "/api/calendar?action=generate-token"
+    },
+    {
+      "source": "/api/calendar/subscribe",
+      "destination": "/api/calendar?action=subscribe"
+    },
+    {
+      "source": "/api/admin-query",
+      "destination": "/api/admin?action=admin-query"
+    },
+    {
+      "source": "/api/reset-demo",
+      "destination": "/api/admin?action=reset-demo"
+    },
+    {
+      "source": "/api/notify",
+      "destination": "/api/system?action=notify"
+    },
+    {
+      "source": "/api/brevo-sync",
+      "destination": "/api/system?action=brevo-sync"
+    },
+    {
+      "source": "/api/(.*)",
+      "destination": "/api/$1"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ],
+  "functions": {
+    "api/admin.js": {
+      "maxDuration": 60
+    }
+  }
 }
