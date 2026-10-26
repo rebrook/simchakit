@@ -2,7 +2,7 @@
 
 A real-time event planning web app for celebrations — B'nei Mitzvot, weddings, and other simchas.
 
-![Version](https://img.shields.io/badge/version-4.49.4-blue)
+![Version](https://img.shields.io/badge/version-5.0.0-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
 ## Hosted Version
@@ -126,12 +126,14 @@ simchakit/
 │   ├── index.v3.html        # V3 Vite HTML entry
 │   ├── vite.config.js       # V2 build config (base: /simcha/, src/ alias)
 │   ├── vite.config.v3.js    # V3 build config (base: /, src-v3/ alias)
+│   ├── migrations/          # SQL migrations, one file per milestone (run in Supabase SQL editor)
 │   ├── api/                 # Vercel serverless functions (V3 only)
 │   │   ├── invites.js        # router: accept-invite, send-invite
 │   │   ├── billing.js        # router: create-checkout-session, validate-coupon
 │   │   ├── calendar.js       # router: generate-token, subscribe
 │   │   ├── admin.js          # router: admin-query, reset-demo
 │   │   ├── system.js         # router: notify, brevo-sync
+│   │   ├── guest.js          # router (V5): send (email households via Brevo), unsubscribe
 │   │   ├── stripe-webhook.js # kept separate (raw body + signature)
 │   │   ├── cron/lifecycle-emails.js
 │   │   └── _lib/             # the real handler code and shared helpers (not deployed as functions)
@@ -196,6 +198,10 @@ Schema changes (new tables, RLS policies, functions) are applied directly in the
 3. Paste the full migration block and run it
 4. Run smoke test queries to verify the change took effect
 5. No Vercel deploy is needed for database-only changes
+
+**Migrations** live in `client/migrations/` (for example `V5.0-M1.sql`, guest messaging tables). Each file is idempotent and starts with a note on its RLS impact.
+
+**Guest messaging environment variables (Vercel):** `GUEST_MAIL_FROM` (a sender address verified in Brevo) and `GUEST_UNSUBSCRIBE_SECRET` (random string used to sign unsubscribe links), in addition to `BREVO_API_KEY`.
 
 **Critical rules:**
 - Any function referenced inside an RLS policy must have `EXECUTE` granted to `anon` -- even if anon never calls it directly. Failure surfaces as a table access error, not a function error.
