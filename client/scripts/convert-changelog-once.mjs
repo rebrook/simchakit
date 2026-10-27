@@ -38,40 +38,40 @@ const area = (t) => {
 };
 
 // Written by hand: releases from V5.0 on. Titles start with what the host can now do.
-const D = (date, n, slug, kind, ar, title, extra = {}) =>
-  ({ id: `${date}-${String(n).padStart(2, "0")}-${slug}`, date, kind, area: ar, audience: "host", highlight: false, title, ...extra });
-const H = (date, n, slug, kind, ar, title, body, show, guide) =>
-  D(date, n, slug, kind, ar, title, { highlight: true, body, show, ...(guide ? { guide } : {}) });
+const D = (date, release, n, slug, kind, ar, title, extra = {}) =>
+  ({ id: `${date}-${String(n).padStart(2, "0")}-${slug}`, release, date, kind, area: ar, audience: "host", highlight: false, title, ...extra });
+const H = (date, release, n, slug, kind, ar, title, body, show, guide) =>
+  D(date, release, n, slug, kind, ar, title, { highlight: true, body, show, ...(guide ? { guide } : {}) });
 
 const CURATED = [
-  H("2026-10-27", 1, "celebration-schedule", "new", "Overview", "See your whole weekend on the Overview",
+  H("2026-10-27", "V5.9.0", 1, "celebration-schedule", "new", "Overview", "See your whole weekend on the Overview",
     "The Overview opens with your countdown, the Hebrew date, and every time and venue for the weekend. Copy the schedule to send to family.",
     { tab: "overview", focus: "celebration-schedule" }, "getting-started/how-simchakit-works"),
-  D("2026-10-27", 2, "preferred-name", "new", "Overview", "Add a preferred name and greetings say Welcome back, Sam instead of using your account name"),
-  D("2026-10-27", 3, "family-only-times", "new", "Admin", "Mark a timeline entry family only, or set an arrive-by time, and guests never see either"),
-  D("2026-10-27", 4, "needs-you-undo", "improved", "Overview", "Needs you now names each invoice or task, and every Mark action has an 8-second Undo"),
-  D("2026-10-27", 5, "greeting-the", "fixed", "Overview", "The greeting no longer says Welcome back, The"),
-  D("2026-10-27", 6, "getting-ready-keeps-typing", "fixed", "Setup", "The Getting ready card keeps what you are typing when the page updates"),
-  H("2026-10-27", 7, "remind-waiting", "new", "Guests", "Remind only the households still waiting",
+  D("2026-10-27", "V5.9.0", 2, "preferred-name", "new", "Overview", "Add a preferred name and greetings say Welcome back, Sam instead of using your account name"),
+  D("2026-10-27", "V5.9.0", 3, "family-only-times", "new", "Admin", "Mark a timeline entry family only, or set an arrive-by time, and guests never see either"),
+  D("2026-10-27", "V5.8.1", 4, "needs-you-undo", "improved", "Overview", "Needs you now names each invoice or task, and every Mark action has an 8-second Undo"),
+  D("2026-10-27", "V5.8.2", 5, "greeting-the", "fixed", "Overview", "The greeting no longer says Welcome back, The"),
+  D("2026-10-27", "V5.9.2", 6, "getting-ready-keeps-typing", "fixed", "Setup", "The Getting ready card keeps what you are typing when the page updates"),
+  H("2026-10-27", "V5.6.0", 7, "remind-waiting", "new", "Guests", "Remind only the households still waiting",
     "Send a reminder to just the households that have not replied, with each one's private reply link included.",
     { tab: "guests", focus: "send-reminder" }),
-  D("2026-10-27", 8, "review-replies", "new", "Guests", "Review RSVP replies, accept or reject them, and undo an accept"),
-  D("2026-10-27", 9, "import-review", "improved", "Guests", "Importing a guest list shows missing emails, missing addresses and possible duplicates before anything is saved"),
-  D("2026-10-27", 10, "getting-ready-card", "new", "Setup", "A Getting ready card walks you through setup and is saved for everyone on the event"),
-  D("2026-10-27", 11, "rsvp-page-settings", "new", "Guests", "Choose whether guests can add people or change their reply on the RSVP page"),
-  D("2026-10-27", 12, "first-event-flow", "improved", "Setup", "Create your first event in one screen, and add your name afterwards"),
-  H("2026-10-26", 1, "private-reply-link", "new", "Guests", "Guests reply from a private link",
+  D("2026-10-27", "V5.5.0", 8, "review-replies", "new", "Guests", "Review RSVP replies, accept or reject them, and undo an accept"),
+  D("2026-10-27", "V5.7.0", 9, "import-review", "improved", "Guests", "Importing a guest list shows missing emails, missing addresses and possible duplicates before anything is saved"),
+  D("2026-10-27", "V5.7.0", 10, "getting-ready-card", "new", "Setup", "A Getting ready card walks you through setup and is saved for everyone on the event"),
+  D("2026-10-27", "V5.6.0", 11, "rsvp-page-settings", "new", "Guests", "Choose whether guests can add people or change their reply on the RSVP page"),
+  D("2026-10-27", "V5.7.0", 12, "first-event-flow", "improved", "Setup", "Create your first event in one screen, and add your name afterwards"),
+  H("2026-10-26", "V5.4.0", 1, "private-reply-link", "new", "Guests", "Guests reply from a private link",
     "Each household gets its own link. No account, no password. Replies wait for your approval before they change your list.",
     { tab: "guests", focus: "rsvp-replies" }),
-  D("2026-10-26", 2, "message-guests", "new", "Messaging", "Message your guests from SimchaKit, or record what you sent by paper mail or on another platform"),
-  D("2026-10-26", 3, "emails-event-colors", "improved", "Messaging", "Guest emails use your event's colors and logo"),
-  D("2026-10-26", 4, "mailing-chips", "improved", "Messaging", "Mailing chips say which mailing they are"),
-  D("2026-10-23", 1, "top-bar-action", "improved", "All tabs", "The main action for each tab sits in the top bar on desktop"),
-  D("2026-10-23", 2, "csv-safe", "fixed", "Exports", "CSV exports open safely in Excel and Sheets"),
-  D("2026-10-23", 3, "tab-top", "fixed", "All tabs", "Switching tabs starts at the top"),
-  D("2026-10-20", 1, "multi-gift", "new", "Gifts", "Record more than one gift from the same giver in one gift record"),
-  D("2026-10-20", 2, "thank-you-status", "improved", "Gifts", "Thank-you status is clearer, and the list can be sorted"),
-  D("2026-10-19", 1, "switch-events", "new", "All tabs", "Switch events from the sidebar without going back to the event picker"),
+  D("2026-10-26", "V5.1.0", 2, "message-guests", "new", "Messaging", "Message your guests from SimchaKit, or record what you sent by paper mail or on another platform"),
+  D("2026-10-26", "V5.2.0", 3, "emails-event-colors", "improved", "Messaging", "Guest emails use your event's colors and logo"),
+  D("2026-10-26", "V5.1.2", 4, "mailing-chips", "improved", "Messaging", "Mailing chips say which mailing they are"),
+  D("2026-10-23", "V4.49.0", 1, "top-bar-action", "improved", "All tabs", "The main action for each tab sits in the top bar on desktop"),
+  D("2026-10-23", "V4.49.1", 2, "csv-safe", "fixed", "Exports", "CSV exports open safely in Excel and Sheets"),
+  D("2026-10-23", "V4.49.3", 3, "tab-top", "fixed", "All tabs", "Switching tabs starts at the top"),
+  D("2026-10-18", "V4.33.0", 1, "multi-gift", "new", "Gifts", "Record more than one gift from the same giver in one gift record"),
+  D("2026-10-20", "V4.42.0", 2, "thank-you-status", "improved", "Gifts", "Thank-you status is clearer, and the list can be sorted"),
+  D("2026-10-19", "V4.40.0", 1, "switch-events", "new", "All tabs", "Switch events from the sidebar without going back to the event picker"),
 ];
 
 const entries = [...CURATED];
@@ -87,7 +87,7 @@ for (const r of legacy.changelog) {
     let title = m ? m[2] : "";
     title = title.split(/(?<=[a-z0-9)])\.\s|\s[—–]\s|;\s/)[0].replace(/\.$/, "").trim();
     title = title.charAt(0).toUpperCase() + title.slice(1);
-    const candidate = { id: `${date}-a${String(entries.length).padStart(4, "0")}`, date, kind, area: area(title), audience: "host", highlight: false, title };
+    const candidate = { id: `${date}-a${String(entries.length).padStart(4, "0")}`, release: r.version, date, kind, area: area(title), audience: "host", highlight: false, title };
     const host = !isV5 && date >= cutoff && kind && title.length >= 20 && title.length <= 120 && !DEV_LINE.test(line.slice(0, 220)) && !NOT_STANDALONE.test(title) && title.length >= 30 && checkEntry(candidate).length === 0;
     if (host) entries.push(candidate); else lines.push(line);
   });

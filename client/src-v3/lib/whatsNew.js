@@ -85,7 +85,7 @@ export function useNewFeature(key) {
 
 // Show me: open the feature's tab, then find the element tagged data-wn-focus="<focus>" and bring it
 // into view and focus. Waits a moment for the tab to render and gives up quietly.
-export function focusFeature(focus, key = focus) {
+export function focusFeature(focus, key = focus, onMiss) {
   if (!focus) return;
   markFeatureSeen(key);
   const reduce = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
@@ -97,6 +97,7 @@ export function focusFeature(focus, key = focus) {
       el.scrollIntoView({ block: "center", behavior: reduce ? "auto" : "smooth" });
       el.focus({ preventScroll: true });
     } else if (++tries < 20) setTimeout(look, 100);
+    else onMiss?.();
   };
   setTimeout(look, 120);
 }

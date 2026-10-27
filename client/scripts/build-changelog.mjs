@@ -1,5 +1,5 @@
 // Builds the host-facing release notes from client/changelog/entries.json.
-//   public/whats-new/index.json    latest release id, up to three highlights per month for the last
+//   public/whats-new/index.json    current release, latest release id, up to three highlights per month for the last
 //                                  three months, and the list of months with counts
 //   public/whats-new/YYYY-MM.json  every host entry for that month
 // Only audience "host" entries are written. Fails (exit 1) on a host entry that breaks the writing
@@ -30,12 +30,15 @@ export function checkEntry(e) {
   if (!e.title || !String(e.title).trim()) bad.push("host entry has no title");
   if (e.highlight && !(e.body && String(e.body).trim())) bad.push("highlight has no body");
   if (e.audience !== "host") return bad;
+  if (!/^V\d+\.\d+\.\d+$/.test(e.release || "")) bad.push("host entry has no release (for example V5.9.0)");
   for (const field of ["title", "body"]) {
     for (const [re, label] of BANNED) if (e[field] && re.test(e[field])) bad.push(`${field} contains ${label}`);
   }
   if (e.title && e.title.length > 160) bad.push("title is longer than 160 characters");
   return bad;
 }
+
+const cmpVersion = (a, b) => { const x = a.slice(1).split(".").map(Number), y = b.slice(1).split(".").map(Number); return (x[0] - y[0]) || (x[1] - y[1]) || (x[2] - y[2]); };
 
 export function buildChangelog({ write = true } = {}) {
   const src = path.join(root, "changelog/entries.json");
@@ -68,6 +71,7 @@ export function buildChangelog({ write = true } = {}) {
   const strip = ({ audience, ...rest }) => rest;
   const months = [...byMonth.keys()];
   const index = {
+    current: host.map(e => e.release).sort((a, b) => cmpVersion(b, a))[0] || null,
     latestRelease: host[0] ? host[0].id : null,
     latestDate: host[0] ? host[0].date : null,
     highlights: months.slice(0, 3).flatMap(m => byMonth.get(m).filter(e => e.highlight).slice(0, 3).map(strip)),

@@ -505,11 +505,14 @@ export function AppShell({ session, eventId, onBack, onSelectEvent = null, isDem
     enabled: !isDemoMode && loadStatus === "ready" && activeTab === "overview" && !showWhatsNew && !otherDialogOpen,
     hasUnseen: wn.hasUnseen, release: wn.index?.latestRelease, open: openWhatsNew,
   });
-  const showMe = ({ tab, focus }) => {
+  // Show me: open the tab and bring the feature into view. If the feature has moved, fall back to its guide topic.
+  const showMe = (entry) => {
+    const { tab, focus } = entry.show;
     setShowWhatsNew(false);
     if (tab && tab !== activeTab) navigateTo(tab);
-    focusFeature(focus);
+    focusFeature(focus, focus, () => { if (entry.guide) openGuideAt(entry.guide); });
   };
+  const canShowFeature = (show) => visibleTabIdSet.has(show.tab);
   const openGuideAt = (path) => {
     const [section, topic] = String(path).split("/");
     setShowWhatsNew(false);
@@ -703,7 +706,7 @@ export function AppShell({ session, eventId, onBack, onSelectEvent = null, isDem
       <DayOfReminderBanner showDayOfBanner={showDayOfBanner} setShowDayOf={setShowDayOf} daysToEvent={daysToEvent} dismissDayOfBanner={dismissDayOfBanner} />
 
       {/* ── Sidebar (desktop only, >900px) ── */}
-      <Sidebar activeTab={activeTab} adminConfig={adminConfig} coPlanners={coPlanners} collaboratorRole={collaboratorRole} darkMode={darkMode} event={event} eventId={eventId} eventTypeIconKey={eventTypeIconKey} isCoordinator={isCoordinator} isDemoMode={isDemoMode} navigateTo={navigateTo} onBack={onBack} onLogoSaved={onLogoSaved} onSelectEvent={onSelectEvent} onlineUserIds={onlineUserIds} openAdmin={openAdmin} session={session} setDarkMode={setDarkMode} setShowAccountMenu={setShowAccountMenu} setShowActivityLog={setShowActivityLog} setShowDayOf={setShowDayOf} setShowGuide={setShowGuide} setShowInviteModal={setShowInviteModal} setShowWhatsNew={setShowWhatsNew} whatsNewCount={wn.unseenCount} showAccountMenu={showAccountMenu} sidebarGroups={sidebarGroups} switcherDate={switcherDate} userBg={userBg} userInit={userInit} userName={userName} />
+      <Sidebar activeTab={activeTab} adminConfig={adminConfig} coPlanners={coPlanners} collaboratorRole={collaboratorRole} darkMode={darkMode} event={event} eventId={eventId} eventTypeIconKey={eventTypeIconKey} isCoordinator={isCoordinator} isDemoMode={isDemoMode} navigateTo={navigateTo} onBack={onBack} onLogoSaved={onLogoSaved} onSelectEvent={onSelectEvent} onlineUserIds={onlineUserIds} openAdmin={openAdmin} session={session} setDarkMode={setDarkMode} setShowAccountMenu={setShowAccountMenu} setShowActivityLog={setShowActivityLog} setShowDayOf={setShowDayOf} setShowGuide={setShowGuide} setShowInviteModal={setShowInviteModal} setShowWhatsNew={setShowWhatsNew} whatsNewCount={wn.unseenCount} currentRelease={wn.index?.current} showAccountMenu={showAccountMenu} sidebarGroups={sidebarGroups} switcherDate={switcherDate} userBg={userBg} userInit={userInit} userName={userName} />
 
       {/* ── Main content column ── */}
       <div className="app-main">
@@ -779,7 +782,7 @@ export function AppShell({ session, eventId, onBack, onSelectEvent = null, isDem
       {/* ── Mobile bottom bar (<=900px only) ── */}
       <BottomNav activeTab={activeTab} bottomBarTabs={bottomBarTabs} moreDrawerTabs={moreDrawerTabs} moreIsActive={moreIsActive} navigateTo={navigateTo} setShowMoreDrawer={setShowMoreDrawer} showMoreDrawer={showMoreDrawer} />
 
-      <MoreDrawer activeTab={activeTab} collaboratorRole={collaboratorRole} darkMode={darkMode} isCoordinator={isCoordinator} moreDrawerTabs={moreDrawerTabs} navigateTo={navigateTo} onBack={onBack} openAdmin={openAdmin} setDarkMode={setDarkMode} setShowActivityLog={setShowActivityLog} setShowDayOf={setShowDayOf} setShowGuide={setShowGuide} setShowInviteModal={setShowInviteModal} setShowMoreDrawer={setShowMoreDrawer} setShowWhatsNew={setShowWhatsNew} whatsNewCount={wn.unseenCount} showMoreDrawer={showMoreDrawer} />
+      <MoreDrawer activeTab={activeTab} collaboratorRole={collaboratorRole} darkMode={darkMode} isCoordinator={isCoordinator} moreDrawerTabs={moreDrawerTabs} navigateTo={navigateTo} onBack={onBack} openAdmin={openAdmin} setDarkMode={setDarkMode} setShowActivityLog={setShowActivityLog} setShowDayOf={setShowDayOf} setShowGuide={setShowGuide} setShowInviteModal={setShowInviteModal} setShowMoreDrawer={setShowMoreDrawer} setShowWhatsNew={setShowWhatsNew} whatsNewCount={wn.unseenCount} currentRelease={wn.index?.current} showMoreDrawer={showMoreDrawer} />
 
       {/* ── Search Overlay ── */}
       {showSearch && (
@@ -803,7 +806,7 @@ export function AppShell({ session, eventId, onBack, onSelectEvent = null, isDem
       {/* ── What's New Modal ── */}
       {showWhatsNew && (
         <WhatsNewModal index={wn.index} lastSeen={wn.last} onClose={closeWhatsNew} onSeen={() => wn.markSeen()}
-                       onShowMe={showMe} onLearnMore={openGuideAt} />
+                       onShowMe={showMe} onLearnMore={openGuideAt} canShow={canShowFeature} />
       )}
 
       {/* ── Notification Panel (single instance, position:fixed) ── */}

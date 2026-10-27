@@ -13,6 +13,7 @@ when a rule below is broken.
 ```json
 {
   "id": "2026-10-27-01-celebration-schedule",
+  "release": "V5.9.0",
   "date": "2026-10-27",
   "kind": "new",
   "area": "Overview",
@@ -26,6 +27,7 @@ when a rule below is broken.
 ```
 
 - `id`: `YYYY-MM-DD-NN-slug`. The `NN` counts up through the day, so ids sort oldest to newest. A person has "seen" every id up to and including their `last_seen_release`.
+- `release`: the version that shipped the change, for example `V5.9.0`. Required on host entries. It is shown beside the date ("V5.9.0 · Oct 27"), searchable in the archive, and the highest one is the version in the window header and the Account menu.
 - `kind`: `new`, `improved` or `fixed`.
 - `area`: Overview, Guests, Messaging, Budget, Tasks, Gifts, Seating, Admin, Setup, Exports, All tabs.
 - `audience`: `host` ships in the app. `dev` is never built into the app; prefer to write developer detail in `dev.json` or this folder instead.
@@ -36,12 +38,13 @@ when a rule below is broken.
 
 1. Begin with what the host can now do ("Remind only the households still waiting"), not with the feature name.
 2. One sentence, plain words.
-3. No version numbers, table names, endpoints, "migration", "RLS" or "API". The build rejects them.
+3. No version numbers inside the sentence (the `release` field shows it beside the date), and no table names, endpoints, "migration", "RLS" or "API". The build rejects them.
 4. Use **Fixed** only for something a host would have noticed.
 5. A highlight is a benefit, not a feature name. It needs a `body` (one or two sentences).
 6. At most three highlights per month. The build rejects a fourth.
 7. Never promise roadmap items. The roadmap and known-issues lists are dev-only and are not in the host files.
-8. Check dark mode, and the filled "Show me" button in two palettes, before shipping a highlight.
+8. If a Show me target moves, update or remove `show`; the window falls back to the `guide` topic, and shows no button when neither exists.
+9. Check dark mode, and the filled "Show me" button in two palettes, before shipping a highlight.
 
 ## New-pill (one-time "New" label on a feature)
 

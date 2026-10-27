@@ -1,6 +1,7 @@
 [
   {
     "id": "2026-10-27-12-first-event-flow",
+    "release": "V5.7.0",
     "date": "2026-10-27",
     "kind": "improved",
     "area": "Setup",
@@ -10,6 +11,7 @@
   },
   {
     "id": "2026-10-27-11-rsvp-page-settings",
+    "release": "V5.6.0",
     "date": "2026-10-27",
     "kind": "new",
     "area": "Guests",
@@ -19,6 +21,7 @@
   },
   {
     "id": "2026-10-27-10-getting-ready-card",
+    "release": "V5.7.0",
     "date": "2026-10-27",
     "kind": "new",
     "area": "Setup",
@@ -28,6 +31,7 @@
   },
   {
     "id": "2026-10-27-09-import-review",
+    "release": "V5.7.0",
     "date": "2026-10-27",
     "kind": "improved",
     "area": "Guests",
@@ -37,6 +41,7 @@
   },
   {
     "id": "2026-10-27-08-review-replies",
+    "release": "V5.5.0",
     "date": "2026-10-27",
     "kind": "new",
     "area": "Guests",
@@ -46,6 +51,7 @@
   },
   {
     "id": "2026-10-27-07-remind-waiting",
+    "release": "V5.6.0",
     "date": "2026-10-27",
     "kind": "new",
     "area": "Guests",
@@ -60,6 +66,7 @@
   },
   {
     "id": "2026-10-27-06-getting-ready-keeps-typing",
+    "release": "V5.9.2",
     "date": "2026-10-27",
     "kind": "fixed",
     "area": "Setup",
@@ -69,6 +76,7 @@
   },
   {
     "id": "2026-10-27-05-greeting-the",
+    "release": "V5.8.2",
     "date": "2026-10-27",
     "kind": "fixed",
     "area": "Overview",
@@ -78,6 +86,7 @@
   },
   {
     "id": "2026-10-27-04-needs-you-undo",
+    "release": "V5.8.1",
     "date": "2026-10-27",
     "kind": "improved",
     "area": "Overview",
@@ -87,6 +96,7 @@
   },
   {
     "id": "2026-10-27-03-family-only-times",
+    "release": "V5.9.0",
     "date": "2026-10-27",
     "kind": "new",
     "area": "Admin",
@@ -96,6 +106,7 @@
   },
   {
     "id": "2026-10-27-02-preferred-name",
+    "release": "V5.9.0",
     "date": "2026-10-27",
     "kind": "new",
     "area": "Overview",
@@ -105,6 +116,7 @@
   },
   {
     "id": "2026-10-27-01-celebration-schedule",
+    "release": "V5.9.0",
     "date": "2026-10-27",
     "kind": "new",
     "area": "Overview",
@@ -120,6 +132,7 @@
   },
   {
     "id": "2026-10-26-04-mailing-chips",
+    "release": "V5.1.2",
     "date": "2026-10-26",
     "kind": "improved",
     "area": "Messaging",
@@ -129,6 +142,7 @@
   },
   {
     "id": "2026-10-26-03-emails-event-colors",
+    "release": "V5.2.0",
     "date": "2026-10-26",
     "kind": "improved",
     "area": "Messaging",
@@ -138,6 +152,7 @@
   },
   {
     "id": "2026-10-26-02-message-guests",
+    "release": "V5.1.0",
     "date": "2026-10-26",
     "kind": "new",
     "area": "Messaging",
@@ -147,6 +162,7 @@
   },
   {
     "id": "2026-10-26-01-private-reply-link",
+    "release": "V5.4.0",
     "date": "2026-10-26",
     "kind": "new",
     "area": "Guests",
@@ -161,6 +177,7 @@
   },
   {
     "id": "2026-10-23-a0022",
+    "release": "V4.48.1",
     "date": "2026-10-23",
     "kind": "fixed",
     "area": "All tabs",
@@ -170,6 +187,7 @@
   },
   {
     "id": "2026-10-23-03-tab-top",
+    "release": "V4.49.3",
     "date": "2026-10-23",
     "kind": "fixed",
     "area": "All tabs",
@@ -179,6 +197,7 @@
   },
   {
     "id": "2026-10-23-02-csv-safe",
+    "release": "V4.49.1",
     "date": "2026-10-23",
     "kind": "fixed",
     "area": "Exports",
@@ -188,6 +207,7 @@
   },
   {
     "id": "2026-10-23-01-top-bar-action",
+    "release": "V4.49.0",
     "date": "2026-10-23",
     "kind": "improved",
     "area": "All tabs",
@@ -197,6 +217,7 @@
   },
   {
     "id": "2026-10-22-a0027",
+    "release": "V4.43.1",
     "date": "2026-10-22",
     "kind": "fixed",
     "area": "Exports",
@@ -206,6 +227,7 @@
   },
   {
     "id": "2026-10-22-a0026",
+    "release": "V4.43.1",
     "date": "2026-10-22",
     "kind": "fixed",
     "area": "Exports",
@@ -215,6 +237,7 @@
   },
   {
     "id": "2026-10-22-a0025",
+    "release": "V4.43.5",
     "date": "2026-10-22",
     "kind": "improved",
     "area": "All tabs",
@@ -224,6 +247,7 @@
   },
   {
     "id": "2026-10-22-a0024",
+    "release": "V4.43.5",
     "date": "2026-10-22",
     "kind": "improved",
     "area": "Exports",
@@ -233,6 +257,7 @@
   },
   {
     "id": "2026-10-22-a0023",
+    "release": "V4.43.5",
     "date": "2026-10-22",
     "kind": "fixed",
     "area": "Gifts",
@@ -242,6 +267,7 @@
   },
   {
     "id": "2026-10-21-a0028",
+    "release": "V4.42.2",
     "date": "2026-10-21",
     "kind": "fixed",
     "area": "Gifts",
@@ -251,6 +277,7 @@
   },
   {
     "id": "2026-10-20-a0033",
+    "release": "V4.41.0",
     "date": "2026-10-20",
     "kind": "fixed",
     "area": "Guests",
@@ -260,6 +287,7 @@
   },
   {
     "id": "2026-10-20-a0032",
+    "release": "V4.41.0",
     "date": "2026-10-20",
     "kind": "fixed",
     "area": "Guests",
@@ -269,6 +297,7 @@
   },
   {
     "id": "2026-10-20-a0031",
+    "release": "V4.41.0",
     "date": "2026-10-20",
     "kind": "new",
     "area": "Guests",
@@ -278,6 +307,7 @@
   },
   {
     "id": "2026-10-20-a0030",
+    "release": "V4.42.0",
     "date": "2026-10-20",
     "kind": "improved",
     "area": "Gifts",
@@ -287,6 +317,7 @@
   },
   {
     "id": "2026-10-20-a0029",
+    "release": "V4.42.0",
     "date": "2026-10-20",
     "kind": "improved",
     "area": "Gifts",
@@ -296,6 +327,7 @@
   },
   {
     "id": "2026-10-20-02-thank-you-status",
+    "release": "V4.42.0",
     "date": "2026-10-20",
     "kind": "improved",
     "area": "Gifts",
@@ -304,16 +336,8 @@
     "title": "Thank-you status is clearer, and the list can be sorted"
   },
   {
-    "id": "2026-10-20-01-multi-gift",
-    "date": "2026-10-20",
-    "kind": "new",
-    "area": "Gifts",
-    "audience": "host",
-    "highlight": false,
-    "title": "Record more than one gift from the same giver in one gift record"
-  },
-  {
     "id": "2026-10-19-a0047",
+    "release": "V4.33.2",
     "date": "2026-10-19",
     "kind": "fixed",
     "area": "Gifts",
@@ -323,6 +347,7 @@
   },
   {
     "id": "2026-10-19-a0046",
+    "release": "V4.34.1",
     "date": "2026-10-19",
     "kind": "fixed",
     "area": "All tabs",
@@ -332,6 +357,7 @@
   },
   {
     "id": "2026-10-19-a0045",
+    "release": "V4.35.0",
     "date": "2026-10-19",
     "kind": "new",
     "area": "Budget",
@@ -341,6 +367,7 @@
   },
   {
     "id": "2026-10-19-a0044",
+    "release": "V4.35.0",
     "date": "2026-10-19",
     "kind": "new",
     "area": "Budget",
@@ -350,6 +377,7 @@
   },
   {
     "id": "2026-10-19-a0043",
+    "release": "V4.36.0",
     "date": "2026-10-19",
     "kind": "new",
     "area": "All tabs",
@@ -359,6 +387,7 @@
   },
   {
     "id": "2026-10-19-a0042",
+    "release": "V4.38.0",
     "date": "2026-10-19",
     "kind": "new",
     "area": "Gifts",
@@ -368,6 +397,7 @@
   },
   {
     "id": "2026-10-19-a0041",
+    "release": "V4.38.1",
     "date": "2026-10-19",
     "kind": "improved",
     "area": "Gifts",
@@ -377,6 +407,7 @@
   },
   {
     "id": "2026-10-19-a0040",
+    "release": "V4.38.1",
     "date": "2026-10-19",
     "kind": "fixed",
     "area": "All tabs",
@@ -386,6 +417,7 @@
   },
   {
     "id": "2026-10-19-a0039",
+    "release": "V4.38.1",
     "date": "2026-10-19",
     "kind": "fixed",
     "area": "Gifts",
@@ -395,6 +427,7 @@
   },
   {
     "id": "2026-10-19-a0038",
+    "release": "V4.38.2",
     "date": "2026-10-19",
     "kind": "fixed",
     "area": "Budget",
@@ -404,6 +437,7 @@
   },
   {
     "id": "2026-10-19-a0037",
+    "release": "V4.39.0",
     "date": "2026-10-19",
     "kind": "improved",
     "area": "Gifts",
@@ -413,6 +447,7 @@
   },
   {
     "id": "2026-10-19-a0036",
+    "release": "V4.39.0",
     "date": "2026-10-19",
     "kind": "fixed",
     "area": "All tabs",
@@ -422,6 +457,7 @@
   },
   {
     "id": "2026-10-19-a0035",
+    "release": "V4.40.0",
     "date": "2026-10-19",
     "kind": "improved",
     "area": "All tabs",
@@ -431,6 +467,7 @@
   },
   {
     "id": "2026-10-19-a0034",
+    "release": "V4.40.0",
     "date": "2026-10-19",
     "kind": "new",
     "area": "All tabs",
@@ -440,6 +477,7 @@
   },
   {
     "id": "2026-10-19-01-switch-events",
+    "release": "V4.40.0",
     "date": "2026-10-19",
     "kind": "new",
     "area": "All tabs",
@@ -448,7 +486,18 @@
     "title": "Switch events from the sidebar without going back to the event picker"
   },
   {
+    "id": "2026-10-18-01-multi-gift",
+    "release": "V4.33.0",
+    "date": "2026-10-18",
+    "kind": "new",
+    "area": "Gifts",
+    "audience": "host",
+    "highlight": false,
+    "title": "Record more than one gift from the same giver in one gift record"
+  },
+  {
     "id": "2026-10-04-a0049",
+    "release": "V4.31.1",
     "date": "2026-10-04",
     "kind": "fixed",
     "area": "Guests",
@@ -458,6 +507,7 @@
   },
   {
     "id": "2026-10-04-a0048",
+    "release": "V4.31.2",
     "date": "2026-10-04",
     "kind": "improved",
     "area": "Exports",
@@ -467,6 +517,7 @@
   },
   {
     "id": "2026-09-24-a0051",
+    "release": "V4.29.0",
     "date": "2026-09-24",
     "kind": "improved",
     "area": "Guests",
@@ -476,6 +527,7 @@
   },
   {
     "id": "2026-09-24-a0050",
+    "release": "V4.30.0",
     "date": "2026-09-24",
     "kind": "new",
     "area": "Guests",
@@ -485,6 +537,7 @@
   },
   {
     "id": "2026-08-18-a0052",
+    "release": "V4.27.3",
     "date": "2026-08-18",
     "kind": "fixed",
     "area": "Budget",
@@ -494,6 +547,7 @@
   },
   {
     "id": "2026-08-15-a0056",
+    "release": "V4.27.0",
     "date": "2026-08-15",
     "kind": "new",
     "area": "Budget",
@@ -503,6 +557,7 @@
   },
   {
     "id": "2026-08-15-a0055",
+    "release": "V4.27.1",
     "date": "2026-08-15",
     "kind": "fixed",
     "area": "Budget",
@@ -512,6 +567,7 @@
   },
   {
     "id": "2026-08-15-a0054",
+    "release": "V4.27.1",
     "date": "2026-08-15",
     "kind": "fixed",
     "area": "Guests",
@@ -521,6 +577,7 @@
   },
   {
     "id": "2026-08-15-a0053",
+    "release": "V4.27.1",
     "date": "2026-08-15",
     "kind": "fixed",
     "area": "Gifts",
@@ -530,6 +587,7 @@
   },
   {
     "id": "2026-08-14-a0057",
+    "release": "V4.26.0",
     "date": "2026-08-14",
     "kind": "new",
     "area": "All tabs",
