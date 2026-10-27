@@ -2,13 +2,108 @@
 import { DEFAULT_GROUPS, DEFAULT_MEALS } from "@/constants/guest-constants.js";
 import { SHIRT_SIZES }                   from "@/constants/theme.js";
 import { Icon }                          from "@/utils/iconMap.jsx";
+import { useState, useEffect }           from "react";
+import { supabase }                      from "@/lib/supabase.js";
+
+// ── RSVP page settings (V5-R4) ──
+// events.rsvp_settings, saved on its own (it is a separate column from the rest of the event
+// configuration, so it has its own Save). The reply deadline is the existing Event Details date.
+// Auto-accept is shown but not available: replies always wait for the host's review.
+const RSVP_DEFAULTS = { allowPlusOnes: false, maxNewGuests: 2, allowEditUntilDeadline: true };
+
+function RsvpSettingsBlock({ eventId, deadline, goToSection }) {
+  const [vals, setVals]       = useState(RSVP_DEFAULTS);
+  const [existing, setExisting] = useState({});
+  const [loaded, setLoaded]   = useState(false);
+  const [saving, setSaving]   = useState(false);
+  const [msg, setMsg]         = useState({ tone: "", text: "" });
+
+  useEffect(() => {
+    let cancelled = false;
+    supabase.from("events").select("rsvp_settings").eq("id", eventId).maybeSingle().then(({ data, error }) => {
+      if (cancelled) return;
+      const s = (!error && data?.rsvp_settings && typeof data.rsvp_settings === "object") ? data.rsvp_settings : {};
+      setExisting(s);
+      setVals({
+        allowPlusOnes: s.allowPlusOnes === true,
+        maxNewGuests: Number.isInteger(s.maxNewGuests) ? Math.min(Math.max(s.maxNewGuests, 0), 6) : RSVP_DEFAULTS.maxNewGuests,
+        allowEditUntilDeadline: s.allowEditUntilDeadline !== false,
+      });
+      if (error) setMsg({ tone: "error", text: "RSVP settings could not be loaded. If this is a new setup, the V5.1-R1 database update may not have been applied yet." });
+      setLoaded(true);
+    });
+    return () => { cancelled = true; };
+  }, [eventId]);
+
+  const save = async () => {
+    setSaving(true); setMsg({ tone: "", text: "" });
+    const next = { ...existing, allowPlusOnes: vals.allowPlusOnes, maxNewGuests: vals.maxNewGuests, allowEditUntilDeadline: vals.allowEditUntilDeadline };
+    const { error } = await supabase.from("events").update({ rsvp_settings: next }).eq("id", eventId);
+    setSaving(false);
+    if (error) { setMsg({ tone: "error", text: "Could not save. Only the event owner and editors can change these settings." }); return; }
+    setExisting(next);
+    setMsg({ tone: "ok", text: "RSVP settings saved." });
+  };
+
+  const row = { display: "flex", alignItems: "flex-start", gap: 10, minHeight: 44, fontSize: 14, cursor: "pointer" };
+  const help = { fontSize: 12, color: "var(--text-muted)", margin: "2px 0 0 28px", lineHeight: 1.5 };
+  const deadlineText = deadline
+    ? new Date(`${deadline}T00:00:00`).toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" })
+    : "not set";
+
+  return (
+    <div className="admin-section">
+      <div className="admin-section-title">Guest RSVP page</div>
+      <p style={{fontSize:13,color:"var(--text-secondary)",lineHeight:1.6,marginBottom:12}}>
+        Guests reply from a private link, with no account. These settings control what they can do on that page.
+        Replies never change your guest list until you accept them in the Guests tab.
+      </p>
+      <div style={{display:"flex",flexDirection:"column",gap:8}}>
+        <label style={row}>
+          <input type="checkbox" checked={vals.allowPlusOnes} disabled={!loaded} style={{marginTop:3}} onChange={e => setVals(v => ({ ...v, allowPlusOnes: e.target.checked }))} />
+          <span>Let guests add someone to their reply</span>
+        </label>
+        <p style={help}>A household can list extra guests who are not on your list yet. These replies are marked Needs a look so you review each one before anyone is added.</p>
+        <div className="form-group" style={{margin:"0 0 0 28px",maxWidth:260}}>
+          <label className="form-label" htmlFor="rsvp-max-new">How many extra guests</label>
+          <select id="rsvp-max-new" className="form-select" value={vals.maxNewGuests} disabled={!loaded || !vals.allowPlusOnes}
+            onChange={e => setVals(v => ({ ...v, maxNewGuests: Number(e.target.value) }))}>
+            {[0,1,2,3,4,5,6].map(n => <option key={n} value={n}>{n}</option>)}
+          </select>
+        </div>
+        <label style={row}>
+          <input type="checkbox" checked={vals.allowEditUntilDeadline} disabled={!loaded} style={{marginTop:3}} onChange={e => setVals(v => ({ ...v, allowEditUntilDeadline: e.target.checked }))} />
+          <span>Let guests change their reply until the deadline</span>
+        </label>
+        <p style={help}>Turn this off to let each household reply only once. They can still ask you to change it.</p>
+        <div style={{margin:"4px 0 0 28px",fontSize:14}}>
+          <div><strong>Reply deadline:</strong> {deadlineText}</div>
+          <p style={{...help, margin:"2px 0 6px"}}>After this date the page closes. It is the same date as in Event Details.</p>
+          <button type="button" className="btn btn-secondary btn-sm" onClick={() => goToSection && goToSection("event")}>Change it in Event Details</button>
+        </div>
+        <div style={{margin:"8px 0 0 28px",padding:"10px 12px",background:"var(--bg-subtle)",border:"1px solid var(--border)",borderRadius:"var(--radius-sm)",fontSize:13,color:"var(--text-muted)"}}>
+          <span aria-hidden="true">○ </span>Accept replies automatically: <strong>not available yet</strong>. Every reply waits for your review.
+        </div>
+      </div>
+      <div style={{display:"flex",alignItems:"center",gap:12,flexWrap:"wrap",marginTop:12}}>
+        <button type="button" className="btn btn-primary btn-sm" onClick={save} disabled={saving || !loaded}>{saving ? "Saving…" : "Save RSVP settings"}</button>
+        {msg.text && <span role={msg.tone === "error" ? "alert" : "status"} style={{fontSize:13,color: msg.tone === "error" ? "var(--red)" : "var(--green)"}}>{msg.tone === "error" ? "▲ " : "✓ "}{msg.text}</span>}
+      </div>
+    </div>
+  );
+}
 
 // ── Guests ──
-export function GuestsSection({ form, set, saved, error, onClose, saveConfig, saving }) {
+export function GuestsSection({ form, set, saved, error, onClose, saveConfig, saving, eventId, goToSection }) {
   return (
       <>
         {saved && <div className="alert alert-success" style={{marginBottom:12}}><Icon name="check" context="badge" style={{ marginRight: 4 }} /> Configuration saved</div>}
         {error && <div className="alert alert-error"   style={{marginBottom:12}}><Icon name="alertTriangle" context="badge" style={{ marginRight: 3 }} /> {error}</div>}
+
+        {/* Guest RSVP page (V5-R4) */}
+        {eventId && <RsvpSettingsBlock eventId={eventId} deadline={form.rsvpDeadline} goToSection={goToSection} />}
+
+        <div className="divider" />
 
         {/* Guest Groups */}
         <div className="admin-section">

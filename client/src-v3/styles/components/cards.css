@@ -284,6 +284,17 @@
       display: flex;
       flex-direction: column;
     }
+    /* A labeled action on a row (V5-R4 "Send reminder"): the whole row is still one button. */
+    .focus-action {
+      flex-shrink: 0;
+      padding: 6px 12px;
+      border-radius: var(--radius-sm);
+      border: 1.5px solid var(--accent-dark);
+      color: var(--accent-dark);
+      font-size: 13px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
     .focus-row {
       display: flex;
       align-items: center;

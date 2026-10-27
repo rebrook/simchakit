@@ -20,6 +20,8 @@ import {
 } from "@/utils/messageTemplates.js";
 import { householdKey, isSent, statusText } from "@/utils/messageStatus.js";
 import { callGuestApi, describeApiError, markSent } from "@/utils/messageApi.js";
+import { remindedRecently, REMINDER_COOLDOWN_DAYS } from "@/utils/rsvpReminders.js";
+import { shortDate } from "@/utils/messageStatus.js";
 
 const MAX_RECIPIENTS = 500;   // api/guest send limit per call
 
@@ -39,7 +41,7 @@ const emailOf = (hh) => String(hh.email || "").trim();
 
 export function MessageComposer({
   eventId, households, sections, groups, adminConfig, sentLookup,
-  initialIds, initialKind, initialMethod,
+  initialIds, initialKind, initialMethod, unrepliedIds,
   onSaveEmail, onClose, onSent, onMarked, showToast,
 }) {
   const [method,  setMethod]  = useState(initialMethod || null);   // "email" | "mark"
@@ -51,7 +53,11 @@ export function MessageComposer({
   const [step,    setStep]    = useState(1);
 
   const [restrictIds, setRestrictIds] = useState(initialIds && initialIds.length ? new Set(initialIds) : null);
-  const [filters,  setFilters]  = useState({ group: "All", status: "All", section: "All", outOfTown: false, notSent: !initialIds });
+  const [filters,  setFilters]  = useState({ group: "All", status: "All", section: "All", outOfTown: false,
+    // An RSVP reminder repeats by design, so it never hides households that were reminded before;
+    // it starts from the households that have not replied (unless the caller chose the households).
+    notSent: !initialIds && initialKind !== "rsvp_reminder",
+    unreplied: !initialIds && initialKind === "rsvp_reminder" });
   const [excluded, setExcluded] = useState(new Set());
 
   const [preview,    setPreview]    = useState(null);
@@ -80,12 +86,18 @@ export function MessageComposer({
       if (!sec || !isInvited(hh, sec)) return false;
     }
     if (filters.notSent && isSent(sentLookup(hh, kind))) return false;
+    if (filters.unreplied && unrepliedIds && !unrepliedIds.has(key)) return false;
     return true;
   }), [households, restrictIds, filters, sections, sentLookup, kind]);
 
   const recipients = useMemo(() => candidates.filter(hh => !excluded.has(householdKey(hh))), [candidates, excluded]);
   const missingEmail = isEmail ? recipients.filter(hh => !emailOf(hh)) : [];
-  const alreadySent  = recipients.filter(hh => isSent(sentLookup(hh, kind)));
+  // Repeating kinds (reminders) are not "already sent": they warn only when reminded very recently.
+  const alreadySent  = kind === "rsvp_reminder" ? [] : recipients.filter(hh => isSent(sentLookup(hh, kind)));
+  const recentlyReminded = kind === "rsvp_reminder" ? recipients.filter(hh => remindedRecently(sentLookup(hh, kind))) : [];
+  const needsAnyway = alreadySent.length > 0 || recentlyReminded.length > 0;
+  // Invitations and reminders are meant to carry each household's reply link.
+  const missingLink = isEmail && (kind === "invitation" || kind === "rsvp_reminder") && !/\{\{\s*rsvp_link\s*\}\}/i.test(body);
   const overLimit    = isEmail && recipients.length > MAX_RECIPIENTS;
   const sendable     = isEmail ? recipients.filter(hh => emailOf(hh)) : recipients;
 
@@ -102,6 +114,10 @@ export function MessageComposer({
     setSubject(DEFAULT_TEMPLATES[k].subject);
     setBody(DEFAULT_TEMPLATES[k].body);
     setPreview(null);
+    if (!restrictIds) {
+      setFilters(f => ({ ...f, notSent: k !== "rsvp_reminder", unreplied: k === "rsvp_reminder" }));
+      setExcluded(new Set());
+    }
   };
 
   const insertField = (key) => {
@@ -242,6 +258,11 @@ export function MessageComposer({
             <label className="form-label" htmlFor="msg-body">Message</label>
             <textarea id="msg-body" ref={bodyRef} className="form-input msg-body-input" value={body}
               onChange={e => { setBody(e.target.value); setPreview(null); }} />
+            {missingLink && (
+              <div className="msg-notice" role="status">
+                This message doesn't include <strong>{"{{rsvp_link}}"}</strong>, so guests won't get a link to reply. Use "+ RSVP link" to add it.
+              </div>
+            )}
             <div className="msg-field-chips" aria-label="Insert a name or detail">
               {MERGE_FIELDS.map(f => (
                 <button key={f.key} type="button" className="btn btn-secondary btn-sm" onClick={() => insertField(f.key)}>
@@ -301,6 +322,12 @@ export function MessageComposer({
           <input type="checkbox" checked={filters.notSent} onChange={e => setFilter("notSent", e.target.checked)} />
           Not yet sent: {kindLabel(kind)}
         </label>
+        {unrepliedIds && (
+          <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, minHeight: 44 }}>
+            <input type="checkbox" checked={filters.unreplied} onChange={e => setFilter("unreplied", e.target.checked)} />
+            Haven't replied yet
+          </label>
+        )}
       </div>
 
       <div className="msg-count" aria-live="polite">
@@ -353,7 +380,7 @@ export function MessageComposer({
                 <input type="checkbox" checked={!excluded.has(key)} onChange={() => toggleOne(hh)} />
                 <span style={{ flex: 1 }}>{hh.formalName || "Household"}</span>
                 {isEmail && !emailOf(hh) && <span className="tag tag-gold" style={{ fontSize: 10 }}>No email</span>}
-                {isSent(st) && <span className="tag tag-muted" style={{ fontSize: 10 }}>{statusText(st)}</span>}
+                {isSent(st) && <span className="tag tag-muted" style={{ fontSize: 10 }}>{kind === "rsvp_reminder" ? `Last reminded ${shortDate(st.date)}` : statusText(st)}</span>}
               </label>
             );
           })}
@@ -430,6 +457,16 @@ export function MessageComposer({
           </button>
         </div>
       )}
+      {recentlyReminded.length > 0 && (
+        <div className="msg-notice" role="alert">
+          <strong>{recentlyReminded.length} household{recentlyReminded.length !== 1 ? "s were" : " was"} reminded in the last {REMINDER_COOLDOWN_DAYS} days</strong>
+          <span>{recentlyReminded.slice(0, 5).map(hh => `${hh.formalName || "Household"} (${shortDate(sentLookup(hh, kind).date)})`).join(", ")}{recentlyReminded.length > 5 ? ", …" : ""}</span>
+          <button type="button" className="msg-link-btn" style={{ alignSelf: "flex-start" }}
+            onClick={() => { setExcluded(prev => { const n = new Set(prev); recentlyReminded.forEach(hh => n.add(householdKey(hh))); return n; }); setPreview(null); setStep(2); }}>
+            Remove them and go back
+          </button>
+        </div>
+      )}
       {!isEmail && <p style={{ fontSize: 13, color: "var(--text-muted)" }}>Nothing is emailed. You can undo this for a few seconds afterwards.</p>}
     </>
   );
@@ -476,7 +513,7 @@ export function MessageComposer({
             </button>
             {onConfirmStep ? (
               <button type="button" className="btn btn-primary" disabled={primaryDisabled || sendable.length === 0} onClick={isEmail ? send : mark}>
-                {working ? "Working…" : isEmail ? (alreadySent.length > 0 ? "Send anyway" : `Send to ${preview?.recipientCount ?? sendable.length}`) : (alreadySent.length > 0 ? "Mark as sent anyway" : "Mark as sent")}
+                {working ? "Working…" : isEmail ? (needsAnyway ? "Send anyway" : `Send to ${preview?.recipientCount ?? sendable.length}`) : (needsAnyway ? "Mark as sent anyway" : "Mark as sent")}
               </button>
             ) : (
               <button type="button" className="btn btn-primary" disabled={primaryDisabled} onClick={next}>Next</button>

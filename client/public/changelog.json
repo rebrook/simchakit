@@ -1,9 +1,23 @@
 {
-  "current": "V5.5.0",
+  "current": "V5.6.0",
   "whatsNew": [
-    "Review guests' RSVP replies before they change your list, with a one-click Undo"
+    "Remind households that haven't replied, straight from Overview, with their personal reply links"
   ],
   "changelog": [
+    {
+      "version": "V5.6.0",
+      "date": "2026-10-27",
+      "summary": "RSVP reminders, a Send reminder card on Overview, and RSVP page settings",
+      "changes": [
+        "New: RSVP reminder preset in the composer. Recipients start as the households still Invited or Pending for any sub-event they are invited to, leaving out households that have already replied through their link (waiting for review or accepted). You can untick any household, and each shows when it was last reminded. Reminders can repeat, so they no longer hide households reminded before; sending to anyone reminded in the last 3 days shows a warning with Remove them and Send anyway",
+        "New: Overview's What Needs You Next now shows N households haven't replied with the number of days to the RSVP deadline (or how long ago it passed), and a Send reminder button for owners and editors that opens the composer with exactly those households chosen. With a deadline set, this card replaces the older guests awaiting RSVP row; viewers see the card without the button",
+        "Change: the Invitation and RSVP reminder messages now include each household's private reply link, and a + RSVP link button adds it to any message. In the email the link is a button at the spot where you place it (before the sign-off), with the plain link repeated beneath; a notice warns when an invitation or reminder has no RSVP link. Sending creates a link for any household that is missing one",
+        "New: Admin Mode, Guests, has Guest RSVP page settings: let guests add people (and how many, 0 to 6), let guests change their reply until the deadline, and a button to the existing deadline in Event Details. Accepting replies automatically is shown as not available yet. Saved to the event's RSVP settings, owners and editors only",
+        "No database changes (the settings use the column added in V5.3.0). V3 app and server only"
+      ],
+      "roadmap": [],
+      "knownIssues": []
+    },
     {
       "version": "V5.5.0",
       "date": "2026-10-27",

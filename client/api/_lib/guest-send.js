@@ -36,7 +36,7 @@
 
 import { sendBrevoEmail } from "./brevo.js";
 import { buildUnsubscribeUrl } from "./guest-unsub.js";
-import { renderGuestEmail } from "./email-shell.js";
+import { renderGuestEmail, RSVP_MARK } from "./email-shell.js";
 import { ensureTokens, APP_ORIGIN } from "./rsvp-shared.js";
 import { rsvpLink } from "../../src-v3/utils/rsvpToken.js";
 
@@ -338,9 +338,9 @@ export default async function handler(req, res) {
       : `https://app.simcha-kit.com/api/guest?action=unsubscribe&preview=1`;
     // The private link never goes in a subject line (subjects are widely logged and shown).
     const renderedSubject = oneLine(render(subject, { ...values, rsvp_link: "" }, plain));
-    // {{rsvp_link}} becomes a button (V5-R1); it is stripped from the running text.
+    // {{rsvp_link}} becomes a button (V5-R1) right where the host put it (the marker below).
     const usesRsvp = /\{\{\s*rsvp_link\s*\}\}/i.test(bodyTemplate) && values.rsvp_link;
-    const text = render(bodyTemplate, { ...values, rsvp_link: "" }, plain);
+    const text = render(bodyTemplate, { ...values, rsvp_link: usesRsvp ? RSVP_MARK : "" }, plain);
     const { html, text: textFull } = renderGuestEmail({
       kind, subject: renderedSubject, bodyText: text, rsvpUrl: usesRsvp ? values.rsvp_link : "",
       eventName: event.name || "", eventDate: eventValues.event_date, logoUrl: event.admin_config?.logoUrl,

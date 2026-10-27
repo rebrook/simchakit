@@ -44,6 +44,10 @@ const RSVP_BUTTON_LABEL = {
 
 const HEX_RE = /^#[0-9a-f]{6}$/i;
 
+// guest-send puts this marker where {{rsvp_link}} sits in the host's message, so the reply
+// button appears at that spot (before the sign-off) instead of after the whole message.
+export const RSVP_MARK = "\uE000";
+
 function escapeHtml(value) {
   return String(value ?? "")
     .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
@@ -111,10 +115,19 @@ export function renderGuestEmail({
   const linkOnFoot  = darkenUntil(accent, FOOTER_BG, 4.5);
   const buttonBg    = darkenUntil(accent, "#ffffff", 4.5);
 
-  const message = String(bodyText || "").replace(/\r\n?/g, "\n").trim();
-  const paragraphs = message.split(/\n{2,}/).map(p =>
+  const rsvp = safeHttpsUrl(rsvpUrl);
+  const rawMessage = String(bodyText || "").replace(/\r\n?/g, "\n");
+  // Split at the first RSVP marker (any later ones are dropped). Without a usable link the marker is simply removed.
+  const markAt = rawMessage.indexOf(RSVP_MARK);
+  const stripMark = (t) => t.split(RSVP_MARK).join("");
+  const before  = markAt >= 0 && rsvp ? stripMark(rawMessage.slice(0, markAt)) : stripMark(rawMessage);
+  const after   = markAt >= 0 && rsvp ? stripMark(rawMessage.slice(markAt + 1)) : "";
+  const message = before.trim();
+  const toParagraphs = (t) => t.trim() ? t.trim().split(/\n{2,}/).map(p =>
     `<p style="margin:0 0 18px;font-family:${FONT};font-size:16px;line-height:1.7;color:${TEXT};text-align:left;">${escapeHtml(p).replace(/\n/g, "<br>")}</p>`
-  ).join("");
+  ).join("") : "";
+  const paragraphs = toParagraphs(before);
+  const paragraphsAfter = toParagraphs(after);
 
   const preheader = previewLine(message);
 
@@ -126,7 +139,6 @@ export function renderGuestEmail({
     ? `<p style="margin:6px 0 0;font-family:${FONT};font-size:14px;font-style:italic;color:${MUTED};line-height:1.5;">${escapeHtml(eventDate)}</p>`
     : "";
 
-  const rsvp = safeHttpsUrl(rsvpUrl);
   const buttonLabel = RSVP_BUTTON_LABEL[kind] || "Open the link";
   const rsvpHtml = rsvp ? `
               <table cellpadding="0" cellspacing="0" border="0" style="margin:8px 0 6px;">
@@ -176,7 +188,7 @@ export function renderGuestEmail({
 
           <tr>
             <td class="sk-pad" style="padding:32px 48px 20px;">
-              ${paragraphs}${rsvpHtml}
+              ${paragraphs}${rsvpHtml}${paragraphsAfter}
             </td>
           </tr>
 
@@ -207,6 +219,7 @@ export function renderGuestEmail({
 
   const textParts = [message];
   if (rsvp) textParts.push(`${buttonLabel}: ${rsvp}`);
+  if (after.trim()) textParts.push(after.trim());
   textParts.push(`--\nSent by ${sender} using SimchaKit, the planner for simchas and celebrations. Planning your own event? ${aboutLink}`);
   if (footerText)    textParts.push(String(footerText));
   if (postalAddress) textParts.push(String(postalAddress));

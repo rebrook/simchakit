@@ -423,7 +423,7 @@ export function AdminPanel({ eventId, userId, calendarToken: initialCalendarToke
 
           {/* ── guests ── */}
           {section === "guests" && (
-            <GuestsSection form={form} set={set} saved={saved} error={error} onClose={onClose} saveConfig={saveConfig} saving={saving} />
+            <GuestsSection form={form} set={set} saved={saved} error={error} onClose={onClose} saveConfig={saveConfig} saving={saving} eventId={eventId} goToSection={setSection} />
           )}
 
           {/* ── accommodations ── */}

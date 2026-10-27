@@ -23,6 +23,16 @@ export function consumeGuestsView(eventId) {
   return v;
 }
 
+// One-shot "open the composer with these households" (V5-R4): the Overview's reminder card
+// opens the composer on the Guests tab with the unreplied households already chosen.
+let composePreset = null;
+export function setGuestsCompose(eventId, kind, ids) { composePreset = { eventId, kind, ids: [...(ids || [])] }; }
+export function consumeGuestsCompose(eventId) {
+  const c = composePreset && composePreset.eventId === eventId ? composePreset : null;
+  composePreset = null;
+  return c;
+}
+
 // Returns the preset only if it was set for this event, and clears it either way.
 export function consumeGuestsPreset(eventId) {
   const p = preset && preset.eventId === eventId ? preset : null;

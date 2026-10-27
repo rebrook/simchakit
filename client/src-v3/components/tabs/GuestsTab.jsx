@@ -17,7 +17,8 @@ import { RSVP_STATUSES, DEFAULT_GROUPS } from "@/constants/guest-constants.js";
 import { sortTimeline } from "@/utils/dates.js";
 import { getPeopleForHousehold, isMaleTitle, computeHouseholdCounts, getHouseholdAttending, formatAddress, migrateCityStateZip } from "@/utils/guests.js";
 import { isInvited, getSubEventStatus, getPersonSectionStatus, resolveMainEvent, getMealPopulation, getAwaitingSummary, describeAwaitingSections, splitAdultsKids } from "@/utils/sections.js";
-import { consumeGuestsPreset, consumeGuestsView } from "@/utils/guestsPreset.js";
+import { consumeGuestsPreset, consumeGuestsView, consumeGuestsCompose } from "@/utils/guestsPreset.js";
+import { unrepliedHouseholds } from "@/utils/rsvpReminders.js";
 import { ArchivedNotice } from "@/components/shared/ArchivedNotice.jsx";
 import { RsvpPill } from "@/components/shared/RsvpPill.jsx";
 import { CateringSummary } from "@/components/shared/CateringSummary.jsx";
@@ -120,6 +121,12 @@ export function GuestsTab({ eventId, event, adminConfig, showToast, isArchived, 
 
   // V5-R3: arriving from Overview's "New RSVP replies" opens straight on the queue (one-shot hand-off).
   useEffect(() => { if (consumeGuestsView(eventId) === "replies") setView("replies"); }, [eventId]);
+  // V5-R4: Overview's "Send reminder" opens the composer with the unreplied households already chosen.
+  useEffect(() => {
+    const c = consumeGuestsCompose(eventId);
+    if (c && !isViewer && !isArchived) setComposer({ initialKind: c.kind, initialIds: c.ids, initialMethod: "email" });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [eventId]);
 
   // ── RSVP status update ────────────────────────────────────────────────────
   const updateRsvpStatus = async (hhId, newStatus) => {
@@ -517,12 +524,16 @@ export function GuestsTab({ eventId, event, adminConfig, showToast, isArchived, 
 
   if (hLoading || pLoading) return <div style={loadingStyle}>Loading guests…</div>;
 
+  // Households that haven't replied: the same set the Overview card counts (V5-R4).
+  const repliedRowIds = new Set(rsvpReplies.replies.filter(r => r.status === "pending" || r.status === "accepted").map(r => r.household_id));
+  const unrepliedIds = new Set(unrepliedHouseholds(households, people, adminConfig?.timeline || [], repliedRowIds).map(householdKey));
+
   const overlays = (
     <>
       {composer && (
         <MessageComposer
           eventId={eventId} households={households} sections={sections} groups={groups}
-          adminConfig={adminConfig} sentLookup={sentLookup}
+          adminConfig={adminConfig} sentLookup={sentLookup} unrepliedIds={unrepliedIds}
           initialIds={composer.initialIds} initialKind={composer.initialKind} initialMethod={composer.initialMethod}
           onSaveEmail={saveHouseholdEmail} onSent={handleSent} onMarked={handleMarked}
           onClose={()=>setComposer(null)} showToast={showToast}
