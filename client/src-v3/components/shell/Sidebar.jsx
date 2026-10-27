@@ -5,7 +5,7 @@ import { Icon } from "@/utils/iconMap.jsx";
 import { EventSwitcher } from "@/components/shell/EventSwitcher.jsx";
 import { avatarColor, avatarInitials } from "@/utils/avatar.js";
 
-export function Sidebar({ activeTab, adminConfig, coPlanners, collaboratorRole, darkMode, event, eventId, eventTypeIconKey, isCoordinator, isDemoMode, navigateTo, onBack, onLogoSaved, onSelectEvent, onlineUserIds, openAdmin, session, setDarkMode, setShowAccountMenu, setShowActivityLog, setShowDayOf, setShowGuide, setShowInviteModal, setShowWhatsNew, showAccountMenu, sidebarGroups, switcherDate, userBg, userInit, userName }) {
+export function Sidebar({ activeTab, adminConfig, coPlanners, collaboratorRole, darkMode, event, eventId, eventTypeIconKey, isCoordinator, isDemoMode, navigateTo, onBack, onLogoSaved, onSelectEvent, onlineUserIds, openAdmin, session, setDarkMode, setShowAccountMenu, setShowActivityLog, setShowDayOf, setShowGuide, setShowInviteModal, setShowWhatsNew, whatsNewCount = 0, showAccountMenu, sidebarGroups, switcherDate, userBg, userInit, userName }) {
   return (
     <aside className="app-sidebar">
 
@@ -195,8 +195,10 @@ export function Sidebar({ activeTab, adminConfig, coPlanners, collaboratorRole, 
             </button>
 
             <button className="sidebar-account-item"
+              aria-label={whatsNewCount > 0 ? `What's New, ${whatsNewCount} new` : undefined}
               onClick={() => { setShowAccountMenu(false); setShowWhatsNew(true); }}>
               <Icon name="sparkles" context="menu" /> What's New
+              {whatsNewCount > 0 && <span className="wn-count">{whatsNewCount} new</span>}
             </button>
 
             {!isCoordinator && (
