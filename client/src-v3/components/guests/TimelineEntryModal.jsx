@@ -34,6 +34,14 @@ export function TimelineEntryModal({ entry, onSave, onClose }) {
             <div className="form-group"><label className="form-label">End Time</label><div style={{display:"flex",gap:4}}><select className="form-select" style={selStyle} value={eH} onChange={e=>{setEH(e.target.value);onEndPart(e.target.value,eM,eAP);}}><option value="">HH</option>{TL_HOURS.map(h=><option key={h} value={h}>{h}</option>)}</select><select className="form-select" style={selStyle} value={eM} onChange={e=>{setEM(e.target.value);onEndPart(eH,e.target.value,eAP);}}><option value="">MM</option>{TL_MINUTES.map(m=><option key={m} value={m}>{m}</option>)}</select><select className="form-select" style={selStyle} value={eAP} onChange={e=>{setEAP(e.target.value);onEndPart(eH,eM,e.target.value);}}><option value="">—</option><option value="AM">AM</option><option value="PM">PM</option></select></div></div>
           </div>
           <div className="form-group"><label className="form-label">Venue / Location</label><input className="form-input" value={form.venue||""} onChange={e=>setF("venue",e.target.value)} placeholder="e.g., Springfield Grand Ballroom" /></div>
+          <div className="form-grid-2">
+            <div className="form-group"><label className="form-label" htmlFor="tl-room">Room</label><input id="tl-room" className="form-input" value={form.room||""} onChange={e=>setF("room",e.target.value)} placeholder="e.g., Sanctuary" /><div className="form-hint">Shown after the venue in the Overview schedule.</div></div>
+            <div className="form-group"><label className="form-label" htmlFor="tl-addr">Venue address</label><input id="tl-addr" className="form-input" value={form.address||""} onChange={e=>setF("address",e.target.value)} placeholder="e.g., 742 Evergreen Terrace, Evanston, IL 60201" /><div className="form-hint">Listed once per venue when you copy the schedule. A ZIP code lets the Overview show when Shabbat ends.</div></div>
+          </div>
+          <div className="form-grid-2">
+            <div className="form-group"><label className="form-label" htmlFor="tl-aud">Who is this for?</label><select id="tl-aud" className="form-select" value={form.audience==="family"?"family":""} onChange={e=>setF("audience",e.target.value)}><option value="">Everyone invited</option><option value="family">Family only</option></select><div className="form-hint">Family only hides the guest count on the schedule and leaves it out of the copied schedule. Guests never see this setting.</div></div>
+            <div className="form-group"><label className="form-label" htmlFor="tl-arrive">Arrive by</label><input id="tl-arrive" className="form-input" type="time" value={form.arriveBy||""} onChange={e=>setF("arriveBy",e.target.value)} /><div className="form-hint">For family or the people running the event, such as photos before the service. Shown on the schedule only; guests never see it.</div></div>
+          </div>
           <div className="form-group"><label className="form-label">Notes</label><input className="form-input" value={form.notes||""} onChange={e=>setF("notes",e.target.value)} placeholder="Any additional details…" /></div>
           <label style={{display:"flex",alignItems:"center",gap:8,cursor:"pointer",fontSize:13,color:"var(--text-primary)",marginBottom:10}}>
             <input type="checkbox" checked={!!form.isMainEvent} onChange={e=>setF("isMainEvent",e.target.checked)} style={{width:15,height:15,accentColor:"var(--accent-primary)"}} />
@@ -57,7 +65,7 @@ export function TimelineEntryModal({ entry, onSave, onClose }) {
           </div>
           <div className="modal-footer">
             <button className="btn btn-ghost" onClick={onClose}>Cancel</button>
-            <button className="btn btn-primary" onClick={()=>{if(!form.title.trim()||!form.startDate)return;const endDate=(!form.endDate&&form.endTime)?form.startDate:form.endDate;onSave({...form,endDate,title:form.title.trim()});}} disabled={!form.title.trim()||!form.startDate}>{isEdit?"Save Changes":"Add Event"}</button>
+            <button className="btn btn-primary" onClick={()=>{if(!form.title.trim()||!form.startDate)return;const endDate=(!form.endDate&&form.endTime)?form.startDate:form.endDate;const out={...form,endDate,title:form.title.trim()};["room","address","audience","arriveBy"].forEach(k=>{if(!out[k])delete out[k];});onSave(out);}} disabled={!form.title.trim()||!form.startDate}>{isEdit?"Save Changes":"Add Event"}</button>
           </div>
         </div>
     </Modal>

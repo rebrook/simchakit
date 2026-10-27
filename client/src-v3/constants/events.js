@@ -47,7 +47,17 @@ const EVENT_TYPE_ICON_KEYS = {
   "other":        "partyPopper",
 };
 
+// The faded motif on the right half of the Overview hero, by event type (V5.9.0):
+// a star for mitzvah types, a lattice for weddings, none for everything else.
+const EVENT_MOTIF = {
+  "bat-mitzvah":  "star",
+  "bar-mitzvah":  "star",
+  "bnei-mitzvah": "star",
+  "wedding":      "lattice",
+};
+
 export {
+  EVENT_MOTIF,
   DAY_OF_TIME_BLOCKS,
   EVENT_TYPE_LABELS_MAP,
   EVENT_TYPE_ICONS,

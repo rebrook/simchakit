@@ -57,7 +57,7 @@ import { getPaletteHint, clearPaletteHint } from "@/utils/userEvents.js";
 
 // ─────────────────────────────────────────────────────────────────────────────
 
-export function AppShell({ session, eventId, onBack, onSelectEvent = null, isDemoMode = false, displayName: userDisplayName = null }) {
+export function AppShell({ session, eventId, onBack, onSelectEvent = null, isDemoMode = false, displayName: userDisplayName = null, preferredName = null }) {
   const [activeTab,       setActiveTab]       = useState(() => {
     const route = parseEventRoute(window.location.pathname);
     const tab   = route?.tab;
@@ -641,6 +641,8 @@ export function AppShell({ session, eventId, onBack, onSelectEvent = null, isDem
     setTopbarSubtitle,
     userName,
     userDisplayName,
+    preferredName,
+    openDayOf:     () => setShowDayOf(true),
   };
 
   // ── User identity for account row ─────────────────────────────────────────

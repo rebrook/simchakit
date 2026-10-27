@@ -1,0 +1,202 @@
+/* ─────────────────────────────────────────────────────────────────────────────
+   SimchaKit V5.9.0 — Overview rebuild (hero, celebration schedule, who's coming, readiness).
+   Colors come from styles/palette-tokens.css (precomputed per palette, light and dark):
+   --hero-bg, --hero-accent, --hero-text, --hero-text-2, --hero-on-accent, --accent-ink,
+   --accent-fill, --on-accent, --red-fill, --on-red. Layout is driven by the Overview's own
+   width (container queries), not the window's. Cards are placed with grid areas; the markup
+   order is the reading and Tab order on every width.
+   ───────────────────────────────────────────────────────────────────────────── */
+
+.ov { container-type: inline-size; container-name: ov; display: grid; gap: 18px; }
+.ov-vh { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.ov-mobile-h1 { margin: 0; }
+@media (min-width: 901px) { .ov-mobile-h1 { display: none; } }
+
+.ov-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px; }
+.ov-greet { font-size: 14px; color: var(--text-secondary); }
+
+/* ── Buttons (the app's .btn, with the Overview's fills) ───────────────── */
+.ov .btn { min-height: 44px; }
+.ov .ov-btn-fill { background: var(--accent-fill); border-color: var(--accent-fill); color: var(--on-accent); }
+.ov .ov-btn-red  { background: var(--red-fill); border-color: var(--red-fill); color: var(--on-red); }
+.ov .ov-btn-hero { background: var(--hero-accent); border-color: var(--hero-accent); color: var(--hero-on-accent); }
+.ov-link { display: inline-flex; align-items: center; min-height: 44px; padding: 0 4px; background: none; border: 0; cursor: pointer; font: 600 13px var(--font-body); color: var(--accent-ink); text-decoration: underline; }
+[data-role-readonly="true"] .ov-act { background: none; border-color: transparent; color: var(--accent-ink); text-decoration: underline; padding: 0 4px; }
+
+/* ── Hero ───────────────────────────────────────────────────────────────── */
+.ov-hero { position: relative; overflow: hidden; background: var(--hero-bg); color: var(--hero-text); border-radius: 22px; padding: 48px 56px 40px; display: grid; gap: 30px; }
+[data-theme="dark"] .ov-hero { border: 1px solid color-mix(in srgb, var(--hero-accent) 45%, transparent); box-shadow: inset 0 1px 0 color-mix(in srgb, #fff 14%, transparent), 0 0 0 1px color-mix(in srgb, var(--hero-accent) 12%, transparent); }
+.ov-hero::before { content: ""; position: absolute; inset: 0; background-image: var(--ov-motif, none); background-size: 72px 72px; -webkit-mask-image: linear-gradient(90deg, transparent 42%, #000 100%); mask-image: linear-gradient(90deg, transparent 42%, #000 100%); pointer-events: none; }
+.ov-hero-photo { display: none; }   /* the photo layer: in place, empty until the photo follow-up */
+.ov-hero-top { position: relative; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 36px; align-items: center; }
+.ov-ring { width: 112px; height: 112px; border-radius: 50%; border: 1.5px solid var(--hero-accent); display: grid; place-items: center; font-family: var(--font-display); font-style: italic; font-size: 60px; font-weight: 600; color: var(--hero-accent); box-shadow: 0 0 0 7px var(--hero-bg), 0 0 0 8px color-mix(in srgb, var(--hero-accent) 45%, transparent); overflow: hidden; }
+.ov-ring img { width: 100%; height: 100%; object-fit: contain; background: var(--hero-text); }
+.ov-name { font-family: var(--font-display); font-weight: 600; font-size: 68px; line-height: 1; margin: 0 0 12px; letter-spacing: -0.015em; color: var(--hero-text); overflow-wrap: anywhere; }
+.ov-say { font-size: 15px; color: var(--hero-text-2); margin-bottom: 6px; }
+.ov-meta { font-size: 17px; color: var(--hero-text-2); }
+.ov-heb { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 4px 14px; align-items: baseline; font-size: 14px; color: var(--hero-text-2); }
+.ov-heb [lang="he"] { font-size: 22px; color: var(--hero-accent); }
+.ov-cnt { text-align: right; }
+.ov-cnt-n { font-family: var(--font-display); font-weight: 600; font-size: 200px; line-height: 0.78; font-variant-numeric: lining-nums tabular-nums; color: var(--hero-accent); letter-spacing: -0.02em; }
+.ov-cnt-u { font-size: 15px; font-weight: 600; margin-top: 16px; color: var(--hero-text); }
+
+/* Runway: a real ordered list, positioned along a track */
+.ov-runway { position: relative; height: 84px; margin: 34px 6px 0; }
+.ov-runway ol { list-style: none; margin: 0; padding: 0; position: absolute; inset: 0; }
+.ov-rt { position: absolute; left: 0; right: 0; top: 40px; height: 2px; border-radius: 9px; background: color-mix(in srgb, var(--hero-text) 28%, transparent); }
+.ov-rf { position: absolute; left: 0; top: 40px; height: 2px; border-radius: 9px; background: var(--hero-accent); width: var(--w, 0%); transition: width 0.9s cubic-bezier(0.2, 0.7, 0.2, 1); }
+.ov-mi { position: absolute; top: 0; width: 0; height: 84px; }
+.ov-mi .d { position: absolute; top: 34px; left: -7px; width: 15px; height: 15px; border-radius: 50%; border: 2px solid var(--hero-accent); background: var(--hero-bg); }
+.ov-mi.done .d { background: var(--hero-accent); }
+.ov-mi.now .d { width: 21px; height: 21px; left: -10px; top: 31px; background: var(--hero-accent); box-shadow: 0 0 0 5px color-mix(in srgb, var(--hero-accent) 28%, transparent); }
+.ov-mi .l { position: absolute; left: 0; transform: translateX(-50%); font-size: 13px; line-height: 1.25; text-align: center; white-space: nowrap; color: var(--hero-text-2); }
+.ov-mi .l b { display: block; color: var(--hero-text); }
+.ov-mi .up { top: 0; } .ov-mi .dn { top: 58px; }
+.ov-mi.end .l { transform: translateX(-100%); text-align: right; } .ov-mi.end .d { left: -14px; }
+.ov-mi.start .l { transform: none; text-align: left; } .ov-mi.start .d { left: 0; }
+.ov-runway-note { position: absolute; left: 0; right: 0; top: 56px; text-align: center; font-size: 13px; color: var(--hero-text-2); }
+.ov-nextline { display: none; font-size: 14px; padding-top: 12px; border-top: 1px solid color-mix(in srgb, var(--hero-text) 25%, transparent); color: var(--hero-text); }
+.ov-nextline b { color: var(--hero-accent); }
+
+/* The day */
+.ov-sched { position: relative; display: grid; grid-template-columns: repeat(3, auto) 1fr; gap: 0; align-items: end; margin-top: 20px; }
+.ov-sched > div { padding: 0 36px; border-left: 1px solid color-mix(in srgb, var(--hero-text) 28%, transparent); }
+.ov-sched > div:first-child { padding-left: 0; border-left: 0; }
+.ov-sched .k { font-size: 14px; color: var(--hero-accent); font-weight: 600; }
+.ov-sched .tm { font-family: var(--font-display); font-size: 48px; line-height: 1.1; font-weight: 600; color: var(--hero-text); font-variant-numeric: lining-nums; }
+.ov-sched .w2 { font-size: 14px; color: var(--hero-text-2); }
+.ov-sched .go { justify-self: end; padding: 0; border: 0; }
+
+/* After the event */
+.ov-post { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 0; align-items: end; min-height: 300px; }
+.ov-post .l { display: flex; flex-direction: column; justify-content: space-between; gap: 28px; align-self: stretch; }
+.ov-post .r { border-left: 1px solid color-mix(in srgb, var(--hero-text) 28%, transparent); padding-left: 48px; align-self: stretch; display: flex; flex-direction: column; justify-content: flex-end; gap: 8px; }
+.ov-post .big { font-family: var(--font-display); font-weight: 600; font-size: 170px; line-height: 0.82; color: var(--hero-accent); font-variant-numeric: lining-nums; }
+.ov-post .r .k { font-size: 19px; font-weight: 600; color: var(--hero-text); }
+.ov-post .r .w2 { font-size: 14px; color: var(--hero-text-2); margin-bottom: 12px; }
+
+/* ── Cards ──────────────────────────────────────────────────────────────── */
+.ov-card { background: var(--bg-surface); border: 1px solid var(--border); border-radius: 16px; box-shadow: var(--shadow-sm); min-width: 0; }
+.ov-card h2 { font-family: var(--font-display); font-weight: 600; margin: 0; }
+.ov-nh { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 6px 20px; min-height: 52px; border-bottom: 1px solid var(--border); }
+.ov-nh h2 { font-size: 20px; line-height: 1.2; }
+.ov-nh .sub { font-size: 13px; color: var(--text-secondary); margin-left: 10px; font-weight: 400; font-family: var(--font-body); }
+.ov-nh > span { font-size: 13px; color: var(--text-secondary); }
+.ov-sm { font-size: 13px; color: var(--text-secondary); }
+.ov-badge { display: inline-flex; align-items: center; gap: 5px; font: 600 12px var(--font-body); padding: 2px 10px; border-radius: 99px; border: 1px solid var(--border-strong); background: var(--bg-surface); color: var(--text-primary); }
+
+.ov-main { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); grid-template-areas: "n s" "w s" "r s" "q q"; grid-template-rows: auto auto 1fr auto; gap: 18px; align-items: start; }
+.ov-a-n { grid-area: n; } .ov-a-s { grid-area: s; } .ov-a-w { grid-area: w; } .ov-a-r { grid-area: r; } .ov-a-q { grid-area: q; }
+@container ov (min-width: 901px) { .ov-main:has(.ov-sc[data-open="true"]) { grid-template-areas: "n s" "w s" "r s" "q s"; grid-template-rows: auto auto auto 1fr; } }
+.ov-main[data-stage="post"] { grid-template-areas: "n n" "q q"; grid-template-rows: auto auto; }
+
+/* Needs you now */
+.ov-feat { display: grid; grid-template-columns: 1fr auto; gap: 16px; align-items: center; padding: 20px; margin: 12px; border-radius: 12px; background: var(--bg-subtle); border: 1px solid var(--border-strong); }
+.ov-feat.overdue { background: color-mix(in srgb, var(--red) 8%, var(--bg-surface)); border-color: color-mix(in srgb, var(--red) 28%, transparent); }
+.ov-feat .h { font-size: 17px; line-height: 1.3; display: block; font-weight: 700; }
+.ov-it { display: grid; grid-template-columns: 44px 1fr auto; gap: 16px; align-items: center; padding: 14px 20px; border-top: 1px solid var(--border); }
+.ov-it .h { font-size: 14.5px; display: block; line-height: 1.3; font-weight: 700; }
+.ov-ic { width: 44px; height: 44px; border-radius: 50%; background: var(--bg-surface); border: 1px solid var(--border-strong); display: grid; place-items: center; color: var(--text-primary); }
+.ov-clear { display: grid; grid-template-columns: 44px 1fr; gap: 16px; align-items: center; padding: 24px 20px; }
+.ov-clear .h { font-size: 18px; display: block; font-weight: 700; }
+.ov-skel { display: grid; grid-template-columns: 44px 1fr 90px; gap: 16px; align-items: center; padding: 14px 20px; border-top: 1px solid var(--border); min-height: 72px; }
+.ov-skel i { display: block; border-radius: 8px; background: var(--bg-muted); height: 12px; }
+.ov-skel i:first-child { height: 44px; width: 44px; border-radius: 50%; } .ov-skel i:last-child { height: 36px; }
+@media (prefers-reduced-motion: no-preference) { .ov-skel { animation: ov-pulse 1.4s ease-in-out infinite; } @keyframes ov-pulse { 50% { opacity: 0.55; } } }
+.ov-detail { margin: 0 12px 12px; padding: 14px 16px; border: 1px solid var(--border-strong); border-radius: 12px; background: var(--bg-subtle); display: grid; gap: 8px; }
+.ov-detail-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.ov-step { display: grid; grid-template-columns: 32px 1fr auto; gap: 14px; align-items: center; padding: 12px 20px; border-top: 1px solid var(--border); }
+
+/* Celebration schedule */
+.ov-sc { container-type: inline-size; container-name: sc; overflow: hidden; }
+.ov-dg { padding: 8px 20px 6px; font-size: 13px; font-weight: 700; color: var(--text-secondary); background: var(--bg-subtle); border-top: 1px solid var(--border); }
+.ov-sr { display: grid; grid-template-columns: 120px minmax(0, 1fr) minmax(0, auto) 20px; gap: 20px; align-items: center; padding: 14px 20px; border-top: 1px solid var(--border); color: inherit; text-decoration: none; min-height: 64px; background: transparent; width: 100%; text-align: left; border-left: 0; border-right: 0; border-bottom: 0; font-family: inherit; cursor: pointer; }
+.ov-sr:hover, .ov-sr:focus-visible { background: var(--bg-subtle); }
+.ov-sr .tm { font-family: var(--font-display); font-size: 28px; font-weight: 600; line-height: 1; font-variant-numeric: lining-nums; }
+.ov-sr .tm.add { font-size: 20px; color: var(--accent-ink); font-family: var(--font-body); font-weight: 700; }
+.ov-sr .nm b { font-size: 15.5px; display: block; }
+.ov-sr .ct { text-align: right; font-size: 13px; }
+.ov-sr .ct b { display: block; font-size: 14px; }
+.ov-sr .ar { color: var(--text-secondary); }
+.ov-sr .hv { color: var(--accent-ink); font-weight: 600; font-size: 13px; display: block; }
+.ov-sr .st { display: block; font: 700 12px var(--font-body); margin: 2px 0 3px; color: var(--text-secondary); }
+.ov-sr .st.next { color: var(--accent-ink); }
+.ov-sr[data-state="done"] .tm, .ov-sr[data-state="done"] .nm b { color: var(--text-secondary); }
+.ov-sr[data-state="next"] { background: color-mix(in srgb, var(--accent-ink) 9%, var(--bg-surface)); box-shadow: inset 3px 0 0 var(--accent-ink); }
+.ov-fam { display: inline-flex; align-items: center; gap: 6px; font: 600 12px var(--font-body); border: 1px solid var(--border-strong); border-radius: 99px; padding: 2px 10px; background: var(--bg-surface); }
+.ov-earlier-toggle { display: flex; justify-content: space-between; align-items: center; width: 100%; text-align: left; border: 0; border-top: 1px solid var(--border); background: var(--bg-surface); color: var(--text-primary); font: 600 14px var(--font-body); min-height: 52px; padding: 0 20px; cursor: pointer; }
+.ov-earlier-toggle span { font-weight: 400; color: var(--text-secondary); font-size: 13px; }
+@container sc (max-width: 560px) {
+  .ov-sr { grid-template-columns: 96px minmax(0, 1fr); gap: 4px 14px; padding: 12px 16px; }
+  .ov-sr .tm { font-size: 22px; grid-row: 1 / 3; white-space: nowrap; }
+  .ov-sr .ct { grid-column: 2; text-align: left; } .ov-sr .ar { display: none; }
+  .ov-dg, .ov-earlier-toggle { padding-left: 16px; padding-right: 16px; }
+  .ov-nh .sub { display: none; } .ov-nh .btn { padding: 0 12px; font-size: 13px; }
+}
+
+/* Who's coming */
+.ov-who { padding: 20px; display: grid; gap: 14px; }
+.ov-who-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 8px; }
+.ov-who-head h2 { font-size: 20px; }
+.ov-big2 { font-family: var(--font-display); font-size: 44px; font-weight: 600; line-height: 1; font-variant-numeric: lining-nums; }
+.ov-big2 small { font-family: var(--font-body); font-size: 14px; font-weight: 500; color: var(--text-secondary); }
+.ov-seg3 { display: flex; gap: 3px; height: 14px; }
+.ov-seg3 i { display: block; height: 100%; border-radius: 4px; transform-origin: left; transform: scaleX(var(--s, 1)); transition: transform 0.9s cubic-bezier(0.2, 0.7, 0.2, 1); }
+.ov-legend { display: flex; flex-wrap: wrap; gap: 8px 18px; font-size: 13px; }
+.ov-legend b { font-weight: 700; }
+
+/* Readiness */
+.ov-rd { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.ov-rd > div { padding: 18px 20px; border-top: 1px solid var(--border); }
+.ov-rd > div:nth-child(-n+2) { border-top: 0; }
+.ov-rd > div:nth-child(even) { border-left: 1px solid var(--border); }
+.ov-rd .l { font-size: 13px; color: var(--text-secondary); }
+.ov-rd .v { font-size: 24px; font-weight: 800; line-height: 1.2; margin-top: 2px; white-space: nowrap; }
+.ov-rd .v small { font-size: 13px; font-weight: 500; color: var(--text-secondary); }
+.ov-pb { height: 6px; border-radius: 9px; background: var(--bg-muted); margin: 8px 0 6px; overflow: hidden; }
+.ov-pb u { display: block; height: 100%; background: var(--accent-ink); width: var(--w, 0%); transition: width 0.9s cubic-bezier(0.2, 0.7, 0.2, 1); }
+.ov-rd-btn { display: block; width: 100%; text-align: left; background: none; border: 0; color: inherit; font: inherit; cursor: pointer; padding: 0; }
+
+.ov-qn { padding: 16px 20px; }
+.ov-qn h2 { font-size: 18px; }
+.ov-plan { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 12px 20px; min-height: 64px; }
+
+/* ── Narrower Overview (the page's own width, not the window's) ─────────── */
+@container ov (max-width: 900px) {
+  .ov-main, .ov-main[data-stage="post"] { grid-template-columns: minmax(0, 1fr); grid-template-areas: none; grid-template-rows: none; }
+  .ov-main > [class*="ov-a-"] { grid-area: auto; }
+  .ov-hero { padding: 34px 36px 30px; }
+  .ov-name { font-size: 48px; } .ov-cnt-n { font-size: 132px; }
+  .ov-ring { width: 84px; height: 84px; font-size: 44px; }
+  .ov-post .big { font-size: 120px; } .ov-sched .tm { font-size: 36px; }
+}
+@container ov (max-width: 700px) {
+  .ov-hero { padding: 22px 18px 18px; gap: 14px; border-radius: 18px; }
+  .ov-hero::before { -webkit-mask-image: linear-gradient(225deg, #000, transparent 42%); mask-image: linear-gradient(225deg, #000, transparent 42%); }
+  .ov-hero-top { grid-template-columns: minmax(0, 1fr) auto; gap: 12px 14px; }
+  .ov-ring { width: 56px; height: 56px; font-size: 30px; grid-column: 1 / 3; box-shadow: 0 0 0 4px var(--hero-bg), 0 0 0 5px color-mix(in srgb, var(--hero-accent) 45%, transparent); }
+  .ov-name { font-size: 36px; margin-bottom: 8px; } .ov-meta { font-size: 14px; }
+  .ov-cnt-n { font-size: 84px; } .ov-cnt-u { font-size: 12px; margin-top: 8px; }
+  .ov-runway { display: none; } .ov-nextline { display: block; }
+  .ov-heb [lang="he"] { font-size: 18px; }
+  .ov-sched { grid-template-columns: 1fr 1fr; gap: 14px 0; margin-top: 6px; }
+  .ov-sched > div:nth-child(3) { padding-left: 0; border-left: 0; } .ov-sched > div { padding: 0 16px; }
+  .ov-sched .tm { font-size: 30px; } .ov-sched .go { grid-column: 1 / 3; justify-self: stretch; } .ov-sched .go .btn { width: 100%; }
+  .ov-post { grid-template-columns: 1fr; min-height: 0; }
+  .ov-post .l { gap: 14px; }
+  .ov-post .r .w2 { display: none; }      /* the Needs you now list should start higher on a phone */
+  .ov-post .r { border-left: 0; border-top: 1px solid color-mix(in srgb, var(--hero-text) 28%, transparent); padding: 16px 0 0; }
+  .ov-post .big { font-size: 72px; }
+  .ov-post .r { gap: 6px; }
+  .ov-post .r .k { font-size: 17px; }
+  .ov-sr { grid-template-columns: 92px minmax(0, 1fr); gap: 4px 14px; padding: 12px 16px; }
+  .ov-sr .tm { font-size: 21px; grid-row: 1 / 3; white-space: nowrap; }
+  .ov-sr .ct { grid-column: 2; text-align: left; } .ov-sr .ar { display: none; }
+  .ov-feat { grid-template-columns: 1fr; gap: 10px; padding: 16px; margin: 10px; } .ov-feat .btn { width: 100%; }
+  .ov-it { grid-template-columns: 1fr; gap: 8px; padding: 14px 16px; } .ov-it .ov-ic { display: none; } .ov-it .btn { width: 100%; }
+  .ov-rd .v { font-size: 20px; }
+  .ov-who, .ov-nh, .ov-step { padding-left: 16px; padding-right: 16px; }
+  .ov-plan { flex-direction: column; align-items: stretch; }
+  .ov-head .ov-greet { font-size: 13px; }
+}
+@media (prefers-reduced-motion: reduce) { .ov-rf, .ov-pb u, .ov-seg3 i { transition: none; } }
