@@ -58,6 +58,34 @@ function darkenAccent(hex) {
   return hslToHex(h, s, Math.max(0, l - amount));
 }
 
+// WCAG contrast ratio between two hex colors (1 to 21).
+function contrastRatio(a, b) {
+  const [hi, lo] = [relativeLuminance(a), relativeLuminance(b)].sort((x, y) => y - x);
+  return (hi + 0.05) / (lo + 0.05);
+}
+
+const DARK_INK = "#1c1614";
+
+/**
+ * Fill and text colors for anything filled with the accent (filled button, event banner,
+ * filled chips). Text is white or the dark ink, whichever contrasts more. If neither reaches
+ * 4.5:1 (Teal), the fill is darkened until white does, the same way api/_lib/email-shell.js
+ * darkens its button. Returns { fill, text }.
+ */
+function accentFillColors(accentHex) {
+  if (!accentHex || accentHex.length < 7) return { fill: accentHex, text: "#ffffff" };
+  const white = contrastRatio("#ffffff", accentHex);
+  const ink   = contrastRatio(DARK_INK, accentHex);
+  if (Math.max(white, ink) >= 4.5) return { fill: accentHex, text: white >= ink ? "#ffffff" : DARK_INK };
+  const { h, s, l } = hexToHSL(accentHex);
+  let fill = accentHex;
+  for (let i = 0, step = l; i < 40 && contrastRatio("#ffffff", fill) < 4.5; i++) {
+    step = Math.max(0, step - 0.02);
+    fill = hslToHex(h, s, step);
+  }
+  return { fill, text: "#ffffff" };
+}
+
 function deriveCustomPalette(hex) {
   if (!hex || hex.length < 7) hex = "#c4637a";
   const { h, s } = hexToHSL(hex);
@@ -87,5 +115,7 @@ export {
   relativeLuminance,
   wcagTextColor,
   darkenAccent,
+  contrastRatio,
+  accentFillColors,
   deriveCustomPalette,
 };

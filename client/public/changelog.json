@@ -1,9 +1,26 @@
 {
-  "current": "V5.8.1",
+  "current": "V5.8.2",
   "whatsNew": [
-    "The Overview list is calmer: it loads without jumping, and every Mark action can be undone for 8 seconds"
+    "Overview rows now name the invoice or task, thank-yous open Gifts, and colors stay readable in every theme"
   ],
   "changelog": [
+    {
+      "version": "V5.8.2",
+      "date": "2026-10-27",
+      "summary": "Overview corrections from the production test: a full-width list, rows that name the thing, a calmer look and readable colors in every theme",
+      "changes": [
+        "Change: Needs you now takes the full width of the left column, and the stats, Total Guests and Out of Town share that width. The Event Timeline now shows only the next three entries (the most recent three once the event is over) with an All events link, so the right column no longer makes the page taller",
+        "Change: rows are quieter and name the thing. The red left bar is gone; only an overdue row has a faint red tint, and it says how late (Overdue 18 days) in a badge with a warning triangle. Badges that only repeated the title (To do, Owed) are gone. An invoice row shows what it is, the amount, the vendor and the due date, with Open invoice, which opens its details with Mark paid and the 8-second Undo; a task shows its title and due date with Mark done; a household with no address is named with why it matters",
+        "Change: thank-yous no longer have a bulk Mark written. The row reads N thank-you notes to write and Write thank-yous opens the Gifts tab showing only gifts whose thank-you is not written yet. Marking each one written stays in Gifts",
+        "Fix: the greeting no longer reads Welcome back, The. It uses the first name from your display name, skipping a leading The, Mr, Mrs or Dr, and just says Welcome back when no name is left",
+        "Change: the event banner is a solid color instead of a gradient, and its text and the filled button now use white or dark text, whichever is more readable on your color scheme (for Navy and Gold, Blush and Rose, and in dark mode); Teal's fill is slightly darkened so white text clears 4.5:1. Labels and meta lines on Overview use the darker secondary text color. Stat labels are shorter: Meals, Budget paid, Tasks done, Vendors",
+        "Change: on a phone the stats are a compact 2 by 2 grid, and the banner is one line (date, venue, days to go or ago) because the event name is already in the top bar. The order is Needs you now, banner, stats, Total Guests and Out of Town, Timeline, Quick Notes, then the new-event row",
+        "Change: Planning another celebration? stays, but is one quiet row (Start a new event button on the right) that appears only once the event has happened, at the bottom of the left column",
+        "No database changes. V3 app only"
+      ],
+      "roadmap": [],
+      "knownIssues": []
+    },
     {
       "version": "V5.8.1",
       "date": "2026-10-27",

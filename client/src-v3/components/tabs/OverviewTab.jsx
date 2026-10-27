@@ -11,6 +11,8 @@
 // utils/focus.js, not here. This file just needs to also fetch gifts and
 // pass them through.
 //
+// V5.8.2 (V5-O1b): full-width list, named rows, thank-yous open Gifts, greeting fix, 3-entry timeline,
+// phone 2x2 stats and one-line banner, quiet "Planning another celebration?" row after the event.
 // V5.8.1: every Mark action shows an 8-second Undo; Timeline sits under the countdown, Quick Notes below.
 // V5.8.0 (V5-O1): the Overview now leads with "Needs you now" (FocusPanel), each
 // item resolvable in place; the countdown compacts to one row; the four ring
@@ -31,9 +33,10 @@ import { FocusPanel }        from "@/components/shared/FocusPanel.jsx";
 import { computeFocusItems, computeNextUp } from "@/utils/focus.js";
 import { UndoToast } from "@/components/guests/UndoToast.jsx";
 import { amountPaid, hasPayments } from "@/utils/expensePayments.js";
-import { getGiftGivers, withGivers } from "@/utils/gifts.js";
 import { getSectionHeadcount, getMealPopulation, isTrackingPerPerson } from "@/utils/sections.js";
 import { setGuestsPreset, setGuestsView, setGuestsCompose } from "@/utils/guestsPreset.js";
+import { setGiftsFilter } from "@/utils/giftsPreset.js";
+import { firstNameFrom } from "@/utils/displayName.js";
 import { useRsvpReplies } from "@/hooks/useRsvpReplies.js";
 import { InfoPopover } from "@/components/shared/InfoPopover.jsx";
 import { METRIC_HELP } from "@/constants/metrics.js";
@@ -58,7 +61,22 @@ function useIsMobile() {
   return m;
 }
 
-// One quiet stat: label, "84 of 136", a small bar, and "62%" as text so the bar is never the only cue.
+const TIMELINE_SHOWN = 3;
+
+// "Oct 17", and "11 days ago" / "145 days to go" for the banner line.
+function shortDate(d) {
+  return new Date(d + "T00:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric" });
+}
+function daysLabel(d) {
+  const t = new Date(); t.setHours(0, 0, 0, 0);
+  const n = Math.round((new Date(d + "T00:00:00") - t) / 86400000);
+  if (n === 0) return "today";
+  if (n === 1) return "tomorrow";
+  if (n === -1) return "yesterday";
+  return n > 0 ? `${n} days to go` : `${-n} days ago`;
+}
+
+// One quiet stat: a short label, "84 of 136" as text, and a small bar (the numbers carry the meaning, the bar is a glance).
 function OvStat({ label, value, numeric, of, ofDisplay, fallback, onClick, title, info }) {
   const num = numeric ?? Number(value);
   const pct = of > 0 ? Math.max(0, Math.min(100, Math.round((num / of) * 100))) : 0;
@@ -68,14 +86,14 @@ function OvStat({ label, value, numeric, of, ofDisplay, fallback, onClick, title
         <span className="ov-stat-label">{label}</span>
         <span className="ov-stat-value">{value}{of > 0 && <small> of {ofDisplay ?? of}</small>}</span>
         <span className="ov-stat-bar" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={pct} aria-label={`${label}: ${pct}%`}><i style={{ width: `${pct}%` }} /></span>
-        <span className="ov-stat-pct">{of > 0 ? `${pct}% complete` : fallback}</span>
+        {of > 0 ? null : <span className="ov-stat-pct">{fallback}</span>}
       </button>
       {info && <span className="ov-stat-info"><InfoPopover text={info} label={`How is ${label.toLowerCase()} counted?`} /></span>}
     </div>
   );
 }
 
-export function OverviewTab({ eventId, event, adminConfig, showToast, setActiveTab, onOpenAdmin, onOpenAdminTo, onOpenGuide, onPrintBrief, isViewer, isArchived, collaboratorRole, coPlanners, userId, onConfigSaved, onLogoSaved, openInvite, setTopbarSubtitle, userName }) {
+export function OverviewTab({ eventId, event, adminConfig, showToast, setActiveTab, onOpenAdmin, onOpenAdminTo, onOpenGuide, onPrintBrief, isViewer, isArchived, collaboratorRole, coPlanners, userId, onConfigSaved, onLogoSaved, openInvite, setTopbarSubtitle, userName, userDisplayName }) {
   const config    = adminConfig || {};
   const isMobile  = useIsMobile();
   const mainEvent = (config.timeline || []).find(e => e.isMainEvent) || null;
@@ -128,7 +146,7 @@ export function OverviewTab({ eventId, event, adminConfig, showToast, setActiveT
   const repliedHouseholdIds = useMemo(() => new Set(replyRows.filter(r => r.status === "pending" || r.status === "accepted").map(r => r.household_id)), [replyRows]);
   // Owner or editor on a live event: may resolve items that change data. Viewers see only links.
   const canAct = !isViewer && !isArchived && !event?.archived;
-  const { items: gifts, loading: giftsLoading, save: saveGift }          = useEventData(eventId, "gifts");
+  const { items: gifts, loading: giftsLoading }                           = useEventData(eventId, "gifts");
 
   const dataLoading = householdsLoading || peopleLoading || expensesLoading
     || tasksLoading || vendorsLoading || tablesLoading || seatingLoading || giftsLoading;
@@ -165,6 +183,13 @@ export function OverviewTab({ eventId, event, adminConfig, showToast, setActiveT
   }, [handlePrintBrief]);
 
   const timelineEntries = sortTimeline(config.timeline || []);
+  // Next 3 entries (the most recent 3 once the event is over), with a link to the rest.
+  const shownTimeline = (() => {
+    if (eventPassed) return [...timelineEntries].reverse().slice(0, TIMELINE_SHOWN);
+    const todayStr = new Date().toLocaleDateString("en-CA");
+    const upcoming = timelineEntries.filter(e => !e.startDate || e.startDate >= todayStr);
+    return (upcoming.length ? upcoming : timelineEntries).slice(0, TIMELINE_SHOWN);
+  })();
 
   // Sub-event counts
   const getSubEventCounts = (sectionId) => {
@@ -251,27 +276,28 @@ export function OverviewTab({ eventId, event, adminConfig, showToast, setActiveT
   const showSetupReopen = !!setupState && !householdsLoading && canEditSetup && setupState.dismissed && setupSummary.remaining > 0;
 
   // ── Resolve a "Needs you now" row in place ────────────────────────────────
-  // Same writes the Tasks, Budget and Gifts tabs make. Every one shows an 8-second Undo.
-  // Undo puts back only the fields the action changed, onto the row as it is now, so it
-  // does not collide with the save that just happened.
+  // Same writes the Tasks and Budget tabs make. Every one shows an 8-second Undo, which puts back
+  // only the fields the action changed, onto the row as it is now, so it does not collide with the
+  // save that just happened. Returns true when saved. Thank-yous are not resolved here: that
+  // work happens in Gifts.
   const latest = useRef({});
-  latest.current = { tasks, expenses, gifts };
+  latest.current = { tasks, expenses };
   const [undo, setUndo] = useState(null);   // { message, run }
 
   const handleResolve = useCallback(async (item, row) => {
-    if (!canAct) return;
+    if (!canAct) return false;
     const today = new Date().toISOString().slice(0, 10);
     const fresh = (list, rowId) => latest.current[list].find(x => x._rowId === rowId);
     let result, message, run;
     if (item.type === "tasks") {
       const t = fresh("tasks", row.rowId);
-      if (!t) return;
+      if (!t) return false;
       result = await saveTask({ ...t, done: true });
       message = `Marked done: ${row.title}`;
       run = () => { const c = fresh("tasks", row.rowId); return c && saveTask({ ...c, done: false }); };
     } else if (item.type === "invoices") {
       const e = fresh("expenses", row.rowId);
-      if (!e) return;
+      if (!e) return false;
       const before = row.paymentId ? (e.payments || []).find(p => p.id === row.paymentId) : null;
       const prev = { paid: e.paid, datePaid: e.datePaid };
       result = await saveExpense(hasPayments(e) && row.paymentId
@@ -286,18 +312,12 @@ export function OverviewTab({ eventId, event, adminConfig, showToast, setActiveT
         }
         return saveExpense({ ...c, paid: !!prev.paid, datePaid: prev.datePaid || "" });
       };
-    } else if (item.type === "thankyous") {
-      const g = fresh("gifts", row.giftRowId);
-      if (!g) return;
-      const field = row.stage === "write" ? "thankYouWritten" : "thankYouMailed";
-      result = await saveGift(withGivers(g, getGiftGivers(g).map(gv => gv.id === row.giverId ? { ...gv, [field]: true } : gv)));
-      message = `${row.stage === "write" ? "Marked written" : "Marked mailed"}: ${row.title}`;
-      run = () => { const c = fresh("gifts", row.giftRowId); return c && saveGift(withGivers(c, getGiftGivers(c).map(gv => gv.id === row.giverId ? { ...gv, [field]: false } : gv))); };
-    } else return;
-    if (result?.error) { showToast("Couldn't save that change. Try again."); return; }
-    if (result?.conflict) return;   // AppShell already surfaces a conflict toast
+    } else return false;
+    if (result?.error) { showToast("Couldn't save that change. Try again."); return false; }
+    if (result?.conflict) return false;   // AppShell already surfaces a conflict toast
     setUndo({ message, run });
-  }, [canAct, saveTask, saveExpense, saveGift, showToast]);
+    return true;
+  }, [canAct, saveTask, saveExpense, showToast]);
 
   const handleUndo = async () => {
     const u = undo;
@@ -310,9 +330,10 @@ export function OverviewTab({ eventId, event, adminConfig, showToast, setActiveT
   const nextUp = useMemo(() => computeNextUp({ tasks, expenses }), [tasks, expenses]);
 
   // ── Topbar subtitle ──────────────────────────────────────────────────────
-  const subtitle = userName
-    ? `Welcome back, ${userName.split(/\s+/)[0]}. Here's where things stand.`
-    : "Here's where things stand.";
+  const first = firstNameFrom(userDisplayName);
+  const subtitle = first
+    ? `Welcome back, ${first}. Here's where things stand.`
+    : "Welcome back.";
   useEffect(() => {
     setTopbarSubtitle(subtitle);
     return () => setTopbarSubtitle(null);
@@ -362,131 +383,149 @@ export function OverviewTab({ eventId, event, adminConfig, showToast, setActiveT
         />
       )}
 
-      {/* Two columns on desktop: Needs you now, stats and the rest on the left; countdown with the
-          Timeline under it on the right. On phones one column in this order: list, countdown, stats,
-          timeline. Quick Notes spans the full width below. */}
+      {/* Two columns on desktop: Needs you now, stats and totals on the left (the list owns the column);
+          the event banner with a three-entry Timeline on the right. Quick Notes spans the full width
+          below. On phones everything is one column, in the order the ov-s-* classes give:
+          list, banner line, stats, totals, timeline, notes, then the new-event row. */}
       <div className="ov-grid">
         <div className="ov-col ov-col-main">
-        <FocusPanel
-          items={focusItems}
-          loading={dataLoading}
-          nextUp={nextUp}
-          hideWhenEmpty={showSetupCard && setupSummary.remaining > 1}
-          onResolve={handleResolve}
-          onNavigate={(tab, item) => {
-            if (item?.id === "rsvp-replies") setGuestsView(eventId, "replies");
-            if (item?.id === "rsvp-reminder" && item.type === "unreplied") setGuestsCompose(eventId, item.compose.kind, item.compose.ids);
-            setActiveTab(tab);
-          }}
-        />
-
-      {/* Quiet stats row: labeled text, a count, a small bar and the percent in words */}
-      <div className="ov-stats">
-        <OvStat
-          label={mealPop.preciseMode ? "Confirmed for meals" : "Confirmed"}
-          value={confirmedCount} of={invitedCount}
-          fallback="No guests added"
-          onClick={() => setActiveTab && setActiveTab("guests")} title="Go to guests tab"
-          info={METRIC_HELP.confirmed({ precise: mealPop.preciseMode })}
-        />
-        <OvStat
-          label="Budget paid"
-          value={fmtCurrency(totalPaid, true)} numeric={totalPaid}
-          of={totalBudget} ofDisplay={fmtCurrency(totalBudget, true)}
-          fallback="No budget set"
-          onClick={() => setActiveTab && setActiveTab("budget")} title="Go to budget tab"
-        />
-        <OvStat
-          label="Tasks done"
-          value={tasksDone} of={tasksTotal}
-          fallback="No tasks yet"
-          onClick={() => setActiveTab && setActiveTab("tasks")} title="Go to tasks tab"
-        />
-        <OvStat
-          label="Vendors booked"
-          value={vendorsBooked} of={vendors.length}
-          fallback="No vendors yet"
-          onClick={() => setActiveTab && setActiveTab("vendors")} title="Go to vendors tab"
-        />
-      </div>
-
-
-      {/* Stat cards — secondary (simple counts) */}
-      <div className="stat-grid-secondary">
-        <StatCard
-          label="Total Guests"
-          value={people.length}
-          tone="accent"
-          sub={`${households.length} household${households.length !== 1 ? "s" : ""}, everyone on the list`}
-          onClick={() => setActiveTab && setActiveTab("guests")}
-          title="Go to guests tab"
-          secondary
-        />
-        <StatCard
-          label="Out of Town"
-          value={outOfTownCount}
-          tone="gold"
-          sub={`household${outOfTownCount !== 1 ? "s" : ""} travelling`}
-          onClick={() => setActiveTab && setActiveTab("accommodations")}
-          title="Go to accommodations tab"
-          secondary
-        />
-      </div>
-
-      {/* Planning another celebration? — quiet, post-event only, links back
-          to the Event Picker. A plain anchor rather than a router call since
-          this file has no prop for returning to the picker; it does a full
-          navigation to "/" rather than an in-app transition. */}
-      {eventPassed && (
-        <div className="card" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, flexWrap: "wrap", marginBottom: 20 }}>
-          <div>
-            <div style={{ fontWeight: 700, color: "var(--text-primary)", marginBottom: 2 }}>Planning another celebration?</div>
-            <div style={{ fontSize: 13, color: "var(--text-muted)" }}>Start a new event whenever you're ready.</div>
+          <div className="ov-slot ov-s-needs">
+            <FocusPanel
+              items={focusItems}
+              loading={dataLoading}
+              nextUp={nextUp}
+              hideWhenEmpty={showSetupCard && setupSummary.remaining > 1}
+              holdResolved={!!undo}
+              onResolve={handleResolve}
+              onNavigate={(tab, item) => {
+                if (item?.id === "rsvp-replies") setGuestsView(eventId, "replies");
+                if (item?.id === "rsvp-reminder" && item.type === "unreplied") setGuestsCompose(eventId, item.compose.kind, item.compose.ids);
+                if (item?.giftsFilter) setGiftsFilter(eventId, item.giftsFilter);
+                setActiveTab(tab);
+              }}
+            />
           </div>
-          <a href="/" className="btn btn-secondary" style={{ flexShrink: 0 }}>
-            Start a new event
-          </a>
-        </div>
-      )}
 
-        </div>
-        <div className="ov-col ov-col-side">
-        <div className="countdown-compact">
-          {config.logoUrl && <img src={config.logoUrl} alt="" className="countdown-logo-img" />}
-          <div className="countdown-compact-text">
-            <div className="countdown-label">{eventDate && eventPassed ? "Mazel tov!" : eventDate ? "Counting down to" : "Welcome to SimchaKit"}</div>
-            <div className="countdown-compact-title">{config.name || mainEvent?.title || "The Big Day"}</div>
-            <div className="countdown-date">
-              {eventDate ? formatDate(eventDate) : "Mark a main event in Admin Mode to start the countdown"}
-              {eventDate && eventVenue ? ` · ${eventVenue}` : ""}
+          {/* Quiet stats row: a short label, a count and a small bar */}
+          <div className="ov-slot ov-s-stats">
+            <div className="ov-stats">
+              <OvStat
+                label={mealPop.preciseMode ? "Meals" : "Confirmed"}
+                value={confirmedCount} of={invitedCount}
+                fallback="No guests added"
+                onClick={() => setActiveTab && setActiveTab("guests")} title="Go to guests tab"
+                info={METRIC_HELP.confirmed({ precise: mealPop.preciseMode })}
+              />
+              <OvStat
+                label="Budget paid"
+                value={fmtCurrency(totalPaid, true)} numeric={totalPaid}
+                of={totalBudget} ofDisplay={fmtCurrency(totalBudget, true)}
+                fallback="No budget set"
+                onClick={() => setActiveTab && setActiveTab("budget")} title="Go to budget tab"
+              />
+              <OvStat
+                label="Tasks done"
+                value={tasksDone} of={tasksTotal}
+                fallback="No tasks yet"
+                onClick={() => setActiveTab && setActiveTab("tasks")} title="Go to tasks tab"
+              />
+              <OvStat
+                label="Vendors"
+                value={vendorsBooked} of={vendors.length}
+                fallback="No vendors yet"
+                onClick={() => setActiveTab && setActiveTab("vendors")} title="Go to vendors tab"
+              />
             </div>
           </div>
-          {eventDate && !eventPassed && countdown && (
-            <div className="countdown-compact-days" aria-label={`${countdown.days} days to go`}>
-              <span className="countdown-compact-num">{countdown.days}</span>
-              <span className="countdown-compact-unit">{countdown.days === 1 ? "day" : "days"}</span>
+
+          <div className="ov-slot ov-s-totals">
+            <div className="stat-grid-secondary">
+              <StatCard
+                label="Total Guests"
+                value={people.length}
+                tone="accent"
+                sub={`${households.length} household${households.length !== 1 ? "s" : ""}`}
+                onClick={() => setActiveTab && setActiveTab("guests")}
+                title="Go to guests tab"
+                secondary
+              />
+              <StatCard
+                label="Out of Town"
+                value={outOfTownCount}
+                tone="gold"
+                sub={`household${outOfTownCount !== 1 ? "s" : ""} travelling`}
+                onClick={() => setActiveTab && setActiveTab("accommodations")}
+                title="Go to accommodations tab"
+                secondary
+              />
+            </div>
+          </div>
+
+          {/* Planning another celebration? A quiet row, shown only once the event has happened.
+              A plain anchor: this file has no prop for returning to the Event Picker. */}
+          {eventPassed && (
+            <div className="ov-slot ov-s-next">
+              <div className="ov-next-row">
+                <span>Planning another celebration?</span>
+                <a href="/" className="btn btn-secondary btn-sm">Start a new event</a>
+              </div>
             </div>
           )}
         </div>
 
-        <div className="card">
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 4 }}>
+        <div className="ov-col ov-col-side">
+          {/* Event banner: a solid accent fill, so one text color works across it */}
+          <div className="ov-slot ov-s-banner">
+            <div className="ov-banner">
+              {config.logoUrl && <img src={config.logoUrl} alt="" className="countdown-logo-img ov-banner-logo" />}
+              <div className="ov-banner-text">
+                <div className="ov-banner-title">{config.name || mainEvent?.title || "The Big Day"}</div>
+                <div className="ov-banner-line">
+                  {eventDate ? (
+                    <>
+                      <span className="ov-line-long">{formatDate(eventDate)}</span>
+                      <span className="ov-line-short">{shortDate(eventDate)}</span>
+                      {eventVenue ? ` \u00b7 ${eventVenue}` : ""}
+                      {" \u00b7 "}{daysLabel(eventDate)}
+                    </>
+                  ) : "Mark a main event in Admin Mode to start the countdown"}
+                </div>
+              </div>
+              {eventDate && !eventPassed && countdown && (
+                <div className="ov-banner-days" aria-hidden="true">
+                  <span className="ov-banner-num">{countdown.days}</span>
+                  <span className="ov-banner-unit">{countdown.days === 1 ? "day" : "days"}</span>
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="ov-slot ov-s-timeline">
+        <div className="card ov-timeline">
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, marginBottom: 4 }}>
             <div className="card-title" style={{ marginBottom: 0 }}>Event Timeline</div>
-            {onOpenAdminTo && (
-              <button className="btn btn-ghost btn-sm" style={{ fontSize: 11, padding: "3px 8px" }}
-                onClick={() => onOpenAdminTo("timeline")}>
-                + Add Event
-              </button>
-            )}
+            <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
+              {timelineEntries.length > TIMELINE_SHOWN && (
+                <button type="button" className="ov-link" onClick={() => setActiveTab("calendar")}>
+                  All {timelineEntries.length} events {"\u2192"}
+                </button>
+              )}
+              {onOpenAdminTo && !isViewer && (
+                <button className="btn btn-ghost btn-sm" style={{ fontSize: 11, padding: "3px 8px" }}
+                  onClick={() => onOpenAdminTo("timeline")}>
+                  + Add Event
+                </button>
+              )}
+            </span>
           </div>
           <div className="card-subtitle">
-            {timelineEntries.length > 0
-              ? `${timelineEntries.length} event${timelineEntries.length !== 1 ? "s" : ""} scheduled`
-              : ""}
+            {timelineEntries.length > TIMELINE_SHOWN
+              ? (eventPassed ? `Most recent ${TIMELINE_SHOWN}` : `Next ${TIMELINE_SHOWN}`)
+              : (timelineEntries.length > 0 ? `${timelineEntries.length} event${timelineEntries.length !== 1 ? "s" : ""} scheduled` : "")}
           </div>
           <div className="timeline">
             {timelineEntries.length === 0 ? (
-              <div style={{ textAlign: "center", padding: "24px 12px", color: "var(--text-muted)" }}>
+              <div style={{ textAlign: "center", padding: "24px 12px", color: "var(--text-secondary)" }}>
                 <div style={{ marginBottom: 8 }}><Icon name="calendar" context="empty" /></div>
                 <div style={{ fontSize: 13, marginBottom: 8 }}>No events scheduled yet.</div>
                 {onOpenAdmin && (
@@ -496,7 +535,7 @@ export function OverviewTab({ eventId, event, adminConfig, showToast, setActiveT
                 )}
               </div>
             ) : (
-              timelineEntries.map((item, i) => {
+              shownTimeline.map((item, i) => {
                 const dateStr = item.startDate
                   ? new Date(item.startDate + "T00:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
                   : "";
@@ -509,7 +548,7 @@ export function OverviewTab({ eventId, event, adminConfig, showToast, setActiveT
                       <div className="timeline-title">{item.title}</div>
                       <div className="timeline-meta">{formatEntryMeta(item)}</div>
                       {counts.invited > 0 && (
-                        <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 4, display: "flex", alignItems: "center", flexWrap: "wrap", gap: 4 }}>
+                        <div style={{ fontSize: 12, color: "var(--text-secondary)", marginTop: 4, display: "flex", alignItems: "center", flexWrap: "wrap", gap: 4 }}>
                           <Icon name="guests" context="inline" /> {counts.invited} invited ({counts.invitedAdults} adults, {counts.invitedKids} kids) · {counts.confirmed} confirmed ({counts.confirmedAdults} adults, {counts.confirmedKids} kids)
                           {awaitingTracked && counts.awaiting > 0 && (
                             <>
@@ -543,10 +582,10 @@ export function OverviewTab({ eventId, event, adminConfig, showToast, setActiveT
             </div>
           )}
         </div>
-
+          </div>
         </div>
-      </div>
 
+        <div className="ov-slot ov-s-notes">
       <div className="card ov-notes">
           <div className="card-title">Quick Notes</div>
           <div className="card-subtitle">Your private planning notes — saved automatically</div>
@@ -567,6 +606,8 @@ export function OverviewTab({ eventId, event, adminConfig, showToast, setActiveT
               </div>
             </>
           )}
+      </div>
+        </div>
       </div>
 
       {undo && <UndoToast message={undo.message} onUndo={handleUndo} onExpire={() => setUndo(null)} />}

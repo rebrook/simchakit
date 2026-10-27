@@ -640,6 +640,7 @@ export function AppShell({ session, eventId, onBack, onSelectEvent = null, isDem
     setSearchHighlight,
     setTopbarSubtitle,
     userName,
+    userDisplayName,
   };
 
   // ── User identity for account row ─────────────────────────────────────────

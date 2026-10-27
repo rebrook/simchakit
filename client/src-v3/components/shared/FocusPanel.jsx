@@ -1,45 +1,32 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// SimchaKit V5.8.1 — components/shared/FocusPanel.jsx
-// "Needs you now": what needs the host, leading the Overview. Derived client-side
-// by utils/focus.js, already in urgency order; only the first item gets the filled
-// button. Each item has one primary action:
-//   verb ("Mark paid", "Mark done", "Mark written")   opens the item's detail below the
-//       list, where each row has the same verb button. Opening an item never moves
-//       another row's button: the detail sits under the whole list, and a row you
-//       finish stays in place as "Done" (the list item also stays until you close it).
-//   verb + arrow ("Review replies →", "Send reminder →", "Open seating →")   leaves Overview.
-// Status is a neutral badge with a border, a shape and a label, never color alone.
-// While data loads, three skeleton rows hold the space so nothing below jumps.
+// SimchaKit V5.8.2 — components/shared/FocusPanel.jsx
+// "Needs you now": what needs the host, leading the Overview. Derived client-side by
+// utils/focus.js in urgency order, one row per thing, each row naming it. Only the first
+// row has the filled button. Only an overdue row is tinted, and it also says "Overdue N
+// days" in a bordered badge with a shape; a badge appears only where it adds information
+// (Overdue, New). Each row has one primary action:
+//   "Mark done"            completes a task here, with an 8-second Undo
+//   "Open invoice"         opens that invoice's detail under the list, where Mark paid lives
+//   a verb and an arrow    ("Review replies →", "Write thank-yous →") leaves Overview
+// A row you finish stays in place as "Marked done" until its Undo expires, so nothing slides
+// under your finger. While data loads, three skeleton rows hold the list's space.
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Icon } from "@/utils/iconMap.jsx";
 
 const VISIBLE_CAP = 4;
 
-// One shape per status word, so urgency reads without color.
-const BADGE_ICON = { Overdue: "alertTriangle", "Due soon": "clock", "This week": "clock", New: "mailCheck", Owed: "gifts", "To do": "target" };
+const BADGE_ICON = { New: "mailCheck" };   // anything starting "Overdue" gets the warning triangle
 
 function fmtDate(d) {
   if (!d) return "";
   return new Date(d + "T00:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
 const fmtMoney = n => `$${(Number(n) || 0).toLocaleString()}`;
-const inPlace = it => it.type === "invoices" || it.type === "tasks" || it.type === "thankyous";
-
-function rowVerb(item, row) {
-  if (item.type === "tasks")    return "Mark done";
-  if (item.type === "invoices") return "Mark paid";
-  return row.stage === "write" ? "Mark written" : "Mark mailed";
-}
-function doneText(item, row) {
-  if (item.type === "tasks")    return "Marked done";
-  if (item.type === "invoices") return "Marked paid";
-  return row.stage === "write" ? "Marked written" : "Marked mailed";
-}
 
 function Badge({ text }) {
-  const icon = BADGE_ICON[text];
+  const icon = text.startsWith("Overdue") ? "alertTriangle" : BADGE_ICON[text];
   return (
     <span className="focus-badge">
       {icon ? <Icon name={icon} context="badge" /> : <span className="focus-badge-dot" aria-hidden="true" />}
@@ -48,47 +35,32 @@ function Badge({ text }) {
   );
 }
 
-// The detail for one open item. Rows come from the snapshot taken when it opened, so a row
-// stays put after it is finished; it reads as done once it is no longer in the live data.
-function Detail({ item, rows, liveKeys, busyKey, onResolve, onClose }) {
+// An invoice's detail: vendor, amount and due date, with Mark paid. The row stays after it is
+// paid, reading "Marked paid", until the Undo expires.
+function InvoiceDetail({ item, row, paid, busy, onMarkPaid, onClose }) {
   return (
-    <section className="focus-detail-pane" aria-label={`${item.title}: details`}>
+    <section className="focus-detail-pane" aria-label={`${row.title}: invoice detail`}>
       <div className="focus-detail-head">
-        <b>{item.title}</b>
+        <b>{row.title}</b>
         <button type="button" className="focus-detail-close" onClick={onClose}>Close</button>
       </div>
-      {rows.map(row => {
-        const done = !liveKeys.has(row.key);
-        return (
-          <div className="focus-subrow" key={row.key}>
-            <div className="focus-subtext">
-              <b>{row.title}</b>
-              {item.type === "invoices" && (
-                <span className="focus-sub-meta">
-                  {row.vendor ? `${row.vendor} · ` : ""}{fmtMoney(row.amount)}{row.label ? ` · ${row.label}` : ""}
-                </span>
-              )}
-              {item.type === "thankyous" && (
-                <span className="focus-sub-meta">{row.gift ? `${row.gift} · ` : ""}{row.stage === "write" ? "Note not written" : "Written, not mailed"}</span>
-              )}
-              {(item.type === "invoices" || item.type === "tasks") && (
-                <span className="focus-due">
-                  <Icon name={row.overdue ? "alertTriangle" : "clock"} context="badge" />
-                  {row.overdue ? "Overdue, due" : "Due"} {fmtDate(row.dueDate || row.due)}
-                </span>
-              )}
-            </div>
-            {done ? (
-              <span className="focus-done"><Icon name="check" context="badge" /> {doneText(item, row)}</span>
-            ) : (
-              <button type="button" className="btn btn-secondary btn-sm focus-sub-btn"
-                disabled={busyKey === row.key} onClick={() => onResolve(item, row)}>
-                {rowVerb(item, row)}
-              </button>
-            )}
-          </div>
-        );
-      })}
+      <div className="focus-subrow">
+        <div className="focus-subtext">
+          {row.vendor && <span className="focus-sub-meta">Vendor: {row.vendor}</span>}
+          <span className="focus-sub-meta">Amount: <b>{fmtMoney(row.amount)}</b></span>
+          <span className="focus-due">
+            <Icon name={row.overdue ? "alertTriangle" : "clock"} context="badge" />
+            Due {fmtDate(row.dueDate)}{row.overdue ? ", overdue" : ""}
+          </span>
+        </div>
+        {paid ? (
+          <span className="focus-done"><Icon name="check" context="badge" /> Marked paid</span>
+        ) : (
+          <button type="button" className="btn btn-secondary btn-sm focus-sub-btn" disabled={busy} onClick={() => onMarkPaid(item, row)}>
+            Mark paid
+          </button>
+        )}
+      </div>
     </section>
   );
 }
@@ -99,13 +71,18 @@ function Detail({ item, rows, liveKeys, busyKey, onResolve, onClose }) {
  * @param {boolean}  props.loading     true while any collection is still loading
  * @param {Object}   props.nextUp      { text, tab } from computeNextUp(), for the empty state
  * @param {boolean}  props.hideWhenEmpty  true while the Getting ready card stands in for the empty state
- * @param {Function} props.onNavigate  (tabName, item) => void   (replies, reminder composer, nav items)
- * @param {Function} props.onResolve   async (item, row) => void  completes one row in place
+ * @param {boolean}  props.holdResolved   true while an Undo is showing: finished rows stay in place
+ * @param {Function} props.onNavigate  (tabName, item) => void   (rows that leave Overview)
+ * @param {Function} props.onResolve   async (item, row) => boolean  completes a row in place; true when saved
  */
-export function FocusPanel({ items, loading, nextUp, hideWhenEmpty, onNavigate, onResolve }) {
+export function FocusPanel({ items, loading, nextUp, hideWhenEmpty, holdResolved, onNavigate, onResolve }) {
   const [expanded, setExpanded] = useState(false);   // show more than VISIBLE_CAP items
-  const [open,     setOpen]     = useState(null);    // { item, index, rows } snapshot of the open item
+  const [openId,   setOpenId]   = useState(null);    // invoice whose detail is open
+  const [ghosts,   setGhosts]   = useState({});      // id -> { item, index, text } rows finished this session
   const [busyKey,  setBusyKey]  = useState(null);
+
+  // Finished rows are only held while their Undo is showing.
+  useEffect(() => { if (!holdResolved) setGhosts({}); }, [holdResolved]);
 
   // ── Loading: three skeleton rows with reserved height ─────────────────────
   if (loading) {
@@ -123,13 +100,13 @@ export function FocusPanel({ items, loading, nextUp, hideWhenEmpty, onNavigate, 
     );
   }
 
-  // The open item stays in the list while its detail is open, even after its last row is finished.
-  const live = items.find(i => i.id === open?.item.id);
-  let list = items;
-  if (open && !live) {
-    list = [...items];
-    list.splice(Math.min(open.index, list.length), 0, { ...open.item, resolved: true });
-  }
+  // Live rows, with finished ones put back where they were while their Undo shows.
+  const liveIds = new Set(items.map(i => i.id));
+  const list = [...items];
+  Object.entries(ghosts)
+    .filter(([id]) => !liveIds.has(id))
+    .sort((a, b) => a[1].index - b[1].index)
+    .forEach(([id, g]) => list.splice(Math.min(g.index, list.length), 0, { ...g.item, ghost: g.text }));
 
   // ── Empty state: one line, plus a link to the next dated thing ────────────
   if (list.length === 0) {
@@ -149,47 +126,58 @@ export function FocusPanel({ items, loading, nextUp, hideWhenEmpty, onNavigate, 
 
   const visible = expanded ? list : list.slice(0, VISIBLE_CAP);
   const overflowCount = list.length - VISIBLE_CAP;
-  const liveKeys = new Set((live?.payload?.rows || []).map(r => r.key));
+  const live = items.length;
 
-  async function resolve(item, row) {
+  async function resolve(item, row, index, text) {
     setBusyKey(row.key);
-    try { await onResolve(item, row); } finally { setBusyKey(null); }
+    try {
+      const ok = await onResolve(item, row);
+      if (ok) setGhosts(g => ({ ...g, [item.id]: { item, index, text } }));
+    } finally { setBusyKey(null); }
   }
 
   function primary(item, index) {
-    if (inPlace(item)) setOpen(open?.item.id === item.id ? null : { item, index, rows: item.payload?.rows || [] });
-    else { setOpen(null); onNavigate && onNavigate(item.tab, item); }
+    if (item.type === "tasks") resolve(item, item.payload.rows[0], index, "Marked done");
+    else if (item.type === "invoices") setOpenId(openId === item.id ? null : item.id);
+    else { setOpenId(null); onNavigate && onNavigate(item.tab, item); }
   }
+
+  const openItem = list.find(i => i.id === openId && i.type === "invoices");
+  const openIndex = openItem ? list.indexOf(openItem) : -1;
 
   return (
     <div className="focus-panel focus-panel-lead">
       <div className="focus-panel-header">
         <span className="focus-panel-title">Needs you now</span>
-        <span className="focus-panel-count">{items.length} item{items.length !== 1 ? "s" : ""}</span>
+        <span className="focus-panel-count">{live} item{live !== 1 ? "s" : ""}</span>
       </div>
 
       <div className="focus-panel-list">
         {visible.map((item, i) => {
-          const isOpen = open?.item.id === item.id;
+          const overdue = item.tone === "red";
+          const isOpen = openId === item.id;
           return (
-            <div key={item.id} className={`focus-item focus-item-${item.tone}${isOpen ? " is-open" : ""}`}>
+            <div key={item.id} className={`focus-item${overdue ? " is-overdue" : ""}${isOpen ? " is-open" : ""}`}>
               <div className="focus-row">
                 <span className="focus-chip" aria-hidden="true">
                   <Icon name={item.icon} context="badge" />
                 </span>
                 <span className="focus-content">
-                  <span className="focus-title">{item.resolved ? "All done" : item.title}</span>
-                  <span className="focus-detail">{item.resolved ? "Nothing left here. Undo is in the message above." : item.detail}</span>
-                  {!item.resolved && <Badge text={item.badge} />}
+                  <span className="focus-title">{item.title}</span>
+                  <span className="focus-detail">
+                    {item.detail}
+                    {item.badge && !item.ghost && <> {"·"} <Badge text={item.badge} /></>}
+                  </span>
                 </span>
-                {item.resolved ? (
-                  <span className="focus-done"><Icon name="check" context="badge" /> Done</span>
+                {item.ghost ? (
+                  <span className="focus-done"><Icon name="check" context="badge" /> {item.ghost}</span>
                 ) : (
                   <button
                     type="button"
                     className={`btn btn-sm focus-primary${i === 0 ? " btn-primary" : " btn-secondary"}`}
+                    disabled={busyKey === item.payload?.rows?.[0]?.key}
                     onClick={() => primary(item, i)}
-                    aria-expanded={inPlace(item) ? isOpen : undefined}
+                    aria-expanded={item.type === "invoices" ? isOpen : undefined}
                     aria-label={`${item.actionLabel}: ${item.title}. ${item.detail}`}
                   >
                     {item.actionLabel}
@@ -201,9 +189,13 @@ export function FocusPanel({ items, loading, nextUp, hideWhenEmpty, onNavigate, 
         })}
       </div>
 
-      {open && (
-        <Detail item={live || open.item} rows={open.rows} liveKeys={liveKeys}
-          busyKey={busyKey} onResolve={resolve} onClose={() => setOpen(null)} />
+      {openItem && (
+        <InvoiceDetail
+          item={openItem} row={openItem.payload.rows[0]}
+          paid={!!openItem.ghost} busy={busyKey === openItem.payload.rows[0].key}
+          onMarkPaid={(it, row) => resolve(it, row, openIndex, "Marked paid")}
+          onClose={() => setOpenId(null)}
+        />
       )}
 
       {overflowCount > 0 && (
