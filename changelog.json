@@ -1,9 +1,30 @@
 {
-  "current": "V5.8.2",
+  "current": "V5.9.0",
   "whatsNew": [
-    "Overview rows now name the invoice or task, thank-yous open Gifts, and colors stay readable in every theme"
+    "A new Overview: your event hero with the Hebrew date, a celebration schedule with times and venues, and Who's coming at a glance"
   ],
   "changelog": [
+    {
+      "version": "V5.9.0",
+      "date": "2026-10-27",
+      "summary": "Overview rebuild: an event hero with the Hebrew date and a runway, a celebration schedule with times and venues, Who's coming, Readiness, and readable colors in every palette",
+      "changes": [
+        "New: the Overview opens with a hero for the event: your logo or a monogram, the name, date and venue, the Hebrew date and parashah, a large count of days to go, and a runway of the dates the app holds (invitations sent, the reply deadline, earlier timeline entries, today and the day). It changes with the stage: day zero, planning, the final two weeks (the phone's Next line shows the next gathering's time and venue), the day (Mazel tov, Up next, Then and Tonight, Open Day-of Mode) and after the event (What a day, with the thank-you count and Start thank-you notes). The hero is a solid color taken from your color scheme, with a faded star or lattice motif on the right for mitzvahs and weddings. The count-down plays once per browser session and not for reduced-motion visitors",
+        "New: a Celebration schedule card lists the main weekend from your Timeline by day, with start times, venue and room, and the confirmed count (adults and kids) for each event. Rows open that entry in Calendar, earlier dates sit behind one Earlier dates line, and Copy schedule copies plain text (day headings, times, names, building and room, and each building's address once; family-only entries left out) and says Could not copy if the clipboard is blocked. On the day, finished rows read Done and the next is Up next. On a Shabbat or festival with an evening event, the day hero and the row show when it ends (Havdalah) when the venue address has a ZIP code",
+        "New: Admin Mode, Timeline entries can have a Room, a Venue address, a Who is this for? setting (Family only hides the count) and an Arrive by time. They are stored with the timeline (no migration) and are never included in anything a guest can reach; a new check (client/scripts/check-guest-strip.mjs) fails if they ever appear in the guest RSVP response",
+        "New: Who's coming shows Confirmed, Declined and Awaiting in one bar, each with a symbol and a word, plus the totals and out-of-town households; Readiness shows Meals chosen, Budget paid, Tasks done and Vendors in a 2 by 2 grid, each with a bar and a line of what is left. The Overview cards are placed with a grid, in reading order, so Tab and screen readers follow what you see, at every width",
+        "Change: Needs you now keeps the same items and Undo, with clearer labels (Record payment, Review, Send reminder, Write thank-yous, Add address). The featured first row is red only when overdue, and it is a calm You're all caught up with the next date when nothing needs you. Viewers see links, not filled buttons",
+        "Change: hero and button colors are precomputed for all nine color schemes in light and dark mode and checked to be at least 4.5:1 (client/scripts/gen-palette-tokens.mjs); a custom color is computed the same way when chosen. The filled button no longer uses white text where it was hard to read (Navy and Gold, Blush, Rose, Teal, dark mode)",
+        "Change: the greeting is no longer built from your account name (an account named The Brook Family was greeted as Brook). It says Welcome back, followed by the new optional What should we call you? name, set in the Update your name window, and just Welcome back without one. Your display name still drives invitations and messages",
+        "Hebrew dates, parashot and Shabbat times come from Hebcal.com under CC BY 4.0 (credited here, in the guide and on the About page); if Hebcal cannot be reached those lines are left out",
+        "Database (client/migrations/V5.3-O3.sql): adds user_profiles.preferred_name. No change to who can read or write profiles (each user reads and updates only their own row); no backfill. Run it before deploying. V3 app only"
+      ],
+      "roadmap": [],
+      "knownIssues": [
+        "Shabbat times need a US ZIP code in the venue address; other countries show no Havdalah line yet",
+        "The host-photo hero is not part of this release (its layer is in place, empty)"
+      ]
+    },
     {
       "version": "V5.8.2",
       "date": "2026-10-27",

@@ -173,7 +173,7 @@ function AuthedApp() {
               // and would re-trigger the notification on every subsequent login.
               supabase
                 .from("user_profiles")
-                .select("display_name")
+                .select("display_name, preferred_name")
                 .eq("id", id)
                 .single()
                 .then(({ data: profile }) => {
@@ -250,6 +250,7 @@ function AppContent({ session, isCallback, inviteError, onDismissInviteError }) 
     return route ? route.eventId : null;
   });
   const [displayName,     setDisplayName]     = useState(null); // null = not yet loaded
+  const [preferredName,   setPreferredName]   = useState(null); // optional "What should we call you?" (V5.9.0)
   const [showOnboarding,  setShowOnboarding]  = useState(false);
 
   // Load display_name and determine onboarding state on sign-in
@@ -263,6 +264,7 @@ function AppContent({ session, isCallback, inviteError, onDismissInviteError }) 
       .then(({ data: profile }) => {
         const name = profile?.display_name || null;
         setDisplayName(name);
+        setPreferredName(profile?.preferred_name || null);
         // V5.7.0: a brand-new account goes straight to creating its first event; the
         // name is asked for after that (OnboardingModal account-setup), never up front.
       });
@@ -284,8 +286,9 @@ function AppContent({ session, isCallback, inviteError, onDismissInviteError }) 
 
   // Selecting an event from the picker is a real navigation — push its URL.
   // Save a display name chosen in the name step (edit-name or account setup) and sync it to Brevo.
-  const handleNameSaved = (name) => {
+  const handleNameSaved = (name, preferred) => {
     setDisplayName(name);
+    if (preferred !== undefined) setPreferredName(preferred || null);
     fetch("/api/brevo-sync", {
       method:  "POST",
       headers: { "Content-Type": "application/json" },
@@ -372,6 +375,7 @@ function AppContent({ session, isCallback, inviteError, onDismissInviteError }) 
           session={session}
           eventId={selectedEventId}
           displayName={displayName}
+          preferredName={preferredName}
           onSelectEvent={selectEvent}
           onBack={() => {
             window.history.pushState({}, "", "/");
@@ -412,8 +416,9 @@ function AppContent({ session, isCallback, inviteError, onDismissInviteError }) 
         <OnboardingModal
           userId={session.user.id}
           isRequired={false}
-          initialName=""
-          onSave={(name) => { handleNameSaved(name); setShowOnboarding(false); }}
+          initialName={displayName || ""}
+          initialPreferred={preferredName || ""}
+          onSave={(name, preferred) => { handleNameSaved(name, preferred); setShowOnboarding(false); }}
           onDismiss={() => setShowOnboarding(false)}
         />
       )}

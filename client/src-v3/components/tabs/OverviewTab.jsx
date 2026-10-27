@@ -1,117 +1,58 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// SimchaKit V3.0.0 — OverviewTab.jsx
-// Ported from V2. Reads aggregated data from Supabase collections.
-// Notes are saved directly to events.quick_notes.
+// SimchaKit V5.9.0 — OverviewTab.jsx (V5-O3 rebuild)
+// Reads aggregated data from Supabase collections. Notes are saved to events.quick_notes.
 //
-// V4.34.0: once the main event's date has passed, the countdown hero switches
-// to a past-tense "it happened" treatment instead of sitting frozen at
-// 00:00:00:00, and a quiet "planning another celebration?" card appears
-// below the stat cards linking back to the Event Picker. The actual
-// reprioritization of "What Needs You Next" toward gift thank-yous lives in
-// utils/focus.js, not here. This file just needs to also fetch gifts and
-// pass them through.
-//
-// V5.8.2 (V5-O1b): full-width list, named rows, thank-yous open Gifts, greeting fix, 3-entry timeline,
-// phone 2x2 stats and one-line banner, quiet "Planning another celebration?" row after the event.
-// V5.8.1: every Mark action shows an 8-second Undo; Timeline sits under the countdown, Quick Notes below.
-// V5.8.0 (V5-O1): the Overview now leads with "Needs you now" (FocusPanel), each
-// item resolvable in place; the countdown compacts to one row; the four ring
-// cards become one quiet row of labeled stats with small progress bars.
+// The page is: a hero (stage from the main event date), then cards placed with CSS grid areas
+// in reading order: Needs you now (or Getting ready on day zero), Celebration schedule,
+// Who's coming, Readiness, Quick Notes. computeFocusItems() in utils/focus.js stays the single
+// source of the action list. This file gathers the data and composes the pieces in
+// components/overview/ and components/shared/FocusPanel.jsx. History: V4.34.0 past-tense hero,
+// V5.8.x "Needs you now" first, V5.9.0 hero, schedule, Who's coming, Readiness.
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { supabase }           from "@/lib/supabase.js";
 import { useEventData }       from "@/hooks/useEventData.js";
-import { EVENT_TYPE_ICON_KEYS } from "@/constants/events.js";
-import { getCountdown, hasEventPassed, formatDate, formatEntryMeta, sortTimeline } from "@/utils/dates.js";
+import { useMessageLog }      from "@/hooks/useMessageLog.js";
+import { useRsvpReplies }     from "@/hooks/useRsvpReplies.js";
+import { useOverviewAnimation } from "@/hooks/useOverviewAnimation.js";
+import { EVENT_MOTIF }        from "@/constants/events.js";
 import { GetStartedCard }     from "@/components/shared/GetStartedCard.jsx";
 import { readSetupState, mergeSetupState, migrateLegacyDismissal, resolveSteps } from "@/utils/setupState.js";
 import { generateEventBriefHTML } from "@/utils/exports.js";
-import { Icon }               from "@/utils/iconMap.jsx";
-import { StatCard }          from "@/components/shared/StatCard.jsx";
 import { FocusPanel }        from "@/components/shared/FocusPanel.jsx";
+import { OverviewHero }      from "@/components/overview/OverviewHero.jsx";
+import { ScheduleCard }      from "@/components/overview/ScheduleCard.jsx";
+import { WhosComingCard }    from "@/components/overview/WhosComingCard.jsx";
+import { ReadinessCard }     from "@/components/overview/ReadinessCard.jsx";
 import { computeFocusItems, computeNextUp } from "@/utils/focus.js";
 import { UndoToast } from "@/components/guests/UndoToast.jsx";
 import { amountPaid, hasPayments } from "@/utils/expensePayments.js";
-import { getSectionHeadcount, getMealPopulation, isTrackingPerPerson } from "@/utils/sections.js";
-import { setGuestsPreset, setGuestsView, setGuestsCompose } from "@/utils/guestsPreset.js";
+import { countThankYousOutstanding } from "@/utils/gifts.js";
+import { getSectionHeadcount, getMealPopulation, resolveMainEvent } from "@/utils/sections.js";
+import { setGuestsView, setGuestsCompose } from "@/utils/guestsPreset.js";
 import { setGiftsFilter } from "@/utils/giftsPreset.js";
-import { firstNameFrom } from "@/utils/displayName.js";
-import { useRsvpReplies } from "@/hooks/useRsvpReplies.js";
-import { InfoPopover } from "@/components/shared/InfoPopover.jsx";
-import { METRIC_HELP } from "@/constants/metrics.js";
+import { setCalendarFocus } from "@/utils/calendarFocus.js";
+import { overviewStage, buildSchedule, buildRunway, readinessTakeaways, localIso, daysBetween, shortMonthDay } from "@/utils/overview.js";
+import { getHebrewInfo, getShabbatTimes, zipFromAddress } from "@/utils/hebcal.js";
 import { printDocument, isTouchPrimary } from "@/utils/printDocument.js";
 import { PrintPreviewModal } from "@/components/shared/PrintPreviewModal.jsx";
 
-// Abbreviate currency for mobile ring cards: $11,831.63 -> $11.8k
-function fmtCurrency(n, compact) {
-  if (!compact || n < 10000) return `$${n.toLocaleString()}`;
+// Abbreviate currency: $11,831.63 -> $11.8k
+function fmtCurrency(n) {
+  if (n < 10000) return `$${Math.round(n).toLocaleString()}`;
   if (n < 1000000) return `$${(n / 1000).toFixed(1).replace(/\.0$/, "")}k`;
   return `$${(n / 1000000).toFixed(1).replace(/\.0$/, "")}M`;
 }
 
-function useIsMobile() {
-  const [m, setM] = useState(() => window.innerWidth <= 900);
-  useEffect(() => {
-    const mq = window.matchMedia("(max-width: 900px)");
-    const h = (e) => setM(e.matches);
-    mq.addEventListener("change", h);
-    return () => mq.removeEventListener("change", h);
-  }, []);
-  return m;
-}
-
-const TIMELINE_SHOWN = 3;
-
-// "Oct 17", and "11 days ago" / "145 days to go" for the banner line.
-function shortDate(d) {
-  return new Date(d + "T00:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric" });
-}
-function daysLabel(d) {
-  const t = new Date(); t.setHours(0, 0, 0, 0);
-  const n = Math.round((new Date(d + "T00:00:00") - t) / 86400000);
-  if (n === 0) return "today";
-  if (n === 1) return "tomorrow";
-  if (n === -1) return "yesterday";
-  return n > 0 ? `${n} days to go` : `${-n} days ago`;
-}
-
-// One quiet stat: a short label, "84 of 136" as text, and a small bar (the numbers carry the meaning, the bar is a glance).
-function OvStat({ label, value, numeric, of, ofDisplay, fallback, onClick, title, info }) {
-  const num = numeric ?? Number(value);
-  const pct = of > 0 ? Math.max(0, Math.min(100, Math.round((num / of) * 100))) : 0;
-  return (
-    <div className="ov-stat">
-      <button type="button" className="ov-stat-btn" onClick={onClick} title={title}>
-        <span className="ov-stat-label">{label}</span>
-        <span className="ov-stat-value">{value}{of > 0 && <small> of {ofDisplay ?? of}</small>}</span>
-        <span className="ov-stat-bar" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={pct} aria-label={`${label}: ${pct}%`}><i style={{ width: `${pct}%` }} /></span>
-        {of > 0 ? null : <span className="ov-stat-pct">{fallback}</span>}
-      </button>
-      {info && <span className="ov-stat-info"><InfoPopover text={info} label={`How is ${label.toLowerCase()} counted?`} /></span>}
-    </div>
-  );
-}
-
-export function OverviewTab({ eventId, event, adminConfig, showToast, setActiveTab, onOpenAdmin, onOpenAdminTo, onOpenGuide, onPrintBrief, isViewer, isArchived, collaboratorRole, coPlanners, userId, onConfigSaved, onLogoSaved, openInvite, setTopbarSubtitle, userName, userDisplayName }) {
+export function OverviewTab({ eventId, event, adminConfig, showToast, setActiveTab, onOpenAdminTo, onOpenGuide, isViewer, isArchived, collaboratorRole, coPlanners, userId, onConfigSaved, onLogoSaved, openInvite, openDayOf, setTopbarSubtitle, preferredName }) {
   const config    = adminConfig || {};
-  const isMobile  = useIsMobile();
-  const mainEvent = (config.timeline || []).find(e => e.isMainEvent) || null;
+  const mainEvent = resolveMainEvent(config.timeline);
   const eventDate = mainEvent?.startDate || null;
-  const eventVenue = mainEvent?.venue || null;
-  const eventPassed = eventDate ? hasEventPassed(eventDate) : false;
-
-  const [countdown, setCountdown] = useState(() => eventDate ? getCountdown(eventDate) : null);
+  const todayIso  = localIso();
   const [localNotes, setLocalNotes] = useState(event?.quick_notes || "");
   const notesTimer = useRef(null);
-
-  // Countdown ticker
-  useEffect(() => {
-    if (!eventDate) { setCountdown(null); return; }
-    setCountdown(getCountdown(eventDate));
-    const timer = setInterval(() => setCountdown(getCountdown(eventDate)), 30000);   // days and hours only, so no per-second tick
-    return () => clearInterval(timer);
-  }, [eventDate]);
+  const anim = useOverviewAnimation();
 
   // Sync notes from event row
   useEffect(() => {
@@ -131,7 +72,8 @@ export function OverviewTab({ eventId, event, adminConfig, showToast, setActiveT
     }, 600);
   }, [eventId]);
 
-  // Load aggregated data for stat cards and focus panel
+
+  // Load aggregated data
   const { items: households, loading: householdsLoading }  = useEventData(eventId, "households");
   const { items: people, loading: peopleLoading }          = useEventData(eventId, "people");
   const { items: expenses, loading: expensesLoading, save: saveExpense } = useEventData(eventId, "expenses");
@@ -139,14 +81,16 @@ export function OverviewTab({ eventId, event, adminConfig, showToast, setActiveT
   const { items: vendors, loading: vendorsLoading }         = useEventData(eventId, "vendors");
   const { items: tables, loading: tablesLoading }           = useEventData(eventId, "tables");
   const { items: seatingRows, loading: seatingLoading }     = useEventData(eventId, "seating");
+  const { items: gifts, loading: giftsLoading }             = useEventData(eventId, "gifts");
   // V5-R3: guests' RSVP replies waiting for review (read-only here; an error just means none to show)
   const { pending: pendingReplyRows, replies: replyRows } = useRsvpReplies(eventId);
   const pendingReplies = pendingReplyRows.length;
   // Households that already replied through their link (pending review or accepted): not "unreplied".
   const repliedHouseholdIds = useMemo(() => new Set(replyRows.filter(r => r.status === "pending" || r.status === "accepted").map(r => r.household_id)), [replyRows]);
+  // Invitation send dates for the runway (message_log; an error just means none to show)
+  const { logs: messageLogs } = useMessageLog(eventId);
   // Owner or editor on a live event: may resolve items that change data. Viewers see only links.
   const canAct = !isViewer && !isArchived && !event?.archived;
-  const { items: gifts, loading: giftsLoading }                           = useEventData(eventId, "gifts");
 
   const dataLoading = householdsLoading || peopleLoading || expensesLoading
     || tasksLoading || vendorsLoading || tablesLoading || seatingLoading || giftsLoading;
@@ -182,57 +126,107 @@ export function OverviewTab({ eventId, event, adminConfig, showToast, setActiveT
     return () => window.removeEventListener("simchakit:print-brief", handler);
   }, [handlePrintBrief]);
 
-  const timelineEntries = sortTimeline(config.timeline || []);
-  // Next 3 entries (the most recent 3 once the event is over), with a link to the rest.
-  const shownTimeline = (() => {
-    if (eventPassed) return [...timelineEntries].reverse().slice(0, TIMELINE_SHOWN);
-    const todayStr = new Date().toLocaleDateString("en-CA");
-    const upcoming = timelineEntries.filter(e => !e.startDate || e.startDate >= todayStr);
-    return (upcoming.length ? upcoming : timelineEntries).slice(0, TIMELINE_SHOWN);
-  })();
 
-  // Sub-event counts
-  const getSubEventCounts = (sectionId) => {
-    const section = timelineEntries.find(e => e.id === sectionId);
-    if (!section) return { invited: 0, confirmed: 0, awaiting: 0, invitedAdults: 0, invitedKids: 0, confirmedAdults: 0, confirmedKids: 0 };
-    const hc = getSectionHeadcount(households, people, section);
-    return {
-      invited: hc.invited.total,     invitedAdults: hc.invited.adults,     invitedKids: hc.invited.kids,
-      confirmed: hc.confirmed.total, confirmedAdults: hc.confirmed.adults, confirmedKids: hc.confirmed.kids,
-      awaiting: hc.awaiting.total,
-    };
-  };
+  // ── Stage, hero data ──────────────────────────────────────────────────────
+  const stage = overviewStage({ mainDate: eventDate, guestCount: households.length, todayIso });
+  const days  = eventDate && stage !== "post" && stage !== "today" ? daysBetween(todayIso, eventDate) : null;
 
-  // V4.41.0: the awaiting count on each sub-event row only appears once guests
-  // are tracked one by one for sub-events. Before that every guest reads as
-  // TBD, which would show the whole guest list as awaiting.
-  const awaitingTracked = isTrackingPerPerson(people, timelineEntries);
+  // Hebrew date and parashah (Hebcal, cached per event; never blocks the hero)
+  const [hebrew, setHebrew] = useState(null);
+  useEffect(() => {
+    let off = false;
+    setHebrew(null);
+    if (eventDate) getHebrewInfo(eventId, eventDate).then(h => { if (!off) setHebrew(h); });
+    return () => { off = true; };
+  }, [eventId, eventDate]);
 
+  // Havdalah: only when an entry on the main date starts in the evening and a venue ZIP is known
+  const eveningEntries = useMemo(
+    () => (config.timeline || []).filter(e => e.startDate === eventDate && e.startTime && e.startTime >= "16:00"),
+    [config.timeline, eventDate]
+  );
+  const venueZip = zipFromAddress(eveningEntries[0]?.address) || zipFromAddress(mainEvent?.address);
+  const [shabbat, setShabbat] = useState(null);
+  useEffect(() => {
+    let off = false;
+    setShabbat(null);
+    if (eventDate && eveningEntries.length && venueZip && stage !== "post") getShabbatTimes(eventId, eventDate, venueZip).then(t => { if (!off) setShabbat(t); });
+    return () => { off = true; };
+  }, [eventId, eventDate, eveningEntries.length, venueZip, stage]);
 
-  // Stats — memoized so the 1s countdown tick doesn't refilter
-  const {
-    totalBudget, totalPaid, tasksDone, tasksTotal,
-    vendorsBooked, outOfTownCount,
-  } = useMemo(() => ({
-    totalBudget:    expenses.reduce((s, e) => s + (parseFloat(e.amount) || 0), 0),
-    totalPaid:      expenses.reduce((s, e) => s + amountPaid(e), 0),
-    tasksDone:      tasks.filter(t => t.done && !t.dismissed).length,
-    tasksTotal:     tasks.filter(t => !t.dismissed).length,
-    vendorsBooked:  vendors.filter(v => ["Booked","Deposit Paid","Paid in Full"].includes(v.status)).length,
-    outOfTownCount: households.filter(h => h.outOfTown).length,
-  }), [expenses, tasks, vendors, people, households]);
+  // ── Schedule (the same timeline entries Calendar uses; counts from getSectionHeadcount) ──
+  const schedule = useMemo(() => {
+    const now = new Date();
+    const sched = buildSchedule({
+      timeline: config.timeline, mainDate: eventDate, todayIso,
+      nowMinutes: stage === "today" ? now.getHours() * 60 + now.getMinutes() : null,
+      headcountOf: (e) => getSectionHeadcount(households, people, e),
+    });
+    // Havdalah goes only on entries that start after Shabbat or the festival ends.
+    if (shabbat) sched.days.forEach(d => d.rows.forEach(r => {
+      if (r.date === eventDate && r.startTime && r.startTime.split(":").reduce((h, m) => h * 60 + Number(m)) >= shabbat.minutes) r.havdalah = shabbat.havdalah;
+    }));
+    return sched;
+  }, [config.timeline, eventDate, todayIso, stage, households, people, shabbat]);
 
-  // Confirmed ring: the same shared meal population as the Catering
-  // Summary and Day-of Mode. Confirmed is each guest's own Yes for a
-  // meal-serving sub-event; the total excludes guests who declined, so the
-  // ring can reach 100% once every guest has answered. With no sub-event
-  // flagged Meal served, it falls back to household RSVP status.
+  const dayRows = useMemo(
+    () => schedule.days.flatMap(d => d.rows).filter(r => r.date === todayIso && (r.state === "next" || r.state === "later")),
+    [schedule, todayIso]
+  );
+
+  // ── Runway and the phone "Next" line ──────────────────────────────────────
+  const runway = useMemo(() => buildRunway({
+    mainDate: eventDate, todayIso,
+    invitationDates: (messageLogs || []).filter(l => l.kind === "invitation").map(l => localIso(new Date(l.sent_at))),
+    rsvpDeadline: config.rsvpDeadline, timeline: config.timeline,
+  }), [eventDate, todayIso, messageLogs, config.rsvpDeadline, config.timeline]);
+
+  const nextLine = useMemo(() => {
+    if (stage === "new") return "add your guests";
+    if (stage === "soon") {
+      const r = schedule.days.flatMap(d => d.rows).find(x => x.date >= todayIso);
+      if (r) return `${r.title}, ${r.date === todayIso ? "today" : shortMonthDay(r.date)}${r.time ? ` ${r.time}` : ""}${r.building ? `, ${r.building}` : ""}`;
+    }
+    const dl = config.rsvpDeadline;
+    if (/^\d{4}-\d{2}-\d{2}$/.test(dl || "") && dl >= todayIso) {
+      const n = daysBetween(todayIso, dl);
+      return `reply deadline ${n === 0 ? "is today" : `in ${n} day${n !== 1 ? "s" : ""}`}, ${shortMonthDay(dl)}`;
+    }
+    return null;
+  }, [stage, schedule, todayIso, config.rsvpDeadline]);
+
+  // ── Who's coming, Readiness ───────────────────────────────────────────────
+  // Confirmed is the same shared meal population as the Catering Summary and Day-of Mode: each
+  // guest's own Yes for a meal-serving sub-event; with none flagged it follows household RSVP.
   const mealPop = useMemo(
     () => getMealPopulation(households, people, (config.timeline || []).filter(e => e.servesMeal)),
     [households, people, config.timeline]
   );
   const confirmedCount = mealPop.confirmed.length;
-  const invitedCount   = mealPop.relevant.length;
+  const expectedCount  = mealPop.relevant.length;
+  const declinedHouseholds = useMemo(() => new Set(households.filter(h => h.rsvpStatus === "RSVP No").map(h => h.id)), [households]);
+  const declinedCount = mealPop.preciseMode ? people.length - expectedCount : people.filter(p => declinedHouseholds.has(p.householdId)).length;
+  const awaitingCount = mealPop.preciseMode ? expectedCount - confirmedCount : Math.max(0, people.length - confirmedCount - declinedCount);
+  const outOfTown = households.filter(h => h.outOfTown).length;
+
+  const ready = useMemo(() => {
+    const t0 = new Date(todayIso + "T00:00:00");
+    const weekEnd = localIso(new Date(t0.getTime() + ((7 - t0.getDay()) % 7) * 86400000));
+    const open = tasks.filter(t => !t.done && !t.dismissed && t.due);
+    return {
+      mealsChosen: mealPop.relevant.filter(p => p.mealChoice).length, mealsTotal: expectedCount,
+      budgetTotal: expenses.reduce((s, e) => s + (parseFloat(e.amount) || 0), 0),
+      budgetPaid:  expenses.reduce((s, e) => s + amountPaid(e), 0),
+      tasksDone: tasks.filter(t => t.done && !t.dismissed).length, tasksTotal: tasks.filter(t => !t.dismissed).length,
+      tasksOverdue: open.filter(t => t.due < todayIso).length,
+      tasksDueWeek: open.filter(t => t.due >= todayIso && t.due <= weekEnd).length,
+      vendorsBooked: vendors.filter(v => ["Booked", "Deposit Paid", "Paid in Full"].includes(v.status)).length, vendorsTotal: vendors.length,
+    };
+  }, [mealPop, expectedCount, expenses, tasks, vendors, todayIso]);
+  const takeaways = readinessTakeaways(ready);
+
+  // After the event: the thank-you count is the hero figure
+  const thankyouToWrite = useMemo(() => countThankYousOutstanding(gifts).toWrite, [gifts]);
 
   // Focus panel items — memoized
   const focusItems = useMemo(
@@ -274,6 +268,27 @@ export function OverviewTab({ eventId, event, adminConfig, showToast, setActiveT
   }, [eventId, showToast]);
   const showSetupCard = !!setupState && !householdsLoading && !!collaboratorRole && collaboratorRole !== "coordinator" && !setupState.dismissed;
   const showSetupReopen = !!setupState && !householdsLoading && canEditSetup && setupState.dismissed && setupSummary.remaining > 0;
+
+  // The Getting ready card (one-line banner when a single step is left; hidden when done or dismissed)
+  const SetupCard = () => (
+    <GetStartedCard
+      eventId={eventId}
+      adminConfig={config}
+      summary={setupSummary}
+      canEdit={canEditSetup}
+      isArchived={isArchived}
+      collaboratorRole={collaboratorRole}
+      onSetStep={(id, val) => updateSetup({ steps: { [id]: val } })}
+      onDismiss={() => updateSetup({ dismissed: true })}
+      onConfigSaved={onConfigSaved}
+      onLogoSaved={onLogoSaved}
+      openInvite={openInvite}
+      setActiveTab={setActiveTab}
+      onOpenGuide={onOpenGuide}
+      showToast={showToast}
+    />
+  );
+
 
   // ── Resolve a "Needs you now" row in place ────────────────────────────────
   // Same writes the Tasks and Budget tabs make. Every one shows an 8-second Undo, which puts back
@@ -329,286 +344,118 @@ export function OverviewTab({ eventId, event, adminConfig, showToast, setActiveT
 
   const nextUp = useMemo(() => computeNextUp({ tasks, expenses }), [tasks, expenses]);
 
-  // ── Topbar subtitle ──────────────────────────────────────────────────────
-  const first = firstNameFrom(userDisplayName);
-  const subtitle = first
-    ? `Welcome back, ${first}. Here's where things stand.`
-    : "Welcome back.";
+
+  // ── Greeting ──────────────────────────────────────────────────────────────
+  // Never built from the account's display name: a host who sets it to "The Brook Family" so
+  // invitations read well must not be greeted as "Brook". It uses the optional preferred name.
+  const greeting = preferredName ? `Welcome back, ${preferredName}.` : "Welcome back.";
+  const subtitle = `${greeting} Here's where things stand.`;
   useEffect(() => {
     setTopbarSubtitle(subtitle);
     return () => setTopbarSubtitle(null);
   }, [subtitle, setTopbarSubtitle]);
 
+  const goTo = (tab) => setActiveTab && setActiveTab(tab);
+  const cardInSlot = stage === "new" && showSetupCard && setupSummary.remaining > 1;
+
   return (
-    <div>
-      {/* Mobile subtitle (≤900px only, where topbar is hidden) */}
-      <div className="mobile-tab-subtitle">{subtitle}</div>
-
-      {/* Action row — only render when at least one child is visible */}
-      {(showSetupReopen || isMobile) && (
-        <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, marginBottom: 12 }}>
+    <div className="ov">
+      <h1 className="ov-vh ov-mobile-h1">Overview</h1>
+      <div className="ov-head">
+        <span className="mobile-tab-subtitle" style={{ margin: 0 }}>{greeting}</span>
+        <span style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
           {showSetupReopen && (
-            <button className="btn btn-ghost btn-sm" onClick={() => updateSetup({ dismissed: false })}
-              style={{ fontSize: 12 }}>
-              <Icon name="hand" context="inline" style={{ marginRight: 4 }} /> Getting ready
-            </button>
+            <button type="button" className="btn" onClick={() => updateSetup({ dismissed: false })}>Getting ready</button>
           )}
-          {/* Touch devices — opens the system print sheet (print, share, or save as PDF) */}
-          {isTouchPrimary() && (
-            <button className="btn btn-sm btn-secondary" onClick={handlePrintBrief}
-              style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0, fontSize: 12 }}>
-              <Icon name="printer" context="inline" /> Print brief
-            </button>
-          )}
-        </div>
-      )}
+          {/* Touch devices: the system print sheet (print, share, or save as PDF). Desktop has Print brief in the top bar. */}
+          {isTouchPrimary() && <button type="button" className="btn" onClick={handlePrintBrief}>Print brief</button>}
+        </span>
+      </div>
 
-      {/* Getting ready card */}
-      {showSetupCard && (
-        <GetStartedCard
-          eventId={eventId}
-          adminConfig={config}
-          summary={setupSummary}
-          canEdit={canEditSetup}
-          isArchived={isArchived}
-          collaboratorRole={collaboratorRole}
-          onSetStep={(id, val) => updateSetup({ steps: { [id]: val } })}
-          onDismiss={() => updateSetup({ dismissed: true })}
-          onConfigSaved={onConfigSaved}
-          onLogoSaved={onLogoSaved}
-          openInvite={openInvite}
-          setActiveTab={setActiveTab}
-          onOpenGuide={onOpenGuide}
-          showToast={showToast}
-        />
-      )}
+      <OverviewHero
+        stage={stage} name={config.name || mainEvent?.title || "Your event"} logoUrl={config.logoUrl}
+        motif={EVENT_MOTIF[config.type] || "none"} mainDate={eventDate} venue={mainEvent?.venue || ""}
+        hebrew={hebrew} days={days} runway={stage === "post" || stage === "today" ? null : runway}
+        nextLine={nextLine} dayRows={dayRows} preferredName={preferredName}
+        thankyou={thankyouToWrite} canAct={canAct} anim={anim}
+        onOpenDayOf={openDayOf}
+        onThankYous={() => { setGiftsFilter(eventId, "needs-written"); goTo("gifts"); }}
+      />
 
-      {/* Two columns on desktop: Needs you now, stats and totals on the left (the list owns the column);
-          the event banner with a three-entry Timeline on the right. Quick Notes spans the full width
-          below. On phones everything is one column, in the order the ov-s-* classes give:
-          list, banner line, stats, totals, timeline, notes, then the new-event row. */}
-      <div className="ov-grid">
-        <div className="ov-col ov-col-main">
-          <div className="ov-slot ov-s-needs">
-            <FocusPanel
-              items={focusItems}
-              loading={dataLoading}
-              nextUp={nextUp}
-              hideWhenEmpty={showSetupCard && setupSummary.remaining > 1}
-              holdResolved={!!undo}
-              onResolve={handleResolve}
-              onNavigate={(tab, item) => {
-                if (item?.id === "rsvp-replies") setGuestsView(eventId, "replies");
-                if (item?.id === "rsvp-reminder" && item.type === "unreplied") setGuestsCompose(eventId, item.compose.kind, item.compose.ids);
-                if (item?.giftsFilter) setGiftsFilter(eventId, item.giftsFilter);
-                setActiveTab(tab);
-              }}
-            />
-          </div>
+      {/* The Getting ready card sits above everything unless it is day zero, when it takes the Needs you now slot. */}
+      {showSetupCard && !cardInSlot && <SetupCard />}
 
-          {/* Quiet stats row: a short label, a count and a small bar */}
-          <div className="ov-slot ov-s-stats">
-            <div className="ov-stats">
-              <OvStat
-                label={mealPop.preciseMode ? "Meals" : "Confirmed"}
-                value={confirmedCount} of={invitedCount}
-                fallback="No guests added"
-                onClick={() => setActiveTab && setActiveTab("guests")} title="Go to guests tab"
-                info={METRIC_HELP.confirmed({ precise: mealPop.preciseMode })}
-              />
-              <OvStat
-                label="Budget paid"
-                value={fmtCurrency(totalPaid, true)} numeric={totalPaid}
-                of={totalBudget} ofDisplay={fmtCurrency(totalBudget, true)}
-                fallback="No budget set"
-                onClick={() => setActiveTab && setActiveTab("budget")} title="Go to budget tab"
-              />
-              <OvStat
-                label="Tasks done"
-                value={tasksDone} of={tasksTotal}
-                fallback="No tasks yet"
-                onClick={() => setActiveTab && setActiveTab("tasks")} title="Go to tasks tab"
-              />
-              <OvStat
-                label="Vendors"
-                value={vendorsBooked} of={vendors.length}
-                fallback="No vendors yet"
-                onClick={() => setActiveTab && setActiveTab("vendors")} title="Go to vendors tab"
-              />
-            </div>
-          </div>
+      <div className="ov-main" data-stage={stage === "post" ? "post" : "live"}>
+        {cardInSlot ? <div className="ov-a-n"><SetupCard /></div> : (
+          <FocusPanel
+            items={focusItems}
+            loading={dataLoading}
+            nextUp={nextUp}
+            readOnly={!canAct}
+            holdResolved={!!undo}
+            onResolve={handleResolve}
+            onNavigate={(tab, item) => {
+              if (item?.id === "rsvp-replies") setGuestsView(eventId, "replies");
+              if (item?.id === "rsvp-reminder" && item.type === "unreplied") setGuestsCompose(eventId, item.compose.kind, item.compose.ids);
+              if (item?.giftsFilter) setGiftsFilter(eventId, item.giftsFilter);
+              goTo(tab);
+            }}
+          />
+        )}
 
-          <div className="ov-slot ov-s-totals">
-            <div className="stat-grid-secondary">
-              <StatCard
-                label="Total Guests"
-                value={people.length}
-                tone="accent"
-                sub={`${households.length} household${households.length !== 1 ? "s" : ""}`}
-                onClick={() => setActiveTab && setActiveTab("guests")}
-                title="Go to guests tab"
-                secondary
-              />
-              <StatCard
-                label="Out of Town"
-                value={outOfTownCount}
-                tone="gold"
-                sub={`household${outOfTownCount !== 1 ? "s" : ""} travelling`}
-                onClick={() => setActiveTab && setActiveTab("accommodations")}
-                title="Go to accommodations tab"
-                secondary
-              />
-            </div>
-          </div>
+        {stage !== "post" && (
+          <ScheduleCard
+            stage={stage} schedule={schedule} mainDate={eventDate} eventName={config.name || ""}
+            noGuests={households.length === 0} canEditTimeline={canAct}
+            onOpenEntry={(id) => { setCalendarFocus(eventId, id); goTo("calendar"); }}
+            onAddTime={() => onOpenAdminTo && onOpenAdminTo("timeline")}
+          />
+        )}
 
-          {/* Planning another celebration? A quiet row, shown only once the event has happened.
-              A plain anchor: this file has no prop for returning to the Event Picker. */}
-          {eventPassed && (
-            <div className="ov-slot ov-s-next">
-              <div className="ov-next-row">
-                <span>Planning another celebration?</span>
-                <a href="/" className="btn btn-secondary btn-sm">Start a new event</a>
-              </div>
-            </div>
-          )}
-        </div>
+        {stage !== "post" && (
+          <WhosComingCard
+            stage={stage} confirmed={confirmedCount} declined={declinedCount} awaiting={awaitingCount}
+            guests={people.length} households={households.length} outOfTown={outOfTown}
+            precise={mealPop.preciseMode} go={anim.go} canImport={canAct}
+            onImport={() => goTo("guests")} onOpenGuests={() => goTo("guests")}
+          />
+        )}
 
-        <div className="ov-col ov-col-side">
-          {/* Event banner: a solid accent fill, so one text color works across it */}
-          <div className="ov-slot ov-s-banner">
-            <div className="ov-banner">
-              {config.logoUrl && <img src={config.logoUrl} alt="" className="countdown-logo-img ov-banner-logo" />}
-              <div className="ov-banner-text">
-                <div className="ov-banner-title">{config.name || mainEvent?.title || "The Big Day"}</div>
-                <div className="ov-banner-line">
-                  {eventDate ? (
-                    <>
-                      <span className="ov-line-long">{formatDate(eventDate)}</span>
-                      <span className="ov-line-short">{shortDate(eventDate)}</span>
-                      {eventVenue ? ` \u00b7 ${eventVenue}` : ""}
-                      {" \u00b7 "}{daysLabel(eventDate)}
-                    </>
-                  ) : "Mark a main event in Admin Mode to start the countdown"}
-                </div>
-              </div>
-              {eventDate && !eventPassed && countdown && (
-                <div className="ov-banner-days" aria-hidden="true">
-                  <span className="ov-banner-num">{countdown.days}</span>
-                  <span className="ov-banner-unit">{countdown.days === 1 ? "day" : "days"}</span>
-                </div>
-              )}
-            </div>
-          </div>
+        {stage !== "post" && stage !== "new" && (
+          <ReadinessCard
+            meals={{ value: ready.mealsChosen, of: ready.mealsTotal }}
+            budget={{ value: fmtCurrency(ready.budgetPaid), of: fmtCurrency(ready.budgetTotal), raw: ready.budgetPaid, rawOf: ready.budgetTotal }}
+            tasks={{ value: ready.tasksDone, of: ready.tasksTotal }}
+            vendors={{ value: ready.vendorsBooked, of: ready.vendorsTotal }}
+            line={takeaways} go={anim.go} nav={goTo}
+          />
+        )}
 
-          <div className="ov-slot ov-s-timeline">
-        <div className="card ov-timeline">
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, marginBottom: 4 }}>
-            <div className="card-title" style={{ marginBottom: 0 }}>Event Timeline</div>
-            <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
-              {timelineEntries.length > TIMELINE_SHOWN && (
-                <button type="button" className="ov-link" onClick={() => setActiveTab("calendar")}>
-                  All {timelineEntries.length} events {"\u2192"}
-                </button>
-              )}
-              {onOpenAdminTo && !isViewer && (
-                <button className="btn btn-ghost btn-sm" style={{ fontSize: 11, padding: "3px 8px" }}
-                  onClick={() => onOpenAdminTo("timeline")}>
-                  + Add Event
-                </button>
-              )}
-            </span>
-          </div>
-          <div className="card-subtitle">
-            {timelineEntries.length > TIMELINE_SHOWN
-              ? (eventPassed ? `Most recent ${TIMELINE_SHOWN}` : `Next ${TIMELINE_SHOWN}`)
-              : (timelineEntries.length > 0 ? `${timelineEntries.length} event${timelineEntries.length !== 1 ? "s" : ""} scheduled` : "")}
-          </div>
-          <div className="timeline">
-            {timelineEntries.length === 0 ? (
-              <div style={{ textAlign: "center", padding: "24px 12px", color: "var(--text-secondary)" }}>
-                <div style={{ marginBottom: 8 }}><Icon name="calendar" context="empty" /></div>
-                <div style={{ fontSize: 13, marginBottom: 8 }}>No events scheduled yet.</div>
-                {onOpenAdmin && (
-                  <button className="btn btn-ghost" style={{ fontSize: 12, display: "inline-flex", alignItems: "center", gap: 4 }} onClick={onOpenAdmin}>
-                    <Icon name="settings" context="inline" /> Add timeline in Admin Mode
-                  </button>
-                )}
-              </div>
-            ) : (
-              shownTimeline.map((item, i) => {
-                const dateStr = item.startDate
-                  ? new Date(item.startDate + "T00:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
-                  : "";
-                const counts = getSubEventCounts(item.id);
-                return (
-                  <div className="timeline-item" key={item.id || i}>
-                    {/* TODO: item.icon is user-configured from admin_config timeline — leave as emoji for now */}
-                    <div className="timeline-icon">{item.icon || "📅"}</div>
-                    <div className="timeline-content">
-                      <div className="timeline-title">{item.title}</div>
-                      <div className="timeline-meta">{formatEntryMeta(item)}</div>
-                      {counts.invited > 0 && (
-                        <div style={{ fontSize: 12, color: "var(--text-secondary)", marginTop: 4, display: "flex", alignItems: "center", flexWrap: "wrap", gap: 4 }}>
-                          <Icon name="guests" context="inline" /> {counts.invited} invited ({counts.invitedAdults} adults, {counts.invitedKids} kids) · {counts.confirmed} confirmed ({counts.confirmedAdults} adults, {counts.confirmedKids} kids)
-                          {awaitingTracked && counts.awaiting > 0 && (
-                            <>
-                              <span aria-hidden="true">·</span>
-                              <button
-                                type="button"
-                                className="timeline-awaiting-link"
-                                title="Show these guests in the Guests tab"
-                                onClick={() => { setGuestsPreset(eventId, [item.id]); setActiveTab("guests"); }}
-                              >
-                                {counts.awaiting} awaiting
-                              </button>
-                              <InfoPopover text={METRIC_HELP.awaitingSubEvent()} label="How is awaiting counted?" />
-                            </>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                    <span className={`tag timeline-badge ${item.isMainEvent ? "tag-accent" : "tag-blue"}`}>{dateStr}</span>
-                  </div>
-                );
-              })
-            )}
-          </div>
-          {config.rsvpUrl && (
-            <div style={{ marginTop: 16, paddingTop: 16, borderTop: "1px solid var(--border)" }}>
-              <a href={config.rsvpUrl} target="_blank" rel="noopener noreferrer"
-                className="btn btn-secondary" style={{ width: "100%", justifyContent: "center", display: "inline-flex", alignItems: "center", gap: 6 }}>
-                <Icon name="externalLink" context="inline" /> RSVP Website
-              </a>
-            </div>
-          )}
-        </div>
-          </div>
-        </div>
-
-        <div className="ov-slot ov-s-notes">
-      <div className="card ov-notes">
-          <div className="card-title">Quick Notes</div>
-          <div className="card-subtitle">Your private planning notes — saved automatically</div>
+        <section className="ov-card ov-a-q ov-qn" aria-labelledby="ov-notes-title">
+          <h2 id="ov-notes-title">Quick Notes</h2>
           <textarea
             className="notes-area"
-            style={{ minHeight: 240, opacity: isViewer ? 0.6 : 1 }}
+            style={{ minHeight: 160, marginTop: 8, opacity: isViewer ? 0.6 : 1 }}
             value={localNotes}
+            aria-label="Quick Notes: your private planning notes, saved automatically"
             placeholder="Jot down ideas, reminders, open questions, things to follow up on, or anything you want to remember…"
             onChange={e => !isViewer && handleNotes(e.target.value)}
             readOnly={isViewer}
           />
           {config.notes && (
-            <>
-              <div className="divider" />
-              <div style={{ background: "var(--gold-light)", border: "1px solid var(--gold)", borderRadius: "var(--radius-sm)", padding: "8px 12px", fontSize: 12, color: "var(--text-secondary)", lineHeight: 1.6 }}>
-                <span style={{ fontWeight: 700, color: "var(--gold)", marginRight: 6, display: "inline-flex", alignItems: "center", gap: 4 }}><Icon name="pin" context="inline" /> Admin Note</span>
-                {config.notes}
-              </div>
-            </>
+            <div style={{ background: "var(--gold-light)", border: "1px solid var(--gold)", borderRadius: "var(--radius-sm)", padding: "8px 12px", fontSize: 12, color: "var(--text-secondary)", lineHeight: 1.6, marginTop: 10 }}>
+              <b style={{ marginRight: 6 }}>Admin note</b>{config.notes}
+            </div>
           )}
+        </section>
       </div>
-        </div>
-      </div>
+
+      {stage === "post" && (
+        <section className="ov-card ov-plan" aria-label="Start another event">
+          <b style={{ fontSize: 15 }}>Planning another celebration?</b>
+          <a href="/" className="btn">Start a new event</a>
+        </section>
+      )}
 
       {undo && <UndoToast message={undo.message} onUndo={handleUndo} onExpire={() => setUndo(null)} />}
 

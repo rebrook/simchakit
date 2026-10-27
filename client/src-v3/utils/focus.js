@@ -40,7 +40,7 @@ import { unrepliedHouseholds, daysUntil } from "./rsvpReminders.js";
 import { householdKey } from "./messageStatus.js";
 
 // Items that leave Overview end in an arrow.
-const NAV_LABEL = { addresses: "Add address \u2192", seating: "Open seating \u2192", vendors: "Open vendors \u2192", rsvps: "Open guests \u2192" };
+const NAV_LABEL = { addresses: "Add address", seating: "Open seating", vendors: "Open vendors", rsvps: "Open guests" };
 
 const BOOKED_STATUSES = ["Booked", "Deposit Paid", "Paid in Full"];
 
@@ -90,7 +90,7 @@ export function computeFocusItems(data, adminConfig) {
       domain: "rsvp-replies",
       type: "replies",
       badge: "New",
-      actionLabel: "Review replies \u2192",
+      actionLabel: "Review",
       tone: "accent",
       icon: "mailCheck",
       title: `${pendingReplies} new RSVP repl${pendingReplies === 1 ? "y" : "ies"}`,
@@ -151,7 +151,7 @@ export function computeFocusItems(data, adminConfig) {
           domain: "payments",
           type: "invoices",
           badge: overdue ? overdueBadge(late) : null,
-          actionLabel: "Open invoice",
+          actionLabel: "Record payment",
           payload: { rows: [{ key, rowId: p.expense._rowId, paymentId: p.id || null, title: what, vendor, amount: p.amount, dueDate: p.dueDate, overdue }] },
           tone: overdue ? "red" : "accent",
           icon: overdue ? "alertTriangle" : "banknote",
@@ -179,7 +179,7 @@ export function computeFocusItems(data, adminConfig) {
         id: "gift-thankyous",
         domain: "gifts",
         type: "thankyous",
-        actionLabel: writing ? "Write thank-yous →" : "Mail thank-yous →",
+        actionLabel: writing ? "Write thank-yous" : "Mail thank-yous",
         giftsFilter: writing ? "needs-written" : "needs-mailed",
         tone: "accent",
         icon: "gifts",
@@ -214,7 +214,7 @@ export function computeFocusItems(data, adminConfig) {
         detail: daysToDeadline > 1 ? `Deadline in ${daysToDeadline} days` : daysToDeadline === 1 ? "Deadline is tomorrow" : daysToDeadline === 0 ? "Deadline is today" : `Deadline passed ${Math.abs(daysToDeadline)} day${Math.abs(daysToDeadline) !== 1 ? "s" : ""} ago`,
         tab: "guests",
         priority: daysToDeadline <= 7 ? 3 : 5.5,
-        actionLabel: canAct ? "Send reminder \u2192" : "View guests \u2192",
+        actionLabel: canAct ? "Send reminder" : "View guests",
         compose: { kind: "rsvp_reminder", ids: unreplied.map(householdKey) },
       });
     }
@@ -352,7 +352,7 @@ export function computeFocusItems(data, adminConfig) {
   // Items that only point at a tab are typed "nav", with one action: open that tab.
   items.forEach(it => {
     if (!it.type) it.type = "nav";
-    if (it.type === "nav" && !it.actionLabel) it.actionLabel = NAV_LABEL[it.id] || `Open ${it.tab} \u2192`;
+    if (it.type === "nav" && !it.actionLabel) it.actionLabel = NAV_LABEL[it.id] || `Open ${it.tab}`;
   });
 
   // Sort by priority (lower = more urgent)

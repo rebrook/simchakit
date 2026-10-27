@@ -18,8 +18,9 @@
 import { useState } from "react";
 import { supabase }  from "@/lib/supabase.js";
 
-export function OnboardingModal({ userId, isRequired, initialName = "", onSave, onDismiss, variant, eventName }) {
+export function OnboardingModal({ userId, isRequired, initialName = "", initialPreferred = "", onSave, onDismiss, variant, eventName }) {
   const [name,    setName]    = useState(initialName);
+  const [preferred, setPreferred] = useState(initialPreferred);   // V5.9.0: what the Overview greeting calls the host
   const [saving,  setSaving]  = useState(false);
   const [error,   setError]   = useState(null);
 
@@ -43,7 +44,7 @@ export function OnboardingModal({ userId, isRequired, initialName = "", onSave, 
 
     const { error: dbError } = await supabase
       .from("user_profiles")
-      .update({ display_name: trimmed, updated_at: new Date().toISOString() })
+      .update({ display_name: trimmed, ...(isSetup ? {} : { preferred_name: preferred.trim() || null }), updated_at: new Date().toISOString() })
       .eq("id", userId);
 
     if (dbError) {
@@ -54,7 +55,7 @@ export function OnboardingModal({ userId, isRequired, initialName = "", onSave, 
     }
 
     setSaving(false);
-    onSave(trimmed);
+    onSave(trimmed, isSetup ? undefined : (preferred.trim() || null));
   }
 
   function handleKeyDown(e) {
@@ -118,10 +119,29 @@ export function OnboardingModal({ userId, isRequired, initialName = "", onSave, 
             autoFocus={!isSetup}
             maxLength={80}
           />
-          <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 4 }}>
+          <div style={{ fontSize: 11, color: "var(--text-secondary)", marginTop: 4 }}>
             This can be a first name, full name, or nickname -- whatever you prefer.
           </div>
         </div>
+
+        {!isSetup && (
+          <div className="form-group" style={{ marginBottom: 8 }}>
+            <label className="form-label" htmlFor="preferred-name">What should we call you? (optional)</label>
+            <input
+              id="preferred-name"
+              className="form-input"
+              type="text"
+              placeholder="e.g. Marge"
+              value={preferred}
+              onChange={e => setPreferred(e.target.value)}
+              onKeyDown={handleKeyDown}
+              maxLength={40}
+            />
+            <div style={{ fontSize: 11, color: "var(--text-secondary)", marginTop: 4 }}>
+              Used to greet you ("Welcome back, Marge") in the app. Your name above stays what guests and co-planners see in invitations and messages.
+            </div>
+          </div>
+        )}
 
         {/* Error */}
         {error && (

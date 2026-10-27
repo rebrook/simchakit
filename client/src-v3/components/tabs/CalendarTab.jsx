@@ -4,7 +4,8 @@
 // a unified calendar state object for buildCalendarEvents.
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
+import { consumeCalendarFocus } from "@/utils/calendarFocus.js";
 import { useEventData }       from "@/hooks/useEventData.js";
 import { useSearchHighlight } from "@/hooks/useSearchHighlight.js";
 import { CAL_SOURCES }        from "@/constants/ui.js";
@@ -77,6 +78,16 @@ export function CalendarTab({ eventId, event, adminConfig, showToast, isArchived
     () => buildCalendarEvents(state, adminConfig, showCompleted),
     [state, adminConfig, showCompleted]
   );
+
+  // V5.9.0: a row of the Overview's celebration schedule opens that entry's details here.
+  const focusDone = useRef(false);
+  useEffect(() => {
+    if (focusDone.current || !allEvents.length) return;
+    focusDone.current = true;
+    const entryId = consumeCalendarFocus(eventId);
+    const evt = entryId ? allEvents.find(e => e.id === `tl-${entryId}`) : null;
+    if (evt) { setPopoverPos({ top: 140, left: Math.max(12, Math.round(window.innerWidth / 2 - 140)) }); setSelectedEvent(evt); }
+  }, [allEvents, eventId]);
 
   const filtered = useMemo(() => allEvents.filter(e => {
     if (sourceFilter !== "all" && e.source !== sourceFilter) return false;

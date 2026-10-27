@@ -66,24 +66,40 @@ function contrastRatio(a, b) {
 
 const DARK_INK = "#1c1614";
 
+function mixHex(h, t, k) {
+  return "#" + [1, 3, 5].map(i => Math.round(parseInt(h.slice(i, i + 2), 16) * (1 - k) + parseInt(t.slice(i, i + 2), 16) * k).toString(16).padStart(2, "0")).join("");
+}
+
 /**
- * Fill and text colors for anything filled with the accent (filled button, event banner,
- * filled chips). Text is white or the dark ink, whichever contrasts more. If neither reaches
- * 4.5:1 (Teal), the fill is darkened until white does, the same way api/_lib/email-shell.js
- * darkens its button. Returns { fill, text }.
+ * Runtime twin of scripts/gen-palette-tokens.mjs, used ONLY for a host's custom color (the nine
+ * built-in palettes are precomputed in styles/palette-tokens.css). Same rules: white text on the
+ * accent if it reaches 4.5:1, else darken the fill up to three 8% steps, else dark ink; the hero
+ * accent is lightened until it reaches 4.5:1 on the hero background.
  */
-function accentFillColors(accentHex) {
-  if (!accentHex || accentHex.length < 7) return { fill: accentHex, text: "#ffffff" };
-  const white = contrastRatio("#ffffff", accentHex);
-  const ink   = contrastRatio(DARK_INK, accentHex);
-  if (Math.max(white, ink) >= 4.5) return { fill: accentHex, text: white >= ink ? "#ffffff" : DARK_INK };
-  const { h, s, l } = hexToHSL(accentHex);
-  let fill = accentHex;
-  for (let i = 0, step = l; i < 40 && contrastRatio("#ffffff", fill) < 4.5; i++) {
-    step = Math.max(0, step - 0.02);
-    fill = hslToHex(h, s, step);
+function customAccentTokens(accentHex, dark) {
+  const surface = dark ? "#1a1714" : "#ffffff";
+  let fill = accentHex, onFill = "#ffffff";
+  if (contrastRatio("#ffffff", fill) < 4.5) {
+    let ok = false;
+    for (let i = 0; i < 3 && !ok; i++) { fill = mixHex(fill, "#000000", 0.08); ok = contrastRatio("#ffffff", fill) >= 4.5; }
+    if (!ok) {
+      if (contrastRatio(DARK_INK, accentHex) >= 4.5) { fill = accentHex; onFill = DARK_INK; }
+      else { fill = mixHex(accentHex, "#000000", 0.3); }
+    }
   }
-  return { fill, text: "#ffffff" };
+  let ink = accentHex;
+  for (let i = 0; i < 14 && contrastRatio(ink, surface) < 4.5; i++) ink = mixHex(ink, dark ? "#ffffff" : "#000000", 0.1);
+  const { h, s } = hexToHSL(accentHex);
+  const base = hslToHex(h, Math.min(s, 0.5), 0.16);
+  const bg = dark ? mixHex(base, "#ffffff", 0.12) : base;
+  let heroAccent = accentHex;
+  for (let i = 0; i < 14 && contrastRatio(heroAccent, bg) < 4.5; i++) heroAccent = mixHex(heroAccent, "#ffffff", 0.1);
+  return {
+    "accent-fill": fill, "on-accent": onFill, "accent-ink": ink,
+    "hero-bg": bg, "hero-accent": heroAccent,
+    "hero-text": mixHex(bg, "#ffffff", 0.94), "hero-text-2": mixHex(bg, "#ffffff", 0.82),
+    "hero-on-accent": contrastRatio(DARK_INK, heroAccent) >= 4.5 ? DARK_INK : bg,
+  };
 }
 
 function deriveCustomPalette(hex) {
@@ -116,6 +132,6 @@ export {
   wcagTextColor,
   darkenAccent,
   contrastRatio,
-  accentFillColors,
+  customAccentTokens,
   deriveCustomPalette,
 };

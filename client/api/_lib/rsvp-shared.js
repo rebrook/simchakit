@@ -115,6 +115,18 @@ const httpsOrEmpty = (u) => (/^https:\/\/[^\s"'<>]+$/i.test(String(u || "").trim
 const isInvited = (household, section) =>
   (household.invitedSections || []).includes(section.id) || section.inviteAllByDefault !== false;
 
+// Host-only fields on timeline entries (admin_config.timeline). Nothing a guest can reach may carry
+// them: audience (family-only entries), arriveBy, and the room and address used for the host's
+// schedule. buildView below picks fields by name, so these are never copied; stripHostOnly is the
+// belt to that suspenders for any entry that is passed through whole.
+export const HOST_ONLY_TIMELINE_FIELDS = ["audience", "arriveBy", "room", "address"];
+export function stripHostOnly(entry) {
+  if (!entry || typeof entry !== "object") return entry;
+  const out = { ...entry };
+  HOST_ONLY_TIMELINE_FIELDS.forEach(k => { delete out[k]; });
+  return out;
+}
+
 function mainEntry(timeline) {
   const list = Array.isArray(timeline) ? timeline : [];
   return list.find(t => t?.isMainEvent) ||
@@ -194,6 +206,7 @@ export function buildView(ctx) {
   };
   const sections = (Array.isArray(cfg.timeline) ? cfg.timeline : [])
     .filter(t => t?.id && isInvited(household, t))
+    .map(stripHostOnly)
     .sort((a, b) => `${a.startDate || ""}${a.startTime || ""}`.localeCompare(`${b.startDate || ""}${b.startTime || ""}`))
     .map(t => ({
       id: t.id, title: t.title || "", icon: t.icon || "",
