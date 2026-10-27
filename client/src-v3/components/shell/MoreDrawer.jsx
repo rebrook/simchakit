@@ -2,7 +2,7 @@
 import { supabase } from "@/lib/supabase.js";
 import { Icon } from "@/utils/iconMap.jsx";
 
-export function MoreDrawer({ activeTab, collaboratorRole, darkMode, isCoordinator, moreDrawerTabs, navigateTo, onBack, openAdmin, setDarkMode, setShowActivityLog, setShowDayOf, setShowGuide, setShowInviteModal, setShowMoreDrawer, setShowWhatsNew, showMoreDrawer }) {
+export function MoreDrawer({ activeTab, collaboratorRole, darkMode, isCoordinator, moreDrawerTabs, navigateTo, onBack, openAdmin, setDarkMode, setShowActivityLog, setShowDayOf, setShowGuide, setShowInviteModal, setShowMoreDrawer, setShowWhatsNew, whatsNewCount = 0, currentRelease = null, showMoreDrawer }) {
   return (
     <>
       {/* ── More drawer backdrop ── */}
@@ -79,9 +79,10 @@ export function MoreDrawer({ activeTab, collaboratorRole, darkMode, isCoordinato
           <span className="more-drawer-item-chevron"><Icon name="chevronRight" context="inline" /></span>
         </button>
         <button className="more-drawer-item"
+          aria-label={`What's new${currentRelease ? `, ${currentRelease}` : ""}${whatsNewCount > 0 ? `, ${whatsNewCount} new` : ""}`}
           onClick={() => { setShowMoreDrawer(false); setShowWhatsNew(true); }}>
           <span className="more-drawer-item-icon"><Icon name="sparkles" context="menu" /></span>
-          <span className="more-drawer-item-label">What's New</span>
+          <span className="more-drawer-item-label">What's new{currentRelease ? ` · ${currentRelease}` : ""}{whatsNewCount > 0 && <span className="wn-count">{whatsNewCount} new</span>}</span>
           <span className="more-drawer-item-chevron"><Icon name="chevronRight" context="inline" /></span>
         </button>
         {!isCoordinator && (

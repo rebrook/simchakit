@@ -563,7 +563,7 @@ export function GuestsTab({ eventId, event, adminConfig, showToast, isArchived, 
         {isArchived && <ArchivedNotice />}
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:8,flexWrap:"wrap",marginBottom:12}}>
           <button className="btn btn-secondary btn-sm" onClick={()=>setView("guests")}>← Back to guests</button>
-          {canMessage && <button className="btn btn-primary btn-sm" onClick={()=>openComposer({})}>Message guests</button>}
+          {canMessage && <button className="btn btn-primary btn-sm" data-wn-focus="message-composer send-reminder" onClick={()=>openComposer({})}>Message guests</button>}
         </div>
         <SentLog eventId={eventId} logs={msgLog.logs} recipients={msgLog.recipients} error={msgLog.error} loading={msgLog.loading}
           households={households} isArchived={isArchived} isViewer={isViewer} onChanged={msgLog.reload} showToast={showToast} />
@@ -582,7 +582,7 @@ export function GuestsTab({ eventId, event, adminConfig, showToast, isArchived, 
       {/* Action row */}
       <div style={{display:"flex",justifyContent:"flex-end",gap:8,flexWrap:"wrap",marginBottom:12}}>
         {rsvpReplies.pending.length > 0 && (
-          <button className="btn btn-primary btn-sm" onClick={()=>setView("replies")}>New replies ({rsvpReplies.pending.length})</button>
+          <button className="btn btn-primary btn-sm" data-wn-focus="rsvp-replies" onClick={()=>setView("replies")}>New replies ({rsvpReplies.pending.length})</button>
         )}
         <button className="btn btn-secondary btn-sm" onClick={()=>setView("messages")}>Messages</button>
         <button className="btn btn-secondary btn-sm" onClick={()=>setShowGuestExport(true)}>↓ Export Guests</button>

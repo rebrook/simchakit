@@ -223,11 +223,9 @@ Schema changes (new tables, RLS policies, functions) are applied directly in the
 
 #### Changelog
 
-`changelog.json` lives in two places and both must be updated on every version bump:
-- `changelog.json` (repo root)
-- `client/public/changelog.json` (served as a static asset)
+What hosts see (V5.4-W1 on): `client/changelog/entries.json` is the one authoring source. `client/scripts/build-changelog.mjs` turns it into `client/public/whats-new/*.json` on every V3 build and fails the build on a rule break. Writing rules and the entry format are in `client/changelog/README.md`.
 
-Always edit using Python `json.load` / `json.dump` -- never string replacement.
+Developer history stays here: the root `changelog.json` (version, summary and change lines, including migrations, RLS and endpoints) drives the Publish Release workflow, and `client/changelog/dev.json` holds the converted archive plus the old roadmap and known issues. None of it is shipped in the app. `client/public/changelog.json` is frozen so cached older clients still load; delete it once they have aged out, and then the root file is the only legacy copy.
 
 **Releases are automatic.** When a change to `changelog.json` reaches `main`, the `Publish Release` workflow (`.github/workflows/release.yml`) creates a GitHub release and tag named after `current`, with that version's changelog entry as the notes, and marks it Latest. It skips a version that already has a release. You can also run it from the Actions tab. Verify `current` matches the first entry version before committing.
 

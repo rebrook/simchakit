@@ -10,6 +10,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Icon } from "@/utils/iconMap.jsx";
 import { scheduleText } from "@/utils/overview.js";
+import { useNewFeature } from "@/lib/whatsNew.js";
 
 function Row({ r, stage, noGuests, canEditTimeline, onOpenEntry, onAddTime }) {
   const where = [r.building, r.room].filter(Boolean).join(", ");
@@ -83,11 +84,13 @@ export function ScheduleCard({ stage, schedule, eventName, noGuests, canEditTime
     ? `${schedule.count} event${schedule.count !== 1 ? "s" : ""}${dayCount === 1 && mainDate ? ` on ${schedule.days[0]?.label || ""}` : ""}`
     : `${schedule.count} event${schedule.count !== 1 ? "s" : ""} over ${dayCount} day${dayCount !== 1 ? "s" : ""}`;
 
+  const newPill = useNewFeature("celebration-schedule");
+
   return (
-    <section className="ov-card ov-a-s ov-sc" data-open={open ? "true" : "false"} aria-labelledby="ov-sched-title">
+    <section className="ov-card ov-a-s ov-sc" data-open={open ? "true" : "false"} data-wn-focus="celebration-schedule" aria-labelledby="ov-sched-title" onClick={newPill.markSeen}>
       <div className="ov-nh">
         <div style={{ display: "flex", alignItems: "baseline", flexWrap: "wrap" }}>
-          <h2 id="ov-sched-title">Celebration schedule</h2>
+          <h2 id="ov-sched-title">Celebration schedule{newPill.isNew && <>{" "}<span className="wn-new">New</span></>}</h2>
           <span className="sub">{sub}</span>
           <span className="ov-vh" role="status" aria-live="polite">{live}</span>
         </div>

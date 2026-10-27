@@ -14,17 +14,10 @@ echo "================================================"
 echo "  SimchaKit Deploy"
 echo "================================================"
 echo "  Root: $SIMCHAKIT_DIR"
-# ── 0. Sync changelog to V3 public ───────────────
-echo ""
-echo "▶ Syncing changelog..."
-CHANGELOG_SRC="$SIMCHAKIT_DIR/changelog.json"
-CHANGELOG_DST="$CLIENT_DIR/public/changelog.json"
-if [ -f "$CHANGELOG_SRC" ]; then
-    cp "$CHANGELOG_SRC" "$CHANGELOG_DST"
-    echo "  ✓ changelog.json → client/public/changelog.json"
-else
-    echo "  ⚠ changelog.json not found at $CHANGELOG_SRC — skipping"
-fi
+# ── 0. Release notes ─────────────────────────────
+# Host release notes are built from client/changelog/entries.json by the build itself (V5.4-W1).
+# Root changelog.json stays: it is the developer history that the Publish Release workflow reads.
+# client/public/changelog.json is frozen (no longer copied) so older cached clients still load.
 # ── 1. Build ──────────────────────────────────────
 echo ""
 echo "▶ Building..."
