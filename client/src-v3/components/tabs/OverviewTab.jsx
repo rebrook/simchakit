@@ -11,6 +11,7 @@
 // utils/focus.js, not here. This file just needs to also fetch gifts and
 // pass them through.
 //
+// V5.8.1: every Mark action shows an 8-second Undo; Timeline sits under the countdown, Quick Notes below.
 // V5.8.0 (V5-O1): the Overview now leads with "Needs you now" (FocusPanel), each
 // item resolvable in place; the countdown compacts to one row; the four ring
 // cards become one quiet row of labeled stats with small progress bars.
@@ -27,7 +28,8 @@ import { generateEventBriefHTML } from "@/utils/exports.js";
 import { Icon }               from "@/utils/iconMap.jsx";
 import { StatCard }          from "@/components/shared/StatCard.jsx";
 import { FocusPanel }        from "@/components/shared/FocusPanel.jsx";
-import { computeFocusItems } from "@/utils/focus.js";
+import { computeFocusItems, computeNextUp } from "@/utils/focus.js";
+import { UndoToast } from "@/components/guests/UndoToast.jsx";
 import { amountPaid, hasPayments } from "@/utils/expensePayments.js";
 import { getGiftGivers, withGivers } from "@/utils/gifts.js";
 import { getSectionHeadcount, getMealPopulation, isTrackingPerPerson } from "@/utils/sections.js";
@@ -249,35 +251,63 @@ export function OverviewTab({ eventId, event, adminConfig, showToast, setActiveT
   const showSetupReopen = !!setupState && !householdsLoading && canEditSetup && setupState.dismissed && setupSummary.remaining > 0;
 
   // ── Resolve a "Needs you now" row in place ────────────────────────────────
-  // Same writes the Tasks, Budget and Gifts tabs make, so the two places never disagree.
+  // Same writes the Tasks, Budget and Gifts tabs make. Every one shows an 8-second Undo.
+  // Undo puts back only the fields the action changed, onto the row as it is now, so it
+  // does not collide with the save that just happened.
+  const latest = useRef({});
+  latest.current = { tasks, expenses, gifts };
+  const [undo, setUndo] = useState(null);   // { message, run }
+
   const handleResolve = useCallback(async (item, row) => {
     if (!canAct) return;
     const today = new Date().toISOString().slice(0, 10);
-    let result, ok = "Done";
+    const fresh = (list, rowId) => latest.current[list].find(x => x._rowId === rowId);
+    let result, message, run;
     if (item.type === "tasks") {
-      const t = tasks.find(x => x._rowId === row.rowId);
+      const t = fresh("tasks", row.rowId);
       if (!t) return;
       result = await saveTask({ ...t, done: true });
-      ok = "Task completed";
+      message = `Marked done: ${row.title}`;
+      run = () => { const c = fresh("tasks", row.rowId); return c && saveTask({ ...c, done: false }); };
     } else if (item.type === "invoices") {
-      const e = expenses.find(x => x._rowId === row.rowId);
+      const e = fresh("expenses", row.rowId);
       if (!e) return;
+      const before = row.paymentId ? (e.payments || []).find(p => p.id === row.paymentId) : null;
+      const prev = { paid: e.paid, datePaid: e.datePaid };
       result = await saveExpense(hasPayments(e) && row.paymentId
         ? { ...e, payments: e.payments.map(p => p.id === row.paymentId ? { ...p, status: "paid", paidDate: p.paidDate || today } : p) }
         : { ...e, paid: true, datePaid: e.datePaid || today });
-      ok = "Marked paid today. Change the date in Budget if needed.";
+      message = `Marked paid: ${row.title}`;
+      run = () => {
+        const c = fresh("expenses", row.rowId);
+        if (!c) return null;
+        if (before) {
+          return saveExpense({ ...c, payments: (c.payments || []).map(p => p.id === row.paymentId ? { ...p, status: before.status || "scheduled", paidDate: before.paidDate ?? null } : p) });
+        }
+        return saveExpense({ ...c, paid: !!prev.paid, datePaid: prev.datePaid || "" });
+      };
     } else if (item.type === "thankyous") {
-      const g = gifts.find(x => x._rowId === row.giftRowId);
+      const g = fresh("gifts", row.giftRowId);
       if (!g) return;
-      const givers = getGiftGivers(g).map(gv => gv.id !== row.giverId ? gv
-        : (row.stage === "write" ? { ...gv, thankYouWritten: true } : { ...gv, thankYouMailed: true }));
-      result = await saveGift(withGivers(g, givers));
-      ok = "Thank-you note updated";
+      const field = row.stage === "write" ? "thankYouWritten" : "thankYouMailed";
+      result = await saveGift(withGivers(g, getGiftGivers(g).map(gv => gv.id === row.giverId ? { ...gv, [field]: true } : gv)));
+      message = `${row.stage === "write" ? "Marked written" : "Marked mailed"}: ${row.title}`;
+      run = () => { const c = fresh("gifts", row.giftRowId); return c && saveGift(withGivers(c, getGiftGivers(c).map(gv => gv.id === row.giverId ? { ...gv, [field]: false } : gv))); };
     } else return;
     if (result?.error) { showToast("Couldn't save that change. Try again."); return; }
     if (result?.conflict) return;   // AppShell already surfaces a conflict toast
-    showToast(ok);
-  }, [canAct, tasks, expenses, gifts, saveTask, saveExpense, saveGift, showToast]);
+    setUndo({ message, run });
+  }, [canAct, saveTask, saveExpense, saveGift, showToast]);
+
+  const handleUndo = async () => {
+    const u = undo;
+    setUndo(null);
+    if (!u) return;
+    const result = await u.run();
+    if (result?.error) showToast("Couldn't undo that. Try again.");
+  };
+
+  const nextUp = useMemo(() => computeNextUp({ tasks, expenses }), [tasks, expenses]);
 
   // ── Topbar subtitle ──────────────────────────────────────────────────────
   const subtitle = userName
@@ -332,11 +362,16 @@ export function OverviewTab({ eventId, event, adminConfig, showToast, setActiveT
         />
       )}
 
-      {/* Needs you now leads; the countdown is one compact row beside it (below it on phones) */}
-      <div className="overview-hero-row">
+      {/* Two columns on desktop: Needs you now, stats and the rest on the left; countdown with the
+          Timeline under it on the right. On phones one column in this order: list, countdown, stats,
+          timeline. Quick Notes spans the full width below. */}
+      <div className="ov-grid">
+        <div className="ov-col ov-col-main">
         <FocusPanel
           items={focusItems}
           loading={dataLoading}
+          nextUp={nextUp}
+          hideWhenEmpty={showSetupCard && setupSummary.remaining > 1}
           onResolve={handleResolve}
           onNavigate={(tab, item) => {
             if (item?.id === "rsvp-replies") setGuestsView(eventId, "replies");
@@ -344,25 +379,6 @@ export function OverviewTab({ eventId, event, adminConfig, showToast, setActiveT
             setActiveTab(tab);
           }}
         />
-
-        <div className="countdown-compact">
-          {config.logoUrl && <img src={config.logoUrl} alt="" className="countdown-logo-img" />}
-          <div className="countdown-compact-text">
-            <div className="countdown-label">{eventDate && eventPassed ? "Mazel tov!" : eventDate ? "Counting down to" : "Welcome to SimchaKit"}</div>
-            <div className="countdown-compact-title">{config.name || mainEvent?.title || "The Big Day"}</div>
-            <div className="countdown-date">
-              {eventDate ? formatDate(eventDate) : "Mark a main event in Admin Mode to start the countdown"}
-              {eventDate && eventVenue ? ` · ${eventVenue}` : ""}
-            </div>
-          </div>
-          {eventDate && !eventPassed && countdown && (
-            <div className="countdown-compact-days" aria-label={`${countdown.days} days to go`}>
-              <span className="countdown-compact-num">{countdown.days}</span>
-              <span className="countdown-compact-unit">{countdown.days === 1 ? "day" : "days"}</span>
-            </div>
-          )}
-        </div>
-      </div>
 
       {/* Quiet stats row: labeled text, a count, a small bar and the percent in words */}
       <div className="ov-stats">
@@ -393,6 +409,7 @@ export function OverviewTab({ eventId, event, adminConfig, showToast, setActiveT
           onClick={() => setActiveTab && setActiveTab("vendors")} title="Go to vendors tab"
         />
       </div>
+
 
       {/* Stat cards — secondary (simple counts) */}
       <div className="stat-grid-secondary">
@@ -432,8 +449,26 @@ export function OverviewTab({ eventId, event, adminConfig, showToast, setActiveT
         </div>
       )}
 
-      {/* Two-column: timeline + notes */}
-      <div className="two-col">
+        </div>
+        <div className="ov-col ov-col-side">
+        <div className="countdown-compact">
+          {config.logoUrl && <img src={config.logoUrl} alt="" className="countdown-logo-img" />}
+          <div className="countdown-compact-text">
+            <div className="countdown-label">{eventDate && eventPassed ? "Mazel tov!" : eventDate ? "Counting down to" : "Welcome to SimchaKit"}</div>
+            <div className="countdown-compact-title">{config.name || mainEvent?.title || "The Big Day"}</div>
+            <div className="countdown-date">
+              {eventDate ? formatDate(eventDate) : "Mark a main event in Admin Mode to start the countdown"}
+              {eventDate && eventVenue ? ` · ${eventVenue}` : ""}
+            </div>
+          </div>
+          {eventDate && !eventPassed && countdown && (
+            <div className="countdown-compact-days" aria-label={`${countdown.days} days to go`}>
+              <span className="countdown-compact-num">{countdown.days}</span>
+              <span className="countdown-compact-unit">{countdown.days === 1 ? "day" : "days"}</span>
+            </div>
+          )}
+        </div>
+
         <div className="card">
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 4 }}>
             <div className="card-title" style={{ marginBottom: 0 }}>Event Timeline</div>
@@ -509,7 +544,10 @@ export function OverviewTab({ eventId, event, adminConfig, showToast, setActiveT
           )}
         </div>
 
-        <div className="card">
+        </div>
+      </div>
+
+      <div className="card ov-notes">
           <div className="card-title">Quick Notes</div>
           <div className="card-subtitle">Your private planning notes — saved automatically</div>
           <textarea
@@ -529,8 +567,9 @@ export function OverviewTab({ eventId, event, adminConfig, showToast, setActiveT
               </div>
             </>
           )}
-        </div>
       </div>
+
+      {undo && <UndoToast message={undo.message} onUndo={handleUndo} onExpire={() => setUndo(null)} />}
 
       {/* Print Brief preview modal */}
       {briefHTML && (

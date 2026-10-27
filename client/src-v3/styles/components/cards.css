@@ -651,7 +651,7 @@
     .focus-panel-lead { border-color: var(--accent-medium); }
     .focus-panel-lead .focus-panel-header { justify-content: space-between; }
     .focus-panel-title { font-size: 13px; font-weight: 700; text-transform: none; letter-spacing: 0; color: var(--text-primary); }
-    .focus-panel-count { font-size: 12px; font-weight: 500; text-transform: none; letter-spacing: 0; color: var(--text-muted); }
+    .focus-panel-count { font-size: 12px; font-weight: 500; text-transform: none; letter-spacing: 0; color: var(--text-secondary); }
     .focus-item { border-top: 1px solid var(--border); }
     .focus-item .focus-row { border-top: none; cursor: default; padding: 10px 16px; }
     .focus-item .focus-row:hover { background: transparent; }
@@ -688,10 +688,10 @@
     .ov-stat-btn:hover { background: var(--bg-subtle); }
     .ov-stat-label { font-size: 11px; color: var(--text-secondary); padding-right: 22px; }
     .ov-stat-value { font-size: 20px; font-weight: 700; line-height: 1.1; }
-    .ov-stat-value small { font-size: 12px; font-weight: 500; color: var(--text-muted); }
+    .ov-stat-value small { font-size: 12px; font-weight: 500; color: var(--text-secondary); }
     .ov-stat-bar { display: block; height: 5px; background: var(--bg-muted); border-radius: 9px; margin-top: 4px; overflow: hidden; }
     .ov-stat-bar i { display: block; height: 100%; background: var(--accent-primary); }
-    .ov-stat-pct { font-size: 11px; color: var(--text-muted); }
+    .ov-stat-pct { font-size: 11px; color: var(--text-secondary); }
     .ov-stat-info { position: absolute; top: 6px; right: 6px; }
 
     @media (max-width: 900px) {
@@ -707,4 +707,67 @@
       .countdown-compact { padding: 12px 14px; }
       .countdown-compact-title { font-size: 19px; }
       .countdown-compact-num { font-size: 32px; }
+    }
+
+
+    /* ── Overview (V5.8.1): designer review ─────────────────────────────── */
+    /* Two columns: list + stats on the left, countdown + timeline on the right. On phones the
+       columns dissolve and order puts list, countdown, stats, timeline in that sequence. */
+    .ov-grid { display: grid; grid-template-columns: 1.5fr 1fr; gap: 16px; align-items: start; margin-bottom: 16px; }
+    .ov-col { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+    .ov-col .stat-grid-secondary { margin-bottom: 0; }
+    .ov-col .ov-stats { margin-bottom: 0; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); }
+    .ov-col-side .card, .ov-col-main .card { margin-bottom: 0; }
+    .ov-notes { margin-bottom: 20px; }
+    @media (max-width: 900px) {
+      .ov-grid { display: flex; flex-direction: column; }
+      .ov-col { display: contents; }
+      .ov-col-main > :nth-child(1) { order: 1; }   /* Needs you now */
+      .ov-col-side > :nth-child(1) { order: 2; }   /* countdown */
+      .ov-col-main > :nth-child(2) { order: 3; }   /* stats */
+      .ov-col-main > :nth-child(3) { order: 4; }   /* totals / planning another */
+      .ov-col-side > :nth-child(2) { order: 5; }   /* timeline */
+    }
+
+    /* Badge: neutral surface, border, shape and a label; never colored text on a tinted row */
+    .focus-badge { background: var(--bg-surface); color: var(--text-primary); border: 1px solid var(--border-strong); }
+    .focus-badge-red, .focus-badge-gold, .focus-badge-accent { background: var(--bg-surface); color: var(--text-primary); }
+    .focus-badge-dot { width: 8px; height: 8px; border-radius: 50%; border: 1.5px solid currentColor; display: inline-block; }
+    .focus-chip { background: var(--bg-subtle); color: var(--text-primary); border: 1px solid var(--border); }
+    .focus-due.overdue { color: var(--text-primary); }
+    .focus-item.is-open { background: var(--bg-subtle); }
+    .focus-done { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 600; color: var(--text-primary); flex-shrink: 0; }
+
+    /* Detail under the whole list, so opening an item never moves another row's button */
+    .focus-detail-pane { border-top: 1px solid var(--border-strong); background: var(--bg-subtle); padding: 10px 16px 12px; display: grid; gap: 6px; }
+    .focus-detail-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; font-size: 13px; color: var(--text-primary); }
+    .focus-detail-close { background: none; border: none; cursor: pointer; font: 600 12px var(--font-body); color: var(--text-secondary); min-height: 36px; padding: 0 6px; text-decoration: underline; text-underline-offset: 3px; }
+    .focus-detail-pane .focus-subrow { background: var(--bg-surface); }
+    .focus-sub-meta { color: var(--text-secondary); }
+    /* The filled button uses the dark accent so white text clears 4.5:1 in every palette (the plain accent does not in Rose, Navy & Gold, Teal or Blush) */
+    .focus-primary.btn-primary { background: var(--accent-dark); border-color: var(--accent-dark); color: var(--text-inverse); }
+    .focus-primary.btn-primary:hover:not(:disabled) { filter: brightness(1.1); }
+
+    /* Skeleton: three rows holding the list's space while data loads */
+    .focus-skeleton .focus-row { min-height: 72px; }
+    .focus-skel-chip { width: 32px; height: 32px; border-radius: 8px; background: var(--bg-muted); flex-shrink: 0; }
+    .focus-skel-lines { flex: 1; display: grid; gap: 6px; }
+    .focus-skel-lines i { display: block; height: 10px; border-radius: 6px; background: var(--bg-muted); }
+    .focus-skel-lines i:first-child { width: 55%; }
+    .focus-skel-lines i:last-child { width: 35%; }
+    .focus-skel-btn { width: 84px; height: 32px; border-radius: var(--radius-sm); background: var(--bg-muted); flex-shrink: 0; }
+    @media (prefers-reduced-motion: no-preference) {
+      .focus-skeleton { animation: focus-pulse 1.4s ease-in-out infinite; }
+      @keyframes focus-pulse { 50% { opacity: 0.55; } }
+    }
+
+    /* Empty state: one line, plus a link to what is next */
+    .focus-panel-empty { flex-direction: row; flex-wrap: wrap; justify-content: flex-start; align-items: center; gap: 8px 12px; padding: 12px 16px; text-align: left; }
+    .focus-panel-empty .focus-empty-title { font-family: var(--font-body); font-size: 14px; font-weight: 600; margin: 0; }
+    .focus-empty-link { background: none; border: none; cursor: pointer; font: 600 13px var(--font-body); color: var(--accent-dark); min-height: 36px; padding: 0; text-align: left; }
+
+    @media (max-width: 700px) {
+      .focus-detail-pane { padding: 10px 12px 12px; }
+      .focus-primary { min-height: 44px; }
+      .focus-skeleton .focus-row { min-height: 96px; }
     }

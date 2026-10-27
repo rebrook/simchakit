@@ -1,9 +1,25 @@
 {
-  "current": "V5.8.0",
+  "current": "V5.8.1",
   "whatsNew": [
-    "Your Overview now leads with what needs you, and you can finish each item right there"
+    "The Overview list is calmer: it loads without jumping, and every Mark action can be undone for 8 seconds"
   ],
   "changelog": [
+    {
+      "version": "V5.8.1",
+      "date": "2026-10-27",
+      "summary": "Overview follow-up from design review: calmer loading, 8-second Undo on every Mark action, clearer order and labels",
+      "changes": [
+        "Change: while Needs you now loads, three grey placeholder rows hold its space, and the real list appears all at once, so the stats and timeline no longer jump down",
+        "New: every Mark action (Mark paid, Mark done, Mark written, Mark mailed) shows an Undo for 8 seconds. Marking an invoice paid now happens inside the details that open under the list, which show the vendor, amount and due date. Opening an item no longer moves any other row's button, and a row you finish stays in place reading Marked paid",
+        "Change: items are ordered by urgency (overdue invoices, overdue tasks, new RSVP replies, households that haven't replied near the deadline, invoices due soon, tasks due this week, thank-yous) and only the first has the filled button",
+        "Change: buttons that finish an item in place use the verb (Mark paid, Mark done, Mark written); buttons that leave Overview end in an arrow (Review replies →, Send reminder →, Open seating →)",
+        "Change: status badges are neutral with a border, a shape and a word, instead of colored text on a tinted row. Secondary text now meets 4.5:1 contrast in light and dark mode, and the filled button uses the dark accent so its white text is readable in every color scheme",
+        "Change: the Event Timeline moves up under the countdown in the right column and Quick Notes spans the full width below. When nothing needs you the list is one line, Nothing needs you right now, with a link to the next dated task or payment; a new event shows the Getting ready card instead",
+        "No database changes. V3 app only"
+      ],
+      "roadmap": [],
+      "knownIssues": []
+    },
     {
       "version": "V5.8.0",
       "date": "2026-10-27",
