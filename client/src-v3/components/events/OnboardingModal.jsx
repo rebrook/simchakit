@@ -1,6 +1,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // SimchaKit V3 — components/events/OnboardingModal.jsx
-// Shown on first sign-in (blocking) and when editing name (non-blocking).
+// Shown after the first event is created (variant="account-setup", V5.7.0) and
+// when editing the name. Never blocks event creation: Skip for now is the default.
 // Saves display_name to user_profiles via Supabase.
 //
 // Props:
@@ -10,19 +11,24 @@
 //   initialName   {string}   -- pre-fill if editing existing name
 //   onSave        {fn}       -- called with the saved name string
 //   onDismiss     {fn}       -- called when dismissed without saving (isRequired=false only)
+//   variant       {string}   -- "account-setup": "Your event is ready" step, Skip for now is the primary action
+//   eventName     {string}   -- account-setup only: the event just created
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useState } from "react";
 import { supabase }  from "@/lib/supabase.js";
 
-export function OnboardingModal({ userId, isRequired, initialName = "", onSave, onDismiss }) {
+export function OnboardingModal({ userId, isRequired, initialName = "", onSave, onDismiss, variant, eventName }) {
   const [name,    setName]    = useState(initialName);
   const [saving,  setSaving]  = useState(false);
   const [error,   setError]   = useState(null);
 
   const isEdit = !!initialName;
-  const heading = isEdit ? "Update your name" : "What should we call you?";
-  const subheading = isEdit
+  const isSetup = variant === "account-setup";
+  const heading = isSetup ? "Your event is ready" : isEdit ? "Update your name" : "What should we call you?";
+  const subheading = isSetup
+    ? `${eventName ? `"${eventName}" is created. ` : ""}One optional thing before you start: what should we call you? Your name appears in invitation emails to your co-planners.`
+    : isEdit
     ? "Your name appears in invitation emails and the collaborator panel."
     : "Your name will appear in invitation emails sent to your co-planners and in the app footer.";
 
@@ -52,7 +58,7 @@ export function OnboardingModal({ userId, isRequired, initialName = "", onSave, 
   }
 
   function handleKeyDown(e) {
-    if (e.key === "Enter") handleSave();
+    if (e.key === "Enter") { if (isSetup && !name.trim()) onDismiss?.(); else handleSave(); }
     if (e.key === "Escape" && !isRequired) onDismiss?.();
   }
 
@@ -109,7 +115,7 @@ export function OnboardingModal({ userId, isRequired, initialName = "", onSave, 
             value={name}
             onChange={e => { setName(e.target.value); setError(null); }}
             onKeyDown={handleKeyDown}
-            autoFocus
+            autoFocus={!isSetup}
             maxLength={80}
           />
           <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 4 }}>
@@ -133,6 +139,28 @@ export function OnboardingModal({ userId, isRequired, initialName = "", onSave, 
         )}
 
         {/* Actions */}
+        {isSetup ? (
+          <div style={{ display: "flex", gap: 10, alignItems: "center", marginTop: 20, flexWrap: "wrap" }}>
+            <button
+              className={name.trim() ? "btn btn-secondary" : "btn btn-primary"}
+              onClick={onDismiss}
+              disabled={saving}
+              style={{ flex: 1, minHeight: 44 }}
+            >
+              Skip for now
+            </button>
+            {name.trim() && (
+              <button
+                className="btn btn-primary"
+                onClick={handleSave}
+                disabled={saving}
+                style={{ flex: 1, minHeight: 44 }}
+              >
+                {saving ? "Saving…" : "Save name & open event"}
+              </button>
+            )}
+          </div>
+        ) : (
         <div style={{ display: "flex", gap: 10, alignItems: "center", marginTop: 20 }}>
           <button
             className="btn btn-primary"
@@ -152,9 +180,10 @@ export function OnboardingModal({ userId, isRequired, initialName = "", onSave, 
             </button>
           )}
         </div>
+        )}
 
         {/* Fine print for new users */}
-        {!isEdit && !isRequired && (
+        {!isEdit && !isRequired && !isSetup && (
           <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 12, textAlign: "center" }}>
             You can update this at any time from the event picker.
           </div>

@@ -12,6 +12,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { supabase }              from "@/lib/supabase.js";
 import { CreateEventForm }       from "./CreateEventForm.jsx";
+import { OnboardingModal }       from "./OnboardingModal.jsx";
 import { DeleteEventConfirm }    from "./DeleteEventConfirm.jsx";
 import { PaywallGate }           from "./PaywallGate.jsx";
 import { Icon }                  from "@/utils/iconMap.jsx";
@@ -47,7 +48,9 @@ const EVENT_TYPE_LABELS = {
 // ─────────────────────────────────────────────────────────────────────────────
 import { displayName, displayNameWithEmail } from "@/utils/displayName.js";
 
-export function EventPicker({ session, displayName: userDisplayName, onSelectEvent, onEditName }) {
+export function EventPicker({ session, displayName: userDisplayName, onSelectEvent, onEditName, onNameSaved }) {
+  // V5.7.0: after the first event is created, a non-blocking name step; null = not showing
+  const [setupEvent, setSetupEvent] = useState(null);
   const [events,            setEvents]            = useState([]);
   const [collaboratedEvents, setCollaboratedEvents] = useState([]); // events user is a collaborator on
   const [loadStatus,        setLoadStatus]        = useState("loading"); // loading | ready | error
@@ -238,8 +241,10 @@ export function EventPicker({ session, displayName: userDisplayName, onSelectEve
     }
     stampPurchase();
 
-    // Navigate directly into the new event
-    onSelectEvent(newEvent.id);
+    // Navigate directly into the new event. A host with no display name gets one
+    // optional step first (Skip for now is the default); it never blocks the event.
+    if (userDisplayName) onSelectEvent(newEvent.id);
+    else setSetupEvent({ id: newEvent.id, name: newEvent.name });
   }
 
   // ── Event deleted callback ────────────────────────────────────────────────
@@ -376,6 +381,16 @@ export function EventPicker({ session, displayName: userDisplayName, onSelectEve
             Payment confirmed. You can now create your event below.
             <button style={styles.noticeDismiss} onClick={() => setPaymentNotice(null)}><Icon name="x" context="inline" /></button>
           </div>
+        )}
+
+        {setupEvent && (
+          <OnboardingModal
+            variant="account-setup"
+            userId={userId}
+            eventName={setupEvent.name}
+            onSave={(n) => { onNameSaved?.(n); onSelectEvent(setupEvent.id); }}
+            onDismiss={() => onSelectEvent(setupEvent.id)}
+          />
         )}
 
         {/* ── Create event form / paywall ── */}

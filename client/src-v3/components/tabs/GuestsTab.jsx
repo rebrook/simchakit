@@ -33,6 +33,7 @@ import { printDocument, isTouchPrimary } from "@/utils/printDocument.js";
 import { PrintPreviewModal } from "@/components/shared/PrintPreviewModal.jsx";
 import { HouseholdModal }      from "@/components/guests/HouseholdModal.jsx";
 import { ImportModal }         from "@/components/guests/ImportModal.jsx";
+import { applyGuestImport }    from "@/utils/guestImport.js";
 import { TimelineEntryModal }  from "@/components/guests/TimelineEntryModal.jsx";
 import { GuestExportModal }    from "@/components/guests/GuestExportModal.jsx";
 import { GuestInsights }       from "@/components/guests/GuestInsights.jsx";
@@ -253,15 +254,12 @@ export function GuestsTab({ eventId, event, adminConfig, showToast, isArchived, 
   };
 
   // ── Import ────────────────────────────────────────────────────────────────
-  const handleImport = async ({ households: newHH, people: newPpl }, mode) => {
-    if (isArchived) return;
-    if (mode === "replace") {
-      for (const h of households) await removeHouseholdRow(h._rowId);
-      for (const p of people)     await removePersonRow(p._rowId);
-    }
-    for (const h of newHH)  await saveHouseholdRow(h);
-    for (const p of newPpl) await savePersonRow(p);
-    writeAuditLog(eventId, "households", "Added", `Imported ${newHH.length} household${newHH.length !== 1 ? "s" : ""} and ${newPpl.length} guest${newPpl.length !== 1 ? "s" : ""} (${mode === "replace" ? "replaced existing list" : "added to existing list"})`);
+  const handleImport = async (payload, mode) => {
+    if (isArchived || isViewer) return;
+    await applyGuestImport({
+      eventId, payload, mode, households, people,
+      saveHouseholdRow, savePersonRow, removeHouseholdRow, removePersonRow,
+    });
     showToast("Guest list imported");
     setShowImport(false);
   };
@@ -878,7 +876,7 @@ export function GuestsTab({ eventId, event, adminConfig, showToast, isArchived, 
           isArchived={isArchived}
         />
       )}
-      {showImport && <ImportModal adminConfig={adminConfig} onImport={handleImport} onClose={()=>setShowImport(false)} />}
+      {showImport && <ImportModal adminConfig={adminConfig} existingHouseholds={households} onImport={handleImport} onClose={()=>setShowImport(false)} />}
       {showGuestExport && (
         <GuestExportModal
           households={households} people={people} tables={tables} adminConfig={adminConfig} sentLookup={sentLookup}

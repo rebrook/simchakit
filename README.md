@@ -2,7 +2,7 @@
 
 A real-time event planning web app for celebrations — B'nei Mitzvot, weddings, and other simchas.
 
-![Version](https://img.shields.io/badge/version-5.6.0-blue)
+![Version](https://img.shields.io/badge/version-5.7.0-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
 ## Hosted Version
@@ -205,6 +205,8 @@ Schema changes (new tables, RLS policies, functions) are applied directly in the
 **Guest messaging (V5):** run `V5.0-M1.sql`, then `V5.0-M2.sql` (adds `message_log.channel` for paper and other-platform mailings and makes `message_recipients.email` optional). Run M2 before deploying the Guests tab changes, or the message history cannot load and rows fall back to the pre-V5 sent flags. Guests are emailed through `POST /api/guest?action=send` (use `dry_run` to preview and `action=test` to send a sample to yourself).
 
 **Guest RSVP pages (V5):** `src-v3/rsvp/` (route `/r/:token`, rendered by `App.v3.jsx` above every auth hook, loaded as its own chunk). `vercel.json` adds `X-Robots-Tag: noindex`, `Referrer-Policy: no-referrer` and `Cache-Control: no-store` for `/r/*`. The guest page talks only to `/api/rsvp`, never to Supabase.
+
+**First run (V5):** run `V5.2-F1.sql` **before** deploying (adds `events.setup_state`, no RLS change, no backfill). The create screen is `components/events/CreateEventForm.jsx` (sub-events seeded by type in `utils/eventSeeds.js`); the Overview "Getting ready" card is `components/shared/GetStartedCard.jsx`, with its saved state, step rules and one-time localStorage migration in `utils/setupState.js`; the guest import review step is in `components/guests/ImportModal.jsx` and saves through `utils/guestImport.js`.
 
 **RSVP review queue (V5):** run `V5.1-R3.sql` (after R1). It adds `applied_snapshot`, `reviewed_by`, `reviewed_at` and `reject_reason` to `rsvp_replies` and adds the table to the realtime publication. The queue lives in the Guests tab (`components/guests/ReplyQueue.jsx`; what an accept writes is in `utils/rsvpApply.js`, with its undo snapshot).
 

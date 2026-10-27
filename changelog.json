@@ -1,9 +1,25 @@
 {
-  "current": "V5.6.0",
+  "current": "V5.7.0",
   "whatsNew": [
-    "Remind households that haven't replied, straight from Overview, with their personal reply links"
+    "Create your event and set it up in one flow, with a Getting ready card and a review step before guests are imported"
   ],
   "changelog": [
+    {
+      "version": "V5.7.0",
+      "date": "2026-10-27",
+      "summary": "First run: create your event and set it up in one flow, a Getting ready card, and a review step for guest imports",
+      "changes": [
+        "New: creating an event is one warm screen. Pick what you are celebrating, name it, add a date and an optional venue, and choose the events to track. A mitzvah suggests Service, Kiddush and Reception; a wedding suggests Ceremony and Reception. Tap one to turn it off or use + Add. They are created as sub-events (the first is the main event), so guests can reply to each from day one. A live countdown preview sits beside the form and drops below it on phones",
+        "Change: your display name is no longer asked before you can start. After your first event is created an optional step asks what to call you, and Skip for now is the default way into the event. The name step never blocks creating an event",
+        "New: a Getting ready card on Overview replaces the Get Started checklist. Five steps (Event created, Events and venue, Add your guests, Invite a co-planner, Pick your color and logo) each open in place and do the work there: save a venue and add an event, import a spreadsheet, open the invite window, choose a color scheme and upload a logo, all without going to Admin. Done, Skipped and To do are shown as words with a check, arrow or empty circle. The card shrinks to a single line when one step is left and hides when every step is done or skipped; Dismiss hides it early and a Getting ready button brings it back",
+        "Change: Getting ready progress is saved on the event instead of in your browser, so co-planners see the same steps and the same dismissal on every device (it refreshes when you return to the tab). An old Get Started dismissal saved in this browser is moved onto the event the first time an owner or editor opens it, then ignored. Existing events work unchanged: steps already satisfied (guests added, a logo or color set, more than one event) show as Done. Only owners and editors can change steps; viewers see progress read-only",
+        "New: guest import has a review step before anything is saved. It shows the file, how many households and people it found, and how many are ready versus need a look. Rows with no email (messaging needs one), no address, or a possible duplicate of a household you already have are flagged in words and fixed on the spot: type the missing email or address, Merge into the existing household (blank fields are filled in, the people join it) or Keep both. Change columns goes back to the column mapping. Nothing is saved until you choose Import N households",
+        "Change: Admin, Guests no longer shows the Accept replies automatically: not available yet note, and the guide no longer mentions it. Automatic acceptance is not planned: every reply still waits for your review",
+        "Database (client/migrations/V5.2-F1.sql): adds events.setup_state (jsonb, default empty). No change to who can read or write events (the existing owner and editor policies apply, archived events stay read-only); no backfill. Run it before deploying the app. V3 app only"
+      ],
+      "roadmap": [],
+      "knownIssues": []
+    },
     {
       "version": "V5.6.0",
       "date": "2026-10-27",
