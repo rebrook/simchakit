@@ -54,7 +54,7 @@ export function FocusPanel({ items, loading, onNavigate }) {
             key={item.id}
             className={`focus-row focus-row-${item.tone}`}
             onClick={() => onNavigate && onNavigate(item.tab, item)}
-            aria-label={`${item.title}. ${item.detail}. Go to ${item.tab}.`}
+            aria-label={`${item.title}. ${item.detail}. ${item.actionLabel ? `${item.actionLabel}.` : `Go to ${item.tab}.`}`}
           >
             <span className={`focus-chip focus-chip-${item.tone}`}>
               <Icon name={item.icon} context="badge" />
@@ -63,6 +63,7 @@ export function FocusPanel({ items, loading, onNavigate }) {
               <span className="focus-title">{item.title}</span>
               <span className="focus-detail">{item.detail}</span>
             </span>
+            {item.actionLabel && <span className="focus-action" aria-hidden="true">{item.actionLabel}</span>}
             <span className="focus-arrow" aria-hidden="true">
               <Icon name="arrowRight" context="inline" />
             </span>

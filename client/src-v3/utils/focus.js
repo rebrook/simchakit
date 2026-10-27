@@ -22,6 +22,8 @@
 import { getOpenPayments } from "./vendors.js";
 import { getConfirmedPeopleForSection, getAwaitingSummary, describeAwaitingSections } from "./sections.js";
 import { countThankYousOutstanding } from "./gifts.js";
+import { unrepliedHouseholds, daysUntil } from "./rsvpReminders.js";
+import { householdKey } from "./messageStatus.js";
 
 const BOOKED_STATUSES = ["Booked", "Deposit Paid", "Paid in Full"];
 
@@ -49,6 +51,8 @@ export function computeFocusItems(data, adminConfig) {
     seatingRows = [],
     gifts = [],
     pendingReplies = 0,
+    repliedHouseholdIds = new Set(),   // households with a pending or accepted RSVP reply
+    canRemind = false,                 // owner/editor on a live event: the card can open the composer
   } = data;
 
   const config = adminConfig || {};
@@ -193,10 +197,36 @@ export function computeFocusItems(data, adminConfig) {
     }
   }
 
+  // ── Households that haven't replied (V5-R4) ─────────────────────────────
+  // With an RSVP deadline set, this one card replaces the older "guests awaiting RSVP" row: it
+  // names the households (the same set the composer preselects for a reminder) and the deadline.
+  let reminderShown = false;
+  const rsvpDeadline = config.rsvpDeadline;
+  const daysToDeadline = daysUntil(rsvpDeadline, now);
+  if (!eventHasPassed && daysToDeadline !== null && households.length > 0) {
+    const unreplied = unrepliedHouseholds(households, people, config.timeline || [], repliedHouseholdIds);
+    if (unreplied.length > 0) {
+      reminderShown = true;
+      const n = unreplied.length;
+      items.push({
+        id: "rsvp-reminder",
+        domain: "rsvps",
+        tone: daysToDeadline <= 7 ? "gold" : "accent",
+        icon: "mailCheck",
+        title: `${n} household${n !== 1 ? "s haven't" : " hasn't"} replied`,
+        detail: daysToDeadline > 1 ? `Deadline in ${daysToDeadline} days` : daysToDeadline === 1 ? "Deadline is tomorrow" : daysToDeadline === 0 ? "Deadline is today" : `Deadline passed ${Math.abs(daysToDeadline)} day${Math.abs(daysToDeadline) !== 1 ? "s" : ""} ago`,
+        tab: "guests",
+        priority: daysToDeadline <= 7 ? 1.5 : 4.5,
+        actionLabel: canRemind ? "Send reminder" : null,
+        compose: { kind: "rsvp_reminder", ids: unreplied.map(householdKey) },
+      });
+    }
+  }
+
   // ── RSVP gap (only surface when event is within 60 days) ────────────────
   // Uses household rsvpStatus to identify non-responders. Counts people (not
   // households) to match the RSVP stat card unit. Excludes declined.
-  if (daysToEvent !== null && daysToEvent <= 60 && daysToEvent > 0 && people.length > 0) {
+  if (!reminderShown && daysToEvent !== null && daysToEvent <= 60 && daysToEvent > 0 && people.length > 0) {
     const RESPONDED = new Set(["RSVP Yes", "RSVP No"]);
     const hhStatusMap = new Map(households.map(h => [h.id, h.rsvpStatus || "Invited"]));
     const awaitingPeople = people.filter(p => {

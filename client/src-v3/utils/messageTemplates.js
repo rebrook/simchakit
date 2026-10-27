@@ -28,6 +28,7 @@ const channelLabel = (key) =>
 
 const MERGE_FIELDS = [
   { key: "household_name",   label: "Household name" },
+  { key: "rsvp_link",        label: "RSVP link" },
   { key: "event_name",       label: "Event name" },
   { key: "event_date",       label: "Event date" },
   { key: "venue",            label: "Venue" },
@@ -36,7 +37,8 @@ const MERGE_FIELDS = [
 ];
 
 // Warm, plain wording. The reply-to address is the host's, so guests can answer
-// by replying; {{rsvp_link}} stays out of the defaults until RSVP links exist.
+// by replying. Invitations and reminders also carry {{rsvp_link}}: each household's private
+// reply link, shown as a button in the email where the host puts it.
 const DEFAULT_TEMPLATES = {
   save_the_date: {
     subject: "Save the date: {{event_name}}",
@@ -60,7 +62,9 @@ You are warmly invited to {{event_name}}.
 Date: {{event_date}}
 Place: {{venue}}
 
-We would love to celebrate with you. Please reply to this email to let us know if you can join us.
+We would love to celebrate with you. Please let us know if you can join us:
+
+{{rsvp_link}}
 
 With love,
 {{host_names}}`,
@@ -72,7 +76,11 @@ With love,
 
 We hope you are well! We haven't heard whether you can join us for {{event_name}} on {{event_date}}, and we would love to know.
 
-Just reply to this email when you can. Thank you!
+It only takes a minute:
+
+{{rsvp_link}}
+
+Thank you!
 
 With love,
 {{host_names}}`,

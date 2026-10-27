@@ -25,7 +25,7 @@ import { FocusPanel }        from "@/components/shared/FocusPanel.jsx";
 import { computeFocusItems } from "@/utils/focus.js";
 import { amountPaid } from "@/utils/expensePayments.js";
 import { getSectionHeadcount, getMealPopulation, isTrackingPerPerson } from "@/utils/sections.js";
-import { setGuestsPreset, setGuestsView } from "@/utils/guestsPreset.js";
+import { setGuestsPreset, setGuestsView, setGuestsCompose } from "@/utils/guestsPreset.js";
 import { useRsvpReplies } from "@/hooks/useRsvpReplies.js";
 import { InfoPopover } from "@/components/shared/InfoPopover.jsx";
 import { METRIC_HELP } from "@/constants/metrics.js";
@@ -97,8 +97,11 @@ export function OverviewTab({ eventId, event, adminConfig, showToast, setActiveT
   const { items: tables, loading: tablesLoading }           = useEventData(eventId, "tables");
   const { items: seatingRows, loading: seatingLoading }     = useEventData(eventId, "seating");
   // V5-R3: guests' RSVP replies waiting for review (read-only here; an error just means none to show)
-  const { pending: pendingReplyRows } = useRsvpReplies(eventId);
+  const { pending: pendingReplyRows, replies: replyRows } = useRsvpReplies(eventId);
   const pendingReplies = pendingReplyRows.length;
+  // Households that already replied through their link (pending review or accepted): not "unreplied".
+  const repliedHouseholdIds = useMemo(() => new Set(replyRows.filter(r => r.status === "pending" || r.status === "accepted").map(r => r.household_id)), [replyRows]);
+  const canRemind = !isViewer && !event?.archived;
   const { items: gifts, loading: giftsLoading }             = useEventData(eventId, "gifts");
 
   const dataLoading = householdsLoading || peopleLoading || expensesLoading
@@ -187,8 +190,8 @@ export function OverviewTab({ eventId, event, adminConfig, showToast, setActiveT
 
   // Focus panel items — memoized
   const focusItems = useMemo(
-    () => computeFocusItems({ tasks, expenses, people, households, vendors, tables, seatingRows, gifts, pendingReplies }, config),
-    [tasks, expenses, people, households, vendors, tables, seatingRows, gifts, pendingReplies, config],
+    () => computeFocusItems({ tasks, expenses, people, households, vendors, tables, seatingRows, gifts, pendingReplies, repliedHouseholdIds, canRemind }, config),
+    [tasks, expenses, people, households, vendors, tables, seatingRows, gifts, pendingReplies, repliedHouseholdIds, canRemind, config],
   );
 
   const STORAGE_KEY = `simchakit-getstarted-dismissed-${eventId || "default"}`;
@@ -313,7 +316,11 @@ export function OverviewTab({ eventId, event, adminConfig, showToast, setActiveT
         <FocusPanel
           items={focusItems}
           loading={dataLoading}
-          onNavigate={(tab, item) => { if (item?.id === "rsvp-replies") setGuestsView(eventId, "replies"); setActiveTab(tab); }}
+          onNavigate={(tab, item) => {
+            if (item?.id === "rsvp-replies") setGuestsView(eventId, "replies");
+            if (item?.id === "rsvp-reminder" && item.actionLabel) setGuestsCompose(eventId, item.compose.kind, item.compose.ids);
+            setActiveTab(tab);
+          }}
         />
       </div>
 
