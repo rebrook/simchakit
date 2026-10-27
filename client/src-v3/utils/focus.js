@@ -17,11 +17,20 @@
 // items were already gated to daysToEvent > 0, so they already stop on their
 // own; seating gets that same gate added here. A new gift thank-you item
 // surfaces in their place, since that is the thing actually left to do.
+//
+// V5.8.0 (V5-O1): items are typed and carry what the Overview needs to resolve
+// them in place. type is "replies" | "unreplied" | "invoices" | "tasks" |
+// "thankyous" | "nav". The first five are actions only an owner or editor can
+// take (canAct), so they are left out for viewers and archived events; "nav"
+// items only point at a tab and stay visible. Each item has one primary action
+// (actionLabel). invoices, tasks and thankyous carry payload.rows so the card can
+// list them and complete each one without leaving Overview; badge is the status
+// word shown next to a shape, so urgency is never color alone.
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { getOpenPayments } from "./vendors.js";
 import { getConfirmedPeopleForSection, getAwaitingSummary, describeAwaitingSections } from "./sections.js";
-import { countThankYousOutstanding } from "./gifts.js";
+import { countThankYousOutstanding, getGiftGivers } from "./gifts.js";
 import { unrepliedHouseholds, daysUntil } from "./rsvpReminders.js";
 import { householdKey } from "./messageStatus.js";
 
@@ -36,7 +45,7 @@ const BOOKED_STATUSES = ["Booked", "Deposit Paid", "Paid in Full"];
  * @returns {Array<FocusItem>}
  *
  * FocusItem shape:
- *   { id, domain, tone, title, detail, tab, priority }
+ *   { id, domain, type, tone, badge, title, detail, tab, priority, actionLabel, payload? }
  *   tone: "red" | "gold" | "accent"
  *   priority: lower = more urgent
  */
@@ -52,7 +61,7 @@ export function computeFocusItems(data, adminConfig) {
     gifts = [],
     pendingReplies = 0,
     repliedHouseholdIds = new Set(),   // households with a pending or accepted RSVP reply
-    canRemind = false,                 // owner/editor on a live event: the card can open the composer
+    canAct = false,                    // owner/editor on a live event: may resolve items that change data
   } = data;
 
   const config = adminConfig || {};
@@ -67,14 +76,17 @@ export function computeFocusItems(data, adminConfig) {
   const items = [];
 
   // ── New RSVP replies (V5-R3): always first, since a guest is waiting on the host ──
-  if (pendingReplies > 0) {
+  if (pendingReplies > 0 && canAct) {
     items.push({
       id: "rsvp-replies",
       domain: "rsvp-replies",
+      type: "replies",
+      badge: "New",
+      actionLabel: "Review",
       tone: "accent",
       icon: "mailCheck",
-      title: `${pendingReplies} new RSVP repl${pendingReplies === 1 ? "y" : "ies"} to review`,
-      detail: "Guests replied from their link; nothing changes until you accept",
+      title: `${pendingReplies} new RSVP repl${pendingReplies === 1 ? "y" : "ies"}`,
+      detail: "Review and accept into the guest list",
       tab: "guests",
       priority: -1,
     });
@@ -89,10 +101,25 @@ export function computeFocusItems(data, adminConfig) {
     return d >= today && d <= endOfWeek;
   });
 
-  if (overdueTasks.length > 0) {
+  const taskRow = (t) => ({
+    key: t.id || t._rowId,
+    rowId: t._rowId,
+    title: truncate(t.task || t.title || "Untitled task", 80),
+    due: t.due,
+    overdue: new Date(t.due + "T00:00:00") < today,
+  });
+  const taskRows = [...overdueTasks, ...dueThisWeek].sort((a, b) => a.due.localeCompare(b.due)).map(taskRow);
+
+  if (!canAct) {
+    // viewers and archived events cannot complete tasks, so there is nothing to act on here
+  } else if (overdueTasks.length > 0) {
     items.push({
       id: "tasks",
       domain: "tasks",
+      type: "tasks",
+      badge: "Overdue",
+      actionLabel: "Review",
+      payload: { rows: taskRows },
       tone: "red",
       icon: "alertTriangle",
       title: `${overdueTasks.length} task${overdueTasks.length !== 1 ? "s" : ""} overdue`,
@@ -106,6 +133,10 @@ export function computeFocusItems(data, adminConfig) {
     items.push({
       id: "tasks",
       domain: "tasks",
+      type: "tasks",
+      badge: "This week",
+      actionLabel: "Review",
+      payload: { rows: taskRows },
       tone: "gold",
       icon: "tasks",
       title: `${dueThisWeek.length} task${dueThisWeek.length !== 1 ? "s" : ""} due this week`,
@@ -131,19 +162,34 @@ export function computeFocusItems(data, adminConfig) {
     const d = dueOn(p);
     return d >= today && d <= new Date(today.getTime() + 14 * 86400000);
   });
-  const overdueExpenses = [...new Set(overdueOpen.map(p => p.expense))];
+  const paymentRow = (p) => ({
+    key: `${p.expense._rowId || p.expense.id}:${p.id || "single"}`,
+    rowId: p.expense._rowId,
+    paymentId: p.id || null,
+    title: truncate(p.expense.description || p.expense.vendor || "Payment", 60),
+    label: p.label || "",
+    amount: p.amount,
+    dueDate: p.dueDate,
+    overdue: dueOn(p) < today,
+  });
+  const paymentRows = (list) => [...list].sort((a, b) => a.dueDate.localeCompare(b.dueDate)).map(paymentRow);
 
-  if (overdueOpen.length > 0) {
+  if (!canAct) {
+    // marking payments paid changes data: not offered to viewers or on archived events
+  } else if (overdueOpen.length > 0) {
     const total = overdueOpen.reduce((s, p) => s + p.amount, 0);
+    const n = overdueOpen.length;
     items.push({
       id: "payments",
       domain: "payments",
+      type: "invoices",
+      badge: "Overdue",
+      actionLabel: "Review",
+      payload: { rows: paymentRows(overdueOpen) },
       tone: "red",
       icon: "alertTriangle",
-      title: `$${total.toLocaleString()} in overdue payments`,
-      detail: overdueExpenses.length === 1
-        ? truncate(overdueExpenses[0].description || overdueExpenses[0].vendor || "Payment", 60)
-        : `${overdueExpenses.length} payments past due`,
+      title: `${n} invoice${n !== 1 ? "s" : ""} overdue`,
+      detail: `$${total.toLocaleString()} total`,
       tab: "budget",
       priority: 2,
     });
@@ -155,6 +201,10 @@ export function computeFocusItems(data, adminConfig) {
     items.push({
       id: "payments",
       domain: "payments",
+      type: "invoices",
+      badge: "Due soon",
+      actionLabel: "Review",
+      payload: { rows: paymentRows(upcomingOpen) },
       tone: "gold",
       icon: "banknote",
       title: `$${total.toLocaleString()} due within 2 weeks`,
@@ -178,12 +228,26 @@ export function computeFocusItems(data, adminConfig) {
   // V4.38.0: a note counts as outstanding until it is both written AND
   // mailed (previously only unwritten notes counted), using the shared
   // countThankYousOutstanding() so the Gifts nav badge reads the same number.
-  if (eventHasPassed && gifts.length > 0) {
+  if (eventHasPassed && gifts.length > 0 && canAct) {
     const { total, toWrite, toMail } = countThankYousOutstanding(gifts);
     if (total > 0) {
+      const rows = gifts.flatMap(g => getGiftGivers(g)
+        .filter(gv => !gv.thankYouWritten || !gv.thankYouMailed)
+        .map(gv => ({
+          key: `${g._rowId || g.id}:${gv.id}`,
+          giftRowId: g._rowId,
+          giverId: gv.id,
+          title: truncate(gv.name || "Unnamed giver", 60),
+          gift: truncate(g.description || g.items?.[0]?.description || "", 50),
+          stage: gv.thankYouWritten ? "mail" : "write",
+        })));
       items.push({
         id: "gift-thankyous",
         domain: "gifts",
+        type: "thankyous",
+        badge: "Owed",
+        actionLabel: "Write notes",
+        payload: { rows },
         tone: "accent",
         icon: "gifts",
         title: `${total} thank-you note${total !== 1 ? "s" : ""} outstanding`,
@@ -211,13 +275,15 @@ export function computeFocusItems(data, adminConfig) {
       items.push({
         id: "rsvp-reminder",
         domain: "rsvps",
+        type: canAct ? "unreplied" : "nav",   // viewers get a plain link to the Guests tab
+        badge: daysToDeadline <= 7 ? "Due soon" : "Open",
         tone: daysToDeadline <= 7 ? "gold" : "accent",
         icon: "mailCheck",
         title: `${n} household${n !== 1 ? "s haven't" : " hasn't"} replied`,
         detail: daysToDeadline > 1 ? `Deadline in ${daysToDeadline} days` : daysToDeadline === 1 ? "Deadline is tomorrow" : daysToDeadline === 0 ? "Deadline is today" : `Deadline passed ${Math.abs(daysToDeadline)} day${Math.abs(daysToDeadline) !== 1 ? "s" : ""} ago`,
         tab: "guests",
         priority: daysToDeadline <= 7 ? 1.5 : 4.5,
-        actionLabel: canRemind ? "Send reminder" : null,
+        actionLabel: canAct ? "Send reminder" : "View",
         compose: { kind: "rsvp_reminder", ids: unreplied.map(householdKey) },
       });
     }
@@ -351,6 +417,11 @@ export function computeFocusItems(data, adminConfig) {
       });
     }
   }
+
+  // Items that only point at a tab are typed "nav", with one action: open that tab.
+  items.forEach(it => {
+    if (!it.type) { it.type = "nav"; it.badge = it.badge || "To do"; it.actionLabel = it.actionLabel || "Open"; }
+  });
 
   // Sort by priority (lower = more urgent)
   items.sort((a, b) => a.priority - b.priority);

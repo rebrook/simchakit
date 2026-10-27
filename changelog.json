@@ -1,9 +1,23 @@
 {
-  "current": "V5.7.0",
+  "current": "V5.8.0",
   "whatsNew": [
-    "Create your event and set it up in one flow, with a Getting ready card and a review step before guests are imported"
+    "Your Overview now leads with what needs you, and you can finish each item right there"
   ],
   "changelog": [
+    {
+      "version": "V5.8.0",
+      "date": "2026-10-27",
+      "summary": "Needs you now leads the Overview, every item can be finished in place, and the countdown and stats are compact",
+      "changes": [
+        "New: the Overview opens with a Needs you now list. Each item has one button and a status word with an icon: new RSVP replies (Review opens the reply queue), households that haven't replied (Send reminder opens the composer with them chosen), invoices overdue or due soon, tasks overdue or due this week, and thank-you notes owed after the event. The top four show, with a toggle for the rest. When nothing needs you it says so in one warm line",
+        "New: invoices, tasks and thank-yous are resolved in place. Review expands the item into its rows, and Mark paid, Done, Mark written or Mark mailed finishes each one without leaving Overview, using the same saves as the Budget, Tasks and Gifts tabs. A paid invoice is dated today; change the date in Budget if it was earlier. More than five rows link to the full tab",
+        "Change: the countdown is one compact row (event name, date, venue, logo and the days left) instead of a large card with a ticking clock. The four ring cards (Confirmed, Budget paid, Tasks done, Vendors booked) are now one quiet row of labeled stats, each with a count, a small bar and the percent written out. Total Guests and Out of Town stay below",
+        "Change: owners and editors can resolve items; viewers and archived events only see links that open a tab, and items that would change data are hidden for them",
+        "No database changes. V3 app only"
+      ],
+      "roadmap": [],
+      "knownIssues": []
+    },
     {
       "version": "V5.7.0",
       "date": "2026-10-27",

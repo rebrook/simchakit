@@ -10,6 +10,10 @@
 // reprioritization of "What Needs You Next" toward gift thank-yous lives in
 // utils/focus.js, not here. This file just needs to also fetch gifts and
 // pass them through.
+//
+// V5.8.0 (V5-O1): the Overview now leads with "Needs you now" (FocusPanel), each
+// item resolvable in place; the countdown compacts to one row; the four ring
+// cards become one quiet row of labeled stats with small progress bars.
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
@@ -24,7 +28,8 @@ import { Icon }               from "@/utils/iconMap.jsx";
 import { StatCard }          from "@/components/shared/StatCard.jsx";
 import { FocusPanel }        from "@/components/shared/FocusPanel.jsx";
 import { computeFocusItems } from "@/utils/focus.js";
-import { amountPaid } from "@/utils/expensePayments.js";
+import { amountPaid, hasPayments } from "@/utils/expensePayments.js";
+import { getGiftGivers, withGivers } from "@/utils/gifts.js";
 import { getSectionHeadcount, getMealPopulation, isTrackingPerPerson } from "@/utils/sections.js";
 import { setGuestsPreset, setGuestsView, setGuestsCompose } from "@/utils/guestsPreset.js";
 import { useRsvpReplies } from "@/hooks/useRsvpReplies.js";
@@ -51,6 +56,23 @@ function useIsMobile() {
   return m;
 }
 
+// One quiet stat: label, "84 of 136", a small bar, and "62%" as text so the bar is never the only cue.
+function OvStat({ label, value, numeric, of, ofDisplay, fallback, onClick, title, info }) {
+  const num = numeric ?? Number(value);
+  const pct = of > 0 ? Math.max(0, Math.min(100, Math.round((num / of) * 100))) : 0;
+  return (
+    <div className="ov-stat">
+      <button type="button" className="ov-stat-btn" onClick={onClick} title={title}>
+        <span className="ov-stat-label">{label}</span>
+        <span className="ov-stat-value">{value}{of > 0 && <small> of {ofDisplay ?? of}</small>}</span>
+        <span className="ov-stat-bar" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={pct} aria-label={`${label}: ${pct}%`}><i style={{ width: `${pct}%` }} /></span>
+        <span className="ov-stat-pct">{of > 0 ? `${pct}% complete` : fallback}</span>
+      </button>
+      {info && <span className="ov-stat-info"><InfoPopover text={info} label={`How is ${label.toLowerCase()} counted?`} /></span>}
+    </div>
+  );
+}
+
 export function OverviewTab({ eventId, event, adminConfig, showToast, setActiveTab, onOpenAdmin, onOpenAdminTo, onOpenGuide, onPrintBrief, isViewer, isArchived, collaboratorRole, coPlanners, userId, onConfigSaved, onLogoSaved, openInvite, setTopbarSubtitle, userName }) {
   const config    = adminConfig || {};
   const isMobile  = useIsMobile();
@@ -67,7 +89,7 @@ export function OverviewTab({ eventId, event, adminConfig, showToast, setActiveT
   useEffect(() => {
     if (!eventDate) { setCountdown(null); return; }
     setCountdown(getCountdown(eventDate));
-    const timer = setInterval(() => setCountdown(getCountdown(eventDate)), 1000);
+    const timer = setInterval(() => setCountdown(getCountdown(eventDate)), 30000);   // days and hours only, so no per-second tick
     return () => clearInterval(timer);
   }, [eventDate]);
 
@@ -92,8 +114,8 @@ export function OverviewTab({ eventId, event, adminConfig, showToast, setActiveT
   // Load aggregated data for stat cards and focus panel
   const { items: households, loading: householdsLoading }  = useEventData(eventId, "households");
   const { items: people, loading: peopleLoading }          = useEventData(eventId, "people");
-  const { items: expenses, loading: expensesLoading }      = useEventData(eventId, "expenses");
-  const { items: tasks, loading: tasksLoading }             = useEventData(eventId, "tasks");
+  const { items: expenses, loading: expensesLoading, save: saveExpense } = useEventData(eventId, "expenses");
+  const { items: tasks, loading: tasksLoading, save: saveTask }          = useEventData(eventId, "tasks");
   const { items: vendors, loading: vendorsLoading }         = useEventData(eventId, "vendors");
   const { items: tables, loading: tablesLoading }           = useEventData(eventId, "tables");
   const { items: seatingRows, loading: seatingLoading }     = useEventData(eventId, "seating");
@@ -102,8 +124,9 @@ export function OverviewTab({ eventId, event, adminConfig, showToast, setActiveT
   const pendingReplies = pendingReplyRows.length;
   // Households that already replied through their link (pending review or accepted): not "unreplied".
   const repliedHouseholdIds = useMemo(() => new Set(replyRows.filter(r => r.status === "pending" || r.status === "accepted").map(r => r.household_id)), [replyRows]);
-  const canRemind = !isViewer && !event?.archived;
-  const { items: gifts, loading: giftsLoading }             = useEventData(eventId, "gifts");
+  // Owner or editor on a live event: may resolve items that change data. Viewers see only links.
+  const canAct = !isViewer && !isArchived && !event?.archived;
+  const { items: gifts, loading: giftsLoading, save: saveGift }          = useEventData(eventId, "gifts");
 
   const dataLoading = householdsLoading || peopleLoading || expensesLoading
     || tasksLoading || vendorsLoading || tablesLoading || seatingLoading || giftsLoading;
@@ -184,15 +207,10 @@ export function OverviewTab({ eventId, event, adminConfig, showToast, setActiveT
   const confirmedCount = mealPop.confirmed.length;
   const invitedCount   = mealPop.relevant.length;
 
-  // Completion tone: green when done, baseTone otherwise.
-  // Uses >= and rounds to cents for currency (floats).
-  const completionTone = (done, total, baseTone) =>
-    total > 0 && Math.round(done * 100) >= Math.round(total * 100) ? "green" : baseTone;
-
   // Focus panel items — memoized
   const focusItems = useMemo(
-    () => computeFocusItems({ tasks, expenses, people, households, vendors, tables, seatingRows, gifts, pendingReplies, repliedHouseholdIds, canRemind }, config),
-    [tasks, expenses, people, households, vendors, tables, seatingRows, gifts, pendingReplies, repliedHouseholdIds, canRemind, config],
+    () => computeFocusItems({ tasks, expenses, people, households, vendors, tables, seatingRows, gifts, pendingReplies, repliedHouseholdIds, canAct }, config),
+    [tasks, expenses, people, households, vendors, tables, seatingRows, gifts, pendingReplies, repliedHouseholdIds, canAct, config],
   );
 
   // ── Getting ready card (V5.7.0) ───────────────────────────────────────────
@@ -229,6 +247,37 @@ export function OverviewTab({ eventId, event, adminConfig, showToast, setActiveT
   }, [eventId, showToast]);
   const showSetupCard = !!setupState && !householdsLoading && !!collaboratorRole && collaboratorRole !== "coordinator" && !setupState.dismissed;
   const showSetupReopen = !!setupState && !householdsLoading && canEditSetup && setupState.dismissed && setupSummary.remaining > 0;
+
+  // ── Resolve a "Needs you now" row in place ────────────────────────────────
+  // Same writes the Tasks, Budget and Gifts tabs make, so the two places never disagree.
+  const handleResolve = useCallback(async (item, row) => {
+    if (!canAct) return;
+    const today = new Date().toISOString().slice(0, 10);
+    let result, ok = "Done";
+    if (item.type === "tasks") {
+      const t = tasks.find(x => x._rowId === row.rowId);
+      if (!t) return;
+      result = await saveTask({ ...t, done: true });
+      ok = "Task completed";
+    } else if (item.type === "invoices") {
+      const e = expenses.find(x => x._rowId === row.rowId);
+      if (!e) return;
+      result = await saveExpense(hasPayments(e) && row.paymentId
+        ? { ...e, payments: e.payments.map(p => p.id === row.paymentId ? { ...p, status: "paid", paidDate: p.paidDate || today } : p) }
+        : { ...e, paid: true, datePaid: e.datePaid || today });
+      ok = "Marked paid today. Change the date in Budget if needed.";
+    } else if (item.type === "thankyous") {
+      const g = gifts.find(x => x._rowId === row.giftRowId);
+      if (!g) return;
+      const givers = getGiftGivers(g).map(gv => gv.id !== row.giverId ? gv
+        : (row.stage === "write" ? { ...gv, thankYouWritten: true } : { ...gv, thankYouMailed: true }));
+      result = await saveGift(withGivers(g, givers));
+      ok = "Thank-you note updated";
+    } else return;
+    if (result?.error) { showToast("Couldn't save that change. Try again."); return; }
+    if (result?.conflict) return;   // AppShell already surfaces a conflict toast
+    showToast(ok);
+  }, [canAct, tasks, expenses, gifts, saveTask, saveExpense, saveGift, showToast]);
 
   // ── Topbar subtitle ──────────────────────────────────────────────────────
   const subtitle = userName
@@ -283,131 +332,65 @@ export function OverviewTab({ eventId, event, adminConfig, showToast, setActiveT
         />
       )}
 
-      {/* Hero row: countdown (or past-tense) + focus panel */}
+      {/* Needs you now leads; the countdown is one compact row beside it (below it on phones) */}
       <div className="overview-hero-row">
-        {/* Countdown / past-event hero */}
-        {eventDate && eventPassed ? (
-          <div className="countdown-card" style={{ textAlign: "center" }}>
-            <div style={{ position: "absolute", right: -10, top: "50%", transform: "translateY(-50%)", opacity: 0.10, pointerEvents: "none", userSelect: "none", color: "currentColor" }}>
-              <Icon name={EVENT_TYPE_ICON_KEYS[config.type] || "sparkles"} size={80} strokeWidth={1.25} />
-            </div>
-            <div className="countdown-label">Mazel tov!</div>
-            <div style={{ display: "flex", alignItems: "center", gap: 12, justifyContent: "center" }}>
-              {config.logoUrl && (
-                <img src={config.logoUrl} alt="" className="countdown-logo-img" />
-              )}
-              <div className="countdown-title">{config.name || mainEvent?.title || "The Big Day"}</div>
-            </div>
-            <div className="countdown-date">
-              {formatDate(eventDate)}
-              {mainEvent?.title && config.name && mainEvent.title.trim().toLowerCase() !== config.name.trim().toLowerCase() ? ` · ${mainEvent.title}` : ""}
-              {eventVenue ? ` · ${eventVenue}` : ""}
-            </div>
-          </div>
-        ) : eventDate && countdown ? (
-          <div className="countdown-card">
-            <div style={{ position: "absolute", right: -10, top: "50%", transform: "translateY(-50%)", opacity: 0.10, pointerEvents: "none", userSelect: "none", color: "currentColor" }}>
-              <Icon name={EVENT_TYPE_ICON_KEYS[config.type] || "sparkles"} size={80} strokeWidth={1.25} />
-            </div>
-            <div className="countdown-label">Counting down to</div>
-            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-              {config.logoUrl && (
-                <img src={config.logoUrl} alt="" className="countdown-logo-img" />
-              )}
-              <div className="countdown-title">{config.name || mainEvent?.title || "The Big Day"}</div>
-            </div>
-            <div className="countdown-date">
-              {formatDate(eventDate)}
-              {mainEvent?.title && config.name && mainEvent.title.trim().toLowerCase() !== config.name.trim().toLowerCase() ? ` · ${mainEvent.title}` : ""}
-              {eventVenue ? ` · ${eventVenue}` : ""}
-            </div>
-            <div className="countdown-units">
-              {[
-                { num: countdown.days,    label: "Days" },
-                { num: countdown.hours,   label: "Hrs"  },
-                { num: countdown.minutes, label: "Min"  },
-                { num: countdown.seconds, label: "Sec"  },
-              ].map(u => (
-                <div className="countdown-unit" key={u.label}>
-                  <div className="countdown-num">{String(u.num).padStart(2, "0")}</div>
-                  <div className="countdown-unit-label">{u.label}</div>
-                </div>
-              ))}
-            </div>
-          </div>
-        ) : (
-          <div className="countdown-card" style={{ textAlign: "center" }}>
-            <div className="countdown-title" style={{ marginBottom: 8 }}>Welcome to SimchaKit</div>
-            <div className="countdown-date">Add your event timeline and mark a main event in Admin Mode to start the countdown</div>
-            <div style={{ marginTop: 16 }}>
-              <span className="tag" style={{ background: "rgba(255,255,255,0.2)", color: "white", fontSize: 12, display: "inline-flex", alignItems: "center", gap: 6 }}>
-                <Icon name="settings" context="inline" /> Click the settings icon in the header to configure your event
-              </span>
-            </div>
-          </div>
-        )}
-
-        {/* Focus panel — "What needs you next" */}
         <FocusPanel
           items={focusItems}
           loading={dataLoading}
+          onResolve={handleResolve}
           onNavigate={(tab, item) => {
             if (item?.id === "rsvp-replies") setGuestsView(eventId, "replies");
-            if (item?.id === "rsvp-reminder" && item.actionLabel) setGuestsCompose(eventId, item.compose.kind, item.compose.ids);
+            if (item?.id === "rsvp-reminder" && item.type === "unreplied") setGuestsCompose(eventId, item.compose.kind, item.compose.ids);
             setActiveTab(tab);
           }}
         />
+
+        <div className="countdown-compact">
+          {config.logoUrl && <img src={config.logoUrl} alt="" className="countdown-logo-img" />}
+          <div className="countdown-compact-text">
+            <div className="countdown-label">{eventDate && eventPassed ? "Mazel tov!" : eventDate ? "Counting down to" : "Welcome to SimchaKit"}</div>
+            <div className="countdown-compact-title">{config.name || mainEvent?.title || "The Big Day"}</div>
+            <div className="countdown-date">
+              {eventDate ? formatDate(eventDate) : "Mark a main event in Admin Mode to start the countdown"}
+              {eventDate && eventVenue ? ` · ${eventVenue}` : ""}
+            </div>
+          </div>
+          {eventDate && !eventPassed && countdown && (
+            <div className="countdown-compact-days" aria-label={`${countdown.days} days to go`}>
+              <span className="countdown-compact-num">{countdown.days}</span>
+              <span className="countdown-compact-unit">{countdown.days === 1 ? "day" : "days"}</span>
+            </div>
+          )}
+        </div>
       </div>
 
-      {/* Stat cards — primary (fractional with completion rings) */}
-      <div className="stat-grid" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))" }}>
-        <StatCard
+      {/* Quiet stats row: labeled text, a count, a small bar and the percent in words */}
+      <div className="ov-stats">
+        <OvStat
           label={mealPop.preciseMode ? "Confirmed for meals" : "Confirmed"}
-          value={confirmedCount}
-          total={invitedCount}
-          totalDisplay={`${invitedCount} ${mealPop.preciseMode ? "expected" : "guests"}`}
-          tone="green"
-          display="ring"
-          sub="confirmed"
-          subFallback="No guests added"
-          onClick={() => setActiveTab && setActiveTab("guests")}
-          title="Go to guests tab"
+          value={confirmedCount} of={invitedCount}
+          fallback="No guests added"
+          onClick={() => setActiveTab && setActiveTab("guests")} title="Go to guests tab"
           info={METRIC_HELP.confirmed({ precise: mealPop.preciseMode })}
         />
-        <StatCard
-          label="Budget Paid"
-          value={fmtCurrency(totalPaid, isMobile)}
-          numericValue={totalPaid}
-          total={totalBudget}
-          totalDisplay={fmtCurrency(totalBudget, isMobile)}
-          tone={completionTone(totalPaid, totalBudget, "accent")}
-          display="ring"
-          sub="paid"
-          subFallback="No budget set"
-          onClick={() => setActiveTab && setActiveTab("budget")}
-          title="Go to budget tab"
+        <OvStat
+          label="Budget paid"
+          value={fmtCurrency(totalPaid, true)} numeric={totalPaid}
+          of={totalBudget} ofDisplay={fmtCurrency(totalBudget, true)}
+          fallback="No budget set"
+          onClick={() => setActiveTab && setActiveTab("budget")} title="Go to budget tab"
         />
-        <StatCard
-          label="Tasks Done"
-          value={tasksDone}
-          total={tasksTotal}
-          tone={completionTone(tasksDone, tasksTotal, "gold")}
-          display="ring"
-          sub="complete"
-          subFallback="No tasks yet"
-          onClick={() => setActiveTab && setActiveTab("tasks")}
-          title="Go to tasks tab"
+        <OvStat
+          label="Tasks done"
+          value={tasksDone} of={tasksTotal}
+          fallback="No tasks yet"
+          onClick={() => setActiveTab && setActiveTab("tasks")} title="Go to tasks tab"
         />
-        <StatCard
-          label="Vendors Booked"
-          value={vendorsBooked}
-          total={vendors.length}
-          tone={completionTone(vendorsBooked, vendors.length, "accent")}
-          display="ring"
-          sub="booked"
-          subFallback="No vendors yet"
-          onClick={() => setActiveTab && setActiveTab("vendors")}
-          title="Go to vendors tab"
+        <OvStat
+          label="Vendors booked"
+          value={vendorsBooked} of={vendors.length}
+          fallback="No vendors yet"
+          onClick={() => setActiveTab && setActiveTab("vendors")} title="Go to vendors tab"
         />
       </div>
 
