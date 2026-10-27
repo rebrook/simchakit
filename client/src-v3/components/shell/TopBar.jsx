@@ -37,7 +37,7 @@ export function TopBar({ onHelp = null, activeTab, isArchived, isViewer, setShow
 
           {/* Help for this tab (opens the Guide at this tab's section) */}
           {onHelp && (
-            <button className="icon-btn gd-help" title="Help for this tab" aria-label="Help for this tab" onClick={onHelp}>
+            <button className="icon-btn gd-help" data-wn-focus="guide-help" title="Help for this tab" aria-label="Help for this tab" onClick={onHelp}>
               <Icon name="helpCircle" context="button" />
             </button>
           )}

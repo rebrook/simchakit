@@ -1,5 +1,31 @@
 [
   {
+    "id": "2026-10-27-13-guide-refresh",
+    "release": "V5.10.0",
+    "date": "2026-10-27",
+    "kind": "new",
+    "area": "All tabs",
+    "audience": "host",
+    "highlight": true,
+    "title": "Find any answer fast in the new Guide",
+    "body": "Search the whole Guide, browse by section, and follow short numbered steps. On a phone it opens full screen and the back button takes you up one level.",
+    "show": {
+      "tab": "overview",
+      "focus": "guide-help"
+    },
+    "guide": "tips/keyboard-shortcuts"
+  },
+  {
+    "id": "2026-10-27-14-guide-help-button",
+    "release": "V5.10.0",
+    "date": "2026-10-27",
+    "kind": "new",
+    "area": "All tabs",
+    "audience": "host",
+    "highlight": false,
+    "title": "Tap the help button on any tab to open the Guide at that tab's section"
+  },
+  {
     "id": "2026-10-27-12-first-event-flow",
     "release": "V5.7.0",
     "date": "2026-10-27",
@@ -56,13 +82,8 @@
     "kind": "new",
     "area": "Guests",
     "audience": "host",
-    "highlight": true,
-    "title": "Remind only the households still waiting",
-    "body": "Send a reminder to just the households that have not replied, with each one's private reply link included.",
-    "show": {
-      "tab": "guests",
-      "focus": "send-reminder"
-    }
+    "highlight": false,
+    "title": "Remind only the households still waiting"
   },
   {
     "id": "2026-10-27-06-getting-ready-keeps-typing",

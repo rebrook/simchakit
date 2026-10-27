@@ -92,7 +92,7 @@ export function focusFeature(focus, key = focus, onMiss) {
   const reduce = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
   let tries = 0;
   const look = () => {
-    const el = document.querySelector(`[data-wn-focus~="${focus}"]`);
+    const el = [...document.querySelectorAll(`[data-wn-focus~="${focus}"]`)].find(n => n.offsetParent !== null);
     if (el) {
       if (!el.matches("button, a, input, select, textarea, [tabindex]")) el.setAttribute("tabindex", "-1");
       el.scrollIntoView({ block: "center", behavior: reduce ? "auto" : "smooth" });

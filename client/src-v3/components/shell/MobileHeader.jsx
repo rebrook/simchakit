@@ -19,7 +19,7 @@ export function MobileHeader({ onHelp = null, adminConfig, eventTypeIconKey, onB
           )}
           <div className="mobile-header-actions">
             {onHelp && (
-              <button className="icon-btn gd-help" title="Help for this tab" aria-label="Help for this tab" onClick={onHelp}>
+              <button className="icon-btn gd-help" data-wn-focus="guide-help" title="Help for this tab" aria-label="Help for this tab" onClick={onHelp}>
                 <Icon name="helpCircle" context="button" />
               </button>
             )}
