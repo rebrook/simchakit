@@ -3,6 +3,7 @@ import react from "@vitejs/plugin-react";
 import path from "path";
 import { fileURLToPath } from "url";
 import { buildChangelog } from "./scripts/build-changelog.mjs";
+import { execFileSync } from "child_process";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -10,6 +11,9 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 // rule break. Runs when the config loads so the files exist before Vite copies public/.
 const whatsNew = buildChangelog();
 console.log(`[whats-new] ${whatsNew.hostCount} host entries, latest ${whatsNew.index.latestRelease}`);
+
+// Guide content check: fails the build on a section with no topics, a missing summary, a dead related link, etc.
+execFileSync(process.execPath, [path.resolve(__dirname, "scripts/check-guide.mjs")], { stdio: "inherit" });
 
 export default defineConfig({
   plugins: [react()],
