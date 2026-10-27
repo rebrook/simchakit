@@ -16,7 +16,7 @@ const VISIBLE_CAP = 3;
  * @param {Object} props
  * @param {Array}  props.items       — FocusItem[] from computeFocusItems()
  * @param {boolean} props.loading    — true while any collection is still loading
- * @param {Function} props.onNavigate — (tabName) => void
+ * @param {Function} props.onNavigate — (tabName, item) => void
  */
 export function FocusPanel({ items, loading, onNavigate }) {
   const [expanded, setExpanded] = useState(false);
@@ -53,7 +53,7 @@ export function FocusPanel({ items, loading, onNavigate }) {
           <button
             key={item.id}
             className={`focus-row focus-row-${item.tone}`}
-            onClick={() => onNavigate && onNavigate(item.tab)}
+            onClick={() => onNavigate && onNavigate(item.tab, item)}
             aria-label={`${item.title}. ${item.detail}. Go to ${item.tab}.`}
           >
             <span className={`focus-chip focus-chip-${item.tone}`}>

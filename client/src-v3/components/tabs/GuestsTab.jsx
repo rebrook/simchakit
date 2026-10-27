@@ -17,7 +17,7 @@ import { RSVP_STATUSES, DEFAULT_GROUPS } from "@/constants/guest-constants.js";
 import { sortTimeline } from "@/utils/dates.js";
 import { getPeopleForHousehold, isMaleTitle, computeHouseholdCounts, getHouseholdAttending, formatAddress, migrateCityStateZip } from "@/utils/guests.js";
 import { isInvited, getSubEventStatus, getPersonSectionStatus, resolveMainEvent, getMealPopulation, getAwaitingSummary, describeAwaitingSections, splitAdultsKids } from "@/utils/sections.js";
-import { consumeGuestsPreset } from "@/utils/guestsPreset.js";
+import { consumeGuestsPreset, consumeGuestsView } from "@/utils/guestsPreset.js";
 import { ArchivedNotice } from "@/components/shared/ArchivedNotice.jsx";
 import { RsvpPill } from "@/components/shared/RsvpPill.jsx";
 import { CateringSummary } from "@/components/shared/CateringSummary.jsx";
@@ -44,6 +44,8 @@ import { SentLog }             from "@/components/guests/SentLog.jsx";
 import { SentChip }            from "@/components/guests/SentChip.jsx";
 import { MailingsPanel }       from "@/components/guests/MailingsPanel.jsx";
 import { UndoToast }           from "@/components/guests/UndoToast.jsx";
+import { ReplyQueue }          from "@/components/guests/ReplyQueue.jsx";
+import { useRsvpReplies }      from "@/hooks/useRsvpReplies.js";
 import { useMessageLog }       from "@/hooks/useMessageLog.js";
 import { kindLabel, channelLabel } from "@/utils/messageTemplates.js";
 import { LEGACY_FLAG, isSent, householdKey } from "@/utils/messageStatus.js";
@@ -65,6 +67,8 @@ export function GuestsTab({ eventId, event, adminConfig, showToast, isArchived, 
   // V5-M2: the message log is the source of truth for "was this sent?" (pre-V5 flags are a read-only fallback).
   const msgLog     = useMessageLog(eventId);
   const sentLookup = msgLog.sentLookup;
+  // V5-R3: guests' RSVP replies waiting for the host to review (live).
+  const rsvpReplies = useRsvpReplies(eventId);
 
   const groups   = adminConfig?.groups   || DEFAULT_GROUPS;
   const sections = sortTimeline(adminConfig?.timeline || []).map(e => ({ id: e.id, label: (e.icon ? e.icon + " " : "") + e.title, inviteAllByDefault: e.inviteAllByDefault !== false }));
@@ -92,7 +96,7 @@ export function GuestsTab({ eventId, event, adminConfig, showToast, isArchived, 
   const [mobileMoreFiltersOpen,setMobileMoreFiltersOpen]= useState(false);
   const [expandedChipRows,     setExpandedChipRows]     = useState(new Set());
   const [mailFilter,           setMailFilter]           = useState("All");
-  const [view,                 setView]                 = useState("guests");   // "guests" | "messages"
+  const [view,                 setView]                 = useState("guests");   // "guests" | "messages" | "replies"
   const [composer,             setComposer]             = useState(null);       // { initialIds, initialKind, initialMethod }
   const [undo,                 setUndo]                 = useState(null);       // { message, onUndo }
 
@@ -113,6 +117,9 @@ export function GuestsTab({ eventId, event, adminConfig, showToast, isArchived, 
     setAwaitingOnly(true);
     setShowMoreFilters(true);
   }, [eventId]);
+
+  // V5-R3: arriving from Overview's "New RSVP replies" opens straight on the queue (one-shot hand-off).
+  useEffect(() => { if (consumeGuestsView(eventId) === "replies") setView("replies"); }, [eventId]);
 
   // ── RSVP status update ────────────────────────────────────────────────────
   const updateRsvpStatus = async (hhId, newStatus) => {
@@ -525,6 +532,22 @@ export function GuestsTab({ eventId, event, adminConfig, showToast, isArchived, 
     </>
   );
 
+  if (view === "replies") {
+    return (
+      <div>
+        {isArchived && <ArchivedNotice />}
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:8,flexWrap:"wrap",marginBottom:12}}>
+          <button className="btn btn-secondary btn-sm" onClick={()=>setView("guests")}>← Back to guests</button>
+        </div>
+        <ReplyQueue eventId={eventId} households={households} people={people} timeline={adminConfig?.timeline || []}
+          replies={rsvpReplies} canAct={!isViewer && !isArchived}
+          savePerson={savePersonRow} saveHousehold={saveHouseholdRow} removePerson={removePersonRow}
+          onUndoable={setUndo} showToast={showToast} />
+        {overlays}
+      </div>
+    );
+  }
+
   if (view === "messages") {
     return (
       <div>
@@ -549,6 +572,9 @@ export function GuestsTab({ eventId, event, adminConfig, showToast, isArchived, 
 
       {/* Action row */}
       <div style={{display:"flex",justifyContent:"flex-end",gap:8,flexWrap:"wrap",marginBottom:12}}>
+        {rsvpReplies.pending.length > 0 && (
+          <button className="btn btn-primary btn-sm" onClick={()=>setView("replies")}>New replies ({rsvpReplies.pending.length})</button>
+        )}
         <button className="btn btn-secondary btn-sm" onClick={()=>setView("messages")}>Messages</button>
         <button className="btn btn-secondary btn-sm" onClick={()=>setShowGuestExport(true)}>↓ Export Guests</button>
         {!isViewer && (

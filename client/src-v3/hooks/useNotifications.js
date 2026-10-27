@@ -28,6 +28,7 @@ import { supabase } from "@/lib/supabase.js";
 // ── Collection → tab mapping for deep-links ──────────────────────────────────
 const COLLECTION_TAB = {
   households:    "guests",
+  rsvp:          "guests",   // RSVP replies from guests (V5-R3)
   people:        "guests",
   expenses:      "budget",
   vendors:       "vendors",
