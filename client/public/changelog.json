@@ -1,9 +1,23 @@
 {
-  "current": "V5.9.0",
+  "current": "V5.9.1",
   "whatsNew": [
-    "A new Overview: your event hero with the Hebrew date, a celebration schedule with times and venues, and Who's coming at a glance"
+    "Small Overview fixes: a clearer new-event button, matching day counts, and a shorter phone hero after the event"
   ],
   "changelog": [
+    {
+      "version": "V5.9.1",
+      "date": "2026-10-27",
+      "summary": "Overview polish after the production test",
+      "changes": [
+        "Fix: Start a new event (after the event) is a proper secondary button again instead of looking like a plain link",
+        "Fix: the sidebar's days to go now counts calendar days from midnight, so it agrees with the Overview countdown (it showed 248d out while the Overview said 249 days)",
+        "Change: on a phone after the event, the hero is shorter (a smaller thank-you number and no extra line) so Needs you now starts higher on the screen",
+        "Change: a brand-new event with nothing to do no longer says Nothing is coming up on your calendar; the caught-up row offers Next: add your guests instead",
+        "No database changes. V3 app only"
+      ],
+      "roadmap": [],
+      "knownIssues": []
+    },
     {
       "version": "V5.9.0",
       "date": "2026-10-27",

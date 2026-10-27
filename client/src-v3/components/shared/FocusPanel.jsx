@@ -119,7 +119,7 @@ export function FocusPanel({ items, loading, nextUp, readOnly, holdResolved, onN
           <b className="h">You're all caught up</b>
           {nextUp
             ? <button type="button" className="ov-link" style={{ padding: 0, textAlign: "left" }} onClick={() => onNavigate && onNavigate(nextUp.tab, null)}>Next: {nextUp.text} <span aria-hidden="true">{"\u2192"}</span></button>
-            : <div className="ov-sm">Nothing is coming up on your calendar.</div>}
+            : null}
         </div>
       </div>
     </>);

@@ -390,7 +390,7 @@ export function OverviewTab({ eventId, event, adminConfig, showToast, setActiveT
           <FocusPanel
             items={focusItems}
             loading={dataLoading}
-            nextUp={nextUp}
+            nextUp={nextUp || (stage === "new" ? { text: "add your guests", tab: "guests" } : null)}
             readOnly={!canAct}
             holdResolved={!!undo}
             onResolve={handleResolve}
@@ -453,7 +453,7 @@ export function OverviewTab({ eventId, event, adminConfig, showToast, setActiveT
       {stage === "post" && (
         <section className="ov-card ov-plan" aria-label="Start another event">
           <b style={{ fontSize: 15 }}>Planning another celebration?</b>
-          <a href="/" className="btn">Start a new event</a>
+          <a href="/" className="btn btn-secondary">Start a new event</a>
         </section>
       )}
 

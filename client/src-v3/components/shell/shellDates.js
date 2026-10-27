@@ -9,9 +9,11 @@ export function formatSwitcherDate(timeline) {
   const d = new Date(raw + "T00:00:00");
   if (isNaN(d.getTime())) return null;
   const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  // Calendar days from today's midnight (V5.9.1), so this agrees with the Overview countdown and
+  // the day-of banner instead of dropping a day depending on the time of day.
   const now = new Date();
-  const diffMs = d.getTime() - now.getTime();
-  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const diffDays = Math.round((d.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
   const dateStr = `${months[d.getMonth()]} ${d.getDate()}`;
   if (diffDays < 0) return `${dateStr} \u00b7 ${Math.abs(diffDays)}d ago`;
   if (diffDays === 0) return `${dateStr} \u00b7 Today`;
