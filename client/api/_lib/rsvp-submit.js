@@ -195,6 +195,14 @@ export default async function handler(req, res) {
         .insert({ event_id: ctx.event.id, household_id: householdId, status: "pending", payload, supersedes: previousId })
         .select("id, submitted_at").single();
       if (!error) {
+        // A notification-panel entry for the host (best effort; never blocks or fails the guest).
+        // Only the household's name goes in it: no answers, no token.
+        try {
+          await supabase.from("audit_log").insert({
+            event_id: ctx.event.id,
+            data: { action: "Added", detail: `RSVP reply from ${ctx.household.formalName || "a household"}`, collection: "rsvp", actorId: null, actorName: "A guest" },
+          });
+        } catch { /* ignore */ }
         return res.status(200).json({ ok: true, submittedAt: row.submitted_at, autoApplied: false });
       }
       if (error.code !== "23505") throw new Error("insert failed");

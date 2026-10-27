@@ -48,6 +48,7 @@ export function computeFocusItems(data, adminConfig) {
     tables = [],
     seatingRows = [],
     gifts = [],
+    pendingReplies = 0,
   } = data;
 
   const config = adminConfig || {};
@@ -60,6 +61,20 @@ export function computeFocusItems(data, adminConfig) {
   const eventHasPassed = daysToEvent !== null && daysToEvent < 0;
 
   const items = [];
+
+  // ── New RSVP replies (V5-R3): always first, since a guest is waiting on the host ──
+  if (pendingReplies > 0) {
+    items.push({
+      id: "rsvp-replies",
+      domain: "rsvp-replies",
+      tone: "accent",
+      icon: "mailCheck",
+      title: `${pendingReplies} new RSVP repl${pendingReplies === 1 ? "y" : "ies"} to review`,
+      detail: "Guests replied from their link; nothing changes until you accept",
+      tab: "guests",
+      priority: -1,
+    });
+  }
 
   // ── Tasks (collapsed: pick the most urgent signal) ──────────────────────
   const activeTasks = tasks.filter(t => !t.done && !t.dismissed);

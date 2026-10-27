@@ -1,9 +1,23 @@
 {
-  "current": "V5.4.0",
+  "current": "V5.5.0",
   "whatsNew": [
-    "Guests can now reply to your invitation from a private page, in your event's colors"
+    "Review guests' RSVP replies before they change your list, with a one-click Undo"
   ],
   "changelog": [
+    {
+      "version": "V5.5.0",
+      "date": "2026-10-27",
+      "summary": "Review your guests' RSVP replies before they change your list",
+      "changes": [
+        "New: a review queue for RSVP replies. A New replies button with a live count appears in the Guests tab (new replies show up without refreshing), and a New RSVP replies item now leads What Needs You Next on Overview, opening the queue directly. A reply is only a proposal: nothing changes on your guest list until you accept it",
+        "New: every reply is shown as a diff against your current list: who changed which sub-event answer (for example Yes to Not sure), meals, dietary and kosher changes, address confirmed or changed, the note, and any added guests. A declined household shows its note. Replies that add someone not on your list are marked Needs a look and are left out of Accept all. A guest who replies again after you accepted comes back as Updated reply",
+        "New: Accept, Accept all, Reject with an optional reason, and Review each. Accepting updates each person's sub-event answers, meal, dietary and kosher, the household address (only the fields the guest changed) and the household's RSVP status (RSVP Yes if anyone is coming to anything, RSVP No if everyone said No to everything, Maybe if nobody is coming but someone is not sure), so Overview counts follow. Not sure resets a person's answer to TBD. The guest's note is saved in the household's contact log, and new guests are added as people with no answers yet",
+        "New: every accept and reject shows an Undo button for 8 seconds, which puts the touched values back exactly as they were (from a snapshot saved on the reply), removes any people the accept created, and returns the reply to the queue. Accepting is claimed first, so two editors cannot apply the same reply twice, and a failed save rolls everything back. Each accept is added to the activity log, and a new reply adds an entry to the notification panel. Only owners and editors can act; viewers read",
+        "Database (client/migrations/V5.1-R3.sql): adds applied_snapshot, reviewed_by, reviewed_at and reject_reason to rsvp_replies and turns on live updates for it. No change to who can read or write replies; no backfill. The auto-apply setting stays unused (replies always wait for review) and has no screen. V3 app only"
+      ],
+      "roadmap": [],
+      "knownIssues": []
+    },
     {
       "version": "V5.4.0",
       "date": "2026-10-26",

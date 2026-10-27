@@ -13,6 +13,16 @@ export function setGuestsPreset(eventId, sectionIds) {
   preset = { eventId, sectionIds: [...(sectionIds || [])] };
 }
 
+// One-shot "open this Guests view" (V5-R3): the Overview's New replies item opens the
+// Guests tab straight on the reply queue. Same hand-off idea as the filter preset above.
+let openView = null;
+export function setGuestsView(eventId, view) { openView = { eventId, view }; }
+export function consumeGuestsView(eventId) {
+  const v = openView && openView.eventId === eventId ? openView.view : null;
+  openView = null;
+  return v;
+}
+
 // Returns the preset only if it was set for this event, and clears it either way.
 export function consumeGuestsPreset(eventId) {
   const p = preset && preset.eventId === eventId ? preset : null;
