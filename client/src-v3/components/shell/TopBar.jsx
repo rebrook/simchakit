@@ -3,7 +3,7 @@ import { Icon } from "@/utils/iconMap.jsx";
 import { TAB_LABELS, TAB_PRIMARY_ACTIONS } from "@/components/shell/shellConfig.js";
 import { PRIMARY_ACTION_STATE_EVENT } from "@/hooks/usePrimaryAction.js";
 
-export function TopBar({ activeTab, isArchived, isViewer, setShowNotifPanel, setShowSearch, syncDisplay, topbarSubtitle, unreadCount }) {
+export function TopBar({ onHelp = null, activeTab, isArchived, isViewer, setShowNotifPanel, setShowSearch, syncDisplay, topbarSubtitle, unreadCount }) {
   const primaryAction = TAB_PRIMARY_ACTIONS[activeTab];
   // The active tab can report its action is unavailable (e.g. Seating not enabled yet)
   const [tabBlocked, setTabBlocked] = useState(false);
@@ -34,6 +34,13 @@ export function TopBar({ activeTab, isArchived, isViewer, setShowNotifPanel, set
           <button className="icon-btn" title="Search (⌘K)" aria-label="Search (⌘K)" onClick={() => setShowSearch(true)}>
             <Icon name="search" context="button" />
           </button>
+
+          {/* Help for this tab (opens the Guide at this tab's section) */}
+          {onHelp && (
+            <button className="icon-btn gd-help" data-wn-focus="guide-help" title="Help for this tab" aria-label="Help for this tab" onClick={onHelp}>
+              <Icon name="helpCircle" context="button" />
+            </button>
+          )}
 
           {/* Notification bell */}
           <button

@@ -25,6 +25,7 @@ import { getDueStatus }          from "@/utils/vendors.js";
 import { countThankYousOutstanding } from "@/utils/gifts.js";
 import { parseEventRoute, pushEventPath } from "@/utils/router.js";
 import { useWhatsNew, useAutoOpen, focusFeature } from "@/lib/whatsNew.js";
+import { guideForTab, parseGuideHash } from "@/components/guide/guideModel.js";
 
 // ── Tab components ──────────────────────────────────────────────────────────
 import { OverviewTab }        from "@/components/tabs/OverviewTab.jsx";
@@ -261,7 +262,7 @@ export function AppShell({ session, eventId, onBack, onSelectEvent = null, isDem
   const [showDayOf,       setShowDayOf]       = useState(false);
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [searchHighlight, setSearchHighlight] = useState(null);
-  const [guideTarget,     setGuideTarget]     = useState(null);   // { section, topic } from #/guide/section/topic
+  const [guideTarget,     setGuideTarget]     = useState(null);   // { sectionId, topicId?, fromTab? }
 
   const toastTimer  = useRef(null);
 
@@ -514,12 +515,13 @@ export function AppShell({ session, eventId, onBack, onSelectEvent = null, isDem
   };
   const canShowFeature = (show) => visibleTabIdSet.has(show.tab);
   const openGuideAt = (path) => {
-    const [section, topic] = String(path).split("/");
+    const [sectionId, topicId] = String(path).split("/");
     setShowWhatsNew(false);
-    setGuideTarget({ section, topic });
+    setGuideTarget({ sectionId, topicId });
     setShowGuide(true);
-    try { window.history.replaceState({}, "", `${window.location.pathname}${window.location.search}#/guide/${section}${topic ? "/" + topic : ""}`); } catch { /* ignore */ }
   };
+  const tabGuide = guideForTab(activeTab);
+  const openGuideForTab = () => { if (tabGuide) { setGuideTarget(tabGuide); setShowGuide(true); } };
   const closeGuide = () => {
     setShowGuide(false); setGuideTarget(null);
     if (window.location.hash.startsWith("#/guide")) {
@@ -528,9 +530,9 @@ export function AppShell({ session, eventId, onBack, onSelectEvent = null, isDem
   };
   useEffect(() => {
     const fromHash = () => {
-      const m = window.location.hash.match(/^#\/guide(?:\/([^/]+))?(?:\/([^/]+))?/);
-      if (!m) return;
-      setGuideTarget(m[1] ? { section: m[1], topic: m[2] || null } : null);
+      const g = parseGuideHash(window.location.hash);
+      if (!g) return;
+      setGuideTarget(g.sectionId ? g : null);
       setShowGuide(true);
     };
     fromHash();
@@ -701,7 +703,7 @@ export function AppShell({ session, eventId, onBack, onSelectEvent = null, isDem
       <ShellBanners isDemoMode={isDemoMode} event={event} />
 
       {/* ── Mobile header (<=900px only, two-row) ── */}
-      <MobileHeader adminConfig={adminConfig} eventTypeIconKey={eventTypeIconKey} onBack={onBack} onlineUsers={onlineUsers} setShowNotifPanel={setShowNotifPanel} setShowSearch={setShowSearch} unreadCount={unreadCount} />
+      <MobileHeader onHelp={tabGuide ? openGuideForTab : null} adminConfig={adminConfig} eventTypeIconKey={eventTypeIconKey} onBack={onBack} onlineUsers={onlineUsers} setShowNotifPanel={setShowNotifPanel} setShowSearch={setShowSearch} unreadCount={unreadCount} />
 
       <DayOfReminderBanner showDayOfBanner={showDayOfBanner} setShowDayOf={setShowDayOf} daysToEvent={daysToEvent} dismissDayOfBanner={dismissDayOfBanner} />
 
@@ -712,7 +714,7 @@ export function AppShell({ session, eventId, onBack, onSelectEvent = null, isDem
       <div className="app-main">
 
         {/* ── Top bar (desktop only, pinned) ── */}
-        <TopBar activeTab={activeTab} isArchived={!!(event?.archived)} isViewer={collaboratorRole === "viewer"} setShowNotifPanel={setShowNotifPanel} setShowSearch={setShowSearch} syncDisplay={syncDisplay} topbarSubtitle={topbarSubtitle} unreadCount={unreadCount} />
+        <TopBar onHelp={tabGuide ? openGuideForTab : null} activeTab={activeTab} isArchived={!!(event?.archived)} isViewer={collaboratorRole === "viewer"} setShowNotifPanel={setShowNotifPanel} setShowSearch={setShowSearch} syncDisplay={syncDisplay} topbarSubtitle={topbarSubtitle} unreadCount={unreadCount} />
 
         {/* ── Scrollable area (pinned topbar above, content + footer scroll) ── */}
         <div className="app-main-scroll" ref={mainScrollRef}>

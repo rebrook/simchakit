@@ -1,7 +1,7 @@
 // Moved verbatim from AppShell.jsx (V4.47.0 module split) — no behavior changes.
 import { Icon } from "@/utils/iconMap.jsx";
 
-export function MobileHeader({ adminConfig, eventTypeIconKey, onBack, onlineUsers, setShowNotifPanel, setShowSearch, unreadCount }) {
+export function MobileHeader({ onHelp = null, adminConfig, eventTypeIconKey, onBack, onlineUsers, setShowNotifPanel, setShowSearch, unreadCount }) {
   return (
     <header className="mobile-header">
       <div className="mobile-header-inner">
@@ -18,6 +18,11 @@ export function MobileHeader({ adminConfig, eventTypeIconKey, onBack, onlineUser
             </div>
           )}
           <div className="mobile-header-actions">
+            {onHelp && (
+              <button className="icon-btn gd-help" data-wn-focus="guide-help" title="Help for this tab" aria-label="Help for this tab" onClick={onHelp}>
+                <Icon name="helpCircle" context="button" />
+              </button>
+            )}
             <button className="icon-btn notif-bell-btn" title="Notifications" aria-label="Notifications" onClick={() => setShowNotifPanel(s => !s)}>
               <Icon name="bell" context="button" />
               {unreadCount > 0 && (
