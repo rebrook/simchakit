@@ -3,7 +3,7 @@
 // as compact cards, seen or not. All release notes: the searchable archive. Data comes from
 // public/whats-new/index.json and the month files it opens, never the old changelog.
 import { useState, useEffect, useRef, useMemo, useCallback } from "react";
-import { loadJson, loadUnseen, isUnseen } from "@/lib/whatsNew.js";
+import { loadJson, loadUnseen, isUnseen, newest } from "@/lib/whatsNew.js";
 
 const KINDS = {
   new:      { label: "New",      glyph: "✦" },
@@ -14,7 +14,6 @@ const monthName = (m) => new Date(m + "-01T00:00:00").toLocaleDateString("en-US"
 const dayName   = (d) => new Date(d + "T00:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric" });
 const when      = (e) => `${e.release} · ${dayName(e.date)}`;
 const plural    = (n, w) => `${n} ${w}${n === 1 ? "" : "s"}`;
-const newest    = (a, b) => (a.id < b.id ? 1 : -1);
 
 function Kind({ kind }) {
   const k = KINDS[kind] || KINDS.improved;

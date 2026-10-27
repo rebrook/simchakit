@@ -15,7 +15,8 @@ export function loadJson(name, { fresh = false } = {}) {
   return p;
 }
 
-const newest = (a, b) => (a.id < b.id ? 1 : -1);
+const ver = (r) => String(r || "V0.0.0").slice(1).split(".").map(Number);
+export const newest = (a, b) => { const x = ver(a.release), y = ver(b.release); return (y[0] - x[0]) || (y[1] - x[1]) || (y[2] - x[2]) || (a.id < b.id ? 1 : -1); };
 export const isUnseen = (entry, lastSeen) => !lastSeen || entry.id > lastSeen;
 export const unseenHighlights = (index, lastSeen) =>
   (index?.highlights || []).filter(e => isUnseen(e, lastSeen)).sort(newest).slice(0, 3);

@@ -40,6 +40,9 @@ export function checkEntry(e) {
 
 const cmpVersion = (a, b) => { const x = a.slice(1).split(".").map(Number), y = b.slice(1).split(".").map(Number); return (x[0] - y[0]) || (x[1] - y[1]) || (x[2] - y[2]); };
 
+// Newest first: by release number, then by id (date and sequence) within a release.
+const newest = (a, b) => cmpVersion(b.release, a.release) || (a.id < b.id ? 1 : -1);
+
 export function buildChangelog({ write = true } = {}) {
   const src = path.join(root, "changelog/entries.json");
   const all = JSON.parse(fs.readFileSync(src, "utf8"));
@@ -60,7 +63,7 @@ export function buildChangelog({ write = true } = {}) {
     checkEntry(e).forEach(fail);
   });
 
-  const host = all.filter(e => e.audience === "host").sort((a, b) => (a.id < b.id ? 1 : -1));
+  const host = all.filter(e => e.audience === "host").sort(newest);
   const byMonth = new Map();
   host.forEach(e => { const m = e.date.slice(0, 7); if (!byMonth.has(m)) byMonth.set(m, []); byMonth.get(m).push(e); });
   for (const [m, list] of byMonth) {
@@ -72,8 +75,8 @@ export function buildChangelog({ write = true } = {}) {
   const months = [...byMonth.keys()];
   const index = {
     current: host.map(e => e.release).sort((a, b) => cmpVersion(b, a))[0] || null,
-    latestRelease: host[0] ? host[0].id : null,
-    latestDate: host[0] ? host[0].date : null,
+    latestRelease: [...host].sort((a, b) => (a.id < b.id ? 1 : -1))[0]?.id || null,
+    latestDate: [...host].sort((a, b) => (a.id < b.id ? 1 : -1))[0]?.date || null,
     highlights: months.slice(0, 3).flatMap(m => byMonth.get(m).filter(e => e.highlight).slice(0, 3).map(strip)),
     months: months.map(m => ({ month: m, count: byMonth.get(m).length })),
     areas: host.reduce((acc, e) => { acc[e.area] = (acc[e.area] || 0) + 1; return acc; }, {}),
