@@ -17,13 +17,30 @@
 // items were already gated to daysToEvent > 0, so they already stop on their
 // own; seating gets that same gate added here. A new gift thank-you item
 // surfaces in their place, since that is the thing actually left to do.
+//
+// V5.8.0 (V5-O1): items are typed and carry what the Overview needs to resolve
+// them in place. type is "replies" | "unreplied" | "invoices" | "tasks" |
+// "thankyous" | "nav". The first five are actions only an owner or editor can
+// take (canAct), so they are left out for viewers and archived events; "nav"
+// items only point at a tab and stay visible. Each item has one primary action
+// (actionLabel). invoices, tasks and thankyous carry payload.rows so the card can
+// list them and complete each one without leaving Overview; badge is the status
+// word shown next to a shape, so urgency is never color alone.
+//
+// V5.8.1: urgency order is overdue invoices, overdue tasks, new replies, unreplied
+// households near the deadline, tasks due this week, thank-yous. Items that finish
+// in place are labeled with the verb ("Mark paid"); items that leave Overview end in
+// an arrow ("Review replies →").
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { getOpenPayments } from "./vendors.js";
 import { getConfirmedPeopleForSection, getAwaitingSummary, describeAwaitingSections } from "./sections.js";
-import { countThankYousOutstanding } from "./gifts.js";
+import { countThankYousOutstanding, getGiftGivers } from "./gifts.js";
 import { unrepliedHouseholds, daysUntil } from "./rsvpReminders.js";
 import { householdKey } from "./messageStatus.js";
+
+// Items that leave Overview end in an arrow.
+const NAV_LABEL = { addresses: "Add address \u2192", seating: "Open seating \u2192", vendors: "Open vendors \u2192", rsvps: "Open guests \u2192" };
 
 const BOOKED_STATUSES = ["Booked", "Deposit Paid", "Paid in Full"];
 
@@ -36,7 +53,7 @@ const BOOKED_STATUSES = ["Booked", "Deposit Paid", "Paid in Full"];
  * @returns {Array<FocusItem>}
  *
  * FocusItem shape:
- *   { id, domain, tone, title, detail, tab, priority }
+ *   { id, domain, type, tone, badge, title, detail, tab, priority, actionLabel, payload? }
  *   tone: "red" | "gold" | "accent"
  *   priority: lower = more urgent
  */
@@ -52,7 +69,7 @@ export function computeFocusItems(data, adminConfig) {
     gifts = [],
     pendingReplies = 0,
     repliedHouseholdIds = new Set(),   // households with a pending or accepted RSVP reply
-    canRemind = false,                 // owner/editor on a live event: the card can open the composer
+    canAct = false,                    // owner/editor on a live event: may resolve items that change data
   } = data;
 
   const config = adminConfig || {};
@@ -67,132 +84,111 @@ export function computeFocusItems(data, adminConfig) {
   const items = [];
 
   // ── New RSVP replies (V5-R3): always first, since a guest is waiting on the host ──
-  if (pendingReplies > 0) {
+  if (pendingReplies > 0 && canAct) {
     items.push({
       id: "rsvp-replies",
       domain: "rsvp-replies",
+      type: "replies",
+      badge: "New",
+      actionLabel: "Review replies \u2192",
       tone: "accent",
       icon: "mailCheck",
-      title: `${pendingReplies} new RSVP repl${pendingReplies === 1 ? "y" : "ies"} to review`,
-      detail: "Guests replied from their link; nothing changes until you accept",
+      title: `${pendingReplies} new RSVP repl${pendingReplies === 1 ? "y" : "ies"}`,
+      detail: "Review and accept into the guest list",
       tab: "guests",
-      priority: -1,
-    });
-  }
-
-  // ── Tasks (collapsed: pick the most urgent signal) ──────────────────────
-  const activeTasks = tasks.filter(t => !t.done && !t.dismissed);
-  const overdueTasks = activeTasks.filter(t => t.due && new Date(t.due + "T00:00:00") < today);
-  const dueThisWeek = activeTasks.filter(t => {
-    if (!t.due) return false;
-    const d = new Date(t.due + "T00:00:00");
-    return d >= today && d <= endOfWeek;
-  });
-
-  if (overdueTasks.length > 0) {
-    items.push({
-      id: "tasks",
-      domain: "tasks",
-      tone: "red",
-      icon: "alertTriangle",
-      title: `${overdueTasks.length} task${overdueTasks.length !== 1 ? "s" : ""} overdue`,
-      detail: overdueTasks.length === 1
-        ? truncate(overdueTasks[0].task || overdueTasks[0].title || "Untitled task", 60)
-        : `Oldest: ${truncate(overdueTasks[0].task || overdueTasks[0].title || "Untitled", 40)}`,
-      tab: "tasks",
-      priority: 1,
-    });
-  } else if (dueThisWeek.length > 0) {
-    items.push({
-      id: "tasks",
-      domain: "tasks",
-      tone: "gold",
-      icon: "tasks",
-      title: `${dueThisWeek.length} task${dueThisWeek.length !== 1 ? "s" : ""} due this week`,
-      detail: dueThisWeek.length === 1
-        ? truncate(dueThisWeek[0].task || dueThisWeek[0].title || "Untitled task", 60)
-        : `Next: ${truncate(dueThisWeek[0].task || dueThisWeek[0].title || "Untitled", 40)}`,
-      tab: "tasks",
-      priority: 3,
-    });
-  }
-
-  // ── Payments (overdue, or due within the next 14 days) ──────────────────
-  // V4.38.2: built from getOpenPayments() so a scheduled expense is judged by
-  // its own installment dates, the same rule as the Budget tab's Overdue tag
-  // and the Budget nav badge (previously only the expense's own dueDate was
-  // read, so a late installment on a scheduled expense could be missed). The
-  // dollar figures now sum only the late or imminent installments, not the
-  // expense's whole remaining balance.
-  const openPayments = expenses.flatMap(e => getOpenPayments(e).map(p => ({ ...p, expense: e })));
-  const dueOn = p => new Date(p.dueDate + "T00:00:00");
-  const overdueOpen = openPayments.filter(p => dueOn(p) < today);
-  const upcomingOpen = openPayments.filter(p => {
-    const d = dueOn(p);
-    return d >= today && d <= new Date(today.getTime() + 14 * 86400000);
-  });
-  const overdueExpenses = [...new Set(overdueOpen.map(p => p.expense))];
-
-  if (overdueOpen.length > 0) {
-    const total = overdueOpen.reduce((s, p) => s + p.amount, 0);
-    items.push({
-      id: "payments",
-      domain: "payments",
-      tone: "red",
-      icon: "alertTriangle",
-      title: `$${total.toLocaleString()} in overdue payments`,
-      detail: overdueExpenses.length === 1
-        ? truncate(overdueExpenses[0].description || overdueExpenses[0].vendor || "Payment", 60)
-        : `${overdueExpenses.length} payments past due`,
-      tab: "budget",
       priority: 2,
     });
-  } else if (upcomingOpen.length > 0) {
-    const total = upcomingOpen.reduce((s, p) => s + p.amount, 0);
-    const soonest = [...upcomingOpen].sort((a, b) => a.dueDate.localeCompare(b.dueDate))[0];
-    const name = truncate(soonest.expense.description || soonest.expense.vendor || "Payment", 40);
-    const daysOut = Math.ceil((dueOn(soonest) - today) / 86400000);
-    items.push({
-      id: "payments",
-      domain: "payments",
-      tone: "gold",
-      icon: "banknote",
-      title: `$${total.toLocaleString()} due within 2 weeks`,
-      // A payment due today used to read "due tomorrow" (the check was daysOut <= 1).
-      detail: daysOut <= 0
-        ? `${name} due today`
-        : daysOut === 1
-          ? `${name} due tomorrow`
-          : `${name} due in ${daysOut} days`,
-      tab: "budget",
-      priority: 4,
-    });
+  }
+
+  // ── Tasks: one row per task, named, with its due date (V5.8.2) ──────────
+  // Overdue first, then due this week. "Mark done" completes the task in place (with Undo).
+  const activeTasks = tasks.filter(t => !t.done && !t.dismissed && t.due);
+  const dayOf = (d) => new Date(d + "T00:00:00");
+  const taskItem = (t, i, overdue) => {
+    const late = Math.round((today - dayOf(t.due)) / 86400000);
+    const title = truncate(t.task || t.title || "Untitled task", 80);
+    return {
+      id: `task:${t._rowId || t.id}`,
+      domain: "tasks",
+      type: "tasks",
+      badge: overdue ? overdueBadge(late) : null,
+      actionLabel: "Mark done",
+      payload: { rows: [{ key: t._rowId || t.id, rowId: t._rowId, title, due: t.due, overdue }] },
+      tone: overdue ? "red" : "accent",
+      icon: overdue ? "alertTriangle" : "tasks",
+      title,
+      detail: `Due ${fmtShort(t.due)}`,
+      tab: "tasks",
+      priority: (overdue ? 1 : 4) + i / 1000,
+    };
+  };
+  if (canAct) {
+    const byDue = (a, b) => a.due.localeCompare(b.due);
+    activeTasks.filter(t => dayOf(t.due) < today).sort(byDue).forEach((t, i) => items.push(taskItem(t, i, true)));
+    activeTasks.filter(t => dayOf(t.due) >= today && dayOf(t.due) <= endOfWeek).sort(byDue).forEach((t, i) => items.push(taskItem(t, i, false)));
+  }
+
+  // ── Payments: one row per invoice that is overdue or due within 14 days ───
+  // V4.38.2: built from getOpenPayments() so a scheduled expense is judged by its own
+  // installment dates, the same rule as the Budget tab's Overdue tag and nav badge.
+  // V5.8.2: each row names the invoice (what, amount, due date). "Open invoice" opens its
+  // detail under the list, where Mark paid lives.
+  const openPayments = expenses.flatMap(e => getOpenPayments(e).map(p => ({ ...p, expense: e })));
+  const dueOn = p => dayOf(p.dueDate);
+  const inTwoWeeks = new Date(today.getTime() + 14 * 86400000);
+  if (canAct) {
+    openPayments
+      .filter(p => dueOn(p) <= inTwoWeeks)
+      .sort((a, b) => a.dueDate.localeCompare(b.dueDate))
+      .forEach((p, i) => {
+        const overdue = dueOn(p) < today;
+        const late = Math.round((today - dueOn(p)) / 86400000);
+        const what = truncate(p.expense.description || p.expense.vendor || "Payment", 50) + (p.label ? ` – ${p.label}` : "");
+        const vendor = vendors.find(v => v.id === p.expense.vendorId)?.name || p.expense.vendor || "";
+        const key = `${p.expense._rowId || p.expense.id}:${p.id || "single"}`;
+        items.push({
+          id: `invoice:${key}`,
+          domain: "payments",
+          type: "invoices",
+          badge: overdue ? overdueBadge(late) : null,
+          actionLabel: "Open invoice",
+          payload: { rows: [{ key, rowId: p.expense._rowId, paymentId: p.id || null, title: what, vendor, amount: p.amount, dueDate: p.dueDate, overdue }] },
+          tone: overdue ? "red" : "accent",
+          icon: overdue ? "alertTriangle" : "banknote",
+          title: `${what} · $${(Number(p.amount) || 0).toLocaleString()}`,
+          detail: `${vendor ? `${vendor} · ` : ""}Due ${fmtShort(p.dueDate)}`,
+          tab: "budget",
+          priority: (overdue ? 0 : 3.5) + i / 1000,
+        });
+      });
   }
 
   // ── Gift thank-yous outstanding (post-event only) ───────────────────────
-  // Once the event has passed, writing and mailing thank-yous is one of the
-  // few things actually left to do, and it has no natural deadline of its own
-  // the way a task or a payment does, so it needs its own signal here.
-  // Priority 2.5 slots it between overdue payments and this-week tasks: real,
-  // but not as urgent as something with an actual overdue date attached.
-  // V4.38.0: a note counts as outstanding until it is both written AND
-  // mailed (previously only unwritten notes counted), using the shared
-  // countThankYousOutstanding() so the Gifts nav badge reads the same number.
-  if (eventHasPassed && gifts.length > 0) {
+  // Once the event has passed, writing and mailing thank-yous is one of the few things left
+  // to do, and it has no deadline of its own, so it needs its own signal here.
+  // V4.38.0: a note counts as outstanding until it is both written AND mailed, using the
+  // shared countThankYousOutstanding() so the Gifts nav badge reads the same number.
+  // V5.8.2: the title is the count (the one place a bare count is right) and the button opens
+  // the Gifts tab filtered to notes still to write. There is no bulk "mark written" here.
+  if (eventHasPassed && gifts.length > 0 && canAct) {
     const { total, toWrite, toMail } = countThankYousOutstanding(gifts);
     if (total > 0) {
+      const writing = toWrite > 0;
+      const n = writing ? toWrite : toMail;
       items.push({
         id: "gift-thankyous",
         domain: "gifts",
+        type: "thankyous",
+        actionLabel: writing ? "Write thank-yous →" : "Mail thank-yous →",
+        giftsFilter: writing ? "needs-written" : "needs-mailed",
         tone: "accent",
         icon: "gifts",
-        title: `${total} thank-you note${total !== 1 ? "s" : ""} outstanding`,
-        detail: [
-          toWrite > 0 ? `${toWrite} to write` : null,
-          toMail  > 0 ? `${toMail} to mail`  : null,
-        ].filter(Boolean).join(", "),
+        title: `${n} thank-you note${n !== 1 ? "s" : ""} to ${writing ? "write" : "mail"}`,
+        detail: writing
+          ? (toMail > 0 ? `${toMail} more written and waiting to be mailed` : "Gifts received, none marked written yet")
+          : "Written, waiting to be mailed",
         tab: "gifts",
-        priority: 2.5,
+        priority: 5,
       });
     }
   }
@@ -211,13 +207,14 @@ export function computeFocusItems(data, adminConfig) {
       items.push({
         id: "rsvp-reminder",
         domain: "rsvps",
+        type: canAct ? "unreplied" : "nav",   // viewers get a plain link to the Guests tab
         tone: daysToDeadline <= 7 ? "gold" : "accent",
         icon: "mailCheck",
         title: `${n} household${n !== 1 ? "s haven't" : " hasn't"} replied`,
         detail: daysToDeadline > 1 ? `Deadline in ${daysToDeadline} days` : daysToDeadline === 1 ? "Deadline is tomorrow" : daysToDeadline === 0 ? "Deadline is today" : `Deadline passed ${Math.abs(daysToDeadline)} day${Math.abs(daysToDeadline) !== 1 ? "s" : ""} ago`,
         tab: "guests",
-        priority: daysToDeadline <= 7 ? 1.5 : 4.5,
-        actionLabel: canRemind ? "Send reminder" : null,
+        priority: daysToDeadline <= 7 ? 3 : 5.5,
+        actionLabel: canAct ? "Send reminder \u2192" : "View guests \u2192",
         compose: { kind: "rsvp_reminder", ids: unreplied.map(householdKey) },
       });
     }
@@ -243,7 +240,7 @@ export function computeFocusItems(data, adminConfig) {
         title: `${awaitingPeople.length} guest${awaitingPeople.length !== 1 ? "s" : ""} awaiting RSVP`,
         detail: `${respondedCount} of ${people.length} responded with ${daysToEvent} day${daysToEvent !== 1 ? "s" : ""} to go`,
         tab: "guests",
-        priority: 5,
+        priority: 6,
       });
     } else {
       // V4.41.0: every household has answered, but individual guests can still
@@ -261,7 +258,7 @@ export function computeFocusItems(data, adminConfig) {
           title: `${n} guest${n !== 1 ? "s" : ""} still need${n === 1 ? "s" : ""} to answer`,
           detail: truncate(`${describeAwaitingSections(summary.bySection)}, ${daysToEvent} day${daysToEvent !== 1 ? "s" : ""} to go`, 60),
           tab: "guests",
-          priority: 5,
+          priority: 6,
         });
       }
     }
@@ -304,12 +301,12 @@ export function computeFocusItems(data, adminConfig) {
         domain: "seating",
         tone: "accent",
         icon: "seating",
-        title: `${totalGap} more seat${totalGap !== 1 ? "s" : ""} needed`,
-        detail: sections.length > 1
-          ? `Largest gap in ${worstLabel} (${worstGap} seat${worstGap !== 1 ? "s" : ""})`
-          : `${worstLabel}: ${worstGap} seat${worstGap !== 1 ? "s" : ""} short`,
+        title: `${worstLabel} is ${worstGap} seat${worstGap !== 1 ? "s" : ""} short`,
+        detail: sections.length > 1 && totalGap > worstGap
+          ? `${totalGap} seats short across all events`
+          : "More confirmed guests than seats at your tables",
         tab: "seating",
-        priority: 6,
+        priority: 7,
       });
     }
   }
@@ -323,12 +320,12 @@ export function computeFocusItems(data, adminConfig) {
         domain: "vendors",
         tone: "accent",
         icon: "vendors",
-        title: `${unbooked.length} vendor${unbooked.length !== 1 ? "s" : ""} not yet booked`,
-        detail: unbooked.length === 1
-          ? truncate(unbooked[0].name || "Unnamed vendor", 60)
-          : `${unbooked.slice(0, 2).map(v => v.name || "Unnamed").join(", ")}${unbooked.length > 2 ? ", ..." : ""}`,
+        title: unbooked.length === 1
+          ? `${truncate(unbooked[0].name || "Unnamed vendor", 50)} is not booked yet`
+          : `${truncate(unbooked[0].name || "A vendor", 40)} and ${unbooked.length - 1} more not booked yet`,
+        detail: `${daysToEvent} day${daysToEvent !== 1 ? "s" : ""} to go`,
         tab: "vendors",
-        priority: 7,
+        priority: 8,
       });
     }
   }
@@ -342,15 +339,21 @@ export function computeFocusItems(data, adminConfig) {
         domain: "addresses",
         tone: "accent",
         icon: "guests",
-        title: `${missingAddr.length} household${missingAddr.length !== 1 ? "s" : ""} missing address`,
-        detail: missingAddr.length === 1
-          ? truncate(missingAddr[0].name || missingAddr[0].formalName || "Unnamed household", 60)
-          : `${missingAddr.length} of ${households.length} households have no address on file`,
+        title: missingAddr.length === 1
+          ? (() => { const nm = truncate(missingAddr[0].formalName || missingAddr[0].name || "A household", 60); return `${nm} ${/\band\b|&/i.test(nm) ? "need" : "needs"} an address`; })()
+          : `${truncate(missingAddr[0].formalName || missingAddr[0].name || "A household", 50)} and ${missingAddr.length - 1} more need addresses`,
+        detail: eventHasPassed ? "Needed for the thank-you mailing" : "Needed for invitations and mailings",
         tab: "guests",
-        priority: 8,
+        priority: 9,
       });
     }
   }
+
+  // Items that only point at a tab are typed "nav", with one action: open that tab.
+  items.forEach(it => {
+    if (!it.type) it.type = "nav";
+    if (it.type === "nav" && !it.actionLabel) it.actionLabel = NAV_LABEL[it.id] || `Open ${it.tab} \u2192`;
+  });
 
   // Sort by priority (lower = more urgent)
   items.sort((a, b) => a.priority - b.priority);
@@ -370,7 +373,33 @@ function getEndOfWeek(today) {
   return new Date(today.getTime() + daysUntilSun * 86400000);
 }
 
+function fmtShort(d) {
+  return new Date(d + "T00:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric" });
+}
+
+// "Overdue 18 days": a badge that carries information the title does not.
+function overdueBadge(days) {
+  return days <= 0 ? "Overdue" : `Overdue ${days} day${days !== 1 ? "s" : ""}`;
+}
+
 function truncate(str, max) {
   if (!str) return "";
   return str.length > max ? str.slice(0, max - 1) + "\u2026" : str;
+}
+
+/**
+ * The next dated thing coming up, for the empty state's link: the earliest open task or
+ * payment that is not already a "Needs you now" item. Returns { text, tab } or null.
+ */
+export function computeNextUp({ tasks = [], expenses = [] }) {
+  const today = stripTime(new Date());
+  const fmt = d => new Date(d + "T00:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  const cands = [];
+  tasks.filter(t => !t.done && !t.dismissed && t.due && new Date(t.due + "T00:00:00") >= today)
+    .forEach(t => cands.push({ date: t.due, text: `${truncate(t.task || t.title || "Task", 40)}, due ${fmt(t.due)}`, tab: "tasks" }));
+  expenses.forEach(e => getOpenPayments(e)
+    .filter(p => new Date(p.dueDate + "T00:00:00") >= today)
+    .forEach(p => cands.push({ date: p.dueDate, text: `${truncate(e.description || e.vendor || "Payment", 40)}, due ${fmt(p.dueDate)}`, tab: "budget" })));
+  cands.sort((a, b) => a.date.localeCompare(b.date));
+  return cands[0] || null;
 }

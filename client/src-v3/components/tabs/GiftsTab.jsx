@@ -32,6 +32,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useState, useEffect, useRef } from "react";
+import { consumeGiftsFilter } from "@/utils/giftsPreset.js";
 import { useEventData }        from "@/hooks/useEventData.js";
 import { useSearchHighlight }  from "@/hooks/useSearchHighlight.js";
 import { usePrimaryAction } from "@/hooks/usePrimaryAction.js";
@@ -63,7 +64,7 @@ export function GiftsTab({ eventId, event, adminConfig, showToast, isArchived, i
   const [deleteConfirm, setDeleteConfirm] = useState(null);
   const [search,        setSearch]        = useState("");
   const [filterType,    setFilterType]    = useState("all");
-  const [filterTY,      setFilterTY]      = useState("all");
+  const [filterTY,      setFilterTY]      = useState(() => consumeGiftsFilter(eventId) || "all");
   const [showExport,    setShowExport]    = useState(false);
   const [printHTML,     setPrintHTML]     = useState(null);
 

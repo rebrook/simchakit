@@ -36,7 +36,7 @@ function getOpenPayments(expense) {
   if (hasPayments(expense)) {
     return (expense.payments || [])
       .filter(p => p.status !== "paid" && p.dueDate)
-      .map(p => ({ dueDate: p.dueDate, amount: parseFloat(p.amount) || 0, label: p.label || "" }));
+      .map(p => ({ id: p.id, dueDate: p.dueDate, amount: parseFloat(p.amount) || 0, label: p.label || "" }));
   }
   return expense.dueDate
     ? [{ dueDate: expense.dueDate, amount: amountRemaining(expense), label: "" }]

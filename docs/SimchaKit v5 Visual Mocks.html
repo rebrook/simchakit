@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>SimchaKit v5 Visual Mocks</title>
+<link rel="stylesheet" href="../styles.css">
+<style>
+*{box-sizing:border-box}body{margin:0;background:var(--bg-base);color:var(--text-primary);font-family:var(--font-body);line-height:1.5}
+a{color:var(--accent-primary)}a:hover{color:var(--accent-dark)}
+.w{max-width:1120px;margin:0 auto;padding:48px 32px 96px}
+h1{font-family:var(--font-display);font-size:48px;line-height:1.05;margin:0}h2{font-family:var(--font-display);font-size:32px;margin:56px 0 4px}
+.sub{color:var(--text-secondary);max-width:68ch;margin:0 0 20px}.tag{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text-muted);margin:0 0 8px;display:block}
+.pair{display:grid;grid-template-columns:repeat(auto-fit,minmax(480px,1fr));gap:20px;align-items:start}
+.app{background:var(--bg-base);border:1px solid var(--border);border-radius:14px;padding:16px;display:grid;gap:12px;font-size:13px}
+.card{background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px 16px}
+.ct{font-weight:700;font-size:13px;margin-bottom:6px}
+.hero{background:linear-gradient(135deg,var(--accent-dark),var(--accent-primary));color:#fff;border-radius:var(--radius-lg);padding:16px 18px}
+.hero .l{font-size:10px;letter-spacing:.12em;text-transform:uppercase;opacity:.85}.hero .t{font-family:var(--font-display);font-size:26px;font-weight:700;line-height:1.1;margin:2px 0}
+.hero .d{font-size:12px;opacity:.9}.units{display:flex;gap:8px;margin-top:10px}.units div{background:rgba(255,255,255,.16);border-radius:8px;padding:4px 10px;text-align:center;font-weight:700;font-size:16px}.units small{display:block;font-size:9px;font-weight:500;opacity:.9}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.st{background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius-md);padding:10px 12px}
+.st b{font-size:20px;display:block;line-height:1.1}.st span{font-size:11px;color:var(--text-secondary)}
+.ring{width:34px;height:34px;border-radius:50%;background:conic-gradient(var(--green) var(--p),var(--bg-muted) 0);display:grid;place-items:center;margin-bottom:6px}.ring i{width:24px;height:24px;border-radius:50%;background:var(--bg-surface)}
+.bar{height:5px;background:var(--bg-muted);border-radius:9px;margin-top:6px;overflow:hidden}.bar i{display:block;height:100%;background:var(--green);width:var(--p)}
+.fi{display:flex;align-items:center;gap:10px;padding:9px 0;border-top:1px solid var(--border)}.fi:first-of-type{border-top:0}
+.fi .dot{width:8px;height:8px;border-radius:50%;flex:none}.fi .tx{flex:1;min-width:0}.fi .tx b{display:block;font-size:13px}.fi .tx span{font-size:12px;color:var(--text-secondary)}
+.btn{font:600 12px var(--font-body);border-radius:var(--radius-sm);border:1px solid var(--border-strong);background:var(--bg-surface);color:var(--text-primary);padding:6px 11px;cursor:pointer;white-space:nowrap}.btn.p{background:var(--accent-primary);border-color:var(--accent-primary);color:#fff}
+.nt{font-size:12px;color:var(--text-secondary);margin:10px 2px 0}
+.ph{width:320px;min-height:620px;background:var(--bg-base);border:1px solid var(--border);border-radius:28px;padding:22px 20px;box-shadow:var(--shadow-md);display:flex;flex-direction:column;gap:14px}
+.phones{display:flex;gap:24px;flex-wrap:wrap}
+.mono{width:64px;height:64px;border-radius:50%;background:var(--accent-light);color:var(--accent-primary);display:grid;place-items:center;font-family:var(--font-display);font-size:34px;font-weight:700;margin:6px auto 0;border:1px solid var(--accent-medium)}
+.ph h3{font-family:var(--font-display);font-size:34px;line-height:1.05;margin:0;text-align:center}.ph .c{text-align:center;color:var(--text-secondary);font-size:14px}
+.big{font:700 16px var(--font-body);background:var(--accent-primary);color:#fff;border:0;border-radius:12px;height:52px;width:100%}
+.person{background:var(--bg-surface);border:1px solid var(--border);border-radius:14px;padding:12px 14px}.person b{font-size:15px}
+.ev{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:10px;font-size:13px}
+.seg{display:flex;border:1px solid var(--border-strong);border-radius:10px;overflow:hidden}.seg span{padding:0 14px;height:44px;display:grid;place-items:center;font-weight:600;font-size:13px;color:var(--text-secondary);background:var(--bg-surface)}
+.seg span+span{border-left:1px solid var(--border-strong)}.seg .y{background:var(--green-light);color:var(--green)}.seg .n{background:var(--red-light);color:var(--red)}
+.prog{display:flex;gap:5px}.prog i{flex:1;height:4px;border-radius:9px;background:var(--bg-muted)}.prog i.on{background:var(--accent-primary)}
+.lab{font-size:12px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.05em}
+.sel{height:44px;border:1px solid var(--border-strong);border-radius:10px;background:var(--bg-surface);display:flex;align-items:center;padding:0 12px;font-size:14px;justify-content:space-between}
+.chk{width:56px;height:56px;border-radius:50%;background:var(--green-light);color:var(--green);display:grid;place-items:center;font-size:28px;font-weight:700;margin:20px auto 0}
+.q{background:var(--bg-surface);border:1px solid var(--border);border-radius:12px;overflow:hidden}.q .h{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:var(--bg-subtle);border-bottom:1px solid var(--border)}
+.q .r{display:grid;grid-template-columns:1.2fr 1fr 1.4fr auto;gap:12px;align-items:center;padding:12px 16px;border-top:1px solid var(--border);font-size:13px}.q .r:first-of-type{border-top:0}
+.pill{font-size:11px;font-weight:700;padding:2px 9px;border-radius:99px;display:inline-block}.g{background:var(--green-light);color:var(--green)}.rd{background:var(--red-light);color:var(--red)}.gd{background:var(--gold-light);color:var(--gold)}
+ul{padding-left:20px;margin:8px 0 0;color:var(--text-secondary);font-size:14px}
+</style></head><body><div class="w">
+<h1>v5 visual mocks</h1>
+<p class="sub">Two surfaces: the Overview (current vs proposed) and the new guest RSVP flow with the host review queue. Mock data. Tokens, fonts and the rose palette come from the design system; the guest pages would take the event's chosen palette and logo.</p>
+
+<h2>Overview</h2>
+<p class="sub">Layout as coded in <code>OverviewTab.jsx</code>: setup card, countdown beside "What needs you next", four ring cards, two simple counts, then timeline and notes. Proposed: the action list leads and is resolvable in place, the countdown compacts, and the stats become one quiet row.</p>
+<div class="pair">
+<div><span class="tag">Current</span><div class="app">
+<div class="card"><div class="ct">Get Started · 2 of 4 steps complete</div><div style="color:var(--text-secondary);font-size:12px">Name your event · Choose a type · Add a date · Add your first guest</div></div>
+<div class="row2"><div class="hero"><div class="l">Counting down to</div><div class="t">Maya's Bat Mitzvah</div><div class="d">Sat, Mar 14, 2027 · Beth Shalom</div><div class="units"><div>145<small>Days</small></div><div>06<small>Hrs</small></div><div>22<small>Min</small></div></div></div>
+<div class="card"><div class="ct">What needs you next</div><div class="fi"><span class="dot" style="background:var(--red)"></span><div class="tx"><b>3 invoices overdue</b></div></div><div class="fi"><span class="dot" style="background:var(--gold)"></span><div class="tx"><b>14 households awaiting RSVP</b></div></div><div class="fi"><span class="dot" style="background:var(--blue)"></span><div class="tx"><b>6 tasks due this week</b></div></div></div></div>
+<div class="stats"><div class="st"><div class="ring" style="--p:62%"><i></i></div><b>84/136</b><span>Confirmed</span></div><div class="st"><div class="ring" style="--p:40%"><i></i></div><b>$12.4k</b><span>Budget paid</span></div><div class="st"><div class="ring" style="--p:55%"><i></i></div><b>22/40</b><span>Tasks done</span></div><div class="st"><div class="ring" style="--p:70%"><i></i></div><b>7/10</b><span>Vendors</span></div></div>
+<div class="row2"><div class="card"><div class="ct">Event Timeline</div><span style="color:var(--text-secondary);font-size:12px">Service · Kiddush · Reception</span></div><div class="card"><div class="ct">Quick Notes</div><span style="color:var(--text-muted);font-size:12px">Jot down ideas…</span></div></div>
+</div></div>
+<div><span class="tag">Proposed</span><div class="app">
+<div class="row2" style="grid-template-columns:1.5fr 1fr">
+<div class="card" style="border-color:var(--accent-medium)"><div class="ct" style="display:flex;justify-content:space-between"><span>Needs you now</span><span style="color:var(--text-muted);font-weight:500">4 items</span></div>
+<div class="fi"><span class="dot" style="background:var(--accent-primary)"></span><div class="tx"><b>6 new RSVP replies</b><span>Review and accept into the guest list</span></div><button class="btn p">Review</button></div>
+<div class="fi"><span class="dot" style="background:var(--gold)"></span><div class="tx"><b>14 households haven't replied</b><span>Deadline in 12 days</span></div><button class="btn">Send reminder</button></div>
+<div class="fi"><span class="dot" style="background:var(--red)"></span><div class="tx"><b>3 invoices overdue</b><span>$2,150 total</span></div><button class="btn">Open budget</button></div>
+<div class="fi"><span class="dot" style="background:var(--blue)"></span><div class="tx"><b>6 tasks due this week</b><span>Next: confirm DJ playlist</span></div><button class="btn">View</button></div></div>
+<div class="hero" style="display:flex;flex-direction:column;justify-content:center"><div class="l">Counting down to</div><div class="t">Maya's Bat Mitzvah</div><div class="d">Sat, Mar 14, 2027</div><div style="font-family:var(--font-display);font-size:48px;font-weight:700;line-height:1;margin-top:10px">145<span style="font-size:14px;font-family:var(--font-body);font-weight:500;margin-left:6px">days</span></div></div></div>
+<div class="stats">
+<div class="st"><span>Confirmed</span><b>84 <small style="font-size:12px;font-weight:500;color:var(--text-muted)">of 136</small></b><div class="bar" style="--p:62%"><i></i></div></div>
+<div class="st"><span>Budget paid</span><b>$12.4k <small style="font-size:12px;font-weight:500;color:var(--text-muted)">of $31k</small></b><div class="bar" style="--p:40%"><i></i></div></div>
+<div class="st"><span>Tasks done</span><b>22 <small style="font-size:12px;font-weight:500;color:var(--text-muted)">of 40</small></b><div class="bar" style="--p:55%"><i></i></div></div>
+<div class="st"><span>Vendors booked</span><b>7 <small style="font-size:12px;font-weight:500;color:var(--text-muted)">of 10</small></b><div class="bar" style="--p:70%"><i></i></div></div></div>
+<div class="row2"><div class="card"><div class="ct">Event Timeline</div><span style="color:var(--text-secondary);font-size:12px">Service · Kiddush · Reception</span></div><div class="card"><div class="ct">Quick Notes</div><span style="color:var(--text-muted);font-size:12px">Jot down ideas…</span></div></div>
+</div><p class="nt">Setup card moves to a one-line banner once only one step remains. Each action performs the task in place (reminder opens the composer with the 14 households preselected).</p></div>
+</div>
+
+<h2>Guest RSVP</h2>
+<p class="sub">One private link per household, no account. Mobile first. One decision per screen, 44px targets, labels in words. Warm tone comes from the serif display type, the event's logo and palette, and plain friendly copy.</p>
+<div class="phones">
+<div class="ph"><div class="prog"><i class="on"></i><i></i><i></i></div><div class="mono">M</div><div class="c" style="margin-top:-4px">You're invited to</div><h3>Maya's Bat Mitzvah</h3><div class="c">Saturday, March 14, 2027<br>Beth Shalom, Chicago</div>
+<div class="person" style="text-align:center"><div class="lab">Replying for</div><b>The Cohen Family</b><div style="font-size:13px;color:var(--text-secondary)">Rachel, David, Noa, Eli</div></div>
+<div style="flex:1"></div><button class="big">Reply</button><div class="c" style="font-size:12px">Please reply by February 1</div></div>
+<div class="ph"><div class="prog"><i class="on"></i><i class="on"></i><i></i></div><div class="lab">Who's coming?</div>
+<div class="person"><b>Rachel Cohen</b><div class="ev"><span>Service</span><div class="seg"><span class="y">Yes</span><span>No</span></div></div><div class="ev"><span>Reception</span><div class="seg"><span class="y">Yes</span><span>No</span></div></div></div>
+<div class="person"><b>David Cohen</b><div class="ev"><span>Service</span><div class="seg"><span class="y">Yes</span><span>No</span></div></div><div class="ev"><span>Reception</span><div class="seg"><span>Yes</span><span class="n">No</span></div></div></div>
+<div class="person"><b>Noa, age 9</b><div class="ev"><span>Service</span><div class="seg"><span>Yes</span><span>No</span></div></div></div>
+<div style="flex:1"></div><button class="big">Continue</button></div>
+<div class="ph"><div class="prog"><i class="on"></i><i class="on"></i><i class="on"></i></div><div class="lab">A few details</div>
+<div class="person"><b>Rachel · reception meal</b><div class="sel" style="margin-top:8px"><span>Chicken</span><span style="color:var(--text-muted)">▾</span></div><div class="sel" style="margin-top:8px"><span style="color:var(--text-muted)">Dietary needs (optional)</span></div></div>
+<div class="person"><b>Mailing address</b><div style="font-size:13px;color:var(--text-secondary);margin:4px 0 8px">14 Elm St, Evanston, IL 60201</div><div class="seg" style="width:fit-content"><span class="y">Correct</span><span>Update</span></div></div>
+<div class="person"><b>Note to Maya's family</b><div class="sel" style="margin-top:8px;height:64px;align-items:flex-start;padding-top:10px;color:var(--text-muted)">Optional</div></div>
+<div style="flex:1"></div><button class="big">Send reply</button></div>
+<div class="ph" style="justify-content:center;text-align:center"><div class="chk">✓</div><h3>Thank you, Cohens</h3><div class="c">We have 3 of 4 coming to the service and 2 to the reception. Maya's family has your reply.</div>
+<div class="person" style="text-align:left"><b style="font-size:13px">Change your reply</b><div style="font-size:12px;color:var(--text-secondary)">Use the same link any time before February 1.</div></div><button class="btn" style="height:44px">Add to calendar</button></div>
+</div>
+
+<h2>Host review queue</h2>
+<p class="sub">Replies arrive as proposals. The host sees what changed, then accepts one or all, so the guest list never changes unseen. Lives in the Guests tab and is linked from Needs you now.</p>
+<div class="q"><div class="h"><b>6 new replies</b><span style="display:flex;gap:8px"><button class="btn">Review each</button><button class="btn p">Accept all 6</button></span></div>
+<div class="r"><b>Cohen, Rachel &amp; David</b><span class="pill g">3 yes · 1 no</span><span style="color:var(--text-secondary)">Meals: chicken ×2 · Kids: pasta · Address confirmed</span><button class="btn">Accept</button></div>
+<div class="r"><b>Levin Family</b><span class="pill rd">Declined</span><span style="color:var(--text-secondary)">"So sorry, we'll be traveling. Mazel tov!"</span><button class="btn">Accept</button></div>
+<div class="r"><b>Aunt Miriam</b><span class="pill gd">Needs a look</span><span style="color:var(--text-secondary)">Adds a guest not on the list (plus-one)</span><button class="btn p">Review</button></div></div>
+
+<h2>Design notes</h2>
+<ul><li>Status words and shapes carry meaning; green and red are never the only cue (Yes and No are labeled).</li><li>Guest pages take the event palette and logo, and follow the dark-mode token set.</li><li>Needs-you list uses the same button and dot language as the Gifts chips, so status reads the same on every screen.</li><li>All guest-page controls are at least 44px tall.</li></ul>
+</div></body></html>

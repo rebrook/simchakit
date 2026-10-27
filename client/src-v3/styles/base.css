@@ -45,6 +45,8 @@
       --accent-light:    #f0dde3;
       --accent-medium:   #c9849a;
       --accent-dark:     #5a2b3c;
+      --accent-fill:     var(--accent-primary);   /* ThemeProvider overrides these two per palette */
+      --on-accent:       #1c1614;
 
       --gold:            #b5821a;
       --gold-light:      #f5ecd5;
@@ -101,6 +103,8 @@
       --accent-light:    #2a1820;
       --accent-medium:   #c97090;
       --accent-dark:     #f0c0d0;
+      --accent-fill:     var(--accent-primary);
+      --on-accent:       #1c1614;
 
       --gold:            #d4a843;
       --gold-light:      #2a2010;
