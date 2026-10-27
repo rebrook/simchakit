@@ -1,9 +1,20 @@
 {
-  "current": "V5.9.1",
+  "current": "V5.9.2",
   "whatsNew": [
-    "Small Overview fixes: a clearer new-event button, matching day counts, and a shorter phone hero after the event"
+    "The Getting ready card keeps what you are typing while the page updates"
   ],
   "changelog": [
+    {
+      "version": "V5.9.2",
+      "date": "2026-10-27",
+      "summary": "Fix: the Getting ready card no longer resets when live data updates",
+      "changes": [
+        "Fix: the Getting ready card on Overview was being rebuilt every time live data changed, which could wipe a half-typed venue, close an open step or close the guest import window. It is now kept in place while data updates",
+        "No database changes. V3 app only"
+      ],
+      "roadmap": [],
+      "knownIssues": []
+    },
     {
       "version": "V5.9.1",
       "date": "2026-10-27",

@@ -270,7 +270,10 @@ export function OverviewTab({ eventId, event, adminConfig, showToast, setActiveT
   const showSetupReopen = !!setupState && !householdsLoading && canEditSetup && setupState.dismissed && setupSummary.remaining > 0;
 
   // The Getting ready card (one-line banner when a single step is left; hidden when done or dismissed)
-  const SetupCard = () => (
+  // An element, not a component defined here: a component declared inside this render would be a new
+  // type on every update, so live data would remount the card and wipe a half-typed venue, an open
+  // step or the open import window.
+  const setupCard = (
     <GetStartedCard
       eventId={eventId}
       adminConfig={config}
@@ -383,10 +386,10 @@ export function OverviewTab({ eventId, event, adminConfig, showToast, setActiveT
       />
 
       {/* The Getting ready card sits above everything unless it is day zero, when it takes the Needs you now slot. */}
-      {showSetupCard && !cardInSlot && <SetupCard />}
+      {showSetupCard && !cardInSlot && setupCard}
 
       <div className="ov-main" data-stage={stage === "post" ? "post" : "live"}>
-        {cardInSlot ? <div className="ov-a-n"><SetupCard /></div> : (
+        {cardInSlot ? <div className="ov-a-n">{setupCard}</div> : (
           <FocusPanel
             items={focusItems}
             loading={dataLoading}
