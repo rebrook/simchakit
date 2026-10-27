@@ -18,6 +18,7 @@ import { useEventData }       from "@/hooks/useEventData.js";
 import { EVENT_TYPE_ICON_KEYS } from "@/constants/events.js";
 import { getCountdown, hasEventPassed, formatDate, formatEntryMeta, sortTimeline } from "@/utils/dates.js";
 import { GetStartedCard }     from "@/components/shared/GetStartedCard.jsx";
+import { readSetupState, mergeSetupState, migrateLegacyDismissal, resolveSteps } from "@/utils/setupState.js";
 import { generateEventBriefHTML } from "@/utils/exports.js";
 import { Icon }               from "@/utils/iconMap.jsx";
 import { StatCard }          from "@/components/shared/StatCard.jsx";
@@ -50,7 +51,7 @@ function useIsMobile() {
   return m;
 }
 
-export function OverviewTab({ eventId, event, adminConfig, showToast, setActiveTab, onOpenAdmin, onOpenAdminTo, onOpenGuide, onPrintBrief, isViewer, setTopbarSubtitle, userName }) {
+export function OverviewTab({ eventId, event, adminConfig, showToast, setActiveTab, onOpenAdmin, onOpenAdminTo, onOpenGuide, onPrintBrief, isViewer, isArchived, collaboratorRole, coPlanners, userId, onConfigSaved, onLogoSaved, openInvite, setTopbarSubtitle, userName }) {
   const config    = adminConfig || {};
   const isMobile  = useIsMobile();
   const mainEvent = (config.timeline || []).find(e => e.isMainEvent) || null;
@@ -194,10 +195,40 @@ export function OverviewTab({ eventId, event, adminConfig, showToast, setActiveT
     [tasks, expenses, people, households, vendors, tables, seatingRows, gifts, pendingReplies, repliedHouseholdIds, canRemind, config],
   );
 
-  const STORAGE_KEY = `simchakit-getstarted-dismissed-${eventId || "default"}`;
-  const [showChecklist, setShowChecklist] = useState(() => {
-    try { return localStorage.getItem(STORAGE_KEY) !== "1"; } catch { return true; }
-  });
+  // ── Getting ready card (V5.7.0) ───────────────────────────────────────────
+  // Progress lives on the event (events.setup_state) so co-planners see the same
+  // state. It is re-read when the tab regains focus, so another device's changes show up.
+  const canEditSetup = (collaboratorRole === "owner" || collaboratorRole === "editor") && !isArchived;
+  const [setupState, setSetupState] = useState(null); // null = not loaded (or column missing): card stays hidden
+  useEffect(() => {
+    if (!eventId) return undefined;
+    let cancelled = false;
+    const load = async () => {
+      const st = await readSetupState(eventId);
+      if (cancelled || !st) return;
+      setSetupState(st);
+      if (canEditSetup) {
+        // First load per event: move the old per-browser "dismissed" flag onto the event, then ignore it.
+        try { const migrated = await migrateLegacyDismissal(eventId, st); if (migrated && !cancelled) setSetupState(migrated); } catch { /* retried next load */ }
+      }
+    };
+    load();
+    const onVisible = () => { if (document.visibilityState === "visible") load(); };
+    document.addEventListener("visibilitychange", onVisible);
+    window.addEventListener("focus", load);
+    return () => { cancelled = true; document.removeEventListener("visibilitychange", onVisible); window.removeEventListener("focus", load); };
+  }, [eventId, canEditSetup]);
+
+  const setupSummary = useMemo(
+    () => resolveSteps({ adminConfig: config, households, coPlanners, userId, setupState }),
+    [config, households, coPlanners, userId, setupState],
+  );
+  const updateSetup = useCallback(async (patch) => {
+    try { setSetupState(await mergeSetupState(eventId, patch)); }
+    catch (e) { showToast?.("Could not save your progress. Check your connection."); }
+  }, [eventId, showToast]);
+  const showSetupCard = !!setupState && !householdsLoading && !!collaboratorRole && collaboratorRole !== "coordinator" && !setupState.dismissed;
+  const showSetupReopen = !!setupState && !householdsLoading && canEditSetup && setupState.dismissed && setupSummary.remaining > 0;
 
   // ── Topbar subtitle ──────────────────────────────────────────────────────
   const subtitle = userName
@@ -214,15 +245,12 @@ export function OverviewTab({ eventId, event, adminConfig, showToast, setActiveT
       <div className="mobile-tab-subtitle">{subtitle}</div>
 
       {/* Action row — only render when at least one child is visible */}
-      {(!showChecklist || isMobile) && (
+      {(showSetupReopen || isMobile) && (
         <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, marginBottom: 12 }}>
-          {!showChecklist && (
-            <button className="btn btn-ghost btn-sm" onClick={() => {
-              try { localStorage.removeItem(`simchakit-getstarted-dismissed-${eventId || "default"}`); } catch {}
-              setShowChecklist(true);
-            }}
+          {showSetupReopen && (
+            <button className="btn btn-ghost btn-sm" onClick={() => updateSetup({ dismissed: false })}
               style={{ fontSize: 12 }}>
-              <Icon name="hand" context="inline" style={{ marginRight: 4 }} /> Setup checklist
+              <Icon name="hand" context="inline" style={{ marginRight: 4 }} /> Getting ready
             </button>
           )}
           {/* Touch devices — opens the system print sheet (print, share, or save as PDF) */}
@@ -235,16 +263,23 @@ export function OverviewTab({ eventId, event, adminConfig, showToast, setActiveT
         </div>
       )}
 
-      {/* Get Started card */}
-      {showChecklist && (
+      {/* Getting ready card */}
+      {showSetupCard && (
         <GetStartedCard
-          state={{ households, people }}
-          adminConfig={config}
-          setActiveTab={setActiveTab}
-          onOpenAdmin={onOpenAdmin}
-          onOpenGuide={onOpenGuide}
           eventId={eventId}
-          onDismissedChange={(isDismissed) => setShowChecklist(!isDismissed)}
+          adminConfig={config}
+          summary={setupSummary}
+          canEdit={canEditSetup}
+          isArchived={isArchived}
+          collaboratorRole={collaboratorRole}
+          onSetStep={(id, val) => updateSetup({ steps: { [id]: val } })}
+          onDismiss={() => updateSetup({ dismissed: true })}
+          onConfigSaved={onConfigSaved}
+          onLogoSaved={onLogoSaved}
+          openInvite={openInvite}
+          setActiveTab={setActiveTab}
+          onOpenGuide={onOpenGuide}
+          showToast={showToast}
         />
       )}
 

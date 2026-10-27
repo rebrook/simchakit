@@ -1,55 +1,88 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// SimchaKit V3.0.0 — CreateEventForm.jsx
-// Inline form for creating a new event. Appears above the event grid.
-// Writes: events (INSERT) + user_profiles.event_count (increment).
+// SimchaKit V5.7.0 — CreateEventForm.jsx
+// First-run create screen: type, name, date, optional venue and the events to
+// track (seeded by type), with a live countdown preview. Appears above the
+// event grid; on phones the preview drops below the form.
+// Writes: events (INSERT, with the sub-events as the timeline) + user_profiles.event_count (increment).
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useState } from "react";
 import { supabase } from "@/lib/supabase.js";
 import { Icon } from "@/utils/iconMap.jsx";
+import { EVENT_TYPE_ICON_KEYS } from "@/constants/events.js";
+import { seedSubEventNames, buildSeedTimeline } from "@/utils/eventSeeds.js";
+import { formatDate } from "@/utils/dates.js";
 
 const EVENT_TYPES = [
   { value: "bat-mitzvah",  label: "Bat Mitzvah" },
   { value: "bar-mitzvah",  label: "Bar Mitzvah" },
-  { value: "bnei-mitzvah", label: "B'nei Mitzvah" },
   { value: "wedding",      label: "Wedding" },
+  { value: "bnei-mitzvah", label: "B'nei Mitzvah" },
   { value: "baby-naming",  label: "Baby Naming" },
   { value: "graduation",   label: "Graduation" },
   { value: "anniversary",  label: "Anniversary" },
   { value: "birthday",     label: "Birthday" },
   { value: "other",        label: "Other Celebration" },
 ];
+const TYPES_SHOWN = 3;
+
+const seedEvents = (t) => seedSubEventNames(t).map(n => ({ name: n, on: true }));
+
+function daysUntil(dateStr) {
+  const [y, m, d] = dateStr.split("-").map(Number);
+  if (!y || !m || !d) return null;
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  return Math.round((new Date(y, m - 1, d) - today) / 86400000);
+}
 
 export function CreateEventForm({ userId, userEmail, onCreated, onCancel }) {
   const [name,    setName]    = useState("");
   const [type,    setType]    = useState("bat-mitzvah");
   const [date,    setDate]    = useState("");
+  const [venue,   setVenue]   = useState("");
+  const [events,  setEvents]  = useState(() => seedEvents("bat-mitzvah"));
+  const [edited,  setEdited]  = useState(false);   // true once the user touches the events list
+  const [adding,  setAdding]  = useState(false);
+  const [newName, setNewName] = useState("");
+  const [showAllTypes, setShowAllTypes] = useState(false);
   const [status,  setStatus]  = useState("idle"); // idle | loading | error
   const [errorMsg, setErrorMsg] = useState("");
 
   const canSubmit = name.trim().length > 0 && status !== "loading";
+  const busy = status === "loading";
+
+  function pickType(t) {
+    setType(t);
+    if (!edited) setEvents(seedEvents(t));
+  }
+
+  function toggleEvent(i) {
+    setEdited(true);
+    setEvents(list => list.map((e, j) => j === i ? { ...e, on: !e.on } : e));
+  }
+
+  function addEvent() {
+    const n = newName.trim();
+    setNewName(""); setAdding(false);
+    if (!n || events.some(e => e.name.toLowerCase() === n.toLowerCase())) return;
+    setEdited(true);
+    setEvents(list => [...list, { name: n, on: true }]);
+  }
 
   async function handleCreate() {
     if (!canSubmit) return;
     setStatus("loading");
     setErrorMsg("");
 
-    // Build admin_config with timeline entry if date provided
+    // Sub-events chosen on the form become the timeline, so RSVP per sub-event
+    // works from day one. The first one is the main event (the countdown).
+    const chosen   = events.filter(e => e.on).map(e => e.name);
+    const timeline = buildSeedTimeline(chosen.length ? chosen : [name.trim()], date, venue.trim());
     const adminConfig = {
       name: name.trim(),
       type,
       theme: { palette: "rose", name: "", icon: "" },
-      timeline: date ? [{
-        id:          "tl_" + Date.now() + "_" + Math.random().toString(36).slice(2, 7),
-        isMainEvent: true,
-        title:       name.trim(),
-        startDate:   date,
-        endDate:     date,
-        startTime:   "",
-        endTime:     "",
-        venue:       "",
-        notes:       "",
-      }] : [],
+      timeline,
     };
 
     // INSERT event
@@ -118,184 +151,106 @@ export function CreateEventForm({ userId, userEmail, onCreated, onCancel }) {
     if (e.key === "Escape") onCancel();
   }
 
+  const typeLabel   = EVENT_TYPES.find(t => t.value === type)?.label || "";
+  const visibleTypes = showAllTypes || EVENT_TYPES.findIndex(t => t.value === type) >= TYPES_SHOWN
+    ? EVENT_TYPES : EVENT_TYPES.slice(0, TYPES_SHOWN);
+  const days = date ? daysUntil(date) : null;
+
   return (
-    <div style={styles.wrap}>
-      <div style={styles.title}>Create New Event</div>
+    <div className="create-event">
+      <div className="create-event-form">
+        <div className="create-event-title">Let's set up your celebration</div>
 
-      <div style={styles.fieldRow}>
-        {/* Event Name */}
-        <div style={{ ...styles.fieldWrap, flex: 2, minWidth: 200 }}>
-          <label style={styles.label}>Event Name *</label>
-          <input
-            style={styles.input}
-            type="text"
-            value={name}
-            onChange={e => setName(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder="e.g. Brook Bat Mitzvah"
-            autoFocus
-            autoComplete="off"
-            disabled={status === "loading"}
-          />
-        </div>
-
-        {/* Event Type */}
-        <div style={{ ...styles.fieldWrap, flex: 1, minWidth: 160 }}>
-          <label style={styles.label}>Event Type</label>
-          <select
-            style={styles.select}
-            value={type}
-            onChange={e => setType(e.target.value)}
-            disabled={status === "loading"}
-          >
-            {EVENT_TYPES.map(t => (
-              <option key={t.value} value={t.value}>{t.label}</option>
+        <div>
+          <div className="create-event-label" id="ce-type-label">What are you celebrating?</div>
+          <div className="create-event-chips" role="group" aria-labelledby="ce-type-label">
+            {visibleTypes.map(t => (
+              <button key={t.value} type="button" className={`create-chip${type === t.value ? " on" : ""}`}
+                aria-pressed={type === t.value} onClick={() => pickType(t.value)} disabled={busy}>
+                {type === t.value && <Icon name="check" context="badge" />}
+                {t.label}
+              </button>
             ))}
-          </select>
+            {visibleTypes.length < EVENT_TYPES.length && (
+              <button type="button" className="create-chip" onClick={() => setShowAllTypes(true)}>
+                + {EVENT_TYPES.length - visibleTypes.length} more
+              </button>
+            )}
+          </div>
         </div>
 
-        {/* Main Event Date */}
-        <div style={{ ...styles.fieldWrap, flex: 1, minWidth: 160 }}>
-          <label style={styles.label}>Main Event Date</label>
-          <input
-            style={styles.input}
-            type="date"
-            value={date}
-            onChange={e => setDate(e.target.value)}
-            disabled={status === "loading"}
-          />
+        <div>
+          <label className="create-event-label" htmlFor="ce-name">Name *</label>
+          <input id="ce-name" className="create-input" type="text" value={name}
+            onChange={e => setName(e.target.value)} onKeyDown={handleKeyDown}
+            placeholder={`e.g. Maya's ${typeLabel}`} autoFocus autoComplete="off" disabled={busy} />
         </div>
 
-        {/* Actions */}
-        <div style={styles.actions}>
-          <button
-            style={{
-              ...styles.btnCreate,
-              opacity: canSubmit ? 1 : 0.45,
-              cursor: canSubmit ? "pointer" : "not-allowed",
-            }}
-            onClick={handleCreate}
-            disabled={!canSubmit}
-          >
-            {status === "loading" ? "Creating…" : "Create"}
-          </button>
-          <button style={styles.btnCancel} onClick={onCancel} disabled={status === "loading"}>
-            Cancel
-          </button>
+        <div className="create-event-row">
+          <div>
+            <label className="create-event-label" htmlFor="ce-date">Date</label>
+            <input id="ce-date" className="create-input" type="date" value={date}
+              onChange={e => setDate(e.target.value)} disabled={busy} />
+          </div>
+          <div>
+            <label className="create-event-label" htmlFor="ce-venue">Venue (optional)</label>
+            <input id="ce-venue" className="create-input" type="text" value={venue}
+              onChange={e => setVenue(e.target.value)} onKeyDown={handleKeyDown}
+              placeholder="e.g. Beth Shalom" autoComplete="off" disabled={busy} />
+          </div>
         </div>
+
+        <div>
+          <div className="create-event-label" id="ce-events-label">Events to track</div>
+          <div className="create-event-chips" role="group" aria-labelledby="ce-events-label">
+            {events.map((e, i) => (
+              <button key={e.name} type="button" className={`create-chip${e.on ? " on" : ""}`}
+                aria-pressed={e.on} onClick={() => toggleEvent(i)} disabled={busy}>
+                {e.on && <Icon name="check" context="badge" />}
+                {e.name}
+              </button>
+            ))}
+            {adding ? (
+              <input className="create-input create-input-inline" autoFocus value={newName}
+                onChange={e => setNewName(e.target.value)} placeholder="e.g. Rehearsal dinner"
+                aria-label="New event name" maxLength={60}
+                onBlur={addEvent}
+                onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); addEvent(); } if (e.key === "Escape") { setNewName(""); setAdding(false); } }} />
+            ) : (
+              <button type="button" className="create-chip" onClick={() => setAdding(true)} disabled={busy}>
+                <Icon name="plus" context="badge" /> Add
+              </button>
+            )}
+          </div>
+          <div className="create-event-hint">Guests can reply per event. You can change these any time in Admin.</div>
+        </div>
+
+        <button type="button" className="btn btn-primary create-event-submit" onClick={handleCreate} disabled={!canSubmit}>
+          {busy ? "Creating…" : "Create event"}
+        </button>
+        <button type="button" className="create-event-cancel" onClick={onCancel} disabled={busy}>Cancel</button>
+        {status === "error" && <div className="create-event-error" role="alert">{errorMsg}</div>}
       </div>
 
-      {status === "error" && (
-        <div style={styles.errorMsg}>{errorMsg}</div>
-      )}
-
-      <div style={{
-        fontSize:     12,
-        color:        "var(--gold)",
-        background:   "var(--gold-light)",
-        border:       "1px solid var(--gold)",
-        borderRadius: "var(--radius-sm)",
-        padding:      "10px 14px",
-        marginTop:    12,
-        lineHeight:   1.6,
-      }}>
-        <Icon name="lock" context="inline" style={{ marginRight: 4 }} /> Once inside your dashboard, use the settings icon to configure your event.
+      <div className="create-event-side">
+        <div className="create-event-label">Preview</div>
+        <div className="create-preview" aria-live="polite">
+          <div className="create-preview-label">Counting down to</div>
+          <div className="create-preview-title">
+            <Icon name={EVENT_TYPE_ICON_KEYS[type] || "sparkles"} size={22} strokeWidth={1.5} />
+            {name.trim() || `Your ${typeLabel}`}
+          </div>
+          <div className="create-preview-date">
+            {date ? formatDate(date) : "Pick a date to start the countdown"}
+            {venue.trim() ? ` · ${venue.trim()}` : ""}
+          </div>
+          {days !== null && days >= 0 && (
+            <div className="create-preview-days">{days}<span>{days === 1 ? "day" : "days"}</span></div>
+          )}
+          {days !== null && days < 0 && <div className="create-preview-date">That date has passed</div>}
+        </div>
+        <p className="create-event-hint">Dates and details can change later.</p>
       </div>
     </div>
   );
 }
-
-const styles = {
-  wrap: {
-    background:   "var(--bg-surface)",
-    border:       "1px solid var(--border)",
-    borderRadius: "var(--radius-lg)",
-    padding:      "20px",
-    marginBottom: "24px",
-    boxShadow:    "var(--shadow-sm)",
-  },
-  title: {
-    fontSize:     16,
-    fontWeight:   700,
-    color:        "var(--text-primary)",
-    marginBottom: 14,
-  },
-  fieldRow: {
-    display:    "flex",
-    gap:        10,
-    alignItems: "flex-end",
-    flexWrap:   "wrap",
-  },
-  fieldWrap: {
-    display:       "flex",
-    flexDirection: "column",
-    gap:           5,
-  },
-  label: {
-    fontSize:      11,
-    fontWeight:    600,
-    textTransform: "uppercase",
-    letterSpacing: "0.06em",
-    color:         "var(--text-muted)",
-  },
-  input: {
-    width:        "100%",
-    padding:      "9px 12px",
-    border:       "1px solid var(--border-strong)",
-    borderRadius: "var(--radius-sm)",
-    fontFamily:   "var(--font-body)",
-    fontSize:     14,
-    color:        "var(--text-primary)",
-    background:   "var(--bg-surface)",
-    outline:      "none",
-    WebkitAppearance: "none",
-  },
-  select: {
-    width:        "100%",
-    padding:      "9px 12px",
-    border:       "1px solid var(--border-strong)",
-    borderRadius: "var(--radius-sm)",
-    fontFamily:   "var(--font-body)",
-    fontSize:     14,
-    color:        "var(--text-primary)",
-    background:   "var(--bg-surface)",
-    outline:      "none",
-    WebkitAppearance: "none",
-    cursor:       "pointer",
-  },
-  actions: {
-    display:    "flex",
-    gap:        8,
-    alignItems: "center",
-    paddingBottom: 2,
-    flexShrink: 0,
-  },
-  btnCreate: {
-    padding:      "9px 18px",
-    background:   "var(--green)",
-    color:        "white",
-    border:       "none",
-    borderRadius: "var(--radius-sm)",
-    fontFamily:   "var(--font-body)",
-    fontSize:     13,
-    fontWeight:   600,
-    minHeight:    36,
-    whiteSpace:   "nowrap",
-    transition:   "opacity var(--transition)",
-  },
-  btnCancel: {
-    background:  "none",
-    border:      "none",
-    fontFamily:  "var(--font-body)",
-    fontSize:    13,
-    color:       "var(--text-muted)",
-    cursor:      "pointer",
-    padding:     "4px 0",
-    transition:  "color var(--transition)",
-  },
-  errorMsg: {
-    fontSize:   12,
-    color:      "var(--red)",
-    marginTop:  10,
-  },
-};

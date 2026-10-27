@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>SimchaKit v5 First Run</title>
+<link rel="stylesheet" href="../styles.css">
+<style>
+*{box-sizing:border-box}body{margin:0;background:var(--bg-base);color:var(--text-primary);font-family:var(--font-body);line-height:1.5}
+a{color:var(--accent-primary)}a:hover{color:var(--accent-dark)}
+.w{max-width:1120px;margin:0 auto;padding:48px 32px 96px}
+h1{font-family:var(--font-display);font-size:48px;line-height:1.05;margin:0}h2{font-family:var(--font-display);font-size:30px;margin:52px 0 4px}
+.sub{color:var(--text-secondary);max-width:68ch;margin:0 0 20px}.tag{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text-muted);margin:0 0 8px;display:block}
+.pair{display:grid;grid-template-columns:repeat(auto-fit,minmax(460px,1fr));gap:20px;align-items:start}
+.card{background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:18px 20px;box-shadow:var(--shadow-sm)}
+.lab{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);margin-bottom:5px}
+.in{border:1px solid var(--border-strong);border-radius:var(--radius-sm);background:var(--bg-surface);padding:9px 12px;font-size:14px;min-height:40px;display:flex;justify-content:space-between;align-items:center}
+.f{display:grid;gap:12px}.r{display:flex;gap:10px;flex-wrap:wrap}.r>*{flex:1;min-width:130px}
+.btn{font:600 13px var(--font-body);border-radius:var(--radius-sm);border:1px solid var(--border-strong);background:var(--bg-surface);color:var(--text-primary);padding:9px 16px;cursor:pointer}.btn.p{background:var(--accent-primary);border-color:var(--accent-primary);color:#fff}.btn.g{background:var(--green);border-color:var(--green);color:#fff}
+.chip{display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 12px;border-radius:99px;border:1px solid var(--border-strong);background:var(--bg-surface);font:600 12px var(--font-body);color:var(--text-secondary)}
+.chip.on{background:var(--accent-light);border-color:var(--accent-primary);color:var(--accent-primary)}.chip i{font-style:normal}
+.hero{background:linear-gradient(135deg,var(--accent-dark),var(--accent-primary));color:#fff;border-radius:var(--radius-lg);padding:18px 20px}.hero .l{font-size:10px;letter-spacing:.12em;text-transform:uppercase;opacity:.85}.hero .t{font-family:var(--font-display);font-size:30px;font-weight:700;line-height:1.1;margin:2px 0}.hero .d{font-size:12px;opacity:.9}
+.note{background:var(--gold-light);border:1px solid var(--gold);border-radius:var(--radius-sm);padding:9px 12px;font-size:12px;color:var(--text-secondary);margin-top:12px}
+.steps{display:grid;gap:8px}.s{display:flex;align-items:center;gap:12px;padding:10px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg-subtle)}
+.s.done{background:var(--green-light);border-color:var(--green)}.s.now{background:var(--bg-surface);border-color:var(--accent-primary);box-shadow:var(--shadow-sm)}
+.n{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;font-size:12px;font-weight:700;background:var(--bg-muted);color:var(--text-muted);flex:none}.done .n{background:var(--green);color:#fff}.now .n{background:var(--accent-primary);color:#fff}
+.s b{font-size:13px;display:block}.s span{font-size:12px;color:var(--text-secondary)}.s div{flex:1}
+.prog{display:flex;gap:4px;margin:8px 0 2px}.prog i{flex:1;height:4px;border-radius:9px;background:var(--bg-muted)}.prog i.on{background:var(--accent-primary)}
+table{width:100%;border-collapse:collapse;font-size:13px}th{text-align:left;font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--text-secondary);padding:8px 10px;background:var(--bg-subtle)}td{padding:9px 10px;border-top:1px solid var(--border)}
+.pill{font-size:11px;font-weight:700;padding:2px 9px;border-radius:99px}.gd{background:var(--gold-light);color:var(--gold)}.ok{background:var(--green-light);color:var(--green)}
+.map{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text-secondary)}
+ul{padding-left:20px;color:var(--text-secondary);font-size:14px;margin:8px 0 0}li{margin-bottom:4px}
+</style></head><body><div class="w">
+<h1>First-run mocks</h1>
+<p class="sub">Grounded in <code>CreateEventForm.jsx</code>, <code>GetStartedCard.jsx</code>, <code>OnboardingModal.jsx</code> and the CSV <code>ImportModal</code>. Today: a display-name modal, an inline form for name, type and date, then a checklist that is mostly already complete. Proposed: the same inputs on one warm screen with a live preview and type-based sub-events, then a checklist of the setup that matters, done in place. Mock data.</p>
+
+<h2>1 · Create the event</h2>
+<p class="sub">Keeps the three existing fields, adds an optional venue, and offers sub-events by type so RSVP per sub-event works from day one. The preview is the first celebratory moment.</p>
+<div class="pair">
+<div><span class="tag">Current</span><div class="card"><div style="font-weight:700;margin-bottom:12px">Create New Event</div><div class="r" style="align-items:flex-end"><div style="flex:2"><div class="lab">Event Name *</div><div class="in" style="color:var(--text-muted)">e.g. Brook Bat Mitzvah</div></div><div><div class="lab">Event Type</div><div class="in">Bat Mitzvah <span>▾</span></div></div><div><div class="lab">Main Event Date</div><div class="in" style="color:var(--text-muted)">mm/dd/yyyy</div></div><div style="flex:none;display:flex;gap:8px;align-items:center"><button class="btn g">Create</button><span style="font-size:13px;color:var(--text-muted)">Cancel</span></div></div>
+<div class="note">Once inside your dashboard, use the settings icon to configure your event.</div></div></div>
+<div><span class="tag">Proposed</span><div class="card" style="display:grid;grid-template-columns:1.2fr 1fr;gap:20px">
+<div class="f"><div style="font-family:var(--font-display);font-size:26px;font-weight:700;line-height:1.1">Let's set up your celebration</div>
+<div><div class="lab">What are you celebrating?</div><div class="r" style="gap:6px"><span class="chip on">Bat Mitzvah</span><span class="chip">Bar Mitzvah</span><span class="chip">Wedding</span><span class="chip">+ 6 more</span></div></div>
+<div><div class="lab">Name</div><div class="in">Maya's Bat Mitzvah</div></div>
+<div class="r"><div><div class="lab">Date</div><div class="in">Mar 14, 2027</div></div><div><div class="lab">Venue (optional)</div><div class="in">Beth Shalom</div></div></div>
+<div><div class="lab">Events to track</div><div class="r" style="gap:6px"><span class="chip on"><i>✓</i> Service</span><span class="chip on"><i>✓</i> Kiddush</span><span class="chip on"><i>✓</i> Reception</span><span class="chip">+ Add</span></div></div>
+<button class="btn p" style="height:44px">Create event</button></div>
+<div><div class="lab">Preview</div><div class="hero"><div class="l">Counting down to</div><div class="t">Maya's Bat Mitzvah</div><div class="d">Sat, Mar 14, 2027 · Beth Shalom</div><div style="font-family:var(--font-display);font-size:44px;font-weight:700;margin-top:10px;line-height:1">145<span style="font-size:13px;font-family:var(--font-body);font-weight:500;margin-left:6px">days</span></div></div><p style="font-size:12px;color:var(--text-secondary);margin:10px 0 0">Dates and details can change later.</p></div></div></div>
+</div>
+
+<h2>2 · Overview on first arrival</h2>
+<p class="sub">Replaces the Get Started card. It tracks what is actually left, expands one step at a time, and acts in place with no trip to Admin. Completion is saved on the event, so co-planners see the same state.</p>
+<div class="pair">
+<div><span class="tag">Current</span><div class="card"><div style="font-weight:700">Get Started</div><div style="font-size:12px;color:var(--text-muted);margin-bottom:12px">3 of 4 steps complete</div><div class="steps">
+<div class="s done"><span class="n">✓</span><div><b style="text-decoration:line-through;color:var(--green)">Name your event</b></div></div>
+<div class="s done"><span class="n">✓</span><div><b style="text-decoration:line-through;color:var(--green)">Choose an event type</b></div></div>
+<div class="s done"><span class="n">✓</span><div><b style="text-decoration:line-through;color:var(--green)">Add an event date</b></div></div>
+<div class="s"><span class="n">4</span><div><b>Add your first guest</b><span>Head to the Guests tab to start building your guest list.</span></div><button class="btn">Go to Guests →</button></div></div></div></div>
+<div><span class="tag">Proposed</span><div class="card"><div style="display:flex;justify-content:space-between;align-items:baseline"><div style="font-family:var(--font-display);font-size:22px;font-weight:700">Getting ready</div><span style="font-size:12px;color:var(--text-muted)">2 of 5 · saved for everyone</span></div><div class="prog"><i class="on"></i><i class="on"></i><i></i><i></i><i></i></div><div class="steps" style="margin-top:10px">
+<div class="s done"><span class="n">✓</span><div><b>Event created</b><span>Maya's Bat Mitzvah · Mar 14, 2027</span></div></div>
+<div class="s done"><span class="n">✓</span><div><b>Events and venue</b><span>Service, Kiddush, Reception · Beth Shalom</span></div></div>
+<div class="s now"><span class="n">3</span><div><b>Add your guests</b><span>Import a spreadsheet, paste names, or add one household.</span></div><button class="btn p">Import</button></div>
+<div class="s"><span class="n">4</span><div><b>Invite a co-planner</b><span>Share the work with a spouse or family.</span></div></div>
+<div class="s"><span class="n">5</span><div><b>Pick your color and logo</b><span>Used on guest pages and printouts.</span></div></div></div></div></div>
+</div>
+
+<h2>3 · Guest import with a preview</h2>
+<p class="sub">The existing importer already detects columns. The addition is a review step before anything is saved, with problems flagged and fixable inline.</p>
+<div class="card"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;gap:12px;flex-wrap:wrap"><div><b>guest-list.csv</b> <span style="color:var(--text-secondary);font-size:13px">· 52 rows → 48 households, 136 people</span></div><div style="display:flex;gap:8px"><span class="pill ok">44 ready</span><span class="pill gd">4 need a look</span></div></div>
+<div class="map" style="margin-bottom:10px"><span class="chip on">Name → Formal name</span><span class="chip on">Street → Address</span><span class="chip on">Email → Email</span><span class="chip">Change columns</span></div>
+<div style="overflow-x:auto"><table><thead><tr><th>Household</th><th>People</th><th>Address</th><th>Email</th><th>Status</th></tr></thead><tbody>
+<tr><td>Cohen, Rachel &amp; David</td><td>4</td><td>14 Elm St, Evanston, IL</td><td>rachel@…</td><td><span class="pill ok">Ready</span></td></tr>
+<tr><td>Levin Family</td><td>3</td><td>—</td><td>levin@…</td><td><span class="pill gd">No address · Add</span></td></tr>
+<tr><td>Aunt Miriam</td><td>1</td><td>22 Oak Ave, Skokie, IL</td><td>—</td><td><span class="pill gd">No email · needed for invitations</span></td></tr>
+<tr><td>Cohen, R. &amp; D.</td><td>4</td><td>14 Elm St</td><td>—</td><td><span class="pill gd">Possible duplicate · Merge</span></td></tr></tbody></table></div>
+<div style="display:flex;justify-content:flex-end;gap:8px;margin-top:14px"><button class="btn">Back</button><button class="btn p">Import 48 households</button></div></div>
+
+<h2>What changes</h2>
+<ul><li>The display-name modal folds into account setup after the first event is created, with "Skip for now" as the default path to the event.</li><li>Sub-events seeded by event type (editable). A mitzvah suggests service, kiddush and reception; a wedding suggests ceremony and reception.</li><li>Checklist state moves from <code>localStorage</code> to the event record.</li><li>Missing email is flagged at import because guest messaging in v5 needs it.</li><li>Admin keeps themes, roles, data and export; first run never requires it.</li></ul>
+</div></body></html>

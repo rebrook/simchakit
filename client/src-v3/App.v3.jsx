@@ -251,24 +251,20 @@ function AppContent({ session, isCallback, inviteError, onDismissInviteError }) 
   });
   const [displayName,     setDisplayName]     = useState(null); // null = not yet loaded
   const [showOnboarding,  setShowOnboarding]  = useState(false);
-  const [isNewUser,       setIsNewUser]       = useState(false);
 
   // Load display_name and determine onboarding state on sign-in
   useEffect(() => {
     if (!session?.user?.id) return;
     supabase
       .from("user_profiles")
-      .select("display_name, event_count")
+      .select("display_name")
       .eq("id", session.user.id)
       .single()
       .then(({ data: profile }) => {
         const name = profile?.display_name || null;
-        const count = profile?.event_count ?? 0;
         setDisplayName(name);
-        if (!name && count === 0) {
-          setIsNewUser(true);
-          setShowOnboarding(true);
-        }
+        // V5.7.0: a brand-new account goes straight to creating its first event; the
+        // name is asked for after that (OnboardingModal account-setup), never up front.
       });
   }, [session?.user?.id]);
 
@@ -287,6 +283,20 @@ function AppContent({ session, isCallback, inviteError, onDismissInviteError }) 
   }, []);
 
   // Selecting an event from the picker is a real navigation — push its URL.
+  // Save a display name chosen in the name step (edit-name or account setup) and sync it to Brevo.
+  const handleNameSaved = (name) => {
+    setDisplayName(name);
+    fetch("/api/brevo-sync", {
+      method:  "POST",
+      headers: { "Content-Type": "application/json" },
+      body:    JSON.stringify({
+        email:     session.user.email,
+        isNewUser: false,
+        attributes: { FIRSTNAME: name },
+      }),
+    }).catch((err) => console.warn("[SimchaKit] brevo-sync (onboarding save) failed", err));
+  };
+
   const selectEvent = (id) => {
     window.history.pushState({}, "", `/e/${id}`);
     setSelectedEventId(id);
@@ -401,22 +411,9 @@ function AppContent({ session, isCallback, inviteError, onDismissInviteError }) 
       {showOnboarding && (
         <OnboardingModal
           userId={session.user.id}
-          isRequired={isNewUser}
+          isRequired={false}
           initialName=""
-          onSave={(name) => {
-            setDisplayName(name);
-            setShowOnboarding(false);
-            // Sync to Brevo
-            fetch("/api/brevo-sync", {
-              method:  "POST",
-              headers: { "Content-Type": "application/json" },
-              body:    JSON.stringify({
-                email:     session.user.email,
-                isNewUser: false,
-                attributes: { FIRSTNAME: name },
-              }),
-            }).catch((err) => console.warn("[SimchaKit] brevo-sync (onboarding save) failed", err));
-          }}
+          onSave={(name) => { handleNameSaved(name); setShowOnboarding(false); }}
           onDismiss={() => setShowOnboarding(false)}
         />
       )}
@@ -426,6 +423,7 @@ function AppContent({ session, isCallback, inviteError, onDismissInviteError }) 
         displayName={displayName}
         onSelectEvent={selectEvent}
         onEditName={() => setShowOnboarding(true)}
+        onNameSaved={handleNameSaved}
       />
     </>
   );

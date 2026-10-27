@@ -81,9 +81,6 @@ function RsvpSettingsBlock({ eventId, deadline, goToSection }) {
           <p style={{...help, margin:"2px 0 6px"}}>After this date the page closes. It is the same date as in Event Details.</p>
           <button type="button" className="btn btn-secondary btn-sm" onClick={() => goToSection && goToSection("event")}>Change it in Event Details</button>
         </div>
-        <div style={{margin:"8px 0 0 28px",padding:"10px 12px",background:"var(--bg-subtle)",border:"1px solid var(--border)",borderRadius:"var(--radius-sm)",fontSize:13,color:"var(--text-muted)"}}>
-          <span aria-hidden="true">○ </span>Accept replies automatically: <strong>not available yet</strong>. Every reply waits for your review.
-        </div>
       </div>
       <div style={{display:"flex",alignItems:"center",gap:12,flexWrap:"wrap",marginTop:12}}>
         <button type="button" className="btn btn-primary btn-sm" onClick={save} disabled={saving || !loaded}>{saving ? "Saving…" : "Save RSVP settings"}</button>
