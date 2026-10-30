@@ -1,9 +1,28 @@
 {
-  "current": "V5.13.0",
+  "current": "V5.14.0",
   "whatsNew": [
-    "Undo toasts for everyday deletes and status changes, and bulk selection on Tasks and Gifts"
+    "A guest Event details page after RSVP: schedule, directions, parking and shared hotels, limited to what each household is invited to"
   ],
   "changelog": [
+    {
+      "version": "V5.14.0",
+      "date": "2026-11-01",
+      "summary": "Guest event page after RSVP: schedule, directions and lodging (V5-G1)",
+      "changes": [
+        "New: GET /api/rsvp returns an info block (buildInfo in api/_lib/rsvp-shared.js) with a welcome note, the schedule and where to stay. The schedule is built from the sub-events the household is invited to (the same isInvited rule as the reply), so a household invited only to the reception never receives the service. Lodging is limited to hotel blocks flagged shareWithGuests. Fields are picked by name, text is clipped, links must be https and phone numbers digits only; info is null when the host has shared nothing, and is left out for archived events",
+        "New: guest-facing fields on a timeline entry (guestAddress, dressCode, mapUrl, parkingNote) in the timeline modal's For guests group, with a Use venue address shortcut. The host-only address stays host-only. With no map link, the guest sees a maps search link built from venue and address; a non-https link is replaced the same way",
+        "New: admin_config.guestWelcomeNote (Admin Mode, Event Details) and a Share with guests checkbox on each hotel block (Admin Mode, Accommodations; off by default). The Accommodations tab labels each block Shown to guests or Not shown to guests with a shape as well as text",
+        "New: rsvp/EventInfo.jsx adds an Event details tab beside Your reply on the confirmation screen and on the closed (deadline or already replied) view, with Get directions, Add to calendar per sub-event and Add all to calendar (infoCalendarFile in rsvpModel.js; same event ids as the existing reply calendar, so adding both does not duplicate). The tab only appears when info is not null. Tabs use words plus a heavier underline, arrow keys, and 44px+ controls",
+        "Freshness: the info rides in the same no-store GET as the reply, so a host edit shows on the guest's next load or refresh and no extra request is made",
+        "scripts/check-guest-strip.mjs now also checks that an uninvited sub-event, unshared hotel, host-only address and non-https link never reach info",
+        "Not verified in a browser: build, lint and the guest-strip check only; open a guest link in light and dark mode with two palettes at 360px wide, and check a household invited only to the reception",
+        "No database changes (admin_config is existing JSON): no migration, no RLS change, nothing to backfill; no new function and no new environment variable. V3 app only"
+      ],
+      "roadmap": [
+        "An Event details page for guests who have not replied yet, and a host preview of what each household sees"
+      ],
+      "knownIssues": []
+    },
     {
       "version": "V5.13.0",
       "date": "2026-10-31",

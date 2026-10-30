@@ -126,6 +126,11 @@ export function AccommodationsTab({ eventId, event, adminConfig, showToast, isAr
                     <div style={{ fontSize: 17, fontWeight: 700, color: "var(--text-primary)", marginBottom: 6 }}>
                       <Icon name="hotel" context="inline" style={{ marginRight: 4 }} /> {block.name}
                     </div>
+                    <div style={{ marginBottom: 6 }}>
+                      {block.shareWithGuests === true
+                        ? <span className="tag tag-accent" style={{ fontSize: 11 }}><span aria-hidden="true">✓</span> Shown to guests on their Event details page</span>
+                        : <span className="tag tag-muted" style={{ fontSize: 11 }}><span aria-hidden="true">○</span> Not shown to guests (turn on in Admin Mode, Accommodations)</span>}
+                    </div>
                     {block.groupCode && <div style={{ fontSize: 13, color: "var(--text-secondary)", marginBottom: 3 }}><strong>Group Code:</strong> {block.groupCode}</div>}
                     {block.phone    && <div style={{ fontSize: 13, color: "var(--text-secondary)", marginBottom: 3 }}><strong>Phone:</strong> <a href={`tel:${block.phone}`}>{formatPhone(block.phone)}</a></div>}
                     {block.website  && <div style={{ fontSize: 13, marginBottom: 3 }}><a href={block.website} target="_blank" rel="noopener noreferrer"><Icon name="link" context="badge" style={{ marginRight: 3 }} /> Hotel Website →</a></div>}
