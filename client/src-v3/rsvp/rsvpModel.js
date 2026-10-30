@@ -149,6 +149,19 @@ export function calendarFile(view, sections) {
   return generateICS(events, view.event.name);
 }
 
+// The Event details page (V5-G1): every sub-event the household is invited to, with where and what to
+// wear. Same UIDs as calendarFile, so adding both updates the entries rather than doubling them.
+export function infoCalendarFile(view, items) {
+  const events = items.filter(s => s.startDate).map(s => ({
+    id: `rsvp-${s.id}`, date: s.startDate, startTime: s.startTime, endTime: s.endTime,
+    title: `${s.title} (${view.event.name})`,
+    location: [s.venue, s.addressLine].filter(Boolean).join(", ") || view.event.venue || "",
+    meta: [view.event.name, s.dressCode && `Dress code: ${s.dressCode}`, s.parkingNote && `Parking: ${s.parkingNote}`].filter(Boolean).join("\n"),
+    source: "RSVP",
+  }));
+  return generateICS(events, view.event.name);
+}
+
 export function downloadIcs(filename, text) {
   const url = URL.createObjectURL(new Blob([text], { type: "text/calendar;charset=utf-8" }));
   const a = document.createElement("a");

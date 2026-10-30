@@ -402,7 +402,7 @@ export const GUIDE_SECTIONS = [
         "body": [
           "Each household can have a private reply page at its own link (it looks like app.simcha-kit.com/r/ followed by a long code). Guests need no account.",
           "They see your event's logo and colors, who they are replying for, then answer Yes, No or Not sure for each person and sub-event, choose meals where a meal is served, confirm or update their mailing address, add a note, and add a guest if you allow it.",
-          "Afterwards they get a summary with Add to calendar buttons and can change their reply with the same link until the RSVP deadline set in Admin Mode, Event Details.",
+          "Afterwards they get a summary with Add to calendar buttons and can change their reply with the same link until the RSVP deadline set in Admin Mode, Event Details. An Event details tab beside it can show the schedule, directions and hotels; see The guest Event details page.",
           "The Invitation and RSVP reminder messages include each household's own link (the + RSVP link button adds it to any message); it appears as a button in the email at the spot you put it. After the deadline, or once an event is archived, the page shows a friendly closed message.",
           "Treat each link as private: anyone who has it can answer for that household, and you can replace a household's link if it gets shared by mistake."
         ],
@@ -414,7 +414,38 @@ export const GUIDE_SECTIONS = [
           ],
           [
             "guests",
+            "the-guest-event-details-page"
+          ],
+          [
+            "guests",
             "rsvp-reminders-and-page-settings"
+          ]
+        ],
+        "isNew": true
+      },
+      {
+        "id": "the-guest-event-details-page",
+        "title": "The guest Event details page",
+        "summary": "Give guests the schedule, directions and where to stay.",
+        "body": [
+          "After a guest replies, their RSVP page has two tabs: Your reply and Event details. Event details lists each sub-event that household is invited to with its date and time, venue, address, dress code and parking, a Get directions link and an Add to calendar button, plus Add all to calendar when there is more than one. A household invited only to the reception sees only the reception.",
+          "Fill it in from Admin Mode. In Timeline, open a sub-event and use the For guests section: address, dress code, map link (it must start with https://; leave it blank and guests get a map search for the venue and address) and parking notes. Use venue address copies the private venue address across if you want it shown. In Event Details, the Welcome note appears at the top of the tab.",
+          "For lodging, tick Share with guests on a hotel block in Admin Mode, Accommodations. Only ticked blocks appear, under Where to stay, with the group code, phone, website and cut-off date. The Accommodations tab shows which blocks guests can see.",
+          "Guests see your latest wording each time they open or refresh their page, so edits show up right away. The tab appears once there is something to show, and also on the closed page after the RSVP deadline."
+        ],
+        "tip": "Room, Arrive by, Family only and the venue address in Timeline are still never shown to guests; only the For guests fields are.",
+        "related": [
+          [
+            "guests",
+            "the-guest-rsvp-page"
+          ],
+          [
+            "admin",
+            "timeline"
+          ],
+          [
+            "admin",
+            "hotel-block"
           ]
         ],
         "isNew": true
@@ -1241,7 +1272,7 @@ export const GUIDE_SECTIONS = [
           "Day-of Mode treats an untimed entry as all day and an entry without an end time as lasting one hour. Flag Meal served at this sub-event on any entry where food is served (a dinner, a brunch, the reception); the Catering Summary on the Guests tab builds a separate confirmed/kosher/meal-choice breakout for each entry flagged this way.",
           "Timeline entries appear on the Overview tab, the Planning Calendar, and the Print Brief."
         ],
-        "tip": "Each entry can also carry a room, a venue address, a Family only setting and an Arrive by time; these feed the Overview's Celebration schedule and are never shown to guests."
+        "tip": "Each entry can also carry a room, a venue address, a Family only setting and an Arrive by time; these feed the Overview's Celebration schedule and are never shown to guests. The For guests fields (address, dress code, map link, parking) are the ones guests see on their Event details page."
       },
       {
         "id": "guest-configuration",
@@ -1258,7 +1289,8 @@ export const GUIDE_SECTIONS = [
         "title": "Hotel block",
         "summary": "Enter your hotel block once.",
         "body": [
-          "Enter hotel block details (hotel name, block name, phone, cut-off date) so they appear in the Stay & Travel tab header for easy reference."
+          "Enter hotel block details (hotel name, block name, phone, cut-off date) so they appear in the Stay & Travel tab header for easy reference.",
+          "Tick Share with guests on a block to show it under Where to stay on your guests' Event details page; blocks are private until you do."
         ]
       },
       {

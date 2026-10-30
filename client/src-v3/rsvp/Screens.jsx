@@ -1,10 +1,11 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// SimchaKit V5.4.0 — rsvp/Screens.jsx
+// SimchaKit V5.14.0 — rsvp/Screens.jsx
 // The guest RSVP screens: Landing, WhoComing, Details, Confirmation, plus the
 // read-only closed view. All state lives in RsvpApp; these are presentational.
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useState } from "react";
+import { GuestTabs } from "@/rsvp/EventInfo.jsx";
 import { AnswerGroup, EventMark, Notice, ScreenHeading, answerLabel } from "@/rsvp/rsvpUi.jsx";
 import {
   formatDate, formatShortDate, formatTimeRange, mealPeople, summarize, calendarFile, downloadIcs, safeFilename,
@@ -242,6 +243,7 @@ export function Confirmation({ view, draft, justSent, onChange }) {
       <p className="rs-lede">
         {justSent ? "We've sent your reply to the hosts." : `We have your reply for ${view.household.formalName}.`}
       </p>
+      <GuestTabs view={view}>
       <Summary view={view} draft={draft} />
 
       {attending.length > 0 && (
@@ -267,6 +269,7 @@ export function Confirmation({ view, draft, justSent, onChange }) {
         <button type="button" className="rs-btn primary" onClick={onChange}>Change your reply</button>
         {view.event.deadline && <p className="rs-hint">You can change your reply until {formatShortDate(view.event.deadline)}, using this same link.</p>}
       </div>
+      </GuestTabs>
     </div>
   );
 }
@@ -281,12 +284,16 @@ export function Closed({ view, draft }) {
       <ScreenHeading className="rs-title">{view.event.name}</ScreenHeading>
       {view.event.date && <p className="rs-lede">{formatDate(view.event.date)}</p>}
       <Notice tone="info">{view.message}</Notice>
-      {draft && view.sections?.length > 0 && (
-        <>
-          <p className="rs-sub rs-left">Your last reply, for {view.household.formalName}:</p>
-          <div className="rs-left"><Summary view={view} draft={draft} /></div>
-        </>
-      )}
+      <div className="rs-left rs-screen">
+        <GuestTabs view={view}>
+          {draft && view.sections?.length > 0 && (
+            <>
+              <p className="rs-sub rs-left">Your last reply, for {view.household.formalName}:</p>
+              <div className="rs-left"><Summary view={view} draft={draft} /></div>
+            </>
+          )}
+        </GuestTabs>
+      </div>
     </div>
   );
 }

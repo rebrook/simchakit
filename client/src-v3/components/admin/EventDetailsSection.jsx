@@ -50,6 +50,12 @@ export function EventDetailsSection({ form, set, eventId, eventIdCopied, setEven
           <div className="form-hint">A banner will appear on the Guests tab counting down to this date</div>
         </div>
         <div className="form-group">
+          <label className="form-label" htmlFor="ed-welcome">Welcome note for guests</label>
+          <textarea id="ed-welcome" className="form-textarea" value={form.guestWelcomeNote||""} maxLength={1200} rows={3}
+            onChange={e => set("guestWelcomeNote",e.target.value)} placeholder="e.g., We can't wait to celebrate with you. Please arrive 15 minutes early." />
+          <div className="form-hint">Shown at the top of the Event details tab on your guests' RSVP page, after they reply. Guests see only the sub-events they are invited to, so keep this note general.</div>
+        </div>
+        <div className="form-group">
           <label className="form-label">Catering Style</label>
           <select className="form-select" value={form.cateringStyle||"plated"} onChange={e => set("cateringStyle",e.target.value)}>
             <option value="plated">Plated / Assigned Meals</option>

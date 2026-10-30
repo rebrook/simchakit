@@ -30,12 +30,18 @@ export function AccommodationsSection({ form, set, saved, error, onClose, saveCo
                   {f.hint && <div className="form-hint">{f.hint}</div>}
                 </div>
               ))}
-              <div className="form-group" style={{marginBottom:0}}>
+              <div className="form-group">
                 <label className="form-label">Room Block Cut-off Date</label>
                 <input className="form-input" type="date" value={block.cutoffDate||""}
                   onChange={e => set("hotelBlocks", form.hotelBlocks.map((b,i) => i===idx ? {...b,cutoffDate:e.target.value} : b))} />
                 <div className="form-hint">A warning will appear when this date is within 60 days</div>
               </div>
+              <label style={{display:"flex",alignItems:"center",gap:8,cursor:"pointer",fontSize:13,color:"var(--text-primary)",marginTop:4}}>
+                <input type="checkbox" checked={block.shareWithGuests===true} style={{width:15,height:15,accentColor:"var(--accent-primary)"}}
+                  onChange={e => set("hotelBlocks", form.hotelBlocks.map((b,i) => i===idx ? {...b,shareWithGuests:e.target.checked} : b))} />
+                Share with guests
+              </label>
+              <div className="form-hint">Shows this hotel's name, group code, phone, website and cut-off date in Where to stay on your guests' Event details page. Off by default.</div>
             </div>
           ))}
         </div>

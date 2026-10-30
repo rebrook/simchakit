@@ -1,5 +1,5 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// SimchaKit V5.3.0 — api/_lib/rsvp-shared.js
+// SimchaKit V5.14.0 — api/_lib/rsvp-shared.js
 // Shared by the guest RSVP endpoints (rsvp-get, rsvp-submit) and the host-side
 // link action. Guests have no account: the private token in the link is the only
 // credential, and everything a guest can see is built here from what THAT
@@ -127,6 +127,49 @@ export function stripHostOnly(entry) {
   return out;
 }
 
+// ── Guest event page (V5-G1) ──────────────────────────────────────────────────
+// The "Event details" block: only fields the host wrote FOR guests (guestAddress, dressCode, mapUrl,
+// parkingNote on a sub-event; shareWithGuests on a hotel block; guestWelcomeNote on the event), and
+// only for sub-events this household is invited to. Picked by name, never spread, so a new host-only
+// field can never leak. All text is clipped; links must be https (phones are digits only).
+const clip = (v, n) => String(v ?? "").replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f]/g, "").trim().slice(0, n);
+const phoneOrEmpty = (v) => (/^[0-9+().\-\s]{5,30}$/.test(String(v || "").trim()) ? String(v).trim() : "");
+const dateOrEmpty = (v) => (/^\d{4}-\d{2}-\d{2}$/.test(String(v || "")) ? v : "");
+
+// A directions link: the host's own https link, else a maps search for the address or venue.
+export function directionsUrl(mapUrl, addressLine, venue) {
+  const own = httpsOrEmpty(mapUrl);
+  if (own) return own;
+  const q = [venue, addressLine].filter(Boolean).join(", ");
+  return q ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(q)}` : "";
+}
+
+export function buildInfo(cfg, sections) {
+  const byId = new Map((Array.isArray(cfg.timeline) ? cfg.timeline : []).map(t => [t?.id, t]));
+  const schedule = sections.map(s => {
+    const t = byId.get(s.id) || {};
+    const addressLine = clip(t.guestAddress, 200);
+    return {
+      id: s.id, title: s.title, icon: s.icon,
+      startDate: s.startDate, startTime: s.startTime, endTime: s.endTime,
+      venue: s.venue,
+      addressLine,
+      dressCode: clip(t.dressCode, 120),
+      parkingNote: clip(t.parkingNote, 400),
+      mapUrl: directionsUrl(t.mapUrl, addressLine, s.venue),
+    };
+  });
+  const lodging = (Array.isArray(cfg.hotelBlocks) ? cfg.hotelBlocks : [])
+    .filter(b => b?.shareWithGuests === true && clip(b.name, 120))
+    .map(b => ({
+      id: clip(b.id, 60), name: clip(b.name, 120), groupCode: clip(b.groupCode, 80),
+      phone: phoneOrEmpty(b.phone), website: httpsOrEmpty(b.website), cutoffDate: dateOrEmpty(b.cutoffDate),
+    }));
+  const welcome = clip(cfg.guestWelcomeNote, 1200);
+  if (!schedule.length && !lodging.length && !welcome) return null;
+  return { welcome, schedule, lodging };
+}
+
 function mainEntry(timeline) {
   const list = Array.isArray(timeline) ? timeline : [];
   return list.find(t => t?.isMainEvent) ||
@@ -242,6 +285,7 @@ export function buildView(ctx) {
       };
     }),
     sections,
+    info: buildInfo(cfg, sections),   // V5-G1: null when the host has shared nothing
     mealOptions: Array.isArray(cfg.mealChoices) && cfg.mealChoices.length ? cfg.mealChoices : DEFAULT_MEALS,
     allowPlusOnes: settings.allowPlusOnes,
     maxNewGuests: settings.allowPlusOnes ? settings.maxNewGuests : 0,

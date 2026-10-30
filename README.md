@@ -214,6 +214,8 @@ Schema changes (new tables, RLS policies, functions) are applied directly in the
 
 **RSVP site (V5):** run `V5.1-R1.sql` (after M1 and M2). It adds `household_rsvp_tokens`, `rsvp_replies` and `events.rsvp_settings`, with no access for anon. Guests call `GET/POST /api/rsvp` with their private token in the `X-RSVP-Token` header, never in a URL. No new environment variables.
 
+**Guest event page (V5-G1):** no SQL to run. `GET /api/rsvp` now also returns `info` (built by `buildInfo` in `api/_lib/rsvp-shared.js`): a welcome note (`admin_config.guestWelcomeNote`), the schedule for the sub-events the household is invited to (timeline fields `guestAddress`, `dressCode`, `mapUrl`, `parkingNote`) and hotel blocks flagged `shareWithGuests`. It is `null` when nothing is shared. The guest tab is `src-v3/rsvp/EventInfo.jsx`; `node client/scripts/check-guest-strip.mjs` also checks that uninvited sub-events, unshared hotels, host-only fields and non-https links never reach it.
+
 **Guest messaging environment variables (Vercel):** `GUEST_MAIL_FROM` (a sender address verified in Brevo) and `GUEST_UNSUBSCRIBE_SECRET` (random string used to sign unsubscribe links), in addition to `BREVO_API_KEY`.
 
 **Critical rules:**
