@@ -624,16 +624,7 @@
     .gift-ty-btn { display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; }
     .gift-ty-link { font-size: 12px; text-decoration: underline; white-space: nowrap; }
     .gift-ty-note { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 600; color: var(--text-secondary); white-space: nowrap; }
-    .gift-ty-select { display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; cursor: pointer; }
-    .gift-bulkbar {
-      display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
-      padding: 10px 14px; margin-bottom: 8px;
-      background: var(--accent-light); border: 1px solid var(--accent-medium); border-radius: var(--radius-md);
-    }
-    .gift-bulkbar-count { font-size: 13px; font-weight: 600; color: var(--accent-primary); flex: 1; }
     @media (pointer: coarse), (max-width: 760px) {
       .gift-ty-btn, .gift-ty-link { min-height: 44px; }
-      .gift-ty-select { min-width: 44px; min-height: 44px; }
-      .gift-ty-select input { width: 20px; height: 20px; }
     }
 

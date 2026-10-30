@@ -461,3 +461,20 @@
     .tag-orange   { background: var(--orange-light);  color: var(--orange); }
     .tag-muted    { background: var(--bg-muted);      color: var(--text-muted); }
 
+
+    /* ── Bulk selection (V5-O2) ── */
+    .bulk-bar {
+      display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+      padding: 10px 14px; margin-bottom: 8px;
+      background: var(--accent-light); border: 1px solid var(--accent-medium); border-radius: var(--radius-md);
+    }
+    .bulk-bar-count { font-size: 13px; font-weight: 600; color: var(--accent-primary); flex: 1; min-width: 120px; }
+    .bulk-bar .form-input { width: auto; font-size: 13px; padding: 6px 10px; }
+    .bulk-bar-btn { display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; }
+    .bulk-check { display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; width: 28px; height: 28px; cursor: pointer; }
+    .bulk-check input { width: 16px; height: 16px; cursor: pointer; }
+    @media (pointer: coarse), (max-width: 760px) {
+      .bulk-bar-btn, .bulk-bar .form-input { min-height: 44px; }
+      .bulk-check { width: 44px; height: 44px; }
+      .bulk-check input { width: 20px; height: 20px; }
+    }

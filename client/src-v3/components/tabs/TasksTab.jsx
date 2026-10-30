@@ -36,6 +36,9 @@ import { getTaskDueStatus, computeSuggestions, getSmartTaskTemplates } from "@/u
 import { ArchivedNotice }     from "@/components/shared/ArchivedNotice.jsx";
 import { SuggestionsPanel }   from "@/components/shared/SuggestionsPanel.jsx";
 import { ConfirmDialog }      from "@/components/shared/ConfirmDialog.jsx";
+import { BulkBar, BulkCheck }  from "@/components/shared/BulkBar.jsx";
+import { useBulkSelection }    from "@/hooks/useBulkSelection.js";
+import { toastUndo }           from "@/utils/undo.js";
 import { Modal }              from "@/components/shared/Modal.jsx";
 import { Icon }               from "@/utils/iconMap.jsx";
 
@@ -359,7 +362,7 @@ function TaskInsights({ realTasks }) {
 }
 
 export function TasksTab({ eventId, event, adminConfig, showToast, isArchived, isViewer, searchHighlight, clearSearchHighlight, setActiveTab, setSearchHighlight, setTopbarSubtitle }) {
-  const { items: tasks,     loading,       save,        remove       } = useEventData(eventId, "tasks");
+  const { items: tasks,     loading,       save,        remove, saveUndoable, saveManyUndoable, removeUndoable, removeManyUndoable } = useEventData(eventId, "tasks");
   const { items: expenses,  save: saveExpense                        } = useEventData(eventId, "expenses");
   const { items: prep,      save: savePrep                           } = useEventData(eventId, "prep");
   const { items: vendors                                             } = useEventData(eventId, "vendors");
@@ -369,7 +372,8 @@ export function TasksTab({ eventId, event, adminConfig, showToast, isArchived, i
 
   const [showModal,     setShowModal]     = useState(false);
   const [editTask,      setEditTask]      = useState(null);
-  const [deleteConfirm, setDeleteConfirm] = useState(null);
+  const [bulkDeleteConfirm, setBulkDeleteConfirm] = useState(false);
+  const [bulkDue,       setBulkDue]       = useState("");
   const [search,        setSearch]        = useState("");
   const [filterStatus,  setFilterStatus]  = useState("todo");
   const [filterCat,     setFilterCat]     = useState("all");
@@ -398,20 +402,21 @@ export function TasksTab({ eventId, event, adminConfig, showToast, isArchived, i
     setEditTask(null);
   };
 
+  // A single task is not permanent: delete at once and offer Undo (V5-O2).
   const handleDelete = async (id) => {
-    if (isArchived) return;
+    if (isArchived || isViewer) return;
     const t = tasks.find(x => x.id === id);
-    if (!t) { setDeleteConfirm(null); return; }
-    const result = await remove(t._rowId);
-    setDeleteConfirm(null);
+    if (!t) return;
+    const result = await removeUndoable(t._rowId);
     if (result?.error) { showToast("Couldn't delete the task. Try again."); return; }
-    showToast("Task deleted");
+    toastUndo(showToast, "Task deleted", result, "task-delete");
   };
 
   const completeTask = async (t) => {
-    const result = await save({ ...t, done: !t.done });
+    const result = await saveUndoable({ ...t, done: !t.done });
     if (result?.error) { showToast("Couldn't update the task. Try again."); return; }
-    showToast(t.done ? "Task reopened" : "Task completed");
+    if (result?.conflict) return; // AppShell already surfaces a conflict toast
+    toastUndo(showToast, t.done ? "Task reopened" : "Task completed", result, "task-done");
   };
 
   const toggleDone = (id) => {
@@ -578,6 +583,37 @@ export function TasksTab({ eventId, event, adminConfig, showToast, isArchived, i
     return Object.entries(groups).sort((a,b) => a[0].localeCompare(b[0]));
   })() : null;
 
+  // ── Bulk selection (V5-O2) ──────────────────────────────────────────────────
+  const canBulk = !isArchived && !isViewer;
+  const visibleOrder = (shouldGroup && grouped ? grouped.flatMap(([, ts]) => ts) : filtered).map(t => t.id);
+  const bulk = useBulkSelection(visibleOrder, canBulk);
+  const selectedTasks = tasks.filter(t => bulk.isSelected(t.id));
+
+  const bulkMarkDone = async () => {
+    const todo = selectedTasks.filter(t => !t.done);
+    if (todo.length === 0) { showToast("The selected tasks are already done."); return; }
+    const res = await saveManyUndoable(todo.map(t => ({ ...t, done: true })));
+    if (res.saved === 0) { showToast("Couldn't update the tasks. Try again."); return; }
+    toastUndo(showToast, `${res.saved} task${res.saved !== 1 ? "s" : ""} marked done${res.failed ? `, ${res.failed} couldn't be updated` : ""}`, res, "task-bulk");
+    bulk.clear();
+  };
+
+  const bulkSetDue = async () => {
+    if (!bulkDue) return;
+    const res = await saveManyUndoable(selectedTasks.map(t => ({ ...t, due: bulkDue })));
+    if (res.saved === 0) { showToast("Couldn't update the tasks. Try again."); return; }
+    toastUndo(showToast, `Due date set on ${res.saved} task${res.saved !== 1 ? "s" : ""}${res.failed ? `, ${res.failed} couldn't be updated` : ""}`, res, "task-bulk");
+    setBulkDue("");
+    bulk.clear();
+  };
+
+  const bulkDelete = async () => {
+    const res = await removeManyUndoable(selectedTasks.map(t => t._rowId));
+    if (res.removed === 0) { showToast("Couldn't delete the tasks. Try again."); return; }
+    toastUndo(showToast, `${res.removed} task${res.removed !== 1 ? "s" : ""} deleted${res.failed ? `, ${res.failed} couldn't be deleted` : ""}`, res, "task-bulk");
+    bulk.clear();
+  };
+
   const renderTask = (t) => {
     const ds  = getTaskDueStatus(t);
     const psc = TASK_PRIORITY_STYLES[t.priority] || TASK_PRIORITY_STYLES["Medium"];
@@ -585,6 +621,7 @@ export function TasksTab({ eventId, event, adminConfig, showToast, isArchived, i
     const notesOpen = expandedNotes[t.id];
     return (
       <div key={t.id} id={`row-${t.id}`} className={`task-row ${t.done?"done":""}`}>
+        {canBulk && <BulkCheck checked={bulk.isSelected(t.id)} label={`Select task: ${t.task || "untitled"}`} onToggle={(shift) => bulk.toggle(t.id, shift)} />}
         <div className={`task-check ${t.done?"checked":""}`}
           onClick={() => toggleDone(t.id)}
           title={t.done ? "Mark as to do" : "Mark as done"}>
@@ -630,7 +667,7 @@ export function TasksTab({ eventId, event, adminConfig, showToast, isArchived, i
             disabled={isArchived || isViewer} onClick={() => setEditTask(t)}><Icon name="pencil" context="badge" /></button>
           <button className="icon-btn" title="Delete" aria-label="Delete"
             style={{width:26,height:26,fontSize:12,color:"var(--red)"}}
-            disabled={isArchived || isViewer} onClick={() => setDeleteConfirm(t.id)}><Icon name="trash2" context="badge" /></button>
+            disabled={isArchived || isViewer} onClick={() => handleDelete(t.id)}><Icon name="trash2" context="badge" /></button>
         </div>
       </div>
     );
@@ -769,6 +806,20 @@ export function TasksTab({ eventId, event, adminConfig, showToast, isArchived, i
         </div>
       )}
 
+      {/* Bulk bar */}
+      {canBulk && (
+        <BulkBar count={bulk.count} noun="task" onClear={bulk.clear}>
+          <button type="button" className="btn btn-primary btn-sm bulk-bar-btn" onClick={bulkMarkDone}>
+            <Icon name="check" context="inline" /> Mark done
+          </button>
+          <input type="date" className="form-input" aria-label="Due date for selected tasks" value={bulkDue} onChange={e => setBulkDue(e.target.value)} />
+          <button type="button" className="btn btn-secondary btn-sm bulk-bar-btn" disabled={!bulkDue} onClick={bulkSetDue}>Set due date</button>
+          <button type="button" className="btn btn-secondary btn-sm bulk-bar-btn" onClick={() => setBulkDeleteConfirm(true)}>
+            <Icon name="trash2" context="inline" /> Delete
+          </button>
+        </BulkBar>
+      )}
+
       {/* Task list */}
       {filtered.length > 0 && (
         <div className="card" style={{padding:0,overflow:"hidden"}}>
@@ -800,14 +851,14 @@ export function TasksTab({ eventId, event, adminConfig, showToast, isArchived, i
         <TaskModal task={editTask} onSave={handleEdit} onClose={() => setEditTask(null)} isArchived={isArchived} />
       )}
 
-      {/* Delete confirm */}
-      {deleteConfirm && (
+      {/* Bulk delete confirm: several records at once keeps the dialog */}
+      {bulkDeleteConfirm && (
         <ConfirmDialog
-          title="Delete Task"
-          message="This will permanently remove this task."
-          confirmLabel="Delete Task"
-          onConfirm={() => handleDelete(deleteConfirm)}
-          onClose={() => setDeleteConfirm(null)}
+          title={`Delete ${bulk.count} task${bulk.count !== 1 ? "s" : ""}`}
+          message={`This removes ${bulk.count} selected task${bulk.count !== 1 ? "s" : ""}. You can undo it for a few seconds afterwards.`}
+          confirmLabel={`Delete ${bulk.count} task${bulk.count !== 1 ? "s" : ""}`}
+          onConfirm={() => { setBulkDeleteConfirm(false); bulkDelete(); }}
+          onClose={() => setBulkDeleteConfirm(false)}
         />
       )}
 

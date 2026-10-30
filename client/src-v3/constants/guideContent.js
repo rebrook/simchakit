@@ -1074,7 +1074,7 @@ export const GUIDE_SECTIONS = [
         "body": [
           "Each giver tracks two independent thank-you steps: Written (the note has been written) and Mailed (the note has been sent). A giver who sent several gifts in one record needs just one note, so the steps are tracked once per giver, not once per gift.",
           "Toggle each step with the labeled Written and Mailed buttons next to each giver's name in the Thank-you note column. Filter by Needs Written, Written Needs Mailed, or Complete to work through your list in order. Click the Amount or Received column headers to sort by that column; the default order is most recent date received, then last name.",
-          "Edit stays a visible pencil icon on each row, and Delete sits inside the ⋯ menu next to it, with a confirmation step before anything is removed."
+          "Edit stays a visible pencil icon on each row, and Delete sits inside the ⋯ menu next to it. Deleting a gift happens straight away and shows an Undo message for 8 seconds."
         ],
         "isNew": true
       },
@@ -1462,6 +1462,18 @@ export const GUIDE_SECTIONS = [
     "title": "Tips & Shortcuts",
     "color": "var(--gold)",
     "topics": [
+      {
+        "id": "undo-and-bulk-actions",
+        "title": "Undo and selecting several rows",
+        "summary": "Take back a change, and act on many rows at once.",
+        "body": [
+          "When you delete a task, gift, vendor or expense, flip a guest's RSVP, mark a task done, or change a gift's Written or Mailed step, the message at the bottom of the screen has an Undo button. It stays for 8 seconds, and stays put while you hover over it or have it focused. Choosing Undo puts the row back exactly as it was.",
+          "If someone else changed the same row in the meantime, SimchaKit does not overwrite their change. The message reads Can't undo, this was changed by someone else, and you can make the change by hand.",
+          "A household is the exception: deleting one removes its guests and message history, so it still asks you to confirm first, as does deleting several tasks at once.",
+          "On Tasks and Gifts, tick the box beside rows to select them; hold Shift while ticking to select every row between two ticks, and press Esc to clear. The bar that appears announces how many are selected. On Tasks you can mark them done, set one due date for all of them, or delete them; on Gifts you can draft thank-you emails, or mark Written or Mailed for every selected giver. Undo reverses a whole bulk change in one click."
+        ],
+        "isNew": true
+      },
       {
         "id": "confirmation-toasts",
         "title": "Confirmation toasts",

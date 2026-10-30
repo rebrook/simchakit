@@ -32,6 +32,7 @@ import { ArchivedNotice }     from "@/components/shared/ArchivedNotice.jsx";
 import { ConfirmDialog }      from "@/components/shared/ConfirmDialog.jsx";
 import { writeAuditLog }      from "@/utils/auditLog.js";
 import { Icon }               from "@/utils/iconMap.jsx";
+import { toastUndo }          from "@/utils/undo.js";
 import { VendorQuickView }    from "@/components/shared/VendorQuickView.jsx";
 import { VendorModal }        from "@/components/shared/VendorModal.jsx";
 
@@ -864,7 +865,7 @@ function ExpenseRow({
 
 // ── BudgetTab ─────────────────────────────────────────────────────────────────
 export function BudgetTab({ eventId, event, adminConfig, showToast, isArchived, isViewer, searchHighlight, clearSearchHighlight, setTopbarSubtitle }) {
-  const { items: expenses, loading: eLoading, save, remove } = useEventData(eventId, "expenses");
+  const { items: expenses, loading: eLoading, save, removeUndoable } = useEventData(eventId, "expenses");
   const { items: vendors,  loading: vLoading }                = useEventData(eventId, "vendors");
 
   const [showAdd,        setShowAdd]        = useState(false);
@@ -883,7 +884,6 @@ export function BudgetTab({ eventId, event, adminConfig, showToast, isArchived, 
   const [pendingPaidIdx,   setPendingPaidIdx]   = useState(null);
   const [pendingPaidDate,  setPendingPaidDate]  = useState("");
   const [sortBy,           setSortBy]           = useState("due");
-  const [deleteConfirm,    setDeleteConfirm]    = useState(null); // expense object
   const [expandedVendors,  setExpandedVendors]  = useState({});
   const [expandedSections, setExpandedSections] = useState({});
   const [viewMode,         setViewMode]         = useState("list"); // list | vendor | section
@@ -1069,10 +1069,11 @@ export function BudgetTab({ eventId, event, adminConfig, showToast, isArchived, 
     showToast(wasEditing ? "Expense updated" : "Expense added");
   };
 
+  // A single expense is deleted at once with an Undo toast (V5-O2).
   const handleDelete = async (e) => {
-    const result = await remove(e._rowId);
+    const result = await removeUndoable(e._rowId);
     if (result?.error) { showToast("Couldn't delete the expense. Try again."); return; }
-    showToast("Expense deleted");
+    toastUndo(showToast, "Expense deleted", result, "expense-delete");
   };
 
   const handleExport = () => {
@@ -1260,7 +1261,7 @@ export function BudgetTab({ eventId, event, adminConfig, showToast, isArchived, 
                 hasAnyBudgeted={hasAnyBudgeted} isArchived={isArchived} isViewer={isViewer}
                 expandedNotes={expandedNotes} toggleNotes={toggleNotes} togglePaid={togglePaid}
                 setVendorQuick={setVendorQuick} setEditing={setEditing} setShowAdd={setShowAdd}
-                setDeleteConfirm={setDeleteConfirm} pendingPaidId={pendingPaidId} pendingPaidIdx={pendingPaidIdx}
+                setDeleteConfirm={handleDelete} pendingPaidId={pendingPaidId} pendingPaidIdx={pendingPaidIdx}
                 pendingPaidDate={pendingPaidDate} setPendingPaidDate={setPendingPaidDate}
                 confirmPaid={confirmPaid} cancelPaid={cancelPaid} fmt={fmt}
                 onUpdateExpense={save} showToast={showToast} eventId={eventId} />
@@ -1337,7 +1338,7 @@ export function BudgetTab({ eventId, event, adminConfig, showToast, isArchived, 
                       hasAnyBudgeted={hasAnyBudgeted} isArchived={isArchived} isViewer={isViewer}
                       expandedNotes={expandedNotes} toggleNotes={toggleNotes} togglePaid={togglePaid}
                       setVendorQuick={setVendorQuick} setEditing={setEditing} setShowAdd={setShowAdd}
-                      setDeleteConfirm={setDeleteConfirm} pendingPaidId={pendingPaidId} pendingPaidIdx={pendingPaidIdx}
+                      setDeleteConfirm={handleDelete} pendingPaidId={pendingPaidId} pendingPaidIdx={pendingPaidIdx}
                       pendingPaidDate={pendingPaidDate} setPendingPaidDate={setPendingPaidDate}
                       confirmPaid={confirmPaid} cancelPaid={cancelPaid} fmt={fmt}
                       onUpdateExpense={save} showToast={showToast} eventId={eventId} />
@@ -1414,7 +1415,7 @@ export function BudgetTab({ eventId, event, adminConfig, showToast, isArchived, 
                           hasAnyBudgeted={hasAnyBudgeted} isArchived={isArchived} isViewer={isViewer}
                           expandedNotes={expandedNotes} toggleNotes={toggleNotes} togglePaid={togglePaid}
                           setVendorQuick={setVendorQuick} setEditing={setEditing} setShowAdd={setShowAdd}
-                          setDeleteConfirm={setDeleteConfirm} pendingPaidId={pendingPaidId} pendingPaidIdx={pendingPaidIdx}
+                          setDeleteConfirm={handleDelete} pendingPaidId={pendingPaidId} pendingPaidIdx={pendingPaidIdx}
                           pendingPaidDate={pendingPaidDate} setPendingPaidDate={setPendingPaidDate}
                           confirmPaid={confirmPaid} cancelPaid={cancelPaid} fmt={fmt}
                           onUpdateExpense={save} showToast={showToast} eventId={eventId} />
@@ -1427,16 +1428,6 @@ export function BudgetTab({ eventId, event, adminConfig, showToast, isArchived, 
           </div>
         )}
       </div>
-
-      {deleteConfirm && (
-        <ConfirmDialog
-          title="Delete Expense"
-          message={<>This will permanently remove <strong>{deleteConfirm.description}</strong> from your budget.</>}
-          confirmLabel="Delete"
-          onConfirm={() => { handleDelete(deleteConfirm); setDeleteConfirm(null); }}
-          onClose={() => setDeleteConfirm(null)}
-        />
-      )}
 
       {vendorQuick && (
         <VendorQuickView
