@@ -43,6 +43,10 @@ export function MessageComposer({
   eventId, households, sections, groups, adminConfig, sentLookup,
   initialIds, initialKind, initialMethod, unrepliedIds,
   onSaveEmail, onClose, onSent, onMarked, showToast,
+  // Gift thank-you mode (V5-M3): the Thank-you kind and the chosen households are fixed.
+  // recipientNotes: { [household key]: text } shown beside each recipient;
+  // renderResultExtra(result): extra content under the "Sent to" summary.
+  locked, recipientNotes, renderResultExtra,
 }) {
   const [method,  setMethod]  = useState(initialMethod || null);   // "email" | "mark"
   const [kind,    setKind]    = useState(initialKind || "save_the_date");
@@ -221,18 +225,23 @@ export function MessageComposer({
 
   const step1 = (
     <>
-      <div className="form-label" style={{ marginBottom: 6 }}>What are you sending?</div>
-      <div className="msg-cards" role="group" aria-label="Message type">
+      {locked && (
+        <div className="msg-notice">
+          <span>Each giver's household gets its own email, with the household name and the gift filled in. Edit the wording below if you like.</span>
+        </div>
+      )}
+      {!locked && <div className="form-label" style={{ marginBottom: 6 }}>What are you sending?</div>}
+      {!locked && <div className="msg-cards" role="group" aria-label="Message type">
         {MESSAGE_KINDS.filter(k => method !== "mark" || k.manual).map(k => (
           <button key={k.key} type="button" className={`msg-card${kind === k.key ? " selected" : ""}`}
             aria-pressed={kind === k.key} onClick={() => chooseKind(k.key)}>
             {k.label}
           </button>
         ))}
-      </div>
+      </div>}
 
-      <div className="form-label" style={{ marginBottom: 6 }}>How is it going out?</div>
-      <div className="msg-radio-row" role="radiogroup" aria-label="How it is going out">
+      {!locked && <div className="form-label" style={{ marginBottom: 6 }}>How is it going out?</div>}
+      {!locked && <div className="msg-radio-row" role="radiogroup" aria-label="How it is going out">
         <label className={`msg-radio${method === "email" ? " selected" : ""}`}>
           <input type="radio" name="msg-method" checked={method === "email"} onChange={() => setMethod("email")} />
           <span><span className="msg-radio-title">Send by email</span><br />
@@ -245,7 +254,7 @@ export function MessageComposer({
           <span><span className="msg-radio-title">I sent these another way</span><br />
             <span className="msg-radio-sub">Paper invitations, Evite, Paperless Post, a printer or a calligrapher. Nothing is emailed; this just keeps your record.</span></span>
         </label>
-      </div>
+      </div>}
 
       {method === "email" && (
         <>
@@ -293,14 +302,14 @@ export function MessageComposer({
 
   const step2 = (
     <>
-      {restrictIds && (
+      {restrictIds && !locked && (
         <div className="msg-notice">
           <span>Starting from the {restrictIds.size} household{restrictIds.size !== 1 ? "s" : ""} you selected.</span>
           <button type="button" className="msg-link-btn" style={{ alignSelf: "flex-start" }}
             onClick={() => { setRestrictIds(null); setExcluded(new Set()); }}>Choose from all guests instead</button>
         </div>
       )}
-      <div className="msg-filters">
+      {!locked && <div className="msg-filters">
         <select className="form-select" style={{ width: "auto" }} aria-label="Group" value={filters.group} onChange={e => setFilter("group", e.target.value)}>
           <option value="All">All groups</option>
           {groups.map(g => <option key={g} value={g}>{g}</option>)}
@@ -328,7 +337,7 @@ export function MessageComposer({
             Haven't replied yet
           </label>
         )}
-      </div>
+      </div>}
 
       <div className="msg-count" aria-live="polite">
         {recipients.length} household{recipients.length !== 1 ? "s" : ""} chosen
@@ -378,7 +387,7 @@ export function MessageComposer({
             return (
               <label key={key} className="msg-list-row">
                 <input type="checkbox" checked={!excluded.has(key)} onChange={() => toggleOne(hh)} />
-                <span style={{ flex: 1 }}>{hh.formalName || "Household"}</span>
+                <span style={{ flex: 1 }}>{hh.formalName || "Household"}{recipientNotes?.[key] && <span style={{ display: "block", fontSize: 12, color: "var(--text-muted)" }}>{recipientNotes[key]}</span>}</span>
                 {isEmail && !emailOf(hh) && <span className="tag tag-gold" style={{ fontSize: 10 }}>No email</span>}
                 {isSent(st) && <span className="tag tag-muted" style={{ fontSize: 10 }}>{kind === "rsvp_reminder" ? `Last reminded ${shortDate(st.date)}` : statusText(st)}</span>}
               </label>
@@ -481,6 +490,7 @@ export function MessageComposer({
       {result.failed > 0 && (
         <div className="msg-notice">Some emails did not go through. Open Messages to see which and use Retry failed.</div>
       )}
+      {renderResultExtra?.(result)}
     </div>
   );
 
@@ -497,7 +507,7 @@ export function MessageComposer({
     || (isEmail && step === 3 && (!preview || !preview.previews?.length));
 
   return (
-    <Modal onClose={onClose} title="Message guests" maxWidth={680}>
+    <Modal onClose={onClose} title={locked ? "Thank-you messages" : "Message guests"} maxWidth={680}>
       <div className="modal-body">
         {!result && stepper}
         {error && <div className="msg-notice error" role="alert">{error}</div>}

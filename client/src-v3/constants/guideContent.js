@@ -1079,6 +1079,18 @@ export const GUIDE_SECTIONS = [
         "isNew": true
       },
       {
+        "id": "emailing-thank-yous",
+        "title": "Emailing thank-yous from a gift",
+        "summary": "Draft a thank-you email for a giver, or for several at once.",
+        "body": [
+          "On the Gifts tab, choose Draft thank-you beside a giver in the Thank-you message column (on a phone, under their Written and Mailed buttons). The message opens already set to the Thank-you wording, with the giver's household name and the gift filled in for you. You can edit the words before sending.",
+          "To do several at once, tick the box beside each giver whose note is not written yet, then choose Draft thank-you in the bar that appears. Each giver's household gets its own email with its own gift, and a gift given by two households sends two emails.",
+          "When an email goes out, that giver's Written step is set for you and the message is recorded in Messages under Guests. Mailed is never set automatically; if you also send a paper card, choose Mark mailed in the message that appears after sending, or use the Mailed button on the row. If a send fails, nothing changes for that giver.",
+          "A giver whose household has no email shows No email, add one: choose it to type the address in the message, which saves it on the guest. A giver who is not linked to the guest list has no email to use, so use Mark written (paper) once you have written the note by hand. Only the event owner and editors can send; archived events are read-only."
+        ],
+        "isNew": true
+      },
+      {
         "id": "thank-you-counts-and-badges",
         "title": "Thank-you counts and badges",
         "summary": "What the stat cards and badges count.",

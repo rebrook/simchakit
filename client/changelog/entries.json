@@ -1,5 +1,30 @@
 [
   {
+    "id": "2026-10-30-03-draft-thank-you",
+    "release": "V5.12.0",
+    "date": "2026-10-30",
+    "kind": "new",
+    "area": "Gifts",
+    "audience": "host",
+    "highlight": true,
+    "title": "Email a thank-you straight from a gift",
+    "body": "Choose Draft thank-you beside a giver and the message opens with their name and gift filled in. Send it and their Written step is ticked for you. Select several givers to send them all at once.",
+    "show": {
+      "tab": "gifts"
+    },
+    "guide": "gifts/emailing-thank-yous"
+  },
+  {
+    "id": "2026-10-30-04-thank-you-no-email",
+    "release": "V5.12.0",
+    "date": "2026-10-30",
+    "kind": "improved",
+    "area": "Gifts",
+    "audience": "host",
+    "highlight": false,
+    "title": "Givers without an email show No email, add one, or Mark written (paper)"
+  },
+  {
     "id": "2026-10-30-01-printable-gift-list",
     "release": "V5.11.0",
     "date": "2026-10-30",
@@ -164,14 +189,8 @@
     "kind": "new",
     "area": "Overview",
     "audience": "host",
-    "highlight": true,
-    "title": "See your whole weekend on the Overview",
-    "body": "The Overview opens with your countdown, the Hebrew date, and every time and venue for the weekend. Copy the schedule to send to family.",
-    "show": {
-      "tab": "overview",
-      "focus": "celebration-schedule"
-    },
-    "guide": "getting-started/how-simchakit-works"
+    "highlight": false,
+    "title": "See your whole weekend on the Overview"
   },
   {
     "id": "2026-10-26-04-mailing-chips",

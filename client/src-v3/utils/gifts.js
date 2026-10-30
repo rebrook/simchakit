@@ -183,6 +183,72 @@ function countThankYousOutstanding(gifts) {
   return { total: toWrite + toMail, toWrite, toMail };
 }
 
+// ── Thank-you messages (V5.12.0, V5-M3) ──────────────────────────────────────
+// A thank-you email goes to a giver's guest-list household, one message per
+// household. Messages are sent through /api/guest, which identifies a household
+// by its database row id (householdKey); a giver links to it by the app id
+// stored inside the household's data (giver.householdId). The server fills
+// {{household_name}} and {{gift_description}} from the household and its gifts.
+//
+// giver.thankYouMessageId (new, optional) holds the message_log id of the send
+// that set Written. It lives in the gift's JSON, so there is no database change
+// and older gifts read as having none.
+
+const rowKeyOf = (household) => household?._rowId || household?.id;
+
+// Where a giver's thank-you can go: "ready" (household with an email),
+// "no_email" (household without one) or "no_guest" (not linked to a household).
+function giverEmailState(giver, households) {
+  const hh = giver?.householdId ? (households || []).find(h => h.id === giver.householdId) : null;
+  if (!hh) return { state: "no_guest", household: null, key: null };
+  const email = String(hh.email || "").trim();
+  return { state: email ? "ready" : "no_email", household: hh, key: rowKeyOf(hh), email };
+}
+
+// refs: [{ giftId, giverId }]. Returns the households to message (deduplicated,
+// so two givers in one household get one message) and the givers left out
+// because they have no guest-list household.
+function buildThankYouBatch(gifts, households, refs) {
+  const byKey = new Map();   // household row key -> { household, refs[], names[] }
+  const unlinked = [];
+  (refs || []).forEach(({ giftId, giverId }) => {
+    const gift = (gifts || []).find(g => g.id === giftId);
+    const giver = gift ? getGiftGivers(gift).find(gv => gv.id === giverId) : null;
+    if (!giver || giver.thankYouWritten) return;
+    const info = giverEmailState(giver, households);
+    if (!info.key) { unlinked.push({ giftId, giverId, name: giver.name || "" }); return; }
+    const entry = byKey.get(info.key) || { key: info.key, household: info.household, refs: [], names: [] };
+    entry.refs.push({ giftId, giverId });
+    entry.names.push(giver.name || "");
+    byKey.set(info.key, entry);
+  });
+  return { entries: [...byKey.values()], unlinked };
+}
+
+// Returns the gifts to save after a send: every giver in a household whose
+// message went out gets Written set and the log id recorded. Mailed is never
+// touched. sentKeys: Set of household row keys that were sent.
+function applyThankYouSent(gifts, entries, sentKeys, messageId) {
+  const wanted = new Map();   // giftId -> Set(giverId)
+  (entries || []).forEach(e => {
+    if (!sentKeys.has(e.key)) return;
+    e.refs.forEach(r => {
+      if (!wanted.has(r.giftId)) wanted.set(r.giftId, new Set());
+      wanted.get(r.giftId).add(r.giverId);
+    });
+  });
+  const changed = [];
+  wanted.forEach((giverIds, giftId) => {
+    const gift = (gifts || []).find(g => g.id === giftId);
+    if (!gift) return;
+    const givers = getGiftGivers(gift).map(gv => giverIds.has(gv.id)
+      ? { ...gv, thankYouWritten: true, ...(messageId ? { thankYouMessageId: messageId } : {}) }
+      : gv);
+    changed.push(withGivers(gift, givers));
+  });
+  return changed;
+}
+
 export {
   newGiverId,
   getGiftGivers,
@@ -201,4 +267,7 @@ export {
   anyGiverNeedsMailed,
   allGiversComplete,
   countThankYousOutstanding,
+  giverEmailState,
+  buildThankYouBatch,
+  applyThankYouSent,
 };
