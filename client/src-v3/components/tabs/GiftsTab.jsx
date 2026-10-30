@@ -1029,6 +1029,9 @@ export function GiftModal({ gift, households, onSave, onClose, isArchived }) {
 export function GiftExportModal({ gifts, households, adminConfig, onPrint, onClose }) {
   const [showCSV, setShowCSV] = useState(false);
   const [copied,  setCopied]  = useState(false);
+  const [showPrintOpts, setShowPrintOpts] = useState(false);
+  const [printOpts, setPrintOpts] = useState({ sort: "surname", includeAddresses: true, groupByType: false, onlyUnwritten: false, showAttendance: false });
+  const setOpt = (patch) => setPrintOpts(prev => ({ ...prev, ...patch }));
 
   const csvContent = showCSV ? exportGiftsCSV(gifts, households) : "";
 
@@ -1038,7 +1041,7 @@ export function GiftExportModal({ gifts, households, adminConfig, onPrint, onClo
 
   const handlePrint = () => {
     const mainEvt = (adminConfig?.timeline || []).find(e => e.isMainEvent);
-    onPrint(generateGiftPrintHTML(gifts, households, adminConfig.name || "", mainEvt?.startDate || "", adminConfig.theme || {}));
+    onPrint(generateGiftPrintHTML(gifts, households, adminConfig.name || "", mainEvt?.startDate || "", adminConfig.theme || {}, printOpts));
   };
 
   const OPTION_STYLES = (active) => ({
@@ -1059,18 +1062,18 @@ export function GiftExportModal({ gifts, households, adminConfig, onPrint, onClo
         </div>
         <div className="modal-body">
           <div style={{ display: "flex", gap: 10, marginBottom: 20 }}>
-            <button style={OPTION_STYLES(showCSV)} onClick={() => { setShowCSV(true); setCopied(false); }}>
+            <button style={OPTION_STYLES(showCSV)} onClick={() => { setShowCSV(true); setShowPrintOpts(false); setCopied(false); }}>
               <div style={{ fontSize: 20, marginBottom: 6 }}><Icon name="clipboardList" context="button" /></div>
               <div style={{ fontWeight: 700, fontSize: 13, color: "var(--text-primary)", marginBottom: 4 }}>CSV Export</div>
               <div style={{ fontSize: 11, color: "var(--text-muted)", lineHeight: 1.5 }}>
                 One row per giver, sorted by last name. Includes address, amounts, and thank-you status.
               </div>
             </button>
-            <button style={OPTION_STYLES(false)} onClick={handlePrint}>
+            <button style={OPTION_STYLES(showPrintOpts)} onClick={() => { setShowPrintOpts(true); setShowCSV(false); }}>
               <div style={{ fontSize: 20, marginBottom: 6 }}><Icon name="printer" context="button" /></div>
               <div style={{ fontWeight: 700, fontSize: 13, color: "var(--text-primary)", marginBottom: 4 }}>Printable View</div>
               <div style={{ fontSize: 11, color: "var(--text-muted)", lineHeight: 1.5 }}>
-                Grouped by donor with address, gift details, and thank-you status. Works as a mailing checklist.
+                A compact table with a box to tick off each thank-you, and totals. Choose the sort and what to include.
               </div>
             </button>
           </div>
@@ -1089,9 +1092,39 @@ export function GiftExportModal({ gifts, households, adminConfig, onPrint, onClo
               </div>
             </>
           )}
+          {showPrintOpts && !showCSV && (
+            <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 4 }}>
+              <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: "var(--text-primary)" }}>
+                Sort by
+                <select className="form-select" style={{ width: "auto", fontSize: 13, padding: "6px 10px" }}
+                  value={printOpts.sort} onChange={e => setOpt({ sort: e.target.value })}>
+                  <option value="surname">Surname</option>
+                  <option value="date">Date received</option>
+                  <option value="type">Type</option>
+                </select>
+              </label>
+              {[
+                ["includeAddresses", "Include addresses"],
+                ["groupByType", "Group by type (with a subtotal for each)"],
+                ["onlyUnwritten", "Only gifts without a thank-you written"],
+                ["showAttendance", "Show attendance"],
+              ].map(([key, label]) => (
+                <label key={key} style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: "var(--text-primary)", cursor: "pointer" }}>
+                  <input type="checkbox" checked={!!printOpts[key]} onChange={e => setOpt({ [key]: e.target.checked })} />
+                  {label}
+                </label>
+              ))}
+            </div>
+          )}
+
           {!showCSV && (
             <div className="modal-footer">
               <button className="btn btn-ghost" onClick={onClose}>Cancel</button>
+              {showPrintOpts && (
+                <button className="btn btn-primary" onClick={handlePrint}>
+                  <Icon name="printer" context="inline" /> Preview and print
+                </button>
+              )}
             </div>
           )}
         </div>

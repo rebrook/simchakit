@@ -1095,7 +1095,7 @@ export const GUIDE_SECTIONS = [
         "summary": "CSV and print formats for thank-you work.",
         "body": [
           "Click ↓ Export to open the export modal. CSV Export generates one row per giver sorted by last name, including address, amounts, and thank-you status, ready to paste into Excel. When a record holds several gifts, they share one row: the Gift Type reads Combination if the types differ, the Description lists each gift, and the Amount is the total.",
-          "Printable View generates a print-ready HTML page grouped by donor with address, gift details, and thank-you status, which doubles as a mailing checklist."
+          "Printable View opens print options: sort by surname, date received or type; include addresses; group by type, with a subtotal for each; only gifts without a thank-you written; and show attendance. It then prints one compact table with a row per giver, Written and Mailed boxes to tick off by hand (already-done steps print with a check mark), the amount and date received, and a footer with Page X of Y. The last page ends with totals by type and the total monetary value, which match the Gifts tab. It prints on Letter, or A4 outside the US, Canada and Mexico."
         ]
       }
     ]
