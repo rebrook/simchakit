@@ -176,7 +176,7 @@ function longDate(s) {
 }
 
 function colgroup(att) {
-  const w = att ? [5, 5, 25, 12, 19, 11, 12, 11] : [6, 6, 28, 13, 23, 11, 13];
+  const w = att ? [9, 9, 29, 10, 15, 9, 10, 9] : [9, 9, 33, 11, 16, 10, 12];
   return `<colgroup>${w.map(x => `<col style="width:${x}%">`).join("")}</colgroup>`;
 }
 
@@ -255,11 +255,11 @@ function css(paper) {
 .gp-table td { padding: 1px 6px; vertical-align: middle; border-bottom: 0.5px solid #888; overflow-wrap: anywhere; }
 .gp-row { break-inside: avoid; page-break-inside: avoid; }
 .gp-alt td { background: #eee; }
-.gp-c { text-align: center !important; }
+.gp-c { text-align: center !important; padding-left: 2px !important; padding-right: 2px !important; }
 .gp-r { text-align: right !important; }
 .gp-amt { font-family: ${MONO}; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .gp-name { font-weight: 700; font-size: 11pt; }
-.gp-addr { font-size: 10pt; color: #444; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.gp-addr { font-size: 10pt; color: #444; }
 .gp-box { display: inline-flex; align-items: center; justify-content: center; width: 13px; height: 13px; border: 1.25px solid #000; background: #fff; vertical-align: middle; }
 .gp-band td { background: #d8d8d8; font-weight: 700; padding: 3px 6px; border-top: 1px solid #000; border-bottom: 1px solid #000; }
 .gp-sub td { font-weight: 700; border-bottom: 1px solid #000; }
