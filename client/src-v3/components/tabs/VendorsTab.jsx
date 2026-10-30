@@ -15,6 +15,7 @@ import { useSearchHighlight } from "@/hooks/useSearchHighlight.js";
 import { usePrimaryAction } from "@/hooks/usePrimaryAction.js";
 import { useDesktopShell } from "@/hooks/useDesktopShell.js";
 import { formatAddress, formatPhone } from "@/utils/guests.js";
+import { toastUndo } from "@/utils/undo.js";
 import { VENDOR_STATUSES, VENDOR_STATUS_STYLES } from "@/constants/vendor-constants.js";
 import { FOLLOW_UP_STATUSES } from "@/constants/ui.js";
 import { computeVendorFinancials, getLastContacted, fmt$ } from "@/utils/vendors.js";
@@ -28,13 +29,12 @@ import { writeAuditLog }     from "@/utils/auditLog.js";
 import { Icon }              from "@/utils/iconMap.jsx";
 
 export function VendorsTab({ eventId, event, adminConfig, showToast, isArchived, isViewer, searchHighlight, clearSearchHighlight, setTopbarSubtitle }) {
-  const { items: vendors, loading, save, remove } = useEventData(eventId, "vendors");
+  const { items: vendors, loading, save, removeUndoable } = useEventData(eventId, "vendors");
   const { items: expenses }                        = useEventData(eventId, "expenses");
 
   const [showAdd,       setShowAdd]       = useState(false);
   const [editing,       setEditing]       = useState(null);
   const [quickView,     setQuickView]     = useState(null);
-  const [deleteConfirm, setDeleteConfirm] = useState(null);
   const [syncConfirm,   setSyncConfirm]   = useState(null);
   const [filterType,    setFilterType]    = useState("all");
   const [filterStatus,  setFilterStatus]  = useState("all");
@@ -95,11 +95,11 @@ export function VendorsTab({ eventId, event, adminConfig, showToast, isArchived,
     showToast(wasEditing ? "Vendor updated" : "Vendor added");
   };
 
+  // A single vendor is removed at once with an Undo toast (V5-O2).
   const handleDelete = async (id) => {
-    const result = await remove(id);
-    setDeleteConfirm(null);
+    const result = await removeUndoable(id);
     if (result?.error) { showToast("Couldn't delete the vendor. Try again."); return; }
-    showToast("Vendor removed");
+    toastUndo(showToast, "Vendor removed", result, "vendor-delete");
   };
 
   const handleSyncContract = async (vendor, newAmt) => {
@@ -391,7 +391,7 @@ export function VendorsTab({ eventId, event, adminConfig, showToast, isArchived,
                     <button className="icon-btn" title="Delete" aria-label="Delete"
                       style={{fontSize:13,color:"var(--red)"}}
                       disabled={isArchived || isViewer}
-                      onClick={() => setDeleteConfirm(v._rowId || v.id)}><Icon name="trash2" context="badge" /></button>
+                      onClick={() => handleDelete(v._rowId || v.id)}><Icon name="trash2" context="badge" /></button>
                   </div>
                 </div>
               </div>
@@ -420,17 +420,6 @@ export function VendorsTab({ eventId, event, adminConfig, showToast, isArchived,
           onSave={handleSave}
           onClose={() => { setShowAdd(false); setEditing(null); }}
           isArchived={isArchived}
-        />
-      )}
-
-      {/* Delete confirm */}
-      {deleteConfirm && (
-        <ConfirmDialog
-          title="Delete Vendor"
-          message="This will permanently remove this vendor. Any expenses linked to this vendor will be unlinked but not deleted."
-          confirmLabel="Delete Vendor"
-          onConfirm={() => handleDelete(deleteConfirm)}
-          onClose={() => setDeleteConfirm(null)}
         />
       )}
 

@@ -1,5 +1,47 @@
 [
   {
+    "id": "2026-10-31-01-undo-toasts",
+    "release": "V5.13.0",
+    "date": "2026-10-31",
+    "kind": "new",
+    "area": "All tabs",
+    "audience": "host",
+    "highlight": true,
+    "title": "Undo a mistake with one click",
+    "body": "Deleting a task, gift, vendor or expense, changing an RSVP, or marking a task done now shows an Undo button for 8 seconds, instead of asking you to confirm first.",
+    "guide": "tips/undo-and-bulk-actions"
+  },
+  {
+    "id": "2026-10-31-02-bulk-tasks-gifts",
+    "release": "V5.13.0",
+    "date": "2026-10-31",
+    "kind": "new",
+    "area": "Tasks",
+    "audience": "host",
+    "highlight": false,
+    "title": "Select several tasks to mark done, set a due date or delete them, with Undo"
+  },
+  {
+    "id": "2026-10-31-03-bulk-gifts",
+    "release": "V5.13.0",
+    "date": "2026-10-31",
+    "kind": "new",
+    "area": "Gifts",
+    "audience": "host",
+    "highlight": false,
+    "title": "Select several givers to mark thank-yous written or mailed, or draft their emails"
+  },
+  {
+    "id": "2026-10-31-04-undo-safe",
+    "release": "V5.13.0",
+    "date": "2026-10-31",
+    "kind": "improved",
+    "area": "All tabs",
+    "audience": "host",
+    "highlight": false,
+    "title": "Undo never overwrites a co-planner's change; it tells you instead"
+  },
+  {
     "id": "2026-10-30-03-draft-thank-you",
     "release": "V5.12.0",
     "date": "2026-10-30",
@@ -53,14 +95,8 @@
     "kind": "new",
     "area": "All tabs",
     "audience": "host",
-    "highlight": true,
-    "title": "Find any answer fast in the new Guide",
-    "body": "Search the whole Guide, browse by section, and follow short numbered steps. On a phone it opens full screen and the back button takes you up one level.",
-    "show": {
-      "tab": "overview",
-      "focus": "guide-help"
-    },
-    "guide": "tips/keyboard-shortcuts"
+    "highlight": false,
+    "title": "Find any answer fast in the new Guide"
   },
   {
     "id": "2026-10-27-14-guide-help-button",

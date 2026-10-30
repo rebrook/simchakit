@@ -17,6 +17,7 @@ import { SearchOverlay }         from "@/components/SearchOverlay.jsx";
 import { GuideModal, ActivityLogModal, WhatsNewModal } from "@/components/Modals.jsx";
 import { DayOfOverlay }          from "@/components/DayOfOverlay.jsx";
 import { InviteModal }           from "@/components/shared/InviteModal.jsx";
+import { useToasts, ToastHost } from "@/components/shared/Toast.jsx";
 import { NotificationPanel }     from "@/components/shared/NotificationPanel.jsx";
 import { Icon }                  from "@/utils/iconMap.jsx";
 import { ErrorBoundary }         from "@/components/shared/ErrorBoundary.jsx";
@@ -71,8 +72,7 @@ export function AppShell({ session, eventId, onBack, onSelectEvent = null, isDem
   const [showMoreDrawer,  setShowMoreDrawer]  = useState(false);
   const [dayOfBannerDismissed, setDayOfBannerDismissed] = useState(false);
   const [topbarSubtitle,  setTopbarSubtitle]  = useState(null);
-  const [toastMsg,        setToastMsg]        = useState("");
-  const [toastVisible,    setToastVisible]    = useState(false);
+  const { toasts, showToast, dismissToast } = useToasts();
   const [darkMode,        setDarkMode]        = useDarkMode();
 
   // ── Account menu state (sidebar footer) ──────────────────────────────────
@@ -264,15 +264,7 @@ export function AppShell({ session, eventId, onBack, onSelectEvent = null, isDem
   const [searchHighlight, setSearchHighlight] = useState(null);
   const [guideTarget,     setGuideTarget]     = useState(null);   // { sectionId, topicId?, fromTab? }
 
-  const toastTimer  = useRef(null);
-
-  // ── Toast ─────────────────────────────────────────────────────────────────
-  const showToast = useCallback((message) => {
-    if (toastTimer.current) clearTimeout(toastTimer.current);
-    setToastMsg(message);
-    setToastVisible(true);
-    toastTimer.current = setTimeout(() => setToastVisible(false), 2500);
-  }, []);
+  // ── Toast (components/shared/Toast.jsx): showToast(message, { undo, key }) ──
 
   // ── Audit log error listener ──────────────────────────────────────────────
   useEffect(() => {
@@ -872,12 +864,7 @@ export function AppShell({ session, eventId, onBack, onSelectEvent = null, isDem
       )}
 
       {/* ── Toast ── */}
-      <div className="app-toast" style={{
-        opacity:    toastVisible ? 1 : 0,
-        transform:  toastVisible ? "translateX(-50%) translateY(0)" : "translateX(-50%) translateY(8px)",
-      }}>
-        <Icon name="check" context="inline" style={{ marginRight: 6 }} /> {toastMsg}
-      </div>
+      <ToastHost toasts={toasts} onDismiss={dismissToast} />
     </div>
   );
 }

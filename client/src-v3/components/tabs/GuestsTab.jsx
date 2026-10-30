@@ -12,6 +12,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { useEventData, peoplePromoteColumns, householdPromoteColumns } from "@/hooks/useEventData.js";
 import { writeAuditLog } from "@/utils/auditLog.js";
+import { toastUndo } from "@/utils/undo.js";
 import { useSearchHighlight } from "@/hooks/useSearchHighlight.js";
 import { RSVP_STATUSES, DEFAULT_GROUPS } from "@/constants/guest-constants.js";
 import { sortTimeline } from "@/utils/dates.js";
@@ -63,7 +64,7 @@ export { TimelineEntryModal };
 
 // ── GuestsTab ─────────────────────────────────────────────────────────────────
 export function GuestsTab({ eventId, event, adminConfig, showToast, isArchived, isViewer, searchHighlight, clearSearchHighlight, setTopbarSubtitle }) {
-  const { items: households, loading: hLoading, save: saveHouseholdRow, remove: removeHouseholdRow } = useEventData(eventId, "households", { promoteColumns: householdPromoteColumns });
+  const { items: households, loading: hLoading, save: saveHouseholdRow, remove: removeHouseholdRow, saveUndoable: saveHouseholdUndoable, saveManyUndoable: saveHouseholdsUndoable } = useEventData(eventId, "households", { promoteColumns: householdPromoteColumns });
   const { items: people,     loading: pLoading, save: savePersonRow,    remove: removePersonRow }     = useEventData(eventId, "people", { promoteColumns: peoplePromoteColumns });
   const { items: tables,     loading: tLoading }                                                       = useEventData(eventId, "tables");
   // V5-M2: the message log is the source of truth for "was this sent?" (pre-V5 flags are a read-only fallback).
@@ -134,10 +135,12 @@ export function GuestsTab({ eventId, event, adminConfig, showToast, isArchived, 
     if (isArchived) return;
     const hh = households.find(h => h.id === hhId);
     const oldStatus = hh?.rsvpStatus || "";
-    await saveHouseholdRow({ ...hh, rsvpStatus: newStatus });
-    writeAuditLog(eventId, "households", "Updated", `RSVP updated — ${hh?.formalName || "Household"}: ${oldStatus} → ${newStatus}`);
-    showToast(`RSVP updated — ${newStatus}`);
     setOpenRsvp(null);
+    const result = await saveHouseholdUndoable({ ...hh, rsvpStatus: newStatus });
+    if (result?.error) { showToast("Couldn't update the RSVP. Try again."); return; }
+    if (result?.conflict) return; // AppShell already surfaces a conflict toast
+    writeAuditLog(eventId, "households", "Updated", `RSVP updated — ${hh?.formalName || "Household"}: ${oldStatus} → ${newStatus}`);
+    toastUndo(showToast, `RSVP updated — ${newStatus}`, result, "rsvp");
   };
 
   // ── Sub-event chip row overflow (+N more) ─────────────────────────────────
@@ -160,12 +163,11 @@ export function GuestsTab({ eventId, event, adminConfig, showToast, isArchived, 
 
   const applyBulkRsvp = async () => {
     if (isArchived || selectedHHIds.size === 0) return;
-    for (const hhId of selectedHHIds) {
-      const hh = households.find(h => h.id === hhId);
-      if (hh) await saveHouseholdRow({ ...hh, rsvpStatus: bulkStatus });
-    }
-    writeAuditLog(eventId, "households", "Updated", `Bulk RSVP update — ${selectedHHIds.size} household${selectedHHIds.size !== 1 ? "s" : ""} set to ${bulkStatus}`);
-    showToast(`${selectedHHIds.size} household${selectedHHIds.size !== 1 ? "s" : ""} updated to ${bulkStatus}`);
+    const targets = [...selectedHHIds].map(id => households.find(h => h.id === id)).filter(Boolean);
+    const res = await saveHouseholdsUndoable(targets.map(hh => ({ ...hh, rsvpStatus: bulkStatus })));
+    if (res.saved === 0) { showToast("Couldn't update the RSVPs. Try again."); return; }
+    writeAuditLog(eventId, "households", "Updated", `Bulk RSVP update — ${res.saved} household${res.saved !== 1 ? "s" : ""} set to ${bulkStatus}`);
+    toastUndo(showToast, `${res.saved} household${res.saved !== 1 ? "s" : ""} updated to ${bulkStatus}${res.failed ? `, ${res.failed} couldn't be updated` : ""}`, res, "rsvp-bulk");
     setSelectedHHIds(new Set());
   };
 

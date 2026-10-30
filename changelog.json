@@ -1,9 +1,27 @@
 {
-  "current": "V5.12.0",
+  "current": "V5.13.0",
   "whatsNew": [
-    "Draft a thank-you email from any gift: the message opens filled in, and sending ticks Written"
+    "Undo toasts for everyday deletes and status changes, and bulk selection on Tasks and Gifts"
   ],
   "changelog": [
+    {
+      "version": "V5.13.0",
+      "date": "2026-10-31",
+      "summary": "Undo toasts and wider bulk actions (V5-O2)",
+      "changes": [
+        "New: the toast system (components/shared/Toast.jsx, hosted by AppShell) takes showToast(message, { undo, key }): an Undo button, an 8 second timer that pauses on hover and focus, a polite live region so it is announced, and one toast per key (action type), at most three at once. Plain showToast(message) is unchanged",
+        "New: useEventData gains saveUndoable, saveManyUndoable, removeUndoable and removeManyUndoable. Each captures the previous record(s) and returns undo(); an undone save only applies if the record's updated_at is still the one the change produced and the restoring save_row call is conditional too, and an undone delete re-inserts the row under its old id and creation time. Otherwise undo reports a conflict and the toast reads Can't undo, this was changed by someone else. save() takes { silentConflict } so undo does not also fire the generic conflict toast. utils/undo.js (toastUndo) wires a result to a toast",
+        "Change: Undo toasts replace the confirm dialog for deleting a single task, gift, vendor or expense, and are added to the RSVP pill, task done, the gift Written and Mailed flags and Mark written (paper), and Apply on the Guests bulk RSVP. Deleting a household and deleting several tasks keep the confirm dialog",
+        "New: bulk selection on Tasks (Mark done, Set due date, Delete) and Gifts (Draft thank-you, Mark written, Mark mailed): a checkbox on every row, Shift-click range, Esc to clear, and a bar (components/shared/BulkBar.jsx) that announces the selected count. The Gifts selection from V5.12.0 moved to this shared hook",
+        "Change: the old Guests-only UndoToast (Mark as sent, Clear a manual mark) is left as it was; the sent log has no selection yet",
+        "Not verified in a browser: build and lint only; try an undo of a task delete, a bulk mark done of 10 tasks, and an undo after editing the same row in a second window",
+        "No database changes (no migration; RLS unchanged). V3 app only"
+      ],
+      "roadmap": [
+        "Bulk selection in the sent log, and moving the Guests Mark as sent undo onto the shared toast"
+      ],
+      "knownIssues": []
+    },
     {
       "version": "V5.12.0",
       "date": "2026-10-30",

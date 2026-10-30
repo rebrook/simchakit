@@ -45,6 +45,18 @@
 // activity entry, not just this hook. Imported here rather than defined
 // locally; behavior for save()/remove() is unchanged.
 //
+// ── Undo (V5.13.0, V5-O2) ───────────────────────────────────────────────────
+// saveUndoable / saveManyUndoable / removeUndoable / removeManyUndoable wrap
+// save() and remove(): they capture the previous record(s) before writing and
+// return the usual result plus an undo() that restores them. undo() resolves
+//   { ok: true }          restored
+//   { conflict: true }    someone else changed (or deleted, or re-added) a record
+//                         since this change, so nothing was overwritten
+//   { error: message }    the write failed
+// An undone save is checked against the record's current _updatedAt, which the
+// Realtime handlers keep fresh, and the restoring save_row call is itself
+// conditional on it, so another co-planner's edit is never overwritten.
+//
 // ── Concurrency (V4.17.0) ──────────────────────────────────────────────────
 // Existing rows are saved through the save_row() Postgres RPC instead of a
 // plain upsert. The RPC only applies the write if the row's updated_at still
@@ -97,6 +109,8 @@ export function useEventData(eventId, collection, options = {}) {
   const [items,   setItems]   = useState([]);
   const [loading, setLoading] = useState(true);
   const [error,   setError]   = useState(null);
+  const itemsRef = useRef(items);
+  itemsRef.current = items;
 
   // Prevent stale-closure issues on reload
   const collectionRef    = useRef(collection);
@@ -260,7 +274,7 @@ export function useEventData(eventId, collection, options = {}) {
   }, [eventId, collection]);
 
   // ── Save (insert new, or conditionally update existing) ───────────────────────
-  const save = useCallback(async (item) => {
+  const save = useCallback(async (item, saveOpts = {}) => {
     if (!eventId) return { error: "No event ID" };
 
     beginSave();
@@ -351,7 +365,7 @@ export function useEventData(eventId, collection, options = {}) {
       // Row was deleted by someone else while this client had it open
       setItems(prev => prev.filter(i => i._rowId !== _rowId));
 
-      window.dispatchEvent(new CustomEvent("simchakit:save-conflict", {
+      if (!saveOpts.silentConflict) window.dispatchEvent(new CustomEvent("simchakit:save-conflict", {
         detail: { collection: collectionRef.current, serverItem: null, deleted: true },
       }));
 
@@ -370,7 +384,7 @@ export function useEventData(eventId, collection, options = {}) {
 
     setItems(prev => prev.map(i => i._rowId === _rowId ? serverItem : i));
 
-    window.dispatchEvent(new CustomEvent("simchakit:save-conflict", {
+    if (!saveOpts.silentConflict) window.dispatchEvent(new CustomEvent("simchakit:save-conflict", {
       detail: { collection: collectionRef.current, serverItem, deleted: false },
     }));
 
@@ -412,10 +426,100 @@ export function useEventData(eventId, collection, options = {}) {
     }
   }, [items]);
 
+  // ── Undo helpers (V5.13.0) ─────────────────────────────────────────────────
+  const undoSave = useCallback(async (prev, savedItem) => {
+    const cur = itemsRef.current.find(i => i._rowId === prev._rowId);
+    if (!cur || cur._updatedAt !== savedItem._updatedAt) return { conflict: true };
+    const r = await save({ ...prev, _updatedAt: cur._updatedAt }, { silentConflict: true });
+    if (r.conflict) return { conflict: true };
+    if (r.error) return { error: r.error };
+    return { ok: true };
+  }, [save]);
+
+  // Re-insert a deleted row under its old id (and creation time, so it returns to
+  // its old place in the list). Plain insert, never upsert, so it cannot overwrite.
+  const restoreItem = useCallback(async (prev) => {
+    if (itemsRef.current.some(i => i._rowId === prev._rowId)) return { conflict: true };
+    const { _rowId, _createdAt, _updatedAt, ...dataPayload } = prev;
+    const base = { id: _rowId, event_id: eventIdRef.current, data: dataPayload, updated_at: new Date().toISOString(), ...promoteRef.current(prev) };
+    beginSave();
+    try {
+      let res = await supabase.from(collectionRef.current).insert({ ...base, created_at: _createdAt }).select("id, data, created_at, updated_at").single();
+      if (res.error && res.error.code !== "23505") {
+        res = await supabase.from(collectionRef.current).insert(base).select("id, data, created_at, updated_at").single();
+      }
+      if (res.error) return res.error.code === "23505" ? { conflict: true } : { error: res.error.message };
+      const restored = rowToItem(res.data);
+      setItems(p => p.some(i => i._rowId === restored._rowId)
+        ? p.map(i => i._rowId === restored._rowId ? restored : i)
+        : [...p, restored]);
+      writeAuditLog(eventIdRef.current, collectionRef.current, "Added", dataPayload);
+      return { ok: true };
+    } finally {
+      endSave();
+    }
+  }, []);
+
+  const saveUndoable = useCallback(async (item) => {
+    const prev = item._rowId ? itemsRef.current.find(i => i._rowId === item._rowId) : null;
+    const r = await save(item);
+    if (r.error || r.conflict || !prev) return r;
+    return { ...r, undo: () => undoSave(prev, r.item) };
+  }, [save, undoSave]);
+
+  // Saves each item in turn. Returns { saved, failed, undo }; undo restores every
+  // record that was saved and reports a conflict if any of them was changed since.
+  const saveManyUndoable = useCallback(async (list) => {
+    const done = [];
+    let failed = 0;
+    for (const item of list) {
+      const prev = item._rowId ? itemsRef.current.find(i => i._rowId === item._rowId) : null;
+      const r = await save(item);
+      if (r.error || r.conflict || !prev) { failed += 1; continue; }
+      done.push({ prev, saved: r.item });
+    }
+    const undo = async () => {
+      let conflicts = 0, errors = 0;
+      for (const { prev, saved } of done) {
+        const u = await undoSave(prev, saved);
+        if (u.conflict) conflicts += 1; else if (u.error) errors += 1;
+      }
+      return conflicts ? { conflict: true } : errors ? { error: "Some records could not be restored." } : { ok: true };
+    };
+    return { saved: done.length, failed, undo: done.length ? undo : null };
+  }, [save, undoSave]);
+
+  const removeUndoable = useCallback(async (rowId) => {
+    const prev = itemsRef.current.find(i => i._rowId === rowId);
+    const r = await remove(rowId);
+    if (r.error || !prev) return r;
+    return { ...r, undo: () => restoreItem(prev) };
+  }, [remove, restoreItem]);
+
+  const removeManyUndoable = useCallback(async (rowIds) => {
+    const done = [];
+    let failed = 0;
+    for (const rowId of rowIds) {
+      const prev = itemsRef.current.find(i => i._rowId === rowId);
+      const r = await remove(rowId);
+      if (r.error || !prev) { failed += 1; continue; }
+      done.push(prev);
+    }
+    const undo = async () => {
+      let conflicts = 0, errors = 0;
+      for (const prev of done) {
+        const u = await restoreItem(prev);
+        if (u.conflict) conflicts += 1; else if (u.error) errors += 1;
+      }
+      return conflicts ? { conflict: true } : errors ? { error: "Some records could not be restored." } : { ok: true };
+    };
+    return { removed: done.length, failed, undo: done.length ? undo : null };
+  }, [remove, restoreItem]);
+
   // ── Reload ─────────────────────────────────────────────────────────────────
   const reload = useCallback(() => load(), [load]);
 
-  return { items, loading, error, save, remove, reload, setItems };
+  return { items, loading, error, save, remove, reload, setItems, saveUndoable, saveManyUndoable, removeUndoable, removeManyUndoable };
 }
 
 // ── Convenience: households promoted columns ───────────────────────────────────

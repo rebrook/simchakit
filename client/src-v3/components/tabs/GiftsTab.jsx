@@ -48,34 +48,35 @@ import {
 import { exportGiftsCSV, generateGiftPrintHTML } from "@/utils/exports.js";
 import { getAddressFields, formatAddress, migrateCityStateZip, COUNTRIES } from "@/utils/guests.js";
 import { ArchivedNotice }      from "@/components/shared/ArchivedNotice.jsx";
-import { ConfirmDialog }       from "@/components/shared/ConfirmDialog.jsx";
+import { BulkBar, BulkCheck }  from "@/components/shared/BulkBar.jsx";
+import { useBulkSelection }    from "@/hooks/useBulkSelection.js";
+import { toastUndo }           from "@/utils/undo.js";
 import { Icon }                from "@/utils/iconMap.jsx";
 import { GiverThankYouAction, GiftThankYouComposer } from "@/components/gifts/GiftThankYou.jsx";
 import { printDocument, isTouchPrimary } from "@/utils/printDocument.js";
 import { PrintPreviewModal } from "@/components/shared/PrintPreviewModal.jsx";
 
 export function GiftsTab({ eventId, event, adminConfig, showToast, isArchived, isViewer, searchHighlight, clearSearchHighlight, setTopbarSubtitle }) {
-  const { items: gifts,      loading: gLoading, save, remove } = useEventData(eventId, "gifts");
+  const { items: gifts,      loading: gLoading, save, saveUndoable, saveManyUndoable, removeUndoable } = useEventData(eventId, "gifts");
   const { items: households, loading: hLoading, save: saveHousehold } = useEventData(eventId, "households");
 
   useSearchHighlight(searchHighlight, clearSearchHighlight, "gifts");
 
   const [showModal,     setShowModal]     = useState(false);
   const [editGift,      setEditGift]      = useState(null);
-  const [deleteConfirm, setDeleteConfirm] = useState(null);
   const [search,        setSearch]        = useState("");
   const [filterType,    setFilterType]    = useState("all");
   const [filterTY,      setFilterTY]      = useState(() => consumeGiftsFilter(eventId) || "all");
   const [showExport,    setShowExport]    = useState(false);
   const [printHTML,     setPrintHTML]     = useState(null);
 
-  // Draft thank-you (V5-M3). selectedGivers holds "giftId|giverId" keys for the bulk bar;
-  // tyBatch is the open composer's { entries, unlinked }; tyResult tracks the Written update after a send.
-  const [selectedGivers, setSelectedGivers] = useState(new Set());
+  // Draft thank-you (V5-M3). tyBatch is the open composer's { entries, unlinked };
+  // tyResult tracks the Written update after a send. Bulk selection holds "giftId|giverId" keys.
   const [tyBatch,        setTyBatch]        = useState(null);
   const [tyResult,       setTyResult]       = useState(null);
   const giftsRef = useRef(gifts);
   giftsRef.current = gifts;
+  const bulkRef  = useRef(null);
 
   // Mobile card layout (760px matches the app-wide table-to-card breakpoint)
   const [isMobile,      setIsMobile]      = useState(() => window.innerWidth < 760);
@@ -148,14 +149,14 @@ export function GiftsTab({ eventId, event, adminConfig, showToast, isArchived, i
     setEditGift(null);
   };
 
+  // A single gift is deleted at once with an Undo toast (V5-O2).
   const handleDelete = async (id) => {
     if (isArchived || isViewer) return;
     const g = gifts.find(x => x.id === id);
-    if (!g) { setDeleteConfirm(null); return; }
-    const result = await remove(g._rowId);
-    setDeleteConfirm(null);
+    if (!g) return;
+    const result = await removeUndoable(g._rowId);
     if (result?.error) { showToast("Couldn't delete the gift. Try again."); return; }
-    showToast("Gift deleted");
+    toastUndo(showToast, "Gift deleted", result, "gift-delete");
   };
 
   const toggleGiverWritten = async (giftId, giverId) => {
@@ -163,10 +164,10 @@ export function GiftsTab({ eventId, event, adminConfig, showToast, isArchived, i
     const g = gifts.find(x => x.id === giftId);
     if (!g) return;
     const givers = getGiftGivers(g).map(gv => gv.id === giverId ? { ...gv, thankYouWritten: !gv.thankYouWritten } : gv);
-    const result = await save(withGivers(g, givers));
+    const result = await saveUndoable(withGivers(g, givers));
     if (result?.error) { showToast("Couldn't update thank-you status. Try again."); return; }
     if (result?.conflict) return; // AppShell already surfaces a conflict toast
-    showToast("Thank-you note updated");
+    toastUndo(showToast, "Thank-you note updated", result, "gift-thank-you");
   };
 
   const toggleGiverMailed = async (giftId, giverId) => {
@@ -174,21 +175,15 @@ export function GiftsTab({ eventId, event, adminConfig, showToast, isArchived, i
     const g = gifts.find(x => x.id === giftId);
     if (!g) return;
     const givers = getGiftGivers(g).map(gv => gv.id === giverId ? { ...gv, thankYouMailed: !gv.thankYouMailed } : gv);
-    const result = await save(withGivers(g, givers));
+    const result = await saveUndoable(withGivers(g, givers));
     if (result?.error) { showToast("Couldn't update thank-you status. Try again."); return; }
     if (result?.conflict) return; // AppShell already surfaces a conflict toast
-    showToast("Thank-you mailed updated");
+    toastUndo(showToast, "Thank-you mailed updated", result, "gift-thank-you");
   };
 
   // ── Draft thank-you (V5-M3) ────────────────────────────────────────────────
   const canMessage = !isArchived && !isViewer;
   const refKey = (giftId, giverId) => `${giftId}|${giverId}`;
-  const toggleSelected = (giftId, giverId) => setSelectedGivers(prev => {
-    const next = new Set(prev);
-    const k = refKey(giftId, giverId);
-    next.has(k) ? next.delete(k) : next.add(k);
-    return next;
-  });
 
   const openDraft = (refs) => {
     if (!canMessage) return;
@@ -203,17 +198,15 @@ export function GiftsTab({ eventId, event, adminConfig, showToast, isArchived, i
     setTyBatch(batch);
   };
 
-  const selectedRefs = [...selectedGivers].map(k => { const [giftId, giverId] = k.split("|"); return { giftId, giverId }; });
-
   const markWrittenPaper = async (giftId, giverId) => {
     if (!canMessage) return;
     const g = giftsRef.current.find(x => x.id === giftId);
     if (!g) return;
     const givers = getGiftGivers(g).map(gv => gv.id === giverId ? { ...gv, thankYouWritten: true } : gv);
-    const result = await save(withGivers(g, givers));
+    const result = await saveUndoable(withGivers(g, givers));
     if (result?.error) { showToast("Couldn't update thank-you status. Try again."); return; }
     if (result?.conflict) return;
-    showToast("Marked written (paper)");
+    toastUndo(showToast, "Marked written (paper)", result, "gift-thank-you");
   };
 
   // A send finished. Only households whose email actually went out change: their
@@ -232,7 +225,7 @@ export function GiftsTab({ eventId, event, adminConfig, showToast, isArchived, i
     }
     const givers = batch.entries.filter(e => sentKeys.has(e.key)).reduce((n, e) => n + e.refs.length, 0);
     setTyResult({ phase: "done", givers, failed, sentKeys });
-    setSelectedGivers(new Set());
+    bulkRef.current?.clear();
   };
 
   // Separate from Written: for people who also send a paper card.
@@ -292,12 +285,9 @@ export function GiftsTab({ eventId, event, adminConfig, showToast, isArchived, i
       onDraft={() => openDraft([{ giftId: g.id, giverId: gv.id }])}
       onMarkPaper={() => markWrittenPaper(g.id, gv.id)} />
   );
-  const renderSelect = (g, gv) => (canMessage && !gv.thankYouWritten) ? (
-    <label className="gift-ty-select" title="Select for a batch of thank-you emails">
-      <input type="checkbox" checked={selectedGivers.has(refKey(g.id, gv.id))}
-        aria-label={`Select ${gv.name || "this giver"} for thank-you emails`}
-        onChange={() => toggleSelected(g.id, gv.id)} />
-    </label>
+  const renderSelect = (g, gv) => canMessage ? (
+    <BulkCheck checked={bulk.isSelected(refKey(g.id, gv.id))} label={`Select ${gv.name || "this giver"}`}
+      onToggle={(shift) => bulk.toggle(refKey(g.id, gv.id), shift)} />
   ) : null;
 
   // ── Stats ──────────────────────────────────────────────────────────────────
@@ -358,6 +348,34 @@ export function GiftsTab({ eventId, event, adminConfig, showToast, isArchived, i
   });
 
   const usedTypes = [...new Set(allItems.map(it => it.giftType).filter(Boolean))].sort();
+
+  // ── Bulk selection (V5-O2): givers, in the order the rows are shown ─────────
+  const visibleGiverKeys = filtered.flatMap(g => getGiftGivers(g).map(gv => refKey(g.id, gv.id)));
+  const bulk = useBulkSelection(visibleGiverKeys, canMessage);
+  bulkRef.current = bulk;
+  const selectedRefs = [...bulk.selected].map(k => { const [giftId, giverId] = k.split("|"); return { giftId, giverId }; });
+
+  // Sets one thank-you flag on every selected giver that does not have it yet.
+  const bulkSetFlag = async (flag, label) => {
+    const byGift = new Map();
+    selectedRefs.forEach(({ giftId, giverId }) => {
+      const g = giftsRef.current.find(x => x.id === giftId);
+      const gv = g && getGiftGivers(g).find(x => x.id === giverId);
+      if (!gv || gv[flag]) return;
+      if (!byGift.has(giftId)) byGift.set(giftId, new Set());
+      byGift.get(giftId).add(giverId);
+    });
+    if (byGift.size === 0) { showToast(`The selected givers are already marked ${label}.`); return; }
+    const updated = [...byGift].map(([giftId, ids]) => {
+      const g = giftsRef.current.find(x => x.id === giftId);
+      return withGivers(g, getGiftGivers(g).map(gv => ids.has(gv.id) ? { ...gv, [flag]: true } : gv));
+    });
+    const count = [...byGift.values()].reduce((n, set) => n + set.size, 0);
+    const res = await saveManyUndoable(updated);
+    if (res.saved === 0) { showToast("Couldn't update thank-you status. Try again."); return; }
+    toastUndo(showToast, `${count} giver${count !== 1 ? "s" : ""} marked ${label}${res.failed ? `, ${res.failed} gift${res.failed !== 1 ? "s" : ""} couldn't be updated` : ""}`, res, "gift-bulk");
+    bulk.clear();
+  };
 
   const TYPE_COLORS = {
     "Cash / Check":               { bg: "var(--green-light)",  color: "var(--green)"          },
@@ -460,14 +478,14 @@ export function GiftsTab({ eventId, event, adminConfig, showToast, isArchived, i
       </div>
 
       {/* Bulk bar: draft thank-you emails for the selected givers */}
-      {selectedRefs.length > 0 && canMessage && (
-        <div className="gift-bulkbar" role="region" aria-label="Selected givers">
-          <span className="gift-bulkbar-count">{selectedRefs.length} giver{selectedRefs.length !== 1 ? "s" : ""} selected</span>
-          <button type="button" className="btn btn-primary btn-sm gift-ty-btn" onClick={() => openDraft(selectedRefs)}>
+      {canMessage && (
+        <BulkBar count={bulk.count} noun="giver" onClear={bulk.clear}>
+          <button type="button" className="btn btn-primary btn-sm bulk-bar-btn" onClick={() => openDraft(selectedRefs)}>
             <Icon name="mail" context="inline" /> Draft thank-you
           </button>
-          <button type="button" className="btn btn-ghost btn-sm gift-ty-btn" onClick={() => setSelectedGivers(new Set())}>Clear</button>
-        </div>
+          <button type="button" className="btn btn-secondary btn-sm bulk-bar-btn" onClick={() => bulkSetFlag("thankYouWritten", "written")}>Mark written</button>
+          <button type="button" className="btn btn-secondary btn-sm bulk-bar-btn" onClick={() => bulkSetFlag("thankYouMailed", "mailed")}>Mark mailed</button>
+        </BulkBar>
       )}
 
       {/* Empty state */}
@@ -599,7 +617,7 @@ export function GiftsTab({ eventId, event, adminConfig, showToast, isArchived, i
                             {openMenuId === g.id && (
                               <div className="header-overflow-menu" role="menu">
                                 <button type="button" className="header-overflow-item" role="menuitem"
-                                  onClick={() => { setOpenMenuId(null); setDeleteConfirm(g); }}>
+                                  onClick={() => { setOpenMenuId(null); handleDelete(g.id); }}>
                                   <Icon name="trash2" context="menu" /> Delete
                                 </button>
                               </div>
@@ -672,7 +690,7 @@ export function GiftsTab({ eventId, event, adminConfig, showToast, isArchived, i
                             <Icon name="pencil" context="menu" /> Edit
                           </button>
                           <button type="button" className="header-overflow-item" role="menuitem"
-                            onClick={() => { setOpenMenuId(null); setDeleteConfirm(g); }}>
+                            onClick={() => { setOpenMenuId(null); handleDelete(g.id); }}>
                             <Icon name="trash2" context="menu" /> Delete
                           </button>
                         </div>
@@ -796,17 +814,6 @@ export function GiftsTab({ eventId, event, adminConfig, showToast, isArchived, i
       {/* Edit modal */}
       {editGift && (
         <GiftModal gift={editGift} households={households} onSave={handleEdit} onClose={() => setEditGift(null)} isArchived={isArchived} />
-      )}
-
-      {/* Delete confirm */}
-      {deleteConfirm && (
-        <ConfirmDialog
-          title="Delete Gift"
-          message={<>Permanently remove the gift from <strong>{formatGiverNames(getGiftGivers(deleteConfirm)) || "this donor"}</strong>? This cannot be undone.</>}
-          confirmLabel="Delete Gift"
-          onConfirm={() => handleDelete(deleteConfirm.id)}
-          onClose={() => setDeleteConfirm(null)}
-        />
       )}
 
       {/* Export modal */}
