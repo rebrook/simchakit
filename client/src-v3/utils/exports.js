@@ -4,6 +4,7 @@ import { computeVendorFinancials, fmt$ } from "./vendors.js";
 import { isFullyPaid } from "./expensePayments.js";
 import { getSectionHeadcount, getMealPopulation, splitAdultsKids, resolveMainEvent, getAwaitingSummary } from "./sections.js";
 import { getGiftGivers } from "./gifts.js";
+import { generateGiftPrintHTML as generateGiftListHTML } from "./giftPrint.js";
 import { PALETTES } from "@/constants/theme.js";
 import { iconSvg } from "@/utils/iconSvg.js";
 import { csvEsc } from "./csv.js";
@@ -322,112 +323,12 @@ function exportGiftsCSV(gifts, households) {
   return [headers.map(csvEsc).join(","), ...rows.map(r => r.values.map(csvEsc).join(","))].join("\n");
 }
 
-function generateGiftPrintHTML(gifts, households, eventName, eventDate, theme) {
-  const pal = PALETTES[theme?.palette] || PALETTES.rose;
-  const hhMap = Object.fromEntries(households.map(h => [h.id, h]));
-
-  const getAddress = (giver) => {
-    if (giver.householdId && hhMap[giver.householdId]) {
-      return formatAddress(migrateCityStateZip(hhMap[giver.householdId]));
-    }
-    return formatAddress(giver);
-  };
-
-  const getLastName = (name) => (name || "").trim().split(" ").pop();
-
-  const entries = [];
-  gifts.forEach(g => {
-    const givers = getGiftGivers(g);
-    givers.forEach(giver => {
-      const others = givers.filter(x => x.id !== giver.id).map(x => x.name).filter(Boolean);
-      entries.push({ gift: g, giver, others });
-    });
-  });
-  entries.sort((a, b) => getLastName(a.giver.name).localeCompare(getLastName(b.giver.name)));
-
-  const totalMonetary = gifts.reduce((s,g) => s + (parseFloat(g.amount)||0), 0);
-
-  const dateStr = eventDate
-    ? new Date(eventDate + "T00:00:00").toLocaleDateString("en-US", { weekday:"long", month:"long", day:"numeric", year:"numeric" })
-    : "";
-
-  const donorBlocks = entries.map(({ gift: g, giver, others }) => {
-    const addr    = getAddress(giver);
-    const amt     = g.amount != null ? `<span style="font-weight:700;color:#2d6a4f">$${parseFloat(g.amount).toLocaleString()}</span>` : "";
-    const writtenBadge = giver.thankYouWritten
-      ? `<span style="background:#d8f3dc;color:#2d6a4f;font-size:10px;font-weight:700;padding:2px 7px;border-radius:99px;margin-left:6px">${iconSvg("check", "badge", { color: "#2d6a4f", style: "display:inline-block;vertical-align:middle;margin-right:2px" })} Written</span>` : "";
-    const mailedBadge  = giver.thankYouMailed
-      ? `<span style="background:#dbeafe;color:#1e4d8c;font-size:10px;font-weight:700;padding:2px 7px;border-radius:99px;margin-left:4px">${iconSvg("check", "badge", { color: "#1e4d8c", style: "display:inline-block;vertical-align:middle;margin-right:2px" })} Mailed</span>` : "";
-    const pendingBadge = (!giver.thankYouWritten)
-      ? `<span style="background:#fde8e8;color:#9b2335;font-size:10px;font-weight:700;padding:2px 7px;border-radius:99px;margin-left:6px">Pending</span>` : "";
-    const attendedStr  = g.attended === true ? "Attended" : g.attended === false ? "Did not attend" : "";
-    const coGiversNote = others.length > 0
-      ? `<div style="font-size:11px;color:#9c9188;margin-top:2px;font-style:italic">Given with ${others.join(", ")}</div>` : "";
-
-    return `
-      <div style="margin-bottom:18px;page-break-inside:avoid;border:1px solid ${pal["accent-medium"]};border-radius:8px;overflow:hidden">
-        <div style="display:flex;justify-content:space-between;align-items:flex-start;padding:8px 12px;background:${pal["accent-light"]};border-bottom:1px solid ${pal["accent-medium"]}">
-          <div>
-            <div style="font-family:'Cormorant Garamond',Georgia,serif;font-size:16px;font-weight:700;color:#1c1614">
-              ${giver.name || "Unknown"}${pendingBadge}${writtenBadge}${mailedBadge}
-            </div>
-            ${addr ? `<div style="font-size:12px;color:#5c5248;margin-top:2px">${addr}</div>` : `<div style="font-size:12px;color:#c9c2b6;font-style:italic;margin-top:2px">No address on file</div>`}
-            ${coGiversNote}
-          </div>
-          <div style="text-align:right;font-size:11px;color:#9c9188">
-            ${attendedStr ? `<div>${attendedStr}</div>` : ""}
-            ${g.dateReceived ? `<div>${new Date(g.dateReceived+"T00:00:00").toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"})}</div>` : ""}
-          </div>
-        </div>
-        <div style="padding:8px 12px;font-size:13px">
-          <span style="font-weight:600;color:#1c1614">${g.giftType || "Gift"}</span>
-          ${g.description ? `<span style="color:#5c5248"> · ${g.description}</span>` : ""}
-          ${amt ? `<span style="margin-left:8px">${amt}</span>` : ""}
-          ${g.notes ? `<div style="margin-top:4px;font-size:11px;color:#9c9188;font-style:italic">${g.notes}</div>` : ""}
-        </div>
-      </div>`;
-  }).join("");
-
-  return `<!DOCTYPE html>
-<html lang="en"><head><meta charset="UTF-8">
-<title>Gift List${eventName ? " — " + eventName : ""}</title>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
-<style>
-  * { box-sizing:border-box; margin:0; padding:0; }
-  body { font-family:"DM Sans",sans-serif; color:#1c1614; background:#faf8f5; padding:24px; font-size:13px; }
-  @media print {
-    body { padding:12px; background:white; }
-    .no-print { display:none !important; }
-    @page { margin:1.5cm; }
-  }
-</style>
-</head><body>
-
-<div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:24px;padding-bottom:16px;border-bottom:2px solid ${pal["accent-medium"]}">
-  <div>
-    <div style="font-family:'Cormorant Garamond',Georgia,serif;font-size:28px;font-weight:700;color:#1c1614">${eventName ? eventName + " — Gift List" : "Gift List"}</div>
-    ${dateStr ? `<div style="font-size:13px;color:#5c5248;margin-top:2px">${dateStr}</div>` : ""}
-  </div>
-  <div style="text-align:right">
-    <div style="font-size:11px;color:#9c9188">${gifts.length} gift${gifts.length!==1?"s":""} · Total monetary value: $${totalMonetary.toLocaleString()}</div>
-    <div style="font-size:11px;color:#9c9188;margin-top:2px">Generated ${new Date().toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"})}</div>
-  </div>
-</div>
-
-<button class="no-print" onclick="window.print()"
-  style="margin-bottom:20px;padding:8px 18px;background:${pal.accent};color:${pal["accent-text"]};border:none;border-radius:6px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer">
-  ${iconSvg("printer", "inline", { style: "display:inline-block;vertical-align:middle;margin-right:4px" })} Print
-</button>
-
-${donorBlocks || '<p style="color:#9c9188;font-style:italic">No gifts recorded yet.</p>'}
-
-<div style="margin-top:32px;padding-top:12px;border-top:2px solid ${pal["accent-medium"]};display:flex;justify-content:space-between;align-items:center">
-  <div style="font-size:11px;color:#9c9188">SimchaKit by Brook Creative LLC · Gift List Export</div>
-  <div style="font-family:'Cormorant Garamond',Georgia,serif;font-size:15px;font-weight:700;color:#1c1614">
-    Total: $${totalMonetary.toLocaleString()}
-  </div>
-</div>
-</body></html>`;
+// The printable list is a compact table with tick-off boxes, laid out and paginated
+// in utils/giftPrint.js (V5-X1). `theme` is kept so existing callers do not change;
+// the sheet is black and white. `options`: sort, includeAddresses, groupByType,
+// onlyUnwritten, showAttendance.
+function generateGiftPrintHTML(gifts, households, eventName, eventDate, theme, options = {}) {
+  return generateGiftListHTML(gifts, households, eventName, eventDate, options);
 }
 
 function exportFavorsCSV(favors, favorConfig, favorType) {

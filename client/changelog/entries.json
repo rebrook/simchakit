@@ -1,5 +1,27 @@
 [
   {
+    "id": "2026-10-30-01-printable-gift-list",
+    "release": "V5.11.0",
+    "date": "2026-10-30",
+    "kind": "improved",
+    "area": "Gifts",
+    "audience": "host",
+    "highlight": true,
+    "title": "A gift list you can tick off by hand",
+    "body": "The printed gift list is now one compact table with a box for each thank-you written and mailed, amounts lined up, and page numbers. Choose the sort, whether to show addresses, group by type, or print only the thank-yous still to write.",
+    "guide": "gifts/exporting-gifts"
+  },
+  {
+    "id": "2026-10-30-02-gift-list-totals",
+    "release": "V5.11.0",
+    "date": "2026-10-30",
+    "kind": "improved",
+    "area": "Gifts",
+    "audience": "host",
+    "highlight": false,
+    "title": "The printed gift list ends with totals by type that match the Gifts tab"
+  },
+  {
     "id": "2026-10-27-13-guide-refresh",
     "release": "V5.10.0",
     "date": "2026-10-27",
@@ -188,13 +210,8 @@
     "kind": "new",
     "area": "Guests",
     "audience": "host",
-    "highlight": true,
-    "title": "Guests reply from a private link",
-    "body": "Each household gets its own link. No account, no password. Replies wait for your approval before they change your list.",
-    "show": {
-      "tab": "guests",
-      "focus": "rsvp-replies"
-    }
+    "highlight": false,
+    "title": "Guests reply from a private link"
   },
   {
     "id": "2026-10-23-a0022",
