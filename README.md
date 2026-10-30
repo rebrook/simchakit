@@ -2,7 +2,7 @@
 
 A real-time event planning web app for celebrations — B'nei Mitzvot, weddings, and other simchas.
 
-![Version](https://img.shields.io/badge/version-5.11.0-blue)
+![Version](https://img.shields.io/badge/version-5.12.0-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
 ## Hosted Version
@@ -33,7 +33,7 @@ A real-time event planning web app for celebrations — B'nei Mitzvot, weddings,
 - **Vendor Management** — contacts, contracts, payment schedules
 - **Task Lists** — categorized to-dos with due dates and completion tracking
 - **Seating Charts** — table management with drag-and-drop assignment
-- **Gift Tracking** — record gifts and track thank-you notes, including gifts given by more than one household (e.g. several families pooling on one gift), each giver tracked and thanked separately, and a giver who sends more than one gift can list them all in one record with a single thank-you, and a printable gift list that is a compact black-and-white table with tick-off boxes for thank-yous, print options, page numbers and totals by type (V3 only)
+- **Gift Tracking** — record gifts and track thank-you notes, including gifts given by more than one household (e.g. several families pooling on one gift), each giver tracked and thanked separately, and a giver who sends more than one gift can list them all in one record with a single thank-you, and a printable gift list that is a compact black-and-white table with tick-off boxes for thank-yous, print options, page numbers and totals by type, and a Draft thank-you action that emails a giver (or a selected batch) from the Gifts tab and sets Written when the email goes out (V3 only)
 - **Favor Management** — track sweatshirts, kippot, or other party favors by size
 - **Day-Of Mode** — streamlined mobile view for event day with hot sheet and vendor contacts; within 7 days of the event, a dismissible reminder banner surfaces it automatically on mobile (V3 only)
 - **Real-Time Sync** — WebSocket-based updates across all connected devices (V2) / fetch-on-navigate (V3)

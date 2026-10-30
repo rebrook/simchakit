@@ -1,9 +1,26 @@
 {
-  "current": "V5.11.0",
+  "current": "V5.12.0",
   "whatsNew": [
-    "The printed gift list is a compact table with boxes to tick off thank-yous, page numbers and totals"
+    "Draft a thank-you email from any gift: the message opens filled in, and sending ticks Written"
   ],
   "changelog": [
+    {
+      "version": "V5.12.0",
+      "date": "2026-10-30",
+      "summary": "Draft a thank-you from a gift: per-giver and bulk, Written set on send (V5-M3)",
+      "changes": [
+        "New: each giver on the Gifts tab has Draft thank-you (Thank-you message column, and under the Written and Mailed buttons on a phone). It opens the composer on the Thank-you template with the household and gift filled in by /api/guest, the kind and recipients fixed and the filters hidden",
+        "New: a checkbox beside each giver whose note is not written, and a bulk bar with Draft thank-you for the selection. Givers are grouped by guest-list household, so two givers in one household get one email and a gift with two households sends two",
+        "New: when an email is sent, only households whose send succeeded get thankYouWritten and the message_log id on the giver (giver.thankYouMessageId, stored in the gift's JSON); failed, skipped or errored sends change nothing. Mailed is never automatic: the result offers Mark mailed for paper cards",
+        "New: a giver whose household has no email shows No email, add one (opens the composer's inline email field); a giver not linked to a guest household shows Not on guest list; both offer Mark written (paper)",
+        "Change: MessageComposer gains locked, recipientNotes and renderResultExtra props; utils/gifts.js gains giverEmailState, buildThankYouBatch and applyThankYouSent. gift_description is built per household by the server, so a household with several gifts lists them all in its one email. Guide: new topic Emailing thank-yous from a gift",
+        "Change: What's new lists this release as a highlight and the oldest October highlight (celebration schedule) moved to the smaller changes",
+        "Not verified in a browser: build and a node check of the batch logic only; send a real thank-you to a test household before relying on it",
+        "No database changes (no migration; RLS unchanged). V3 app only"
+      ],
+      "roadmap": [],
+      "knownIssues": []
+    },
     {
       "version": "V5.11.0",
       "date": "2026-10-30",

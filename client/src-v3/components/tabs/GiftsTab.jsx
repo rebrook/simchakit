@@ -42,7 +42,7 @@ import { newGiftId }           from "@/utils/ids.js";
 import {
   getGiftGivers, withGivers, newGiverId, formatGiverNames,
   anyGiverNeedsWritten, anyGiverNeedsMailed, allGiversComplete, lastNameOf,
-  countThankYousOutstanding,
+  countThankYousOutstanding, buildThankYouBatch, applyThankYouSent,
   getGiftItems, getGiftTotal, itemAmount, withItems, newItemId,
 }                               from "@/utils/gifts.js";
 import { exportGiftsCSV, generateGiftPrintHTML } from "@/utils/exports.js";
@@ -50,12 +50,13 @@ import { getAddressFields, formatAddress, migrateCityStateZip, COUNTRIES } from 
 import { ArchivedNotice }      from "@/components/shared/ArchivedNotice.jsx";
 import { ConfirmDialog }       from "@/components/shared/ConfirmDialog.jsx";
 import { Icon }                from "@/utils/iconMap.jsx";
+import { GiverThankYouAction, GiftThankYouComposer } from "@/components/gifts/GiftThankYou.jsx";
 import { printDocument, isTouchPrimary } from "@/utils/printDocument.js";
 import { PrintPreviewModal } from "@/components/shared/PrintPreviewModal.jsx";
 
 export function GiftsTab({ eventId, event, adminConfig, showToast, isArchived, isViewer, searchHighlight, clearSearchHighlight, setTopbarSubtitle }) {
   const { items: gifts,      loading: gLoading, save, remove } = useEventData(eventId, "gifts");
-  const { items: households, loading: hLoading }                = useEventData(eventId, "households");
+  const { items: households, loading: hLoading, save: saveHousehold } = useEventData(eventId, "households");
 
   useSearchHighlight(searchHighlight, clearSearchHighlight, "gifts");
 
@@ -67,6 +68,14 @@ export function GiftsTab({ eventId, event, adminConfig, showToast, isArchived, i
   const [filterTY,      setFilterTY]      = useState(() => consumeGiftsFilter(eventId) || "all");
   const [showExport,    setShowExport]    = useState(false);
   const [printHTML,     setPrintHTML]     = useState(null);
+
+  // Draft thank-you (V5-M3). selectedGivers holds "giftId|giverId" keys for the bulk bar;
+  // tyBatch is the open composer's { entries, unlinked }; tyResult tracks the Written update after a send.
+  const [selectedGivers, setSelectedGivers] = useState(new Set());
+  const [tyBatch,        setTyBatch]        = useState(null);
+  const [tyResult,       setTyResult]       = useState(null);
+  const giftsRef = useRef(gifts);
+  giftsRef.current = gifts;
 
   // Mobile card layout (760px matches the app-wide table-to-card breakpoint)
   const [isMobile,      setIsMobile]      = useState(() => window.innerWidth < 760);
@@ -170,6 +179,126 @@ export function GiftsTab({ eventId, event, adminConfig, showToast, isArchived, i
     if (result?.conflict) return; // AppShell already surfaces a conflict toast
     showToast("Thank-you mailed updated");
   };
+
+  // ── Draft thank-you (V5-M3) ────────────────────────────────────────────────
+  const canMessage = !isArchived && !isViewer;
+  const refKey = (giftId, giverId) => `${giftId}|${giverId}`;
+  const toggleSelected = (giftId, giverId) => setSelectedGivers(prev => {
+    const next = new Set(prev);
+    const k = refKey(giftId, giverId);
+    next.has(k) ? next.delete(k) : next.add(k);
+    return next;
+  });
+
+  const openDraft = (refs) => {
+    if (!canMessage) return;
+    const batch = buildThankYouBatch(giftsRef.current, households, refs);
+    if (batch.entries.length === 0) {
+      showToast(batch.unlinked.length > 0
+        ? "These givers are not on the guest list, so there is no email to send. Use Mark written (paper)."
+        : "Nothing to draft: the thank-you is already written.");
+      return;
+    }
+    setTyResult(null);
+    setTyBatch(batch);
+  };
+
+  const selectedRefs = [...selectedGivers].map(k => { const [giftId, giverId] = k.split("|"); return { giftId, giverId }; });
+
+  const markWrittenPaper = async (giftId, giverId) => {
+    if (!canMessage) return;
+    const g = giftsRef.current.find(x => x.id === giftId);
+    if (!g) return;
+    const givers = getGiftGivers(g).map(gv => gv.id === giverId ? { ...gv, thankYouWritten: true } : gv);
+    const result = await save(withGivers(g, givers));
+    if (result?.error) { showToast("Couldn't update thank-you status. Try again."); return; }
+    if (result?.conflict) return;
+    showToast("Marked written (paper)");
+  };
+
+  // A send finished. Only households whose email actually went out change: their
+  // givers get Written and the message id. Failed or skipped households, and a
+  // request that failed outright (this is never called), leave every flag alone.
+  const handleThankYouSent = async (data) => {
+    const batch = tyBatch;
+    const sentKeys = new Set((data.results || []).filter(r => r.status === "sent").map(r => r.householdId));
+    if (!batch || sentKeys.size === 0) { setTyResult({ phase: "done", givers: 0, failed: 0, sentKeys }); return; }
+    setTyResult({ phase: "saving", givers: 0, failed: 0, sentKeys });
+    const changed = applyThankYouSent(giftsRef.current, batch.entries, sentKeys, data.messageId);
+    let failed = 0;
+    for (const g of changed) {
+      const r = await save(g);
+      if (r?.error || r?.conflict) failed += 1;
+    }
+    const givers = batch.entries.filter(e => sentKeys.has(e.key)).reduce((n, e) => n + e.refs.length, 0);
+    setTyResult({ phase: "done", givers, failed, sentKeys });
+    setSelectedGivers(new Set());
+  };
+
+  // Separate from Written: for people who also send a paper card.
+  const markMailedForSent = async () => {
+    const batch = tyBatch;
+    if (!batch || !tyResult?.sentKeys) return;
+    const wanted = new Map();
+    batch.entries.filter(e => tyResult.sentKeys.has(e.key)).forEach(e => e.refs.forEach(r => {
+      if (!wanted.has(r.giftId)) wanted.set(r.giftId, new Set());
+      wanted.get(r.giftId).add(r.giverId);
+    }));
+    let failed = 0;
+    for (const [giftId, ids] of wanted) {
+      const g = giftsRef.current.find(x => x.id === giftId);
+      if (!g) continue;
+      const r = await save(withGivers(g, getGiftGivers(g).map(gv => ids.has(gv.id) ? { ...gv, thankYouMailed: true } : gv)));
+      if (r?.error || r?.conflict) failed += 1;
+    }
+    setTyResult(prev => ({ ...prev, mailed: failed === 0 ? "done" : "failed" }));
+  };
+
+  const saveGuestEmail = async (hh, email) => {
+    if (!canMessage) return;
+    await saveHousehold({ ...hh, email: String(email).toLowerCase().trim() });
+  };
+
+  const renderTyResultExtra = () => {
+    if (!tyResult) return null;
+    if (tyResult.phase === "saving") return <div className="msg-notice" role="status">Updating Written…</div>;
+    return (
+      <>
+        {tyResult.givers > 0 && (
+          <div className="msg-notice" role="status">
+            <span><Icon name="check" context="badge" /> Written is now set for {tyResult.givers} giver{tyResult.givers !== 1 ? "s" : ""}.</span>
+            {tyResult.mailed === "done"
+              ? <span><Icon name="check" context="badge" /> Mailed is set too.</span>
+              : <button type="button" className="btn btn-secondary btn-sm gift-ty-btn" style={{ alignSelf: "flex-start" }} onClick={markMailedForSent}>
+                  Mark mailed (also sending paper cards)
+                </button>}
+            {tyResult.mailed === "failed" && <span>Couldn't update Mailed for every giver. Use the Mailed chips on the rows.</span>}
+          </div>
+        )}
+        {tyResult.failed > 0 && (
+          <div className="msg-notice error" role="alert">
+            The email went out but {tyResult.failed} gift{tyResult.failed !== 1 ? "s" : ""} couldn't be updated. Mark those givers Written on their rows.
+          </div>
+        )}
+        {tyResult.givers === 0 && (
+          <div className="msg-notice" role="status">No Written flags were changed, because no email went out.</div>
+        )}
+      </>
+    );
+  };
+
+  const renderTyControls = (g, gv) => (
+    <GiverThankYouAction giver={gv} households={households} canAct={canMessage}
+      onDraft={() => openDraft([{ giftId: g.id, giverId: gv.id }])}
+      onMarkPaper={() => markWrittenPaper(g.id, gv.id)} />
+  );
+  const renderSelect = (g, gv) => (canMessage && !gv.thankYouWritten) ? (
+    <label className="gift-ty-select" title="Select for a batch of thank-you emails">
+      <input type="checkbox" checked={selectedGivers.has(refKey(g.id, gv.id))}
+        aria-label={`Select ${gv.name || "this giver"} for thank-you emails`}
+        onChange={() => toggleSelected(g.id, gv.id)} />
+    </label>
+  ) : null;
 
   // ── Stats ──────────────────────────────────────────────────────────────────
   const allGivers     = gifts.flatMap(g => getGiftGivers(g));
@@ -330,6 +459,17 @@ export function GiftsTab({ eventId, event, adminConfig, showToast, isArchived, i
         </select>
       </div>
 
+      {/* Bulk bar: draft thank-you emails for the selected givers */}
+      {selectedRefs.length > 0 && canMessage && (
+        <div className="gift-bulkbar" role="region" aria-label="Selected givers">
+          <span className="gift-bulkbar-count">{selectedRefs.length} giver{selectedRefs.length !== 1 ? "s" : ""} selected</span>
+          <button type="button" className="btn btn-primary btn-sm gift-ty-btn" onClick={() => openDraft(selectedRefs)}>
+            <Icon name="mail" context="inline" /> Draft thank-you
+          </button>
+          <button type="button" className="btn btn-ghost btn-sm gift-ty-btn" onClick={() => setSelectedGivers(new Set())}>Clear</button>
+        </div>
+      )}
+
       {/* Empty state */}
       {gifts.length === 0 && (
         <div style={{ textAlign: "center", padding: "60px 24px", color: "var(--text-muted)", background: "var(--bg-surface)", borderRadius: "var(--radius-md)", border: "1px solid var(--border)" }}>
@@ -359,13 +499,14 @@ export function GiftsTab({ eventId, event, adminConfig, showToast, isArchived, i
                   </button>
                 </th>
                 <th style={TH}>Thank-you note</th>
+                <th style={TH}>Thank-you message</th>
                 <th style={TH}>Attended</th>
                 <th style={{ ...TH, textAlign: "right", width: 80 }}><span className="sr-only">Actions</span></th>
               </tr>
             </thead>
             <tbody>
               {filtered.length === 0 ? (
-                <tr><td colSpan={7} style={{ textAlign: "center", padding: 30, color: "var(--text-muted)" }}>No matching gifts.</td></tr>
+                <tr><td colSpan={8} style={{ textAlign: "center", padding: 30, color: "var(--text-muted)" }}>No matching gifts.</td></tr>
               ) : (
                 filtered.map(g => {
                   const givers = getGiftGivers(g);
@@ -376,6 +517,7 @@ export function GiftsTab({ eventId, event, adminConfig, showToast, isArchived, i
                       <td style={TD}>
                         {givers.map((gv, i) => (
                           <div key={gv.id || i} className="gift-giver-line">
+                            {renderSelect(g, gv)}
                             <span style={{ fontWeight: 600, color: "var(--text-primary)", fontSize: 13 }}>{gv.name || "—"}</span>
                             {gv.householdId && (
                               <span style={{ fontSize: 11, color: "var(--accent-medium)" }} title="Linked to guest list">● guest</span>
@@ -430,6 +572,13 @@ export function GiftsTab({ eventId, event, adminConfig, showToast, isArchived, i
                               onClick={() => toggleGiverMailed(g.id, gv.id)}>
                               <span className="gift-ty-dot" aria-hidden="true" />Mailed
                             </button>
+                          </div>
+                        ))}
+                      </td>
+                      <td style={TD}>
+                        {givers.map((gv, i) => (
+                          <div key={gv.id || i} className="gift-giver-line">
+                            {renderTyControls(g, gv)}
                           </div>
                         ))}
                       </td>
@@ -544,8 +693,9 @@ export function GiftsTab({ eventId, event, adminConfig, showToast, isArchived, i
                   {/* Per-giver thank-you status — always visible, not gated behind expand */}
                   <div style={{ padding: "0 14px 12px", display: "flex", flexDirection: "column" }}>
                     {givers.length === 1 ? (
+                      <>
                       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
-                        <span style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.04em", color: "var(--text-muted)" }}>Thank-you</span>
+                        <span style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.04em", color: "var(--text-muted)", display: "inline-flex", alignItems: "center", gap: 6 }}>{renderSelect(g, givers[0])}Thank-you</span>
                         <div style={{ display: "flex", gap: 6, alignItems: "center", flexShrink: 0 }}>
                           <button type="button"
                             className={`gift-ty-chip written${givers[0].thankYouWritten ? " on" : ""}`}
@@ -563,11 +713,14 @@ export function GiftsTab({ eventId, event, adminConfig, showToast, isArchived, i
                           </button>
                         </div>
                       </div>
+                      <div style={{ marginTop: 8 }}>{renderTyControls(g, givers[0])}</div>
+                      </>
                     ) : (
                       givers.map((gv, i) => (
-                        <div key={gv.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8, paddingTop: i > 0 ? 10 : 0, marginTop: i > 0 ? 10 : 0, borderTop: i > 0 ? "1px dashed var(--border)" : "none" }}>
-                          <div style={{ flex: 1, minWidth: 0, fontSize: 12, color: "var(--text-secondary)", overflowWrap: "anywhere" }}>
-                            {gv.name || "—"}{gv.householdId && <span style={{ color: "var(--accent-medium)" }}> ● guest</span>}
+                        <div key={gv.id} style={{ paddingTop: i > 0 ? 10 : 0, marginTop: i > 0 ? 10 : 0, borderTop: i > 0 ? "1px dashed var(--border)" : "none" }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
+                          <div style={{ flex: 1, minWidth: 0, fontSize: 12, color: "var(--text-secondary)", overflowWrap: "anywhere", display: "flex", alignItems: "center", gap: 6 }}>
+                            {renderSelect(g, gv)}<span>{gv.name || "—"}{gv.householdId && <span style={{ color: "var(--accent-medium)" }}> ● guest</span>}</span>
                           </div>
                           <div style={{ display: "flex", gap: 6, alignItems: "center", flexShrink: 0 }}>
                             <button type="button"
@@ -585,6 +738,8 @@ export function GiftsTab({ eventId, event, adminConfig, showToast, isArchived, i
                               <span className="gift-ty-dot" aria-hidden="true" />Mailed
                             </button>
                           </div>
+                        </div>
+                        <div style={{ marginTop: 8 }}>{renderTyControls(g, gv)}</div>
                         </div>
                       ))
                     )}
@@ -663,6 +818,18 @@ export function GiftsTab({ eventId, event, adminConfig, showToast, isArchived, i
           onPrint={(html) => { setShowExport(false); if (isTouchPrimary()) printDocument(html); else setPrintHTML(html); }}
           onClose={() => setShowExport(false)}
         />
+      )}
+
+      {/* Draft thank-you composer (V5-M3) */}
+      {tyBatch && (
+        <>
+          <GiftThankYouComposer
+            eventId={eventId} households={households} adminConfig={adminConfig}
+            entries={tyBatch.entries} onSaveEmail={saveGuestEmail}
+            onSent={handleThankYouSent} renderResultExtra={renderTyResultExtra}
+            onClose={() => { setTyBatch(null); setTyResult(null); }} showToast={showToast}
+          />
+        </>
       )}
 
       {/* Print preview */}
