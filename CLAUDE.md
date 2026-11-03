@@ -22,7 +22,7 @@ node scripts/check-endpoints.mjs <old-url> <new-url>   # compare two deployments
 
 There is no test suite. Verification means a clean V3 build plus the check scripts relevant to what you touched. **Always pass `--config vite.config.v3.js`.** Plain `vite build` (and `npm run build`) uses the retired V2 config, doesn't compile `src-v3`, and has missed errors that then broke Vercel. The V3 config also runs `build-changelog.mjs` and `check-guide.mjs` when it loads, and both fail the build on a rule break. `npm run dev` also uses the V2 config; for local V3 use `node node_modules/vite/bin/vite.js --config vite.config.v3.js`.
 
-Deploys happen from `main`: Vercel builds `client/` with the V3 config. `src-admin` is a second Vercel project built with `vercel.admin.json` that reuses the same `api/` folder.
+**Deploy workflow (the owner's): production is tested before merge.** Push the branch (Vercel builds a preview), open the PR, run any database migration, manually promote the build to Production in Vercel, test, and only then merge to `main`. So a branch can be live in production while still unmerged: never assume "merged" means "deployed", or the reverse. Check `git branch -r --merged origin/main` instead of guessing. The merge triggers the GitHub release (`release.yml`), so releases appear after testing, not before. Vercel builds `client/` with the V3 config. `src-admin` is a second Vercel project (`simchakit-admin`, built with `vercel.admin.json`, reusing the same `api/` folder) and the about site is a third (`simchakit-marketing`). A promoted build keeps the environment variables it was built with, so a new variable must exist in the scope that built it (Preview as well as Production) or be followed by a redeploy.
 
 ## Frontend architecture (`client/src-v3/`)
 
@@ -90,5 +90,5 @@ Every shipped change includes its changelog work in the same change, not as a fo
 
 ## Working conventions
 
-- Commit messages name the release and milestone, e.g. `V5.14.0: Guest event page after RSVP ... (V5-G1)`. Work happens on a feature branch and goes through a GitHub PR to `main` (`gh` is not installed on this NAS).
+- Commit messages name the release and milestone, e.g. `V5.14.0: Guest event page after RSVP ... (V5-G1)`. Work happens on a feature branch, is promoted and tested in Production, then goes through a GitHub PR to `main` (`gh` is not installed on this NAS).
 - The user is new to Git. When a change is ready, give explicit `git add <named files>`, `git commit -m` and `git push -u origin <branch>` commands, each in its own bash block, then the PR step. Never use `git add .`: the working tree holds many unrelated modified files (`@eaDir`, V2 `client/src`, `public/`).

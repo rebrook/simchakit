@@ -70,8 +70,8 @@ export default async function handler(req, res) {
     count("people"),
     rows("purchases", "owner_id, status, amount_cents, coupon_code, event_id, created_at"),
     rows("user_profiles", "heard_from, signup_source, created_at", (q) => q.gte("created_at", iso(90))),
-    rows("rsvp_replies", "status, created_at", (q) => q.gte("created_at", iso(30))),
-    count("message_log", (q) => q.gte("created_at", iso(30))),
+    rows("rsvp_replies", "status, submitted_at", (q) => q.gte("submitted_at", iso(30))),
+    count("message_log", (q) => q.gte("sent_at", iso(30))),
     rows("client_errors", "created_at, data", (q) => q.gte("created_at", iso(30))),
   ]);
 
