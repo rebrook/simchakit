@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { supabase }          from "@/lib/supabase.js";
 import { Icon }                          from "@/utils/iconMap.jsx";
+import { authJsonHeaders } from "@/utils/authHeaders.js";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // CollaboratorsSection
@@ -54,13 +55,12 @@ export function CollaboratorsSection({ eventId, userId, eventName }) {
     try {
       const res = await fetch("/api/send-invite", {
         method:  "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: await authJsonHeaders(),
         body:    JSON.stringify({
           eventId,
           inviteeEmail: inviteEmail.trim(),
           role:         inviteRole,
           eventName:    eventName,
-          userId:       userId,
           message:      inviteMessage.trim(),
         }),
       });
@@ -93,12 +93,11 @@ export function CollaboratorsSection({ eventId, userId, eventName }) {
     try {
       const res = await fetch("/api/send-invite", {
         method:  "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: await authJsonHeaders(),
         body:    JSON.stringify({
           eventId,
           role:        inviteRole,
           eventName:   eventName,
-          userId:      userId,
         }),
       });
       const data = await res.json();

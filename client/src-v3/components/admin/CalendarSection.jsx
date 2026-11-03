@@ -1,5 +1,6 @@
 // Moved verbatim from AdminPanel.jsx (V4.44.0 module split) — no behavior changes.
 import { Icon }                          from "@/utils/iconMap.jsx";
+import { authJsonHeaders } from "@/utils/authHeaders.js";
 
 // ── Calendar ──
 export function CalendarSection({ calendarToken, setCalendarToken, calTokenCopied, setCalTokenCopied, calTokenRegen, setCalTokenRegen, calTokenLoading, setCalTokenLoading, calTokenError, setCalTokenError, eventId, userId, onClose }) {
@@ -61,8 +62,8 @@ export function CalendarSection({ calendarToken, setCalendarToken, calTokenCopie
                         try {
                           const res = await fetch("/api/calendar/generate-token", {
                             method: "POST",
-                            headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify({ eventId, userId }),
+                            headers: await authJsonHeaders(),
+                            body: JSON.stringify({ eventId }),
                           });
                           const json = await res.json();
                           if (!res.ok) { setCalTokenError(json.error || "Could not regenerate."); }

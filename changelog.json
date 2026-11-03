@@ -1,9 +1,23 @@
 {
-  "current": "V5.14.0",
+  "current": "V5.14.1",
   "whatsNew": [
     "A guest Event details page after RSVP: schedule, directions, parking and shared hotels, limited to what each household is invited to"
   ],
   "changelog": [
+    {
+      "version": "V5.14.1",
+      "date": "2026-11-03",
+      "summary": "Security hardening of older API endpoints, and refunds now lock the event (V5-S1)",
+      "changes": [
+        "Fixed: send-invite, calendar generate-token, create-checkout-session, validate-coupon, notify (new_user and new_event) and brevo-sync now require the caller's Supabase access token (new api/_lib/auth.js authenticate()). The caller's id and email come from the token, not from the request body, so a user id can no longer be supplied by someone else. brevo-sync only accepts the signed-in user's own email. The frontend sends the token through utils/authHeaders.js",
+        "Fixed: notify type client_error remains open (a crash can happen signed out) but every field is clipped and newlines are stripped from the subject, with a per-IP limit of 10 reports a minute per serverless instance. new_event reads the event name and type from the caller's own event row",
+        "Fixed: reset-demo no longer accepts the client-supplied x-vercel-cron header; only the ADMIN_RESET_TOKEN bearer token (the GitHub Action) works, and an unset token now rejects every request",
+        "Fixed: the calendar feed token is now generated with crypto.randomUUID() instead of Math.random()",
+        "Changed: refund_purchase in admin-query now also archives the purchase's event so it is read-only. Run client/migrations/V5.14.1-L1.sql before deploying: it adds a trigger on events that stops a signed-in user unarchiving an event with a refunded purchase (the service role and the SQL editor are not blocked). The refund still does not move money; refund in Stripe too",
+        "Changed: removed the $29 intro price code (INTRO_CUTOFF, STRIPE_PRICE_INTRO); checkout uses STRIPE_PRICE_REGULAR and BASE_PRICE (4900 cents). STRIPE_PRICE_INTRO can be deleted from Vercel",
+        "Changed: notify.js no longer hardcodes the sender and recipient addresses. Set GMAIL_USER and NOTIFY_EMAIL_TO in Vercel before deploying (GMAIL_APP_PASSWORD is unchanged); without them notify returns a server configuration error and no alerts are sent"
+      ]
+    },
     {
       "version": "V5.14.0",
       "date": "2026-11-01",

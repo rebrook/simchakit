@@ -185,14 +185,14 @@ function AuthedApp() {
                     // Admin notification
                     fetch("/api/notify", {
                       method:  "POST",
-                      headers: { "Content-Type": "application/json" },
+                      headers: { "Content-Type": "application/json", Authorization: `Bearer ${session.access_token}` },
                       body:    JSON.stringify({ type: "new_user", data: { email, userId: id } }),
                     }).catch((err) => console.warn("[SimchaKit] notify (new_user) failed", err));
 
                     // Brevo contact sync — new user (includes SIGNUP_DATE)
                     fetch("/api/brevo-sync", {
                       method:  "POST",
-                      headers: { "Content-Type": "application/json" },
+                      headers: { "Content-Type": "application/json", Authorization: `Bearer ${session.access_token}` },
                       body:    JSON.stringify({
                         email,
                         isNewUser: true,
@@ -207,7 +207,7 @@ function AuthedApp() {
                     // Returning user — update LAST_LOGIN and FIRSTNAME if set
                     fetch("/api/brevo-sync", {
                       method:  "POST",
-                      headers: { "Content-Type": "application/json" },
+                      headers: { "Content-Type": "application/json", Authorization: `Bearer ${session.access_token}` },
                       body:    JSON.stringify({
                         email,
                         isNewUser: false,
@@ -291,7 +291,7 @@ function AppContent({ session, isCallback, inviteError, onDismissInviteError }) 
     if (preferred !== undefined) setPreferredName(preferred || null);
     fetch("/api/brevo-sync", {
       method:  "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${session.access_token}` },
       body:    JSON.stringify({
         email:     session.user.email,
         isNewUser: false,

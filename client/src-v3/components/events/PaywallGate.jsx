@@ -6,6 +6,7 @@
 
 import { useState } from "react";
 import { Icon } from "@/utils/iconMap.jsx";
+import { authJsonHeaders } from "@/utils/authHeaders.js";
 
 const INTRO_CUTOFF   = new Date("2026-08-31T23:59:59Z");
 const PRICE_INTRO    = 29;
@@ -51,7 +52,7 @@ export function PaywallGate({ session, onFreeEventGranted, onCancel }) {
     try {
       const res  = await fetch("/api/validate-coupon", {
         method:  "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: await authJsonHeaders(),
         body:    JSON.stringify({ code }),
       });
       const data = await res.json();
@@ -77,10 +78,8 @@ export function PaywallGate({ session, onFreeEventGranted, onCancel }) {
     try {
       const res  = await fetch("/api/create-checkout-session", {
         method:  "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: await authJsonHeaders(),
         body:    JSON.stringify({
-          userId:     session.user.id,
-          userEmail:  session.user.email,
           couponCode: couponData ? couponInput.trim().toUpperCase() : undefined,
         }),
       });

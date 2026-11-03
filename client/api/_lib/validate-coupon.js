@@ -1,22 +1,24 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // SimchaKit V3.0.0 — api/validate-coupon.js
 // Vercel serverless function.
-// POST { code: string }
+// POST { code: string } with Authorization: Bearer <access token>
 // Returns { valid, discount, value, message }
+// Signed-in users only, so coupon codes cannot be guessed anonymously.
 // Uses Supabase service role key (bypasses RLS) — never exposed to browser.
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { createClient } from "@supabase/supabase-js";
-
-const supabase = createClient(
-  process.env.VITE_SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY
-);
+import { authenticate } from "./auth.js";
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
   }
+
+  const auth = await authenticate(req);
+  if (!auth) {
+    return res.status(401).json({ valid: false, message: "Please sign in to apply a coupon." });
+  }
+  const supabase = auth.supabase;
 
   const { code } = req.body || {};
 

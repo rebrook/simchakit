@@ -12,6 +12,7 @@ import { Icon } from "@/utils/iconMap.jsx";
 import { EVENT_TYPE_ICON_KEYS } from "@/constants/events.js";
 import { seedSubEventNames, buildSeedTimeline } from "@/utils/eventSeeds.js";
 import { formatDate } from "@/utils/dates.js";
+import { authJsonHeaders } from "@/utils/authHeaders.js";
 
 const EVENT_TYPES = [
   { value: "bat-mitzvah",  label: "Bat Mitzvah" },
@@ -106,7 +107,7 @@ export function CreateEventForm({ userId, userEmail, onCreated, onCancel }) {
     // Send admin notification (best-effort, non-blocking)
     fetch("/api/notify", {
       method:  "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: await authJsonHeaders(),
       body:    JSON.stringify({
         type: "new_event",
         data: {
@@ -123,7 +124,7 @@ export function CreateEventForm({ userId, userEmail, onCreated, onCancel }) {
     if (userEmail) {
       fetch("/api/brevo-sync", {
         method:  "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: await authJsonHeaders(),
         body:    JSON.stringify({
           email:     userEmail,
           isNewUser: false,

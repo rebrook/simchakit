@@ -1,5 +1,16 @@
 [
   {
+    "id": "2026-11-03-01-calendar-link-private",
+    "release": "V5.14.1",
+    "date": "2026-11-03",
+    "kind": "improved",
+    "area": "Admin",
+    "audience": "host",
+    "highlight": false,
+    "title": "Keep your calendar subscription private with harder-to-guess links",
+    "body": "When you regenerate your calendar subscription link in Admin Mode, the new link is now much harder to guess, so only the people you share it with can follow your event."
+  },
+  {
     "id": "2026-11-01-01-guest-event-details",
     "release": "V5.14.0",
     "date": "2026-11-01",
