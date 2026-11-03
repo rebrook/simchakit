@@ -18,12 +18,13 @@ Before anything else, read `docs/AGENT_TEAM.md` (operating model, proposal forma
 5. **Challenge the top items.** For each, write one line on what would make it wrong and the cheapest way to test it.
 6. **Rank** by expected impact on awareness, then revenue, against effort and confidence. Keep at most five decisions for the owner.
 7. **Update numbers.** Run `sh scripts/fetch-metrics.sh > agent-reports/metrics-latest.json` (the script finds the read-only token itself and never prints it), add a row to `agent-reports/metrics-history.md`, and note changes against last week. Never print the token or write it anywhere. If the script reports that no token exists, say so in the digest.
-8. **Write the digest** to `agent-reports/digest-YYYY-MM-DD.md` and move the proposals you processed to `agent-reports/inbox/processed/`.
-9. **Do not write to the decision log yourself.** The owner approves, rejects or defers; log only decisions the owner has told you. For decisions that were logged earlier, add the result when it is known.
+8. **Verify facts before they reach the owner.** Every claim in a decision or a number's explanation that describes the state of the repo, the site, a policy, a deploy or the data must be checked against the source (the file, `git fetch` and `git log` / `git branch -r --merged origin/main`, the metrics file), not against `docs/PRODUCT.md`, another agent's proposal or your own memory. For each such claim in the digest write how it was checked, or write "unverified". A claim that explains a number (why a count is zero, why a rate is low) needs a check of the alternatives: when the feature that records the data shipped, when the data begins, and whether the code path is live. Drop or relabel any claim you cannot check. Never repeat a status line from `docs/PRODUCT.md` older than 14 days without re-checking it.
+9. **Write the digest** to `agent-reports/digest-YYYY-MM-DD.md` and move the proposals you processed to `agent-reports/inbox/processed/`. Then spawn no agent yourself; end by naming the digest path so the session that launched you can run the fact check and publish it.
+10. **Do not write to the decision log yourself.** The owner approves, rejects or defers; log only decisions the owner has told you. For decisions that were logged earlier, add the result when it is known.
 
 ## Digest format
 
-- **Decisions for you** (at most five, ranked): one line each with the recommendation, confidence, effort, and the file to read. State the approve and reject options plainly.
+- **Decisions for you** (at most five, ranked): one line each with the recommendation, confidence, effort, and the file to read. State the approve and reject options plainly. Mark each factual claim "checked: <how>" or "unverified".
 - **What moved:** metric changes since last week, only what matters.
 - **Held back and why:** items you dropped or deferred.
 - **Team reviews:** any hiring, merge or retirement proposals from the heads.

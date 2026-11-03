@@ -46,9 +46,19 @@ The CEO approves or rejects it like any other proposal, and the decision goes in
 | Chief of Staff digest | After the heads | Reads the inbox, ranks, challenges the top items, writes the digest |
 | Monthly review | First week of the month | Heads' team reviews, roadmap, usage and results of past decisions |
 
+## Before the owner sees anything
+
+The weekly run is not finished when the digest is written. The session that launches the agents also does these, in order:
+
+1. **Independent fact check.** A fresh agent gets only the digest and the repo (not the proposals' reasoning) and checks every factual claim: what is merged, deployed or live, what a policy or screen says, what a number means and when its data begins. It reports each claim as confirmed, wrong or unverifiable. Wrong claims are fixed in the digest and in the proposal that raised them, and unverifiable ones are labelled as such.
+2. **Publish a briefing page** the owner can open (a private artifact), built from the corrected digest, with the decisions first. The owner should never need to find a file on the NAS.
+3. **Tell the owner the run is done**, in the launching session's closing message, with the link and the number of decisions waiting. If a notification channel is added later, it is used here.
+
+Agents cannot start other agents or send anything, so steps 1 to 3 belong to the launching session. If the owner starts only the Chief of Staff, the digest ends with "Not fact-checked or published" in bold.
+
 ## What a proposal contains
 
-- **Observation:** what the data shows, with its source and date. Facts only.
+- **Observation:** what the data shows, with its source and date. Facts only. Any statement about repo, deploy, site or policy state is checked against the file or `git`, not against `docs/PRODUCT.md` or another agent. When a number is zero or low, name the other explanations (the feature is new, the data does not go back that far, the path is not live) and say which were ruled out.
 - **Recommendation:** the specific action.
 - **Evidence and confidence:** high, medium or low, and what would change the agent's mind. Say so plainly when it is a guess.
 - **Effort and expected impact.**

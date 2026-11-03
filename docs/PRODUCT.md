@@ -70,14 +70,11 @@ Channels that exist today: the Facebook page, the about site and its Resources s
 
 ## Public copy status
 
-The about-site FAQ and `llms.txt` were corrected (2026-11-03) to say guests need no account but can reply through a private RSVP link, and that hosts can email guests. The hero badge "No guest accounts" is still accurate.
-
-**Privacy policy and terms are out of date and need the owner's decision** (`client/public/about/privacy.html`, `terms.html`; not legal advice, review with a lawyer if in doubt):
-- The policy says "Guests never use SimchaKit". Guests now submit data through RSVP links: names, meal and dietary choices, addresses, notes and plus-ones.
-- Brevo is described as receiving only account and collaborator invitation emails. It now also sends guest emails.
-- Stripe (payments) and Vercel (hosting and analytics) are not listed as processors. The app loads Vercel Analytics and Speed Insights.
-- Nothing mentions guest email opt-out (unsubscribe links), how long data is kept after an event, or archived events.
-- The terms do not mention emailing guests or the organizer's responsibility for it.
+- The about-site FAQ and `llms.txt` were corrected (2026-11-03) to say guests need no account but can reply through a private RSVP link, and that hosts can email guests. The hero badge "No guest accounts" is still accurate.
+- The privacy policy and terms were rewritten and went live on 2026-11-03 (effective date November 3, 2026). They cover guest RSVP data, guest email, Stripe, Vercel and Hebcal, retention (kept while the account is active, deletion on request) and a 30-day refund. The working record is `docs/legal-draft-privacy-terms.md`. The owner chose not to have a lawyer review them.
+- Signup source tracking (V5.15.0, 2026-11-03) is described in the privacy policy ("How you found SimchaKit"). Checked 2026-11-03 by grep of `privacy.html`; whether the live page matches is not verified.
+- **Keep this section true.** A claim here about what is merged, deployed or published carries a date and how it was checked. An agent that repeats a status claim older than 14 days re-checks it against the file or `git` first, and writes "unverified" if it cannot.
+- If a change affects what personal data is collected, emailed or shared, the privacy page changes with it. Never answer privacy or security questions publicly from memory; point people to the privacy page.
 
 ## Guardrails for agents working from this file
 
