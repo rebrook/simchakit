@@ -759,7 +759,7 @@
         <span class="article-tag">Legal</span>
         <h1>Privacy Policy</h1>
         <div class="article-meta">
-          <span class="article-meta-item">Effective date: October 23, 2026</span>
+          <span class="article-meta-item">Effective date: November 3, 2026</span>
         </div>
       </div>
     </div>
@@ -775,25 +775,35 @@
           <ul>
             <li>Your account email address and display name.</li>
             <li>The event data you enter, such as budgets, vendors, tasks, seating and schedules.</li>
-            <li>The guest details you enter, such as names, addresses, RSVPs and dietary needs.</li>
+            <li>The guest details you enter, such as names, addresses, email addresses, RSVPs and dietary needs.</li>
+            <li>Payment details are handled by our payment provider. We receive confirmation of a purchase, not your card number.</li>
           </ul>
+          <p>If you send guests an RSVP link, we also collect what each guest chooses to submit on that page: their reply for each event, meal and dietary choices, an address, a note, and the names of any extra guests they add. A reply does not change your plan until you review and accept it.</p>
+          <p>We also receive basic technical information when anyone uses the app or an RSVP link, such as IP address and device and browser details, which our hosting and analytics providers use to deliver the service, keep it secure and understand performance.</p>
 
           <h2>Who processes it</h2>
           <p>Your data is never sold or used for advertising. We share it only with the service providers needed to run SimchaKit:</p>
           <ul>
-            <li><strong>Supabase</strong> hosts the database and handles sign-in. Your account and event data are stored there.</li>
-            <li><strong>Brevo</strong> delivers email and keeps our contact list for notifications. It receives the email addresses we send to, such as account and collaborator invitations.</li>
-            <li><strong>Error reporting</strong>, if enabled, records technical details when the app crashes so we can fix the problem.</li>
+            <li><strong>Supabase</strong> hosts the database and handles sign-in. Your account, event and guest data are stored there.</li>
+            <li><strong>Vercel</strong> hosts the app and the RSVP pages, and provides usage and performance analytics.</li>
+            <li><strong>Brevo</strong> delivers email and keeps our contact list for notifications. It receives the email addresses we send to, including account and collaborator invitations and, when you use the Guests tab, the emails you send to your guests.</li>
+            <li><strong>Stripe</strong> processes payments for purchases. It receives your payment details and email.</li>
+            <li><strong>Google (Gmail)</strong> delivers our internal alerts, such as a notice when a new account is created or the app crashes.</li>
+            <li><strong>Hebcal</strong> supplies Hebrew dates, Torah portions and Shabbat times. To look them up, your browser sends Hebcal your event date and, for Shabbat times, the ZIP code of the venue. Hebcal also sees your device&rsquo;s IP address, as any website would. No names or guest details are sent.</li>
           </ul>
+          <p>When the app crashes, we record technical details (the error, the page you were on, your account id and email, and the event) in our database and email an alert to us, so we can fix the problem. We do not use a separate error-reporting service.</p>
+
+          <h2>Guest emails and RSVP links</h2>
+          <p>If you email guests or send RSVP links, you are the sender and SimchaKit delivers the message for you. Every guest email includes an unsubscribe link. A guest who unsubscribes is skipped on future sends for that event. An RSVP link is private to a household, is not listed in search engines, and can be replaced by you at any time, which stops the old link from working.</p>
 
           <h2>How long we keep it</h2>
-          <p>We keep your account and event data while your account is active so you can keep planning.<!-- OWNER: confirm the retention period for inactive accounts and deleted events, then add it here. --></p>
+          <p>We keep your account and event data while your account is active so you can keep planning and look back at your event afterwards. Archived events are kept and become read-only until you ask us to delete them. We keep a record of your purchase for accounting and tax purposes even after you delete your data.</p>
 
           <h2>How to export or delete your data</h2>
-          <p>You can export your guest list from the Guests tab (Export Guests) and your seating chart from the Seating tab (Export Seating) at any time. To have your account and data deleted, email <a href="mailto:hello@simcha-kit.com">hello@simcha-kit.com</a>.</p>
+          <p>You can export your guest list from the Guests tab (Export Guests), your seating chart from the Seating tab (Export Seating), and a full backup from Admin Mode at any time. To have your account and data deleted, email <a href="mailto:hello@simcha-kit.com">hello@simcha-kit.com</a>. Guests who want their details removed or corrected should contact the event organizer who invited them, or email <a href="mailto:hello@simcha-kit.com">hello@simcha-kit.com</a>.</p>
 
           <h2>Your role as the event organizer</h2>
-          <p>Guests never use SimchaKit, so you are the one who enters their details. You are responsible for having a reason to hold that information and for using it only to plan your event. We process guest details on your behalf and only to provide the app.</p>
+          <p>You enter your guests&rsquo; details, so you are responsible for having a reason to hold that information and for using it only to plan your event, including any email you send them. We process guest details on your behalf and only to provide the app.</p>
 
           <h2>Contact</h2>
           <p>Questions about this policy: <a href="mailto:hello@simcha-kit.com">hello@simcha-kit.com</a>.</p>
