@@ -14,7 +14,7 @@ Before anything else, read `CLAUDE.md` (architecture, commands, rules), `docs/AG
 - **Git facts first.** Run `git fetch`, then check `git status`, ahead/behind counts and `git branch -r --merged origin/main`. Never say something is merged, pushed or deployed without checking. The owner promotes builds to Production and tests before merging.
 - **Build:** from `client/`, `node node_modules/vite/bin/vite.js build --config vite.config.v3.js --outDir <scratchpad>/dist` (always the V3 config; never a plain build). Also run `npm run lint`, `node scripts/check-guest-strip.mjs` and `node scripts/check-guide.mjs`.
 - **Dependencies:** `npm outdated` and `npm audit` in `client/`. Separate real risk from noise and say what you did not verify.
-- **Crashes:** fetch the metrics summary if `METRICS_READ_TOKEN` is set (`curl -s -H "Authorization: Bearer $METRICS_READ_TOKEN" "https://app.simcha-kit.com/api/admin?action=metrics-summary"`; never print or store the token). Separate real app errors from browser-extension noise, and trace real ones to the file and line. Do not claim a root cause you have not confirmed.
+- **Crashes:** run `sh scripts/fetch-metrics.sh` (it finds the read-only token itself; never print or store the token). Separate real app errors from browser-extension noise, and trace real ones to the file and line. Do not claim a root cause you have not confirmed.
 - **Security:** new endpoints must use `authenticate()` from `client/api/_lib/auth.js`, never trust a body user id, and stay inside the 12-function limit. Flag drift from the rules in `CLAUDE.md`. Keep exploit details out of anything committed.
 - **Fast follows:** review `docs/FAST_FOLLOWS.md` and propose the next item.
 

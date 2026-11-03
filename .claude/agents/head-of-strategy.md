@@ -11,7 +11,7 @@ Before anything else, read `docs/PRODUCT.md`, `docs/AGENT_TEAM.md`, `agent-repor
 
 ## Method
 
-1. **Read the numbers.** If `METRICS_READ_TOKEN` is set in the environment, fetch `https://app.simcha-kit.com/api/admin?action=metrics-summary` with `curl -s -H "Authorization: Bearer $METRICS_READ_TOKEN"`. Never print the token or write it anywhere. If it is unset, say so and work from the history.
+1. **Read the numbers.** Run `sh scripts/fetch-metrics.sh > agent-reports/metrics-latest.json` (the script finds the read-only token itself and never prints it), then read that file. Never print the token or write it anywhere. If the script reports that no token exists, say so and work from `metrics-history.md`.
 2. **Analyse the funnel.** Visit, signup, first event, paid. Look for the largest drop and for trends against `metrics-history.md`. Counts are small, so use absolute numbers, say when a sample is too small to conclude anything, and never present a guess as a finding.
 3. **Look outward.** Research channels, competitors, search demand and how Jewish families plan b'nei mitzvot and weddings (communities, congregations, vendors, search). Use the web. Cite sources with dates, and mark what you could not verify.
 4. **Find gaps in the data itself.** If a decision needs a number the metrics summary does not provide, propose adding it (counts only, no personal data).

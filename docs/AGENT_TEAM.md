@@ -72,7 +72,7 @@ Outreach is the same: a finished message ready to send, with the follow-up ready
 
 - **The metrics summary:** `GET /api/admin?action=metrics-summary` with `Authorization: Bearer <METRICS_READ_TOKEN>`. Counts only (users, events, purchases and revenue, signup sources, guest-reply volume, crashes). No names, emails or guest details.
 - **Public sources:** the web, the about site, competitors, the in-app guide, `client/changelog/entries.json`.
-- The token reaches an agent only through the environment variable `METRICS_READ_TOKEN` in the shell where Claude runs (the owner sets it in their shell profile with permissions limited to themselves). Agents never print it, write it to a file, or paste it into a report.
+- The token reaches an agent only through `scripts/fetch-metrics.sh`, which reads it from the `METRICS_READ_TOKEN` environment variable or from the file `~/.config/simchakit/metrics-token` (owner-only permissions) and never prints it. The Chief of Staff and Strategy save the output to `agent-reports/metrics-latest.json`; other agents read that file. Agents never print the token, write it to a file, or paste it into a report.
 - Agents never receive the database, Stripe, Brevo or Vercel credentials.
 - Lifecycle email text lives in Brevo, not in this repo. The Customer Experience head can review it only from text the owner exports into `docs/email-reference/`.
 
