@@ -29,8 +29,10 @@ Your data is never sold or used for advertising. We share it only with the servi
 - **Vercel** hosts the app and the RSVP pages, and provides usage and performance analytics.
 - **Brevo** delivers email and keeps our contact list for notifications. It receives the email addresses we send to, including account and collaborator invitations and, when you use the Guests tab, the emails you send to your guests.
 - **Stripe** processes payments for purchases. It receives your payment details and email.
-- **Error reporting**, if enabled, records technical details when the app crashes so we can fix the problem.
-- **[VERIFY]** Hebcal supplies Hebrew dates and Shabbat times. Confirm what, if anything, is sent to it (only a date and location, no personal data). Add a line only if needed.
+- **Google (Gmail)** delivers our internal alerts, such as a notice when a new account is created or the app crashes.
+- **Hebcal** supplies Hebrew dates, Torah portions and Shabbat times. To look them up, your browser sends Hebcal your event date and, for Shabbat times, the ZIP code of the venue. Hebcal also sees your device's IP address, as any website would. No names or guest details are sent.
+
+When the app crashes, we record technical details (the error, the page you were on, your account id and email, and the event) in our database and email an alert to us, so we can fix the problem. We do not use a separate error-reporting service.
 
 ### Guest emails and RSVP links
 
@@ -85,7 +87,8 @@ Add: "If your account is deleted, we remove your event and guest data as describ
 Decided (2026-11-03): data is kept while the account is active, archived events stay read-only, deletion is on request, and purchase records are kept for accounting. There is no automatic deletion, so do not add wording that promises it unless it is built. Refunds: full refund within 30 days of purchase, discretionary after that, none after the event date.
 
 Still open:
+Resolved from the code (2026-11-03): error reporting is built in, with no third-party service. It saves crash details (including account email) to the database and emails them to the owner through Gmail. Hebcal is called from the user's browser with the event date and the venue ZIP (for Shabbat times), plus the visitor's IP. The privacy text above reflects both.
+
+Still open:
 1. Do you want refunds to lock the event? Today they do not (see the refund note above).
-2. Is error reporting turned on in production, and with which provider?
-3. Does Hebcal receive anything beyond a date and location?
-4. Should a lawyer review it? The app handles guests' names, addresses and emails, so I'd suggest yes, especially if you expect customers outside the US.
+2. Should a lawyer review it? The app handles guests' names, addresses and emails, so I'd suggest yes, especially if you expect customers outside the US.
