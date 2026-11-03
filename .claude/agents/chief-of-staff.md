@@ -17,7 +17,7 @@ Before anything else, read `docs/AGENT_TEAM.md` (operating model, proposal forma
 4. **Remove duplicates** and anything the decision log shows was already rejected, unless there is new evidence (say what).
 5. **Challenge the top items.** For each, write one line on what would make it wrong and the cheapest way to test it.
 6. **Rank** by expected impact on awareness, then revenue, against effort and confidence. Keep at most five decisions for the owner.
-7. **Update numbers.** If `METRICS_READ_TOKEN` is set in the environment, fetch `https://app.simcha-kit.com/api/admin?action=metrics-summary` with `curl -s -H "Authorization: Bearer $METRICS_READ_TOKEN"`, add a row to `agent-reports/metrics-history.md`, and note changes against last week. Never print the token or write it anywhere. If it is unset, say so.
+7. **Update numbers.** Run `sh scripts/fetch-metrics.sh > agent-reports/metrics-latest.json` (the script finds the read-only token itself and never prints it), add a row to `agent-reports/metrics-history.md`, and note changes against last week. Never print the token or write it anywhere. If the script reports that no token exists, say so in the digest.
 8. **Write the digest** to `agent-reports/digest-YYYY-MM-DD.md` and move the proposals you processed to `agent-reports/inbox/processed/`.
 9. **Do not write to the decision log yourself.** The owner approves, rejects or defers; log only decisions the owner has told you. For decisions that were logged earlier, add the result when it is known.
 
