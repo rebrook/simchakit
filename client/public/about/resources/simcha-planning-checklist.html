@@ -1170,5 +1170,23 @@
     })();
   </script>
 
+<script>
+  // Carry campaign tags from this page to the app and demo, so a signup can be traced to the post or channel that brought it.
+  (function () {
+    try {
+      var KEYS = ["utm_source", "utm_medium", "utm_campaign", "utm_content"];
+      var params = new URLSearchParams(location.search), found = {};
+      KEYS.forEach(function (k) { var v = params.get(k); if (v) found[k] = v.slice(0, 60); });
+      if (Object.keys(found).length) sessionStorage.setItem("sk_utm", JSON.stringify(found));
+      var utm = JSON.parse(sessionStorage.getItem("sk_utm") || "{}");
+      if (!Object.keys(utm).length) return;
+      document.querySelectorAll('a[href^="https://app.simcha-kit.com"], a[href^="https://demo.simcha-kit.com"]').forEach(function (a) {
+        var u = new URL(a.href);
+        Object.keys(utm).forEach(function (k) { u.searchParams.set(k, utm[k]); });
+        a.href = u.toString();
+      });
+    } catch (e) {}
+  })();
+</script>
 </body>
 </html>

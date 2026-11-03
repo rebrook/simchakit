@@ -1,6 +1,6 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // SimchaKit — api/admin.js
-// Router (V5-P0): admin-query, reset-demo
+// Router (V5-P0): admin-query, reset-demo, metrics-summary
 // Dispatches on req.query.action; old URLs reach it through rewrites in
 // vercel.json / vercel.admin.json. Each handler lives, unchanged, in api/_lib/.
 // Do not add files under api/ without checking the 12-function limit; add an
@@ -10,6 +10,7 @@
 const ACTIONS = {
   "admin-query": () => import("./_lib/admin-query.js"),
   "reset-demo": () => import("./_lib/reset-demo.js"),
+  "metrics-summary": () => import("./_lib/metrics-summary.js"),
 };
 
 export default async function handler(req, res) {

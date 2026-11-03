@@ -1,5 +1,16 @@
 [
   {
+    "id": "2026-11-03-02-how-did-you-hear",
+    "release": "V5.15.0",
+    "date": "2026-11-03",
+    "kind": "improved",
+    "area": "Setup",
+    "audience": "host",
+    "highlight": false,
+    "title": "Tell us how you found SimchaKit after you create your first event",
+    "body": "After you create your first event you can optionally say how you heard about SimchaKit. It takes one tap, you can skip it, and it helps us reach more families like yours."
+  },
+  {
     "id": "2026-11-03-01-calendar-link-private",
     "release": "V5.14.1",
     "date": "2026-11-03",
