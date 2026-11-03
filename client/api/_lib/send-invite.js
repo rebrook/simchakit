@@ -1,11 +1,12 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // SimchaKit V3 — api/send-invite.js
 // Vercel serverless function.
-// POST { eventId, inviteeEmail, role, eventName, userId, message }
+// POST { eventId, inviteeEmail, role, eventName, message } with Authorization: Bearer <access token>
 // Creates an invitation record and sends the invite email via Brevo.
-// Inviter name is resolved server-side from user_profiles.
+// The caller's identity comes only from the token; inviter name is resolved server-side from user_profiles.
 //
 // Flow:
+//   0. Authenticate the caller from the Authorization header (401 UNAUTHORIZED otherwise)
 //   1. Validate request body
 //   2. Verify the requesting user is an owner or editor of the event
 //      — Owners can invite any role (editor, viewer, coordinator)
@@ -22,7 +23,8 @@
 // without sending an email. The app displays the URL for the owner to copy.
 //
 // Error codes returned to the app:
-//   NOT_AUTHORIZED      — userId is not an owner or editor of this event
+//   UNAUTHORIZED        — missing or invalid Authorization token
+//   NOT_AUTHORIZED      — the caller is not an owner or editor of this event
 //   ESCALATION_DENIED   — editor attempted to invite an editor (privilege escalation)
 //   CAP_REACHED         — event has 5 accepted collaborators (the maximum)
 //   ALREADY_COLLABORATOR — inviteeEmail is already an accepted collaborator
@@ -31,6 +33,8 @@
 // Brevo transactional API: POST https://api.brevo.com/v3/smtp/email
 // Collaborator Invite Email template ID: 19
 // ─────────────────────────────────────────────────────────────────────────────
+
+import { authenticate } from "./auth.js";
 
 const BREVO_TRANSACTIONAL_URL     = "https://api.brevo.com/v3/smtp/email";
 const INVITE_TEMPLATE_ID          = 19;
@@ -49,21 +53,23 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: "Server configuration error." });
   }
 
+  // ── Step 0: Authenticate the caller ─────────────────────────────────────────
+  const auth = await authenticate(req);
+  if (!auth) return res.status(401).json({ error: "UNAUTHORIZED" });
+  const userId   = auth.user.id;
+  const supabase = auth.supabase;
+
   const {
     eventId,
     inviteeEmail,
     role,
     eventName,
-    userId,
     message,
   } = req.body || {};
 
   // ── Validate required fields ─────────────────────────────────────────────────
   if (!eventId || typeof eventId !== "string") {
     return res.status(400).json({ error: "Missing or invalid eventId." });
-  }
-  if (!userId || typeof userId !== "string") {
-    return res.status(400).json({ error: "Missing or invalid userId." });
   }
   if (!role || !VALID_ROLES.includes(role)) {
     return res.status(400).json({ error: "INVALID_ROLE" });
@@ -77,13 +83,6 @@ export default async function handler(req, res) {
   if (isEmailInvite && typeof inviteeEmail !== "string") {
     return res.status(400).json({ error: "Invalid inviteeEmail." });
   }
-
-  // ── Supabase client (service role) ──────────────────────────────────────────
-  const { createClient } = await import("@supabase/supabase-js");
-  const supabase = createClient(
-    process.env.VITE_SUPABASE_URL,
-    process.env.SUPABASE_SERVICE_ROLE_KEY
-  );
 
   // ── Step 1: Verify requesting user is an owner or editor ──────────────────
   const { data: event, error: eventError } = await supabase

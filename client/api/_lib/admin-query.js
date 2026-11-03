@@ -163,12 +163,31 @@ export default async function handler(req, res) {
       case "refund_purchase": {
         const { purchaseId } = params || {};
         if (!purchaseId) return res.status(400).json({ error: "Missing purchaseId." });
+        const { data: purchase } = await supabaseAdmin
+          .from("purchases")
+          .select("id, event_id")
+          .eq("id", purchaseId)
+          .maybeSingle();
+        if (!purchase) return res.status(404).json({ error: "Purchase not found." });
+
         const { error: refundError } = await supabaseAdmin
           .from("purchases")
           .update({ status: "refunded", updated_at: new Date().toISOString() })
           .eq("id", purchaseId);
         if (refundError) return res.status(500).json({ error: refundError.message });
-        result = { ok: true };
+
+        // A refund ends access: archive the event so it is read-only. The V5.14.1-L1 trigger stops the
+        // owner from unarchiving it. This does not return money; refund the payment in Stripe as well.
+        let locked = false;
+        if (purchase.event_id) {
+          const { error: lockError } = await supabaseAdmin
+            .from("events")
+            .update({ archived: true, updated_at: new Date().toISOString() })
+            .eq("id", purchase.event_id);
+          if (lockError) return res.status(500).json({ error: `Refunded, but the event could not be locked: ${lockError.message}` });
+          locked = true;
+        }
+        result = { ok: true, locked };
         break;
       }
 

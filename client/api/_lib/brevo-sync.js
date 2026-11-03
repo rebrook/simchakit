@@ -1,7 +1,8 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // SimchaKit V3 — api/brevo-sync.js
 // Vercel serverless function.
-// POST { email, isNewUser, attributes }
+// POST { email, isNewUser, attributes } with Authorization: Bearer <access token>
+// The email must be the signed-in user's own address (a caller can only sync themselves).
 // Creates or updates a Brevo contact with SimchaKit lifecycle attributes.
 // For new users, adds contact to SimchaKit - New Users list (triggers welcome automation).
 // For event creation, sends Event Confirmed transactional email directly.
@@ -24,6 +25,8 @@
 // SimchaKit - Collaborators (Viewers) list ID: 10
 // ─────────────────────────────────────────────────────────────────────────────
 
+import { authenticate } from "./auth.js";
+
 const BREVO_CONTACTS_URL     = "https://api.brevo.com/v3/contacts";
 const BREVO_TRANSACTIONAL_URL = "https://api.brevo.com/v3/smtp/email";
 const EVENT_CONFIRMED_TEMPLATE_ID = 4;
@@ -43,6 +46,12 @@ export default async function handler(req, res) {
 
   if (!email || typeof email !== "string") {
     return res.status(400).json({ error: "Missing or invalid email." });
+  }
+
+  const auth = await authenticate(req);
+  if (!auth) return res.status(401).json({ error: "UNAUTHORIZED" });
+  if (email.trim().toLowerCase() !== String(auth.user.email || "").trim().toLowerCase()) {
+    return res.status(403).json({ error: "You can only sync your own contact." });
   }
 
   const headers = {

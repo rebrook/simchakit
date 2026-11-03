@@ -1,12 +1,14 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // SimchaKit V3.0.0 — api/create-checkout-session.js
 // Vercel serverless function.
-// POST { userId, userEmail, couponCode? }
+// POST { couponCode? } with Authorization: Bearer <access token>
+// The buyer's id and email come from the token, never from the request body.
 // Returns { url } for Stripe Checkout, or { free: true } for free coupons.
 // ─────────────────────────────────────────────────────────────────────────────
 
 import Stripe       from "stripe";
 import { createClient } from "@supabase/supabase-js";
+import { authenticate } from "./auth.js";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
@@ -15,10 +17,8 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
-// Intro pricing ends Aug 31 2026
-const INTRO_CUTOFF    = new Date("2026-08-31T23:59:59Z");
-const PRICE_INTRO     = process.env.STRIPE_PRICE_INTRO;    // $29
 const PRICE_REGULAR   = process.env.STRIPE_PRICE_REGULAR;  // $49
+const BASE_PRICE      = 4900; // cents; keep in step with the Stripe price above (used for coupon maths and the purchase record)
 const APP_URL         = process.env.VITE_APP_URL || "https://simchakit.vercel.app";
 
 export default async function handler(req, res) {
@@ -26,11 +26,16 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
-  const { userId, userEmail, couponCode } = req.body || {};
-
-  if (!userId || !userEmail) {
-    return res.status(400).json({ error: "Missing userId or userEmail." });
+  const auth = await authenticate(req);
+  if (!auth) return res.status(401).json({ error: "UNAUTHORIZED" });
+  const userId    = auth.user.id;
+  const userEmail = auth.user.email;
+  if (!userEmail) {
+    return res.status(400).json({ error: "Your account has no email address." });
   }
+
+  const rawCoupon  = (req.body || {}).couponCode;
+  const couponCode = typeof rawCoupon === "string" && rawCoupon.trim() ? rawCoupon : undefined;
 
   // ── Validate coupon if provided ──────────────────────────────────────────
   let couponRow = null;
@@ -72,9 +77,8 @@ export default async function handler(req, res) {
   }
 
   // ── Determine price ───────────────────────────────────────────────────────
-  const isIntro   = new Date() <= INTRO_CUTOFF;
-  const priceId   = isIntro ? PRICE_INTRO : PRICE_REGULAR;
-  const basePrice = isIntro ? 2900 : 4900; // cents
+  const priceId   = PRICE_REGULAR;
+  const basePrice = BASE_PRICE;
 
   // ── Calculate discount for non-free coupons ───────────────────────────────
   let discountCents = 0;

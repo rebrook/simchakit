@@ -4,10 +4,7 @@ Small, near-term items that came out of recent work. Not roadmap features. Newes
 
 ## Do soon
 
-- **Harden authentication on older API endpoints.** Several older handlers need server-side JWT verification instead of trusting request data. The repo is public, so keep details out of this file; the specifics are in the owner's private notes.
-- **Lock an event when its purchase is refunded.** The admin refund currently only marks the purchase as refunded; the event stays fully usable. Decided 2026-11-03: a refund should end access. Needs a decision on what "lock" means (read-only like an archived event is the natural choice), a migration or RLS check if needed, and a changelog entry. The Stripe refund itself is still done in the Stripe dashboard.
-- **Move the owner notification email addresses out of the code** (`client/api/_lib/notify.js`) into an environment variable.
-- **Retire or update the intro-price code** in `create-checkout-session.js` (`INTRO_CUTOFF` of 2026-08-31 has passed; checkout already charges the regular price).
+- Nothing open. The endpoint hardening, refund lock, notify address variables and intro-price cleanup shipped in V5.14.1.
 
 ## Before a marketing push
 

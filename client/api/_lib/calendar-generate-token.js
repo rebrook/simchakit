@@ -1,35 +1,28 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // SimchaKit V3.5.0 — api/calendar/generate-token.js
 // Vercel serverless function — requires authenticated owner.
-// POST { eventId, userId }
+// POST { eventId } with Authorization: Bearer <access token>
 // Generates a new calendar_token UUID for the event, invalidating the old one.
-// Returns { token } on success.
+// The caller's identity comes only from the token. Returns { token } on success.
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { createClient } from "@supabase/supabase-js";
-
-const supabase = createClient(
-  process.env.VITE_SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY
-);
-
-// Simple UUID v4 generator — no external dependency needed
-function uuidv4() {
-  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, c => {
-    const r = Math.random() * 16 | 0;
-    return (c === "x" ? r : (r & 0x3 | 0x8)).toString(16);
-  });
-}
+import { randomUUID } from "crypto";
+import { authenticate } from "./auth.js";
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
-  const { eventId, userId } = req.body || {};
+  const auth = await authenticate(req);
+  if (!auth) return res.status(401).json({ error: "UNAUTHORIZED" });
+  const userId   = auth.user.id;
+  const supabase = auth.supabase;
 
-  if (!eventId || !userId) {
-    return res.status(400).json({ error: "Missing eventId or userId." });
+  const { eventId } = req.body || {};
+
+  if (!eventId || typeof eventId !== "string") {
+    return res.status(400).json({ error: "Missing eventId." });
   }
 
   // Verify ownership
@@ -44,8 +37,8 @@ export default async function handler(req, res) {
     return res.status(403).json({ error: "Event not found or access denied." });
   }
 
-  // Generate and save new token
-  const newToken = uuidv4();
+  // The token is the only secret protecting the public calendar feed, so it must be unguessable
+  const newToken = randomUUID();
 
   const { error: updateError } = await supabase
     .from("events")

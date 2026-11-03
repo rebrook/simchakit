@@ -7,6 +7,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { Icon } from "@/utils/iconMap.jsx";
+import { authJsonHeaders } from "@/utils/authHeaders.js";
 
 const ROLE_OPTIONS = [
   { value: "editor",      label: "Editor",      desc: "Full planning access" },
@@ -85,13 +86,12 @@ export function InviteModal({
     try {
       const res = await fetch("/api/send-invite", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: await authJsonHeaders(),
         body: JSON.stringify({
           eventId,
           inviteeEmail: trimmed,
           role,
           eventName,
-          userId,
         }),
       });
       const data = await res.json();

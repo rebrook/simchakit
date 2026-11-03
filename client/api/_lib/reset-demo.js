@@ -56,12 +56,13 @@ function toRows(eventId, records, indexedCols = {}) {
 export default async function handler(req, res) {
   const authHeader = req.headers.authorization || "";
   const token      = authHeader.replace("Bearer ", "");
-  const isCron     = req.headers["x-vercel-cron"] === "1";
 
   if (req.method !== "GET" && req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
   }
-  if (!isCron && token !== process.env.ADMIN_RESET_TOKEN) {
+  // Only the shared secret is accepted. The x-vercel-cron header is client-supplied and proves nothing,
+  // and no Vercel cron calls this route (the daily reset is a GitHub Action sending the bearer token).
+  if (!process.env.ADMIN_RESET_TOKEN || token !== process.env.ADMIN_RESET_TOKEN) {
     return res.status(401).json({ error: "Unauthorized" });
   }
 
