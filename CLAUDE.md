@@ -65,9 +65,11 @@ Auth differs per handler (JWT + owner/editor check, `admin_users`, HMAC, guest t
 
 Billing: one purchase per event. "Paid" is a completed `purchases` row (there is no `events.paid` column); the picker polls for it after Stripe returns, then `stampPurchase` links it to the new event. `archived` (bool on `events`) makes RLS writes read-only and blocks guest sends and RSVP replies. Refunding a purchase in the admin console (`refund_purchase`) archives its event, and the `V5.14.1-L1.sql` trigger stops the owner unarchiving it; it does not return money, so also refund in Stripe. Hardcoded values to remember: the price is `STRIPE_PRICE_REGULAR` with `BASE_PRICE` (cents) in `create-checkout-session.js`, the app origin `https://app.simcha-kit.com` in guest email and RSVP code, and Brevo template/list ids in `invites`, `brevo-sync` and the lifecycle cron.
 
+`GET /api/admin?action=metrics-summary` (bearer `METRICS_READ_TOKEN`) returns counts only for the planning agents; keep it free of names, emails and guest data. First-touch campaign tags are captured in `src-v3/utils/attribution.js` and saved to `user_profiles.signup_source`; the optional "how did you hear" answer is `user_profiles.heard_from`. The planning agents' operating model is `docs/AGENT_TEAM.md`, with audience and tone in `docs/PRODUCT.md`.
+
 The demo event (`440a8b9e-e92e-4ad6-b352-41965bd8383b`, seed in `_lib/demo-seed.js`) is reset daily by `.github/workflows/reset-demo.yml`.
 
-Env vars (Vercel): `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `BREVO_API_KEY`, `GUEST_MAIL_FROM`, `GUEST_UNSUBSCRIBE_SECRET`, `GMAIL_USER`, `GMAIL_APP_PASSWORD`, `NOTIFY_EMAIL_TO`, `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_PRICE_REGULAR`, `VITE_APP_URL`, `CRON_SECRET`, `ADMIN_RESET_TOKEN`.
+Env vars (Vercel): `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `BREVO_API_KEY`, `GUEST_MAIL_FROM`, `GUEST_UNSUBSCRIBE_SECRET`, `GMAIL_USER`, `GMAIL_APP_PASSWORD`, `NOTIFY_EMAIL_TO`, `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_PRICE_REGULAR`, `VITE_APP_URL`, `CRON_SECRET`, `ADMIN_RESET_TOKEN`, `METRICS_READ_TOKEN`.
 
 ## Database changes
 

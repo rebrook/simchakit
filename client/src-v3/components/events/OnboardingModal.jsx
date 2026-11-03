@@ -18,11 +18,24 @@
 import { useState } from "react";
 import { supabase }  from "@/lib/supabase.js";
 
+// Optional "how did you hear about us" answer, saved as soon as it is chosen so it survives Skip for now.
+const HEARD_OPTIONS = [
+  ["friend",    "A friend or family member"],
+  ["synagogue", "My synagogue or clergy"],
+  ["facebook",  "Facebook"],
+  ["instagram", "Instagram"],
+  ["search",    "Google or another search engine"],
+  ["ai",        "An AI assistant such as ChatGPT"],
+  ["vendor",    "A vendor or event planner"],
+  ["other",     "Somewhere else"],
+];
+
 export function OnboardingModal({ userId, isRequired, initialName = "", initialPreferred = "", onSave, onDismiss, variant, eventName }) {
   const [name,    setName]    = useState(initialName);
   const [preferred, setPreferred] = useState(initialPreferred);   // V5.9.0: what the Overview greeting calls the host
   const [saving,  setSaving]  = useState(false);
   const [error,   setError]   = useState(null);
+  const [heard,   setHeard]   = useState("");
 
   const isEdit = !!initialName;
   const isSetup = variant === "account-setup";
@@ -32,6 +45,16 @@ export function OnboardingModal({ userId, isRequired, initialName = "", initialP
     : isEdit
     ? "Your name appears in invitation emails and the collaborator panel."
     : "Your name will appear in invitation emails sent to your co-planners and in the app footer.";
+
+  async function handleHeard(value) {
+    setHeard(value);
+    if (!value) return;
+    const { error: heardError } = await supabase
+      .from("user_profiles")
+      .update({ heard_from: value })
+      .eq("id", userId);
+    if (heardError) console.warn("[SimchaKit] OnboardingModal: heard_from save failed:", heardError.message);
+  }
 
   async function handleSave() {
     const trimmed = name.trim();
@@ -123,6 +146,21 @@ export function OnboardingModal({ userId, isRequired, initialName = "", initialP
             This can be a first name, full name, or nickname -- whatever you prefer.
           </div>
         </div>
+
+        {isSetup && (
+          <div className="form-group" style={{ marginBottom: 8 }}>
+            <label className="form-label" htmlFor="heard-from">How did you hear about SimchaKit? (optional)</label>
+            <select
+              id="heard-from"
+              className="form-select"
+              value={heard}
+              onChange={e => handleHeard(e.target.value)}
+            >
+              <option value="">Choose one</option>
+              {HEARD_OPTIONS.map(([value, label]) => <option key={value} value={value}>{label}</option>)}
+            </select>
+          </div>
+        )}
 
         {!isSetup && (
           <div className="form-group" style={{ marginBottom: 8 }}>

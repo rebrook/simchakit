@@ -1,9 +1,23 @@
 {
-  "current": "V5.14.1",
+  "current": "V5.15.0",
   "whatsNew": [
     "A guest Event details page after RSVP: schedule, directions, parking and shared hotels, limited to what each household is invited to"
   ],
   "changelog": [
+    {
+      "version": "V5.15.0",
+      "date": "2026-11-03",
+      "summary": "Measure where signups come from, and a read-only metrics summary for the planning agents (V5-M1)",
+      "changes": [
+        "New: client/migrations/V5.15.0-M1.sql adds user_profiles.signup_source (jsonb) and user_profiles.heard_from (text). No RLS change (existing own-row policies apply), no backfill. Run it before deploying",
+        "New: utils/attribution.js captures first-touch campaign tags (utm_source, utm_medium, utm_campaign, utm_content), the referrer hostname and the landing path into localStorage on first load (skipped on /r/ guest links) and saves them to signup_source when a brand-new account signs in. Best effort: a magic link opened in another browser loses it",
+        "New: an optional How did you hear about SimchaKit? question on the first-event setup step (OnboardingModal account-setup). The answer saves as soon as it is chosen, so Skip for now keeps it",
+        "New: GET /api/admin?action=metrics-summary (api/_lib/metrics-summary.js), bearer METRICS_READ_TOKEN (a new environment variable, separate from every other secret). Returns counts and tallies only: users, events, purchases and revenue, signup sources, guest reply volume and crash tallies with clipped, email-stripped messages. No names, emails or guest details. Returns 503 until the token is set",
+        "New: the about site and the planning checklist page carry campaign tags from the visited URL onto their app and demo links, so a post's tags survive the click into the app",
+        "Changed: the privacy policy lists the campaign tags, referrer and the optional answer under What we collect",
+        "New: docs/AGENT_TEAM.md (operating model for the planning agents) and a gitignored agent-reports/ folder for proposals, the decision log and metrics history"
+      ]
+    },
     {
       "version": "V5.14.1",
       "date": "2026-11-03",

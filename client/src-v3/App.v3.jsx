@@ -10,6 +10,7 @@ import { AuthPage }            from "@/components/auth/AuthPage.jsx";
 import { AuthCallback }        from "@/components/auth/AuthCallback.jsx";
 import { EventPicker }         from "@/components/events/EventPicker.jsx";
 import { OnboardingModal }     from "@/components/events/OnboardingModal.jsx";
+import { saveSignupSource }    from "@/utils/attribution.js";
 import { AppShell }            from "@/components/shell/AppShell.jsx";
 import { useDarkMode }         from "@/hooks/useDarkMode.js";
 import { ThemeProvider }       from "@/components/shared/ThemeProvider.jsx";
@@ -182,6 +183,8 @@ function AuthedApp() {
                   const hasName   = !!(profile?.display_name);
 
                   if (isNewUser) {
+                    saveSignupSource(id);
+
                     // Admin notification
                     fetch("/api/notify", {
                       method:  "POST",

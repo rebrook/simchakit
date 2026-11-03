@@ -25,3 +25,6 @@ npm-debug.log*
 *@SynoEAStream
 *@SynoResource
 .DS_Store
+
+# Private agent proposals, metrics and decisions (strategy and numbers are not public)
+agent-reports/
