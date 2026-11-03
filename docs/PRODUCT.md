@@ -50,6 +50,16 @@ The in-app Guide (`client/src-v3/constants/guideContent.js`) and `client/changel
 
 Take the about site and the in-app Guide as the baseline: warm, plain, practical, and respectful of the occasion. Short sentences. Lead with what the family can now do ("Know who still owes you an answer"), not with the feature name. A little mazel tov is fine; hype, jargon and tech talk are not. Speak to the organizer as a busy person doing something meaningful. The release-note rules in `client/changelog/README.md` (benefit-first, one sentence, no version numbers, table names or "API") are a good model for any public copy.
 
+## Brand (marketing site and posts)
+
+From the about site's own styles (`client/public/about/index.html`). The app itself has nine selectable palettes, so use these for marketing, not the app's colors.
+
+- **Colors:** navy `#1e3a5f` (primary), lighter navy `#2d5a8a`, gold `#c9a227` (accent), warm paper background `#faf8f5` and `#f4f1ec`, text `#2c2520`, muted text `#6b6058`.
+- **Fonts:** Cormorant Garamond (headings), DM Sans (body).
+- **Logo:** `client/public/about/SimchaKit-logo.png`.
+- **Screenshots:** `client/public/about/` has `overview.png`, `screenshot-guests.png`, `screenshot-seating.png`, `screenshot-budget.png`, `mobile-overview.png` and `mobile-dayofmode.png`. Look at an image before using it and use it only if it shows fictional demo data (the demo event uses the Simpsons family). A screenshot with a real family's names is never used.
+- **Links in posts** always carry campaign tags: `?utm_source=<platform>&utm_medium=<social|email|referral>&utm_campaign=<short-name>`. The about site passes them on to the app.
+
 ## Goals right now
 
 1. **Awareness first.** The main problem is that people do not know SimchaKit exists, what it does, or how it could help them. Revenue growth comes later.
