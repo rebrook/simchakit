@@ -1,6 +1,6 @@
 # DRAFT: privacy policy and terms updates
 
-**Status: draft for the owner (and ideally a lawyer) to review. Not legal advice. Not published.** The live pages are `client/public/about/privacy.html` and `terms.html`. Nothing here has been applied to them.
+**Status: applied to `client/public/about/privacy.html` and `terms.html` on 2026-11-03 (effective date November 3, 2026), once deployed. The owner chose not to have a lawyer review it. This is not legal advice.** The live pages are now the source of truth; this file is the working record of why each line is there. If the product changes how guest data, email, payments or retention work, update the pages and this file together.
 
 Items in **[OWNER DECISION]** need an answer only the owner can give. Items in **[VERIFY]** are facts I could not confirm from the code. Everything else is based on what the code does today (V5.14.0). Keep the existing plain tone, and update the "Effective date" when published.
 

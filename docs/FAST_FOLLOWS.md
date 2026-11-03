@@ -11,7 +11,6 @@ Small, near-term items that came out of recent work. Not roadmap features. Newes
 
 ## Before a marketing push
 
-- **Update the privacy policy and terms** from `docs/legal-draft-privacy-terms.md` once the owner (and ideally a lawyer) has reviewed it. Decided so far: data is kept while the account is active, archived events stay read-only, deletion on request, purchase records kept; refunds are full within 30 days, discretionary after, none after the event date.
 - **Spot-check `docs/screenshots`** for any real guest names before the repo or docs are shared more widely.
 
 ## Housekeeping
