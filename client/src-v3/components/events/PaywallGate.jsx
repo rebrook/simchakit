@@ -112,17 +112,17 @@ export function PaywallGate({ session, onFreeEventGranted, onCancel }) {
     <div style={styles.wrap}>
 
       {/* Header */}
-      <div style={styles.title}>Create Your Event</div>
+      <div style={styles.title}>Start your event</div>
       <div style={styles.subtitle}>
-        Each event requires a one-time purchase. Your planning data is stored securely and never expires.
+        One payment of ${price} covers this event and everything in it. No subscription. Next, you will name your event, pick a date and choose the parts of the celebration to track.
       </div>
 
       {/* Value bullets */}
       <div style={{ marginBottom: 18 }}>
         {[
-          "Complete guest list, RSVPs, and seating charts",
-          "Budget tracking, vendor management, and payment schedules",
-          "Day-of Mode with a printable brief for your coordinator",
+          "Know who is coming to each part of the day, with replies from a private link, no guest accounts",
+          "See what you have paid, what is due next and who still owes you an answer",
+          "Invite a spouse, parents or your rabbi as co-planners at no extra cost",
         ].map((item, i) => (
           <div key={i} style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8, fontSize: 13, color: "var(--text-secondary)" }}>
             <span style={{ color: "var(--green)", fontWeight: 700, fontSize: 14, flexShrink: 0 }}><Icon name="check" context="badge" /></span>
@@ -158,6 +158,11 @@ export function PaywallGate({ session, onFreeEventGranted, onCancel }) {
             </div>
           )}
         </div>
+      </div>
+
+      <div style={{ textAlign: "center", fontSize: 13, color: "var(--text-muted)", margin: "-6px 0 14px" }}>
+        Not sure yet?{" "}
+        <a href="https://demo.simcha-kit.com" target="_blank" rel="noopener noreferrer" style={{ color: "inherit", textDecoration: "underline" }}>Try the free demo first.</a>
       </div>
 
       {/* Coupon code field */}

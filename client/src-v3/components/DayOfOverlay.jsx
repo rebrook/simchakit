@@ -88,7 +88,7 @@ export function DayOfItemModal({ item, onSave, onClose }) {
           </div>
           <div className="modal-footer">
             <button className="btn btn-ghost" onClick={onClose}>Cancel</button>
-            <button className="btn btn-primary" disabled={!form.task.trim()} onClick={e => { e.stopPropagation(); if (form.task.trim()) onSave(form); }}>
+            <button className="btn btn-primary" disabled={!(form.task || "").trim()} onClick={e => { e.stopPropagation(); if ((form.task || "").trim()) onSave(form); }}>
               {isEdit ? "Save Changes" : "Add Item"}
             </button>
           </div>

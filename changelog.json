@@ -1,9 +1,22 @@
 {
-  "current": "V5.17.0",
+  "current": "V5.18.0",
   "whatsNew": [
     "A guest Event details page after RSVP: schedule, directions, parking and shared hotels, limited to what each household is invited to"
   ],
   "changelog": [
+    {
+      "version": "V5.18.0",
+      "date": "2026-11-04",
+      "summary": "Clearer first screens, honest metrics, dependency updates and a crash guard, approved from the 2026-11-03 weekly briefing (V5-T1)",
+      "changes": [
+        "Changed: the sign-in page, the empty Your Events screen and the checkout step (EventPicker.jsx, PaywallGate.jsx, AuthPage.jsx) now state the price, that there is no subscription and that co-planners are included, and link to the free demo (demo.simcha-kit.com). Copy only; no behaviour or billing change. The empty state has a Start my event button that opens the same create flow as New Event",
+        "Changed: api/_lib/metrics-summary.js leaves Stripe test-mode purchases (session id starting cs_test_) out of every figure and reports how many it excluded (purchases.testPurchasesExcluded). Added purchases.pendingUnder24Hours and pendingOlderThan30Days, and users.withoutEvent (total, joinedAsCollaborator, neverCollaborated). Counts only. No migration, no new environment variable",
+        "Fixed: the admin Purchases page linked every Stripe payment to the test-mode dashboard; live payments now open the live dashboard. Its revenue line no longer counts Stripe test purchases and says how many it left out",
+        "Fixed: the Day-of item form no longer throws when an older item has no task text (DayOfOverlay.jsx guards form.task). Not confirmed to be the cause of the Tasks-tab crashes seen in the metrics",
+        "Changed: npm audit fix in client/ (lockfile only) and @supabase/supabase-js raised to ^2.119.0. Audit findings dropped from 17 to 8, and the one left in shipped packages is nodemailer, which needs a major upgrade planned on its own. The PDF export libraries were updated within their ranges and are untested in a browser",
+        "Added: client/changelog/entries.json host entry for the clearer first screens. Not done from the approved list: a Getting ready progress count in the metrics (it would re-implement client-side setup logic on the server)"
+      ]
+    },
     {
       "version": "V5.17.0",
       "date": "2026-11-04",

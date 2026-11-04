@@ -68,8 +68,11 @@ export function PurchasesPage({ token }) {
     return true;
   });
 
+  // Stripe test-mode sessions (cs_test_...) are the owner's own tests, so they are not counted as revenue.
+  const isTest = (p) => String(p.stripe_session_id || "").startsWith("cs_test_");
+  const testCount = purchases.filter(p => p.status === "completed" && isTest(p)).length;
   const totalRevenue = purchases
-    .filter(p => p.status === "completed")
+    .filter(p => p.status === "completed" && !isTest(p))
     .reduce((s, p) => s + (p.amount_cents || 0), 0);
 
   if (loading) return <PageLoading />;
@@ -79,7 +82,7 @@ export function PurchasesPage({ token }) {
     <div>
       <PageHeader
         title="Purchases"
-        sub={`${purchases.filter(p => p.status === "completed").length} completed · $${(totalRevenue / 100).toFixed(2)} total revenue`}
+        sub={`${purchases.filter(p => p.status === "completed").length} completed · $${(totalRevenue / 100).toFixed(2)} total revenue${testCount ? ` (${testCount} Stripe test purchase${testCount === 1 ? "" : "s"} not counted)` : ""}`}
       />
 
       <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 16 }}>
@@ -166,7 +169,7 @@ export function PurchasesPage({ token }) {
                 <td style={td}>
                   {p.stripe_session_id ? (
                     <a
-                      href={`https://dashboard.stripe.com/test/payments/${p.stripe_payment_intent}`}
+                      href={`https://dashboard.stripe.com/${String(p.stripe_session_id).startsWith("cs_test_") ? "test/" : ""}payments/${p.stripe_payment_intent}`}
                       target="_blank" rel="noopener noreferrer"
                       style={{ fontSize: 11, color: "#666", fontFamily: "monospace" }}
                     >

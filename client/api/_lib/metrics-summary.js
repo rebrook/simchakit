@@ -5,6 +5,7 @@
 // emails, guest details or event contents are returned. Crash messages are clipped and have anything
 // email-shaped removed. The token is a separate secret from every other credential, so it can be
 // handed to a scheduled agent and revoked on its own by changing METRICS_READ_TOKEN in Vercel.
+// Stripe test-mode purchases (session ids starting cs_test_) are left out of every figure.
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { createHash, timingSafeEqual } from "crypto";
@@ -21,6 +22,9 @@ function tokenOk(req) {
   const given  = header.startsWith("Bearer ") ? header.slice(7).trim() : "";
   return timingSafeEqual(sha(given), sha(expected));
 }
+
+// Stripe test-mode sessions (cs_test_...) are the owner's own tests: keep them out of every figure.
+const isTestPurchase = (p) => String(p.stripe_session_id || "").startsWith("cs_test_");
 
 const tally = (rows, pick) => {
   const out = {};
@@ -56,7 +60,8 @@ export default async function handler(req, res) {
     usersTotal, users7, users30, usersWithEvent,
     eventsTotal, events7, events30, eventsArchived,
     households, people,
-    purchases, profiles, replies, messages30, clientErrors,
+    allPurchases, profiles, replies, messages30, clientErrors,
+    noEventUsers, collaborators,
   ] = await Promise.all([
     count("user_profiles"),
     count("user_profiles", (q) => q.gte("created_at", iso(7))),
@@ -68,12 +73,18 @@ export default async function handler(req, res) {
     count("events", (q) => q.eq("archived", true)),
     count("households"),
     count("people"),
-    rows("purchases", "owner_id, status, amount_cents, coupon_code, event_id, created_at"),
+    rows("purchases", "owner_id, status, amount_cents, coupon_code, event_id, created_at, stripe_session_id"),
     rows("user_profiles", "heard_from, signup_source, created_at", (q) => q.gte("created_at", iso(90))),
     rows("rsvp_replies", "status, submitted_at", (q) => q.gte("submitted_at", iso(30))),
     count("message_log", (q) => q.gte("sent_at", iso(30))),
     rows("client_errors", "created_at, data", (q) => q.gte("created_at", iso(30))),
+    rows("user_profiles", "id", (q) => q.eq("event_count", 0)),
+    rows("event_collaborators", "user_id"),
   ]);
+
+  const purchases = allPurchases.filter((p) => !isTestPurchase(p));
+  const pendingRows = purchases.filter((p) => p.status === "pending");
+  const collaboratorIds = new Set(collaborators.map((c) => c.user_id));
 
   const completed = purchases.filter((p) => p.status === "completed");
   const paid      = completed.filter((p) => (p.amount_cents || 0) > 0);
@@ -88,14 +99,25 @@ export default async function handler(req, res) {
 
   return res.status(200).json({
     asOf: new Date(now).toISOString(),
-    users:  { total: usersTotal, last7Days: users7, last30Days: users30, withAtLeastOneEvent: usersWithEvent },
+    users:  {
+      total: usersTotal, last7Days: users7, last30Days: users30, withAtLeastOneEvent: usersWithEvent,
+      // Who the people with no event are: co-planners who joined someone else's event versus everyone else.
+      withoutEvent: {
+        total:                  noEventUsers.length,
+        joinedAsCollaborator:   noEventUsers.filter((u) => collaboratorIds.has(u.id)).length,
+        neverCollaborated:      noEventUsers.filter((u) => !collaboratorIds.has(u.id)).length,
+      },
+    },
     events: { total: eventsTotal, last7Days: events7, last30Days: events30, archived: eventsArchived },
     usage:  { households, people, guestEmailBatchesLast30Days: messages30 },
     purchases: {
       completed:        completed.length,
       paid:             paid.length,
       freeOrCouponZero: completed.length - paid.length,
-      pending:          purchases.filter((p) => p.status === "pending").length,
+      pending:          pendingRows.length,
+      pendingUnder24Hours: pendingRows.filter((p) => new Date(p.created_at).getTime() >= now - DAY).length,
+      pendingOlderThan30Days: pendingRows.filter((p) => new Date(p.created_at).getTime() < now - 30 * DAY).length,
+      testPurchasesExcluded: allPurchases.length - purchases.length,
       refunded:         purchases.filter((p) => p.status === "refunded").length,
       completedWithoutEvent: completed.filter((p) => !p.event_id).length,
       distinctBuyers:   new Set(completed.map((p) => p.owner_id)).size,

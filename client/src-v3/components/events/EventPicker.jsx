@@ -468,8 +468,12 @@ export function EventPicker({ session, displayName: userDisplayName, onSelectEve
           <div style={styles.stateIcon}><Icon name="starOfDavid" context="empty" /></div>
             <div style={styles.stateTitle}>Welcome to SimchaKit</div>
             <div style={styles.stateDesc}>
-              You're one step away from having everything in one place. Click <strong>+ New Event</strong> above to get started.
+              Start your first event and everything about your simcha lives in one place: guests, replies, budget, seating and thank-yous. It is $49 per event, once, with no subscription, and your co-planners are included. Want to look around first?{" "}
+              <a href="https://demo.simcha-kit.com" target="_blank" rel="noopener noreferrer" style={{ color: "inherit", textDecoration: "underline" }}>Try the free demo</a>.
             </div>
+            <button style={{ ...styles.btnNewEvent, marginTop: 16 }} onClick={() => setShowCreateForm(true)}>
+              Start my event
+            </button>
           </div>
         )}
 
