@@ -34,10 +34,29 @@
 }
 
 /* ── Native print (utils/printDocument.js) ─────────────────────────────────
-   The document lives in #print-root; only it is shown when printing. */
+   An export lives in #print-root and printDocument() puts .printing-doc on <html>
+   while it exists: then only #print-root is shown. Without that class this is an
+   ordinary screen, which prints as the page itself (the screen's content, not the
+   navigation chrome). The app shell is a fixed-height box with an inner scroll area,
+   so for ordinary prints it is released to flow across pages. */
 #print-root { display: none; }
 @media print {
   html, body { background: #fff !important; }
-  body > *:not(#print-root) { display: none !important; }
-  #print-root { display: block !important; }
+  html.printing-doc body > *:not(#print-root) { display: none !important; }
+  html.printing-doc #print-root { display: block !important; }
+
+  /* Ordinary screens: let the content flow across pages and leave out the chrome. */
+  html:not(.printing-doc) body,
+  html:not(.printing-doc) #root { height: auto !important; overflow: visible !important; }
+  html:not(.printing-doc) .app-shell,
+  html:not(.printing-doc) .app-main,
+  html:not(.printing-doc) .app-main-scroll { display: block !important; height: auto !important; overflow: visible !important; }
+  html:not(.printing-doc) :is(.app-sidebar, .app-topbar, .mobile-header, .bottom-nav, .shell-banner) { display: none !important; }
+
+  /* Dark mode would print light text on a white page, so print with the light neutrals. */
+  html[data-theme="dark"]:not(.printing-doc) {
+    --bg-base: #faf8f5 !important; --bg-surface: #ffffff !important; --bg-subtle: #f4f1ec !important; --bg-muted: #ede9e1 !important;
+    --border: #e2ddd5 !important; --border-strong: #c9c2b6 !important;
+    --text-primary: #1c1614 !important; --text-secondary: #5c5248 !important; --text-muted: #9c9188 !important;
+  }
 }

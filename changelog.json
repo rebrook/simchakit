@@ -1,9 +1,18 @@
 {
-  "current": "V5.18.0",
+  "current": "V5.18.1",
   "whatsNew": [
     "A guest Event details page after RSVP: schedule, directions, parking and shared hotels, limited to what each household is invited to"
   ],
   "changelog": [
+    {
+      "version": "V5.18.1",
+      "date": "2026-11-04",
+      "summary": "Printing works on iPhone: exports print the export and ordinary screens print as themselves (V5-T2)",
+      "changes": [
+        "Fixed: printing an ordinary screen (Share then Print on a phone, or Print on a computer) produced a blank page, because print.css hid everything except the export print copy even when there was none. printDocument.js now sets html.printing-doc while an export is being printed, and print.css only hides the app in that case. Ordinary prints release the fixed-height app shell so content flows across pages, leave out the sidebar, top bar, mobile header and bottom nav, and use the light neutral colours in dark mode. Not yet checked on a device: how each tab paginates, and Print Brief on iOS Safari 27.2, which was blank for a separate, unconfirmed reason",
+        "Fixed: on iPhone the export print copy was removed on afterprint, which iOS fires as soon as the print sheet opens, so the sheet drew its preview from the ordinary page (blank before the print.css fix above, the whole tab after it). printDocument.js now keeps the print copy and html.printing-doc until the first tap back in the page or ten minutes, whichever comes first. Evidence: the preview changed from blank to the full tab when the hiding rule was scoped, which shows the print copy was already gone at render time; also WebKit bug 245171 and printThis issue 193"
+      ]
+    },
     {
       "version": "V5.18.0",
       "date": "2026-11-04",
