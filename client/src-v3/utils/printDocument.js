@@ -2,7 +2,8 @@
 // SimchaKit — printDocument.js
 // Native print for generated HTML documents, with no iframe and no PDF library.
 // The document is placed in a print-only container in the main page; App.css
-// hides everything else under @media print. window.print() then runs on the
+// hides everything else under @media print (while html.printing-doc is set,
+// so ordinary screens still print as themselves). window.print() then runs on the
 // page itself, so iOS opens the system print sheet (which has its own preview,
 // Share and Save to Files). Real text, vector output, one tap.
 // ─────────────────────────────────────────────────────────────────────────────
@@ -16,6 +17,7 @@ export function isTouchPrimary() {
 }
 
 function removeRoot() {
+  document.documentElement.classList.remove("printing-doc");
   document.getElementById(ROOT_ID)?.remove();
   document.getElementById(PAGE_STYLE_ID)?.remove();
 }
@@ -41,6 +43,8 @@ export function printDocument(html) {
   const body = html.match(/<body[^>]*>([\s\S]*?)<\/body>/);
   root.innerHTML = styles + (body ? body[1] : html);
   document.body.appendChild(root);
+  // print.css shows only #print-root while this class is on <html>.
+  document.documentElement.classList.add("printing-doc");
 
   window.addEventListener("afterprint", removeRoot, { once: true });
   // Must stay synchronous: iOS Safari blocks print() ("blocked from

@@ -14,7 +14,8 @@
         "Fixed: the admin Purchases page linked every Stripe payment to the test-mode dashboard; live payments now open the live dashboard. Its revenue line no longer counts Stripe test purchases and says how many it left out",
         "Fixed: the Day-of item form no longer throws when an older item has no task text (DayOfOverlay.jsx guards form.task). Not confirmed to be the cause of the Tasks-tab crashes seen in the metrics",
         "Changed: npm audit fix in client/ (lockfile only) and @supabase/supabase-js raised to ^2.119.0. Audit findings dropped from 17 to 8, and the one left in shipped packages is nodemailer, which needs a major upgrade planned on its own. The PDF export libraries were updated within their ranges and are untested in a browser",
-        "Added: client/changelog/entries.json host entry for the clearer first screens. Not done from the approved list: a Getting ready progress count in the metrics (it would re-implement client-side setup logic on the server)"
+        "Added: client/changelog/entries.json host entry for the clearer first screens. Not done from the approved list: a Getting ready progress count in the metrics (it would re-implement client-side setup logic on the server)",
+        "Fixed: printing an ordinary screen (Share then Print on a phone, or Print on a computer) produced a blank page, because print.css hid everything except the export print copy even when there was none. printDocument.js now sets html.printing-doc while an export is being printed, and print.css only hides the app in that case. Ordinary prints release the fixed-height app shell so content flows across pages, leave out the sidebar, top bar, mobile header and bottom nav, and use the light neutral colours in dark mode. Not yet checked on a device: how each tab paginates, and Print Brief on iOS Safari 27.2, which was blank for a separate, unconfirmed reason"
       ]
     },
     {
