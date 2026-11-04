@@ -237,6 +237,8 @@ export function AuthPage() {
           lineHeight: 1.5,
         }}>
           <a href="https://about.simcha-kit.com" target="_blank" rel="noopener" style={{ color: "var(--text-muted)" }}>Learn more about SimchaKit</a>
+          {" · "}
+          <a href="https://demo.simcha-kit.com" target="_blank" rel="noopener noreferrer" style={{ color: "var(--text-muted)" }}>Try the free demo</a>
         </div>
 
       </div>

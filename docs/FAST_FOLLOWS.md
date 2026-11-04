@@ -4,8 +4,8 @@ Small, near-term items that came out of recent work. Not roadmap features. Newes
 
 ## Do soon
 
-- **Admin Purchases: Stripe links always open test mode.** `client/src-admin/components/pages/PurchasesPage.jsx` (line 169) hardcodes `/test/` in the Stripe payment link, so a live payment opens the test dashboard and is not found. Use `/test/` only when the session id starts with `cs_test`. Admin-only; needs a root `changelog.json` entry, no host-facing What's new entry.
-- **Metrics and the Purchases header count the owner's own test purchases.** Two of the five "paid" purchases (session ids start `cs_test`) and two of the four coupon purchases are the owner's own accounts, so revenue shows $145 where real revenue is $87. Leave test purchases out of `metrics-summary` (and decide whether the Purchases page header should too). Counts only, no new personal data.
+- **nodemailer major upgrade.** The one remaining `npm audit` finding in shipped packages (`notify.js` Gmail path). Review that no user-supplied value reaches an email header or address, then upgrade on its own and test the notification email. Stripe 14 to a current major is a separate session, tested against checkout and the webhook.
+- **Getting ready progress in the metrics.** Deferred: it would need the client's setup-state logic on the server. Only worth it if it can reuse `src-v3/utils/setupState.js` without a copy.
 
 ## Before a marketing push
 

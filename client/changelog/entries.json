@@ -1,5 +1,15 @@
 [
   {
+    "id": "2026-11-04-01-first-screens-clearer",
+    "release": "V5.18.0",
+    "date": "2026-11-04",
+    "kind": "improved",
+    "area": "Setup",
+    "audience": "host",
+    "highlight": false,
+    "title": "The sign-in page, the first events screen and the checkout step now explain the price, what is included and how to try the free demo"
+  },
+  {
     "id": "2026-11-03-02-how-did-you-hear",
     "release": "V5.15.0",
     "date": "2026-11-03",
