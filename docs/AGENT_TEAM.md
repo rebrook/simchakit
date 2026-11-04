@@ -1,134 +1,97 @@
-# Agent team: operating model
+# Agent team: how it works
 
-How the planning agents are organized, what they may do and how they report. Each agent's own instructions live in `.claude/agents/`. Read `docs/PRODUCT.md` first for audience, positioning, pricing, tone and brand. Reports, numbers and decisions are private and live in `agent-reports/` (gitignored), never in this public repo.
+The owner is the CEO. The team brings **finished recommendations** to the admin console's Weekly briefing page, the owner answers there, and the team acts on the answers. The owner never opens a file, a folder or another tool to review. Read `docs/PRODUCT.md` first for audience, positioning, pricing, tone and brand. Everything private (numbers, decisions, replies) lives in the app's database and the briefing page, never in this public repo.
 
-## Principle
+## The loop
 
-The owner is the CEO. Department heads own their outcomes and their teams, and bring the CEO **proposals**, not questions and not a to-do list. A head decides what to raise, and also when its own team should grow or shrink. The CEO approves or rejects, and nothing goes out without that.
+1. **Monday, 8:00 am Eastern: the briefing run** (a cloud routine). It reads the numbers and last weeks' answers, runs the department heads, has the Chief of Staff rank the results, fact-checks them, publishes the digest to the briefing page and pushes a notification to the owner's phone ("Weekly briefing ready: N decisions").
+2. **The owner reviews on the briefing page.** Each decision shows a mockup (the finished post, or a before and after of the screen), the few things the team needs from the owner (each with a reason, an example and a "skip this" option), the evidence, and four buttons: Approve, Not now, Reject, I have a question.
+3. **Every day: the check run** (a cloud routine). It reads new answers. It does the work for approved items, answers questions, and records each item's status on the page. It sends a phone notification only when something needs the owner: a reply, something ready to ship, or a missing input. With nothing new it ends silently.
+4. **When work is ready,** the page shows a "Ready to ship" card: the exact steps, in order, with copy buttons. Migration first, then deploy, promote to Production, test, merge.
 
-## Org chart
+## What each run must do
 
-```
-CEO (the owner)
-└── Chief of Staff        weekly digest, ranking, decision log, usage watch
-    ├── CMO               posts, search/SEO, partnerships and community outreach
-    ├── Head of Strategy  metrics read, channel and competitor research, roadmap
-    ├── CTO               maintenance, security, release and QA, accessibility
-    ├── Head of Customer Experience   onboarding, lifecycle emails, the guide, feature discovery
-    └── COO               support and operations (later, when email and refund volume justify it)
-```
+### Briefing run
 
-Each head starts alone and covers its department in distinct workstreams. For example, the CMO works on content, outreach and SEO as separate modes of one agent.
+Work from the repo root. Never print a key or write one to a file. Scratch files go in `agent-reports/` (ephemeral and gitignored).
 
-## What a head owns
+1. `mkdir -p agent-reports`. Fetch the history: `curl -s -H "Authorization: Bearer $DIGEST_INGEST_TOKEN" 'https://app.simcha-kit.com/api/admin?action=digest-decisions&weeks=12' > agent-reports/decisions.json`. This is the decision log: what was approved, rejected, deferred or asked, the owner's answers, and the past digests' numbers. Then `sh scripts/fetch-metrics.sh > agent-reports/metrics-latest.json`. If either fails, say so in the digest and carry on without it.
+2. Run the heads one after another with the Agent tool: `cto`, `head-of-strategy`, `head-of-customer-experience`, `cmo`. Each writes its proposals to `agent-reports/inbox/` and skips the run if it has nothing worth raising.
+3. Run `chief-of-staff`. It reads the inbox, challenges and ranks, and writes `agent-reports/digest.json` in the shape below.
+4. **Independent fact check.** A fresh agent gets only the digest and the repo (not the proposals' reasoning) and checks every claim about what is merged, deployed or live, what a policy or screen says, what a number means and when its data begins. It reports each claim as confirmed, wrong or unverifiable. Fix wrong claims, label unverifiable ones, then set `fact_checked` to true. If this step did not run, leave it false.
+5. Publish: `curl -s -X POST -H "Content-Type: application/json" -H "Authorization: Bearer $DIGEST_INGEST_TOKEN" --data-binary @agent-reports/digest.json 'https://app.simcha-kit.com/api/admin?action=digest-ingest'`. Expect `{"stored":true,...}`.
+6. Send a push notification: "Weekly briefing ready: N decisions". If publishing failed, say what failed.
 
-- **An outcome** and a method for finding what matters in its data, not a fixed question list.
-- **Its department's share of the budget.**
-- **A monthly team review:** whether the team should grow, merge or shrink.
-- **Proposals in the standard shape** (below), only when it has evidence worth raising. "Nothing worth raising this week" is a valid report.
+### Check run
 
-## Growing or shrinking a team
+1. Fetch `digest-decisions` (as above, `weeks=4`) into `agent-reports/decisions.json`.
+2. Find the latest decision row of each item that has no `picked_up_at`. If there are none, stop silently.
+3. For each one, first record it: `POST` to `digest-decisions` with `{"id": "<decision id>", "picked_up": true, "team_status": "picked_up"}`. Then:
+   - **approved:** do the work, set `team_status` to `in_progress`, and when finished set `ready_to_ship` or `done`. Use the owner's answers in `answers`. A skipped ask means the owner chose the fallback written in its `skip_means`.
+   - **question:** write the answer in `team_reply` (plain language, short). The owner sees it under the decision.
+   - **rejected or deferred:** record it only. Do not raise it again without new evidence.
+   - If the team cannot proceed (for example a missing input or no write access), set `team_status` to `needs_input` or `declined` and say why in `team_reply`.
+4. **Code changes** are made in the cloud checkout on a branch named `team/<short-slug>`, built with the V3 config, and pushed. Never push to `main`. If the push is refused, set `needs_input` and say the Claude GitHub app is not installed on the repository. Never claim something is merged, pushed or deployed without checking git.
+5. **Ready to ship:** re-publish the week's digest with a `ship` card added. First `GET` the digest from `digest-decisions` and send back the same payload (the same decisions in the same order, so item numbers and answers stay attached), plus the card. A ship card lists, in order: the migration to run (if any), the branch and a compare link `https://github.com/rebrook/simchakit/compare/<branch>?expand=1` to open the pull request, promote the build to Production in Vercel, a short test checklist, and the merge.
+6. Push a notification when anything needs the owner, naming how many items.
 
-A head recommends a hire, merge or retirement in the monthly team review. The proposal states:
-
-- The evidence of a gap, or of an agent that is not earning its cost.
-- The draft charter, written as the agent file it would become.
-- The expected monthly spend, based on measured costs, and where it fits in the department's share.
-- A success metric and a review date.
-
-The CEO approves or rejects it like any other proposal, and the decision goes in the log. An approved hire is a new file in `.claude/agents/`. A head cannot create agents itself, and no head gets the `Agent` tool (the ability to launch other agents) until its first hire is approved.
-
-## Cadence
-
-| Run | When | What |
-|---|---|---|
-| Heads' weekly work | Early in the week | Each head reads its data and writes proposals to `agent-reports/inbox/` |
-| Chief of Staff digest | After the heads | Reads the inbox, ranks, challenges the top items, writes the digest |
-| Monthly review | First week of the month | Heads' team reviews, roadmap, usage and results of past decisions |
-
-## Before the owner sees anything
-
-The weekly run is not finished when the digest is written. The session that launches the agents also does these, in order:
-
-1. **Independent fact check.** A fresh agent gets only the digest and the repo (not the proposals' reasoning) and checks every factual claim: what is merged, deployed or live, what a policy or screen says, what a number means and when its data begins. It reports each claim as confirmed, wrong or unverifiable. Wrong claims are fixed in the digest and in the proposal that raised them, and unverifiable ones are labelled as such.
-2. **Publish to the admin console's Weekly briefing screen.** Write the corrected digest as `agent-reports/digest-YYYY-MM-DD.json` (shape below), then run `sh scripts/send-digest.sh agent-reports/digest-YYYY-MM-DD.json`. The owner opens the admin console, sees the decisions first and answers them there. The owner should never need to find a file on the NAS. The script refuses a file with no `fact_checked` key, and the token is read from `DIGEST_INGEST_TOKEN` or `~/.config/simchakit/digest-ingest-token` and never printed.
-3. **Tell the owner the run is done**, in the launching session's closing message, with the link and the number of decisions waiting. If a notification channel is added later, it is used here.
-
-Agents cannot start other agents or send anything, so steps 1 to 3 belong to the launching session. If the owner starts only the Chief of Staff, the digest ends with "Not fact-checked or published" in bold.
-
-### Digest JSON for the briefing screen
-
-The Chief of Staff writes the markdown digest. The launching session turns the corrected digest into this JSON (keep it multi-line, one key per line is fine) and sends it. At most 20 decisions; text is clipped, so keep fields short. Sending the same `week_of` again replaces that week's digest.
+## The digest
 
 ```json
 {
   "week_of": "YYYY-MM-DD",
   "fact_checked": true,
   "numbers": [{"label": "", "value": "", "note": ""}],
-  "decisions": [{"title": "", "recommendation": "", "confidence": "", "effort": "", "why": "", "could_be_wrong": "", "checks": [{"claim": "", "status": "checked|unverified"}]}],
+  "decisions": [{
+    "title": "",
+    "recommendation": "",
+    "confidence": "",
+    "effort": "",
+    "why": "",
+    "could_be_wrong": "",
+    "mockup": {"kind": "post", "heading": "Facebook post", "when": "Thu 8:00 pm", "text": "", "image_url": "https://...", "image_alt": ""},
+    "asks": [{"label": "", "why": "", "example": "", "skip_means": ""}],
+    "checks": [{"claim": "", "status": "checked"}]
+  }],
+  "ship": [{"title": "", "steps": [{"text": "", "code": ""}]}],
   "held_back": [""],
   "usage": "",
   "link": ""
 }
 ```
 
-The owner's answers are stored in the database (`agent_decisions`, one new row per change), not in this repo. Read them through the admin console and copy them into `agent-reports/decision-log.md` when the owner says so.
+- **At most five decisions,** ranked. Sending the same `week_of` again replaces that week's digest, and decisions stay attached by item number.
+- **`mockup.kind`** is `post` (the finished text, an `https` image, when to post it) or `screen` (`heading`, `where`, `before`, `after`, optional `before_image_url` and `after_image_url`). Every decision that changes something the owner can see has a mockup.
+- **`asks`** hold only what the owner must supply. Each says why it is needed and gives an example. Each has `skip_means`, the plain default the team will use if the owner skips it (for example "I'll write a generic version you can adapt"). Never ask for something the team can find out itself. Text is clipped, so keep fields short.
+- **`checks`** mark each factual claim `checked` or `unverified`. A claim about repo, deploy, site or policy state is checked against the file or `git`, not against `docs/PRODUCT.md` or another agent. When a number is zero or low, name the other explanations and say which were ruled out.
+- **Images** must be `https` URLs. Use screenshots from the repo (`https://raw.githubusercontent.com/rebrook/simchakit/main/...`) or the about site, with fictional demo data only.
 
-## What a proposal contains
+## Department heads
 
-- **Observation:** what the data shows, with its source and date. Facts only. Any statement about repo, deploy, site or policy state is checked against the file or `git`, not against `docs/PRODUCT.md` or another agent. When a number is zero or low, name the other explanations (the feature is new, the data does not go back that far, the path is not live) and say which were ruled out.
-- **Recommendation:** the specific action.
-- **Evidence and confidence:** high, medium or low, and what would change the agent's mind. Say so plainly when it is a guess.
-- **Effort and expected impact.**
-- **Decision needed:** approve, reject or ask for more, and by when it matters.
+| Head | Owns |
+|---|---|
+| Chief of Staff | ranks and challenges proposals, writes the digest |
+| CMO | finished posts, outreach messages, search/SEO pages, the four-week content plan |
+| Head of Strategy | the metrics read, channel and competitor research, the monthly roadmap |
+| CTO | app health, security, release checks, accessibility, implementing approved changes |
+| Head of Customer Experience | onboarding, the guide, lifecycle emails, feature discovery |
 
-Files are named `agent-reports/inbox/YYYY-MM-DD-<agent>-<slug>.md`. The Chief of Staff keeps the weekly list to a few items, removes duplicates, holds back weak ones, and challenges each top item before it reaches the CEO (a devil's-advocate pass: what would make this wrong, and what is the cheapest test).
+Each head decides what is worth raising. "Nothing worth raising this week" is a valid report. A proposal states the observation (with source and date), the specific recommendation, confidence and what would change the agent's mind, effort and impact, and the decision needed.
+
+Heads recommend their own team changes (a hire, merge or retirement) in the monthly review, with the evidence, a draft agent file, the expected cost and a review date. The owner approves it like any other decision. Heads cannot create agents.
 
 ## Marketing deliverables are finished, never ideas
 
-Each item the CMO puts in the review queue is a complete package the owner can copy and paste:
-
-- The full post text for the platform, in the brand voice, with hashtags and alt text.
-- The images (demo-site screenshots with fictional data, or simple branded graphics).
-- The link with its campaign tags already attached.
-- The day and time to post, within the monthly calendar.
-- What to watch afterwards, and when Strategy will report on it.
-
-Outreach is the same: a finished message ready to send, with the follow-up ready for the next week, and the contact and follow-up log kept in `agent-reports/`. Only fictional demo data appears in anything public. No invented testimonials, statistics or features. The owner does the posting and the sending.
-
-## Data the agents can see
-
-- **The metrics summary:** `GET /api/admin?action=metrics-summary` with `Authorization: Bearer <METRICS_READ_TOKEN>`. Counts only (users, events, purchases and revenue, signup sources, guest-reply volume, crashes). No names, emails or guest details.
-- **Public sources:** the web, the about site, competitors, the in-app guide, `client/changelog/entries.json`.
-- The token reaches an agent only through `scripts/fetch-metrics.sh`, which reads it from the `METRICS_READ_TOKEN` environment variable or from the file `~/.config/simchakit/metrics-token` (owner-only permissions) and never prints it. The Chief of Staff and Strategy save the output to `agent-reports/metrics-latest.json`; other agents read that file. Agents never print the token, write it to a file, or paste it into a report.
-- Agents never receive the database, Stripe, Brevo or Vercel credentials.
-- Lifecycle email text lives in Brevo, not in this repo. The Customer Experience head can review it only from text the owner exports into `docs/email-reference/`.
-
-## Budget
-
-- **Ceiling: $100 per month** of the owner's $400 monthly limit (set 2026-11-03). The rest is for interactive work.
-- **Starting split, to be adjusted from measured costs:** Chief of Staff $15, Strategy $20, CMO $30, CTO $20, Customer Experience $15.
-- The Chief of Staff checks usage at the start of each run. Over **60%** of the agent budget, it defers lower-priority runs. Over **90%**, only the weekly digest runs. It tells the owner either way.
-- Routine runs use a smaller model. Only the monthly review uses a larger one.
-- An agent skips a run when there is nothing new, and caps its web research.
-- The weekly digest ends with a usage line: spent, remaining, what was deferred.
+Each post is a complete package the owner can paste: the full post text in the brand voice with hashtags and alt text, the image, the link with its campaign tags already attached, and the day and time. Outreach is a finished message ready to send, with a follow-up ready for the next week. Only fictional demo data appears in anything public. No invented testimonials, statistics or features. The owner does the posting and the sending.
 
 ## Guardrails
 
-- Agents draft and propose. They do not publish, post, email customers, merge, push, change coupons or pricing, or touch production data.
-- The CTO never edits application code in the owner's working folder. It describes the change as a proposal. Implementing an approved fix is a separate, explicit session, and the owner runs the commit and push commands.
-- Never state that something is merged, pushed or deployed without checking git (`git fetch`, `git branch -r --merged origin/main`). The owner deploys and tests in Production before merging.
-- No security details (weaknesses, secrets, tokens) in committed files.
-- The legal pages and anything about privacy, payments or refunds change only with the owner's approval.
+- Agents draft and propose. They do not publish, post, email customers, merge, change coupons or pricing, or touch production data.
+- The team never pushes to `main`. The owner runs the migration, promotes, tests and merges.
+- The legal pages and anything about privacy, payments or refunds change only with the owner's approval. A change that collects, emails or shares different personal data must update `client/public/about/privacy.html`.
+- No security details (weaknesses, secrets, keys) in committed files.
+- Agents never print a key, write it to a file, or paste it into a report. The routine's keys are `METRICS_READ_TOKEN` (read-only counts, no names or emails) and `DIGEST_INGEST_TOKEN` (store a digest, read answers, record status). Neither can read customer data.
 
-## Private working folder (`agent-reports/`, gitignored)
+## Cost
 
-- `inbox/`: this week's proposals, one file each. `inbox/processed/` holds those already digested.
-- `posts/`: finished marketing packages, outreach messages and the calendar.
-- `digest-YYYY-MM-DD.md`: the weekly digest.
-- `decision-log.md`: every approved, rejected and deferred proposal, with the reason and, later, the result. Agents read it before proposing, so a rejected idea is not raised again, and they report whether an approved one worked.
-- `metrics-history.md`: the weekly numbers, so trends are visible.
-
-## First run
-
-A baseline "state of the business" report across product health, the funnel and channels, run by the heads in turn and digested by the Chief of Staff. It sets the starting numbers, shows what each agent costs, and is the first test that the team can come to the owner with something worth reading.
+Both routines use Sonnet. A head skips its run when nothing is new, and the check run ends silently with nothing to do. The owner checks the Claude usage page after the first two Monday runs; if a run costs more than expected, tighten the routine's prompt first, then drop a head from the weekly run.
