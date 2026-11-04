@@ -75,18 +75,23 @@ export default function AppAdmin() {
   if (!session) {
     return (
       <Centered>
-        <div style={styles.loginCard}>
-          <div style={styles.loginTitle}>SimchaKit Admin</div>
-          <div style={styles.loginSub}>Brook Creative LLC</div>
+        <div className="ax-login">
+          <div className="ax-login-brand">
+            <img src="/icon-192.png" alt="" width="44" height="44" />
+            <h1>SimchaKit Admin</h1>
+          </div>
+          <p className="ax-login-sub">Brook Creative LLC</p>
           {sent ? (
-            <div style={styles.sentMsg}>
-              ✓ Magic link sent to <strong>{email}</strong>.<br />
+            <div className="ax-sent" role="status">
+              Magic link sent to <strong>{email}</strong>.<br />
               Check your email and click the link to sign in.
             </div>
           ) : (
             <>
+              <label htmlFor="ax-email-in" className="ax-login-sub" style={{ display: "block", marginBottom: 6 }}>Email</label>
               <input
-                style={styles.loginInput}
+                id="ax-email-in"
+                className="ax-input"
                 type="email"
                 placeholder="your@email.com"
                 value={email}
@@ -94,9 +99,9 @@ export default function AppAdmin() {
                 onKeyDown={e => { if (e.key === "Enter") handleSendLink(); }}
                 autoFocus
               />
-              {sendError && <div style={styles.loginError}>{sendError}</div>}
+              {sendError && <div className="ax-error" role="alert">{sendError}</div>}
               <button
-                style={{ ...styles.loginBtn, opacity: sending || !email.trim() ? 0.5 : 1 }}
+                className="ax-btn block"
                 onClick={handleSendLink}
                 disabled={sending || !email.trim()}
               >
@@ -113,12 +118,12 @@ export default function AppAdmin() {
   if (!isAdmin) {
     return (
       <Centered>
-        <div style={styles.loginCard}>
-          <div style={styles.loginTitle}>Access Denied</div>
-            <div style={{ ...styles.loginSub, marginTop: 8 }}>
+        <div className="ax-login">
+          <div className="ax-login-brand"><h1>Access Denied</h1></div>
+          <p className="ax-login-sub">
             {session.user.email} is not authorized to access this dashboard.
-          </div>
-          <button style={{ ...styles.loginBtn, marginTop: 20 }} onClick={() => supabase.auth.signOut()}>
+          </p>
+          <button className="ax-btn block" onClick={() => supabase.auth.signOut()}>
             Sign Out
           </button>
         </div>
@@ -131,55 +136,9 @@ export default function AppAdmin() {
 }
 
 function Centered({ children }) {
-  return (
-    <div style={{
-      display: "flex", alignItems: "center", justifyContent: "center",
-      minHeight: "100vh", background: "#f8f9fa", fontFamily: "system-ui, sans-serif",
-      gap: 10, color: "#666", fontSize: 14,
-    }}>
-      {children}
-    </div>
-  );
+  return <div className="ax-center">{children}</div>;
 }
 
 function Spinner() {
-  return (
-    <div style={{
-      width: 18, height: 18, border: "2px solid #ddd",
-      borderTopColor: "#666", borderRadius: "50%",
-      animation: "spin 0.8s linear infinite", flexShrink: 0,
-    }} />
-  );
+  return <div className="ax-spinner" />;
 }
-
-const styles = {
-  loginCard: {
-    background: "white", borderRadius: 12, padding: "36px 32px",
-    boxShadow: "0 2px 16px rgba(0,0,0,0.08)", width: 360,
-    fontFamily: "system-ui, sans-serif",
-  },
-  loginTitle: {
-    fontSize: 22, fontWeight: 700, color: "#111", marginBottom: 4,
-  },
-  loginSub: {
-    fontSize: 13, color: "#888", marginBottom: 24,
-  },
-  loginInput: {
-    width: "100%", padding: "10px 12px", border: "1px solid #ddd",
-    borderRadius: 8, fontSize: 14, outline: "none",
-    boxSizing: "border-box", marginBottom: 10,
-  },
-  loginBtn: {
-    width: "100%", padding: "10px 0", background: "#111", color: "white",
-    border: "none", borderRadius: 8, fontSize: 14, fontWeight: 600,
-    cursor: "pointer", transition: "opacity 0.2s",
-  },
-  loginError: {
-    fontSize: 12, color: "#c00", marginBottom: 8,
-  },
-  sentMsg: {
-    fontSize: 13, color: "#333", lineHeight: 1.6,
-    background: "#f0faf0", border: "1px solid #b3e6b3",
-    borderRadius: 8, padding: "12px 14px",
-  },
-};
