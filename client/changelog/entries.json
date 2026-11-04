@@ -1,5 +1,15 @@
 [
   {
+    "id": "2026-11-04-02-print-screens",
+    "release": "V5.18.1",
+    "date": "2026-11-04",
+    "kind": "fixed",
+    "area": "Exports",
+    "audience": "host",
+    "highlight": false,
+    "title": "Printing from an iPhone now prints what you chose: an export prints the export, and a regular screen prints that screen instead of a blank page"
+  },
+  {
     "id": "2026-11-04-01-first-screens-clearer",
     "release": "V5.18.0",
     "date": "2026-11-04",
