@@ -13,7 +13,7 @@ if [ -z "$FILE" ] || [ ! -r "$FILE" ]; then
   exit 2
 fi
 
-if ! grep -qiE '^[[:space:]]*("fact_checked"[[:space:]]*:|fact-checked:)' "$FILE"; then
+if ! grep -qiE '("fact_checked"[[:space:]]*:|^[[:space:]]*fact-checked:)' "$FILE"; then
   echo "Refusing to send: no Fact-checked line (or fact_checked key) in $FILE." >&2
   exit 3
 fi

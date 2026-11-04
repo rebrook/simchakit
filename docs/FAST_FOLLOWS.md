@@ -12,5 +12,4 @@ Small, near-term items that came out of recent work. Not roadmap features. Newes
 
 ## Housekeeping
 
-- Stop tracking the Synology `@eaDir` metadata files in git (84 tracked) and add them to `.gitignore` properly.
 - If the repo goes private: replace the README release badge with a static one or remove it.
