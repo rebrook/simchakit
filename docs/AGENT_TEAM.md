@@ -51,10 +51,28 @@ The CEO approves or rejects it like any other proposal, and the decision goes in
 The weekly run is not finished when the digest is written. The session that launches the agents also does these, in order:
 
 1. **Independent fact check.** A fresh agent gets only the digest and the repo (not the proposals' reasoning) and checks every factual claim: what is merged, deployed or live, what a policy or screen says, what a number means and when its data begins. It reports each claim as confirmed, wrong or unverifiable. Wrong claims are fixed in the digest and in the proposal that raised them, and unverifiable ones are labelled as such.
-2. **Publish a briefing page** the owner can open (a private artifact), built from the corrected digest, with the decisions first. The owner should never need to find a file on the NAS.
+2. **Publish to the admin console's Weekly briefing screen.** Write the corrected digest as `agent-reports/digest-YYYY-MM-DD.json` (shape below), then run `sh scripts/send-digest.sh agent-reports/digest-YYYY-MM-DD.json`. The owner opens the admin console, sees the decisions first and answers them there. The owner should never need to find a file on the NAS. The script refuses a file with no `fact_checked` key, and the token is read from `DIGEST_INGEST_TOKEN` or `~/.config/simchakit/digest-ingest-token` and never printed.
 3. **Tell the owner the run is done**, in the launching session's closing message, with the link and the number of decisions waiting. If a notification channel is added later, it is used here.
 
 Agents cannot start other agents or send anything, so steps 1 to 3 belong to the launching session. If the owner starts only the Chief of Staff, the digest ends with "Not fact-checked or published" in bold.
+
+### Digest JSON for the briefing screen
+
+The Chief of Staff writes the markdown digest. The launching session turns the corrected digest into this JSON (keep it multi-line, one key per line is fine) and sends it. At most 20 decisions; text is clipped, so keep fields short. Sending the same `week_of` again replaces that week's digest.
+
+```json
+{
+  "week_of": "YYYY-MM-DD",
+  "fact_checked": true,
+  "numbers": [{"label": "", "value": "", "note": ""}],
+  "decisions": [{"title": "", "recommendation": "", "confidence": "", "effort": "", "why": "", "could_be_wrong": "", "checks": [{"claim": "", "status": "checked|unverified"}]}],
+  "held_back": [""],
+  "usage": "",
+  "link": ""
+}
+```
+
+The owner's answers are stored in the database (`agent_decisions`, one new row per change), not in this repo. Read them through the admin console and copy them into `agent-reports/decision-log.md` when the owner says so.
 
 ## What a proposal contains
 
