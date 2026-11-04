@@ -1,9 +1,22 @@
 {
-  "current": "V5.16.0",
+  "current": "V5.17.0",
   "whatsNew": [
     "A guest Event details page after RSVP: schedule, directions, parking and shared hotels, limited to what each household is invited to"
   ],
   "changelog": [
+    {
+      "version": "V5.17.0",
+      "date": "2026-11-04",
+      "summary": "Weekly briefing: mockups, the few inputs the team needs, a question box, and the team's replies and ship cards (V5-A2)",
+      "changes": [
+        "New: client/migrations/V5.17.0-A2.sql adds answers, team_status, team_reply and picked_up_at to agent_decisions and allows a 'question' decision. No policy change: admin_users can still only read and insert, the browser's INSERT grant is narrowed to the columns it sends, and the team columns are written by the server only. Run it before deploying",
+        "New: POST/GET /api/admin?action=digest-decisions (api/_lib/digest-decisions.js), bearer DIGEST_INGEST_TOKEN. GET returns recent digests with the latest decision per item and which are not picked up yet; POST lets the team record that it picked an answer up, its status and its reply to a question. Nothing in a request can change the owner's decision, reason or answers",
+        "New: api/_lib/team-auth.js, the shared bearer-key check and rate limit for digest-ingest and digest-decisions (digest-ingest now uses it; behaviour unchanged)",
+        "Changed: digest-ingest accepts per-decision mockup (post or screen; https images only), asks (label, why, example, what a skip means) and a ship list of step cards, all rebuilt from known fields and clipped",
+        "New: the Weekly briefing page shows each decision's mockup, input fields with a Skip option, Approve / Not now / Reject / I have a question, the team's status and reply, and Ready to ship cards with copy buttons. The nav badge also counts a question the team has answered",
+        "Changed: docs/AGENT_TEAM.md is now the playbook for the Monday briefing run and the daily check run; agent files read history from the briefing API instead of local files. Removed scripts/send-digest.sh (the routine posts the digest directly)"
+      ]
+    },
     {
       "version": "V5.16.0",
       "date": "2026-11-03",
