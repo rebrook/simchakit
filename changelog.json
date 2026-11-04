@@ -1,9 +1,22 @@
 {
-  "current": "V5.15.0",
+  "current": "V5.16.0",
   "whatsNew": [
     "A guest Event details page after RSVP: schedule, directions, parking and shared hotels, limited to what each household is invited to"
   ],
   "changelog": [
+    {
+      "version": "V5.16.0",
+      "date": "2026-11-03",
+      "summary": "Admin console in the SimchaKit brand, with a Weekly briefing home screen for the planning agents' digest (V5-A1)",
+      "changes": [
+        "New: client/migrations/V5.16.0-A1.sql adds agent_digests and agent_decisions. RLS is on for both, anon has no access, and only signed-in users listed in admin_users can read them. Admins can also insert decisions (decided_by must be their own id); there is no update or delete policy, so a changed decision is a new row and history is kept. Digests are written by the server only. No Realtime, no Demo policies. Run it before deploying",
+        "New: POST /api/admin?action=digest-ingest (api/_lib/digest-ingest.js), bearer DIGEST_INGEST_TOKEN (a new environment variable; add it for Preview and Production in the project that builds api/, then redeploy). Constant-time token compare, 401 on a missing or wrong token, 500 when the variable is unset, 413 over 100 KB, best-effort rate limit per instance. The stored payload is rebuilt from known fields with every text clipped, upserts by week_of, and ignores any decision fields in the body. fact_checked is stored true only when the body says exactly true",
+        "New: scripts/send-digest.sh posts a digest JSON file (modelled on fetch-metrics.sh). Token from DIGEST_INGEST_TOKEN or ~/.config/simchakit/digest-ingest-token, never printed, prints only the HTTP status, refuses a file with no Fact-checked line or fact_checked key",
+        "New: the admin console has a shared stylesheet with SimchaKit tokens (navy, gold, paper, Cormorant Garamond and DM Sans), dark mode (system setting plus a toggle), SVG icons and one responsive nav (sidebar on wide screens, drawer under 900px, keyboard focus visible). scripts/check-admin-contrast.mjs checks the pairs at 4.5:1",
+        "New: Weekly briefing is the default admin page, with a badge of undecided items. Approve, Reject or Defer with an optional reason; digest text is rendered as plain text only; a not-fact-checked digest shows a notice; previous weeks are read-only below",
+        "Changed: Dashboard, Users, Events, Purchases and Coupons keep their behaviour and inline styles until stage 2; in dark mode they sit on a light panel"
+      ]
+    },
     {
       "version": "V5.15.0",
       "date": "2026-11-03",
